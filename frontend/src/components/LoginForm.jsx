@@ -3,29 +3,29 @@ import { Button, Checkbox, Label, TextInput } from "flowbite-react";
 
 export function LoginForm() {
   return (
-    <div className="w-3/5 flex flex-col justify-start items-center mt-6 pt-6 bg-white rounded-2xl shadow-2xl h-1/3">
+    <div className="w-2/5 flex flex-col justify-start items-center mt-6 py-8 bg-white rounded-2xl shadow-2xl h-1/3">
       <h1 className="text-4xl font-bold text-sky-950 align-text-top mb-3">Sign In</h1>
       <h2 className="text-lg text-gray-700">Please login with your email and password</h2>
-      <form className="flex w-2/5 flex-col gap-4 mt-8">
+      <form className="flex w-2/5 flex-col gap-4 mt-3">
         <div>
           <div className="mb-2 block">
             <Label htmlFor="email1" className="text-md">Your email</Label>
           </div>
-          <TextInput id="email1" type="email" placeholder="Email / Username" required sizing="lg"/>
+          <TextInput id="email1" type="email" placeholder="Email / Username" required sizing="md"/>
         </div>
         <div>
           <div className="mb-2 block">
             <Label htmlFor="password1" className="text-md">Your password</Label>
           </div>
-          <TextInput id="password1" type="password" required placeholder="Password" sizing="lg"/>
+          <TextInput id="password1" type="password" required placeholder="Password" sizing="md"/>
         </div>
         <div className="flex items-center gap-2 max-w-sm mb-2">
           <Checkbox id="remember" />
           <Label htmlFor="remember">Remember me</Label>
         </div>
         <div className="flex flex-col items-center gap-3">
-          <Button size="xl" className="w-2/3 rounded-4xl" type="submit">Sign In</Button>
-          <Button size="xl" className="w-2/3 rounded-4xl" type="submit">Sign In with Google</Button>
+          <Button size="lg" className="w-2/3 rounded-4xl" type="submit">Sign In</Button>
+          <Button size="lg" className="w-2/3 rounded-4xl" type="submit">Sign In with Google</Button>
         </div>
       </form>
     </div>
