@@ -12,15 +12,6 @@ export function Header() {
           <span className="self-center whitespace-nowrap text-5xl font-semibold dark:text-sky-950">Univise</span>
         </NavbarBrand>
         <NavbarToggle />
-        <NavbarCollapse>
-          <NavbarLink href="#" active>
-            Home
-          </NavbarLink>
-          <NavbarLink href="#">
-            About
-          </NavbarLink>
-          <NavbarLink href="#">Contact</NavbarLink>
-        </NavbarCollapse>
       </Navbar>
     </div>
   );
