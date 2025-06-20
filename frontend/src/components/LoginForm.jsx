@@ -24,7 +24,7 @@ export function LoginForm() {
           <Label htmlFor="remember">Remember me</Label>
         </div>
         <div className="flex justify-center">
-          <Button size="xl" className="w-2/3" type="submit">Log In</Button>
+          <Button size="xl" className="w-2/3 rounded-4xl" type="submit">Sign In</Button>
         </div>
       </form>
     </div>
