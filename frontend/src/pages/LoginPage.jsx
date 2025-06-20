@@ -11,7 +11,7 @@ function LoginPage() {
       <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
           Welcome to UniVise!
       </h1>
-      <p className="text-lg text-black-300 dark:text-gray-800 text-center mt-5 mb-5">
+      <p className="text-lg text-black-300 dark:text-gray-800 text-center mt-5 mb-5 p-3">
         Your journey to the perfect career starts right here! <br/>
         Log in to explore tailored recommendations, connect with our AI assistant Eunice, and take control of your future.
       </p>
