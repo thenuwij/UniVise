@@ -4,12 +4,13 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import SurveyPage from "./pages/SurveyPage";
 import DashboardPage from "./pages/DashboardPage";
+import PrivateRoute from "./components/PrivateRoute";
 
 export const router = createBrowserRouter([
   { path: "/", element: <App/> },
   { path: "/login", element: <LoginPage/> },
   { path: "/register", element: <RegisterPage/> },
-  { path: "/survey", element: <SurveyPage/> },
-  { path: "/dashboard", element: <DashboardPage/>}
+  { path: "/survey", element: <PrivateRoute><SurveyPage/></PrivateRoute>},
+  { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>}
 
 ]);
