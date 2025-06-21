@@ -12,8 +12,8 @@ function LoginPage() {
           Welcome to UniVise!
       </h1>
       <p className="text-lg text-black-300 dark:text-gray-800 text-center mt-5 mb-5 p-3">
-        Your journey to the perfect career starts right here! <br/>
-        Log in to explore tailored recommendations, connect with our AI assistant Eunice, and take control of your future.
+        Your journey to the perfect career starts right here. <br/>
+        Log in to explore tailored recommendations, connect with our AI assistant Eunice, and take control of your future!
       </p>
       <LoginForm/>
       <div className="flex items-center gap-3 mt-7">
