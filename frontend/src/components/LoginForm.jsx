@@ -19,7 +19,7 @@ export function LoginForm() {
     try {
       const result = await signInUser(email,password);
       if (result.success) {
-        console.log(result)
+        console.log("Succusefuly logged in", result)
         navigate("/dashboard")
       }
     } catch (error) {

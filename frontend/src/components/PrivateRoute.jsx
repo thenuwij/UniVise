@@ -13,4 +13,4 @@ const PrivateRoute = ({ children }) => {
   return <div>{session ? <>{children}</> : <Navigate to="/login" replace />}</div>;
 };
 
-export default PrivateRoute;
+export default PrivateRoute; 

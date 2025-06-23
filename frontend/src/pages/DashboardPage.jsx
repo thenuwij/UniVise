@@ -9,10 +9,9 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   const handleSignOut = async (e) => {
-    e.preventDefault();
     try {
       await signOut();
-      navigate("/login")
+      navigate("/")
     } catch (err) {
       console.error(err)
     }
