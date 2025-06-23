@@ -68,7 +68,6 @@ export function LoginForm() {
         </div>
         <div className="flex flex-col items-center gap-3">
           <Button onClick={handleLogin} size="lg" pill  className="w-full" type="submit">Sign In</Button>
-          <Button size="lg" pill className="w-full" type="submit">Sign In with Google</Button>
         </div>
       </form>
     </div>
