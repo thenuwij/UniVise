@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from app.routes import recommend
+from backend.app.routes import ai_service
 
 app = FastAPI()
-app.include_router(recommend.router)
+app.include_router(ai_service.router)
 
 
 @app.get("/")
