@@ -10,8 +10,8 @@
 
 .sidebar {
   width: 220px;
-  background-color: #002855;
-  color: #fff;
+  background-color: #530055;
+  color: #ffffff;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -43,9 +43,9 @@
 .main-content {
   flex: 1;
   padding: 40px;
-  background-color: #f8f9fa;
+  background-color: #faf9f8;
   overflow-y: auto;
-  color: #212529;
+  color: #292121;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
