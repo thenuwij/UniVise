@@ -1,6 +1,8 @@
-# backend/app/main.py
-from core.config import settings
+from fastapi import FastAPI
 
-print(settings.supabase_anon_key)
+app = FastAPI()
 
-print(settings.openai_api_key)
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Recommendation API"}
