@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+
 
 function RegisterForm() {
 
@@ -34,8 +36,23 @@ function RegisterForm() {
       setLoading(true);
       try { 
         const result = await registerNewUser(email, password);
-        if(result.success) {
-          navigate("/survey")
+        if (result.success && result.data?.user?.id) {
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: result.data.user.id,
+            first_name: firstName,
+            last_name: lastName,
+            date_of_birth: dob,
+            gender: gender,
+          });
+          
+          if (insertError) {
+            console.error("Error inserting profile:", insertError);
+            setError("An error occurred storing your profile. Please try again.");
+          } else {
+            navigate("/survey");
+          }
+        } else {
+          setError("An error occurred during registration.");
         }
       }catch (err) {
         setError("An error occured")
