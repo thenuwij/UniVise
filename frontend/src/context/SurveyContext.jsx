@@ -12,6 +12,7 @@ export const SurveyContextProvider = ({ children }) => {
     console.log(`Checking survey status for type: ${userType}, id: ${userId}`);
 
     try {
+      
       if (userType === "high_school") {
         const { data } = await supabase
           .from("student_school_data")
