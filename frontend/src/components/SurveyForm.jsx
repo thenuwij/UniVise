@@ -3,7 +3,6 @@ import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
-import { useSurvey } from "../context/SurveyContext";
 
 function SurveyForm() {
   const { session } = UserAuth();
@@ -13,15 +12,6 @@ function SurveyForm() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const { hasCompletedSurvey } = useSurvey();
-
-  useEffect(() => {
-    if (!session) {
-        navigate("/signin");
-    } else if (hasCompletedSurvey) {
-        navigate("/dashboard");
-    }
-  }, [session, hasCompletedSurvey, navigate]);
 
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
@@ -49,6 +39,7 @@ function SurveyForm() {
         if (error) {
             console.error(error);
             setMessage("Error submitting survey.");
+            setLoading(false);
         } else {
             const { error: profileError } = await supabase
                 .from("profiles")
@@ -63,47 +54,46 @@ function SurveyForm() {
                 setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
             }
         }
-    }
+      }
 
     if (userType === "university") {
-    const { error } = await supabase.from("student_uni_data").insert([
-      {
-        user_id: session?.user?.id,
-        degree_stage: formData.degree_stage_other || formData.degree_stage || null,
-        academic_year: formData.academic_year_other || formData.academic_year || null,
-        degree_field: formData.degree_field_other || formData.degree_field || null,
-        wam: formData.wam ? parseFloat(formData.wam) : null,
-        switching_pathway: formData.switching_pathway || null,
-        study_feelings: formData.study_feelings || null,
-        interest_areas: formData.interest_areas || [],
-        interest_areas_other: formData.interest_areas_other || null,
-        hobbies: formData.hobbies || [],
-        hobbies_other: formData.hobbies_other || null,
-        confidence: formData.confidence || null,
-        want_help: formData.want_help || null,
-      },
-    ]);
+      const { error } = await supabase.from("student_uni_data").insert([
+        {
+          user_id: session?.user?.id,
+          degree_stage: formData.degree_stage_other || formData.degree_stage || null,
+          academic_year: formData.academic_year_other || formData.academic_year || null,
+          degree_field: formData.degree_field_other || formData.degree_field || null,
+          wam: formData.wam ? parseFloat(formData.wam) : null,
+          switching_pathway: formData.switching_pathway || null,
+          study_feelings: formData.study_feelings || null,
+          interest_areas: formData.interest_areas || [],
+          interest_areas_other: formData.interest_areas_other || null,
+          hobbies: formData.hobbies || [],
+          hobbies_other: formData.hobbies_other || null,
+          confidence: formData.confidence || null,
+          want_help: formData.want_help || null,
+        },
+      ]);
 
-    if (error) {
-      console.error(error);
-      setMessage("Error submitting survey.");
-    } else {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ student_type: "university" })
-        .eq("id", session?.user?.id);
-
-      if (profileError) {
-        console.error(profileError);
-        setMessage("Survey submitted, but failed to update student type.");
+      if (error) {
+        console.error(error);
+        setMessage("Error submitting survey.");
+        setLoading(false);
       } else {
-        setMessage("Survey submitted successfully!");
-        setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ student_type: "university" })
+          .eq("id", session?.user?.id);
+
+        if (profileError) {
+          console.error(profileError);
+          setMessage("Survey submitted, but failed to update student type.");
+        } else {
+          setMessage("Survey submitted successfully!");
+          setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
+        }
       }
     }
-  }
-    
-    setLoading(false);
   };
 
   return (

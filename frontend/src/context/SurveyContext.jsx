@@ -5,45 +5,69 @@ const SurveyContext = createContext();
 
 export const SurveyContextProvider = ({ children }) => {
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const checkSurveyStatus = async (userType, userId) => {
     if (!userId) return;
+    console.log(`Checking survey status for type: ${userType}, id: ${userId}`);
 
-    if (userType === "high_school") {
-      const { data } = await supabase
-        .from("student_school_data")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
+    try {
+      if (userType === "high_school") {
+        const { data } = await supabase
+          .from("student_school_data")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
 
-      if (data) setHasCompletedSurvey(true);
-    }
+        console.log("High school data lookup result:", data);
 
-    if (userType === "university") {
-      const { data } = await supabase
-        .from("student_university_data")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
+        if (data) setHasCompletedSurvey(true);
+      }
 
-      if (data) setHasCompletedSurvey(true);
+      if (userType === "university") {
+        const { data } = await supabase
+          .from("student_uni_data")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+
+        console.log("University data lookup result:", data);
+
+        if (data) setHasCompletedSurvey(true);
+      }
+    } catch (error) {
+      console.error("Error checking survey status:", error);
     }
   };
 
-
   useEffect(() => {
     const fetchSurveyStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        console.log("User from auth:", user);
+        if (error || !user) {
+          console.error("Error fetching user:", error);
+          setLoading(false);
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("student_type")
           .eq("id", user.id)
           .single();
 
-        if (profile?.student_type) {
+        console.log("Profile data:", profile);
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+        } else if (profile?.student_type) {
           await checkSurveyStatus(profile.student_type, user.id);
         }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -51,7 +75,13 @@ export const SurveyContextProvider = ({ children }) => {
   }, []);
 
   return (
-    <SurveyContext.Provider value={{ hasCompletedSurvey, checkSurveyStatus }}>
+     <SurveyContext.Provider
+      value={{
+        hasCompletedSurvey,
+        loading,
+        checkSurveyStatus,
+      }}
+    >
       {children}
     </SurveyContext.Provider>
   );

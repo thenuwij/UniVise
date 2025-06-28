@@ -5,20 +5,23 @@ import { Button } from 'flowbite-react';
 import { supabase } from '../supabaseClient';
 import SurveyForm from '../components/SurveyForm';
 import Logo from '../components/Logo';
+import { useSurvey } from '../context/SurveyContext';
 
 function SurveyPage() {
   const { session, signOut } = UserAuth();
+  const { hasCompletedSurvey, loading: surveyLoading } = useSurvey();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
 
   useEffect(() => {
     async function fetchUser() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-          console.error('Error fetching user:', userError);
+        if (userError || !user) {
+          navigate("/login", { replace: true });
           return;
         }
 
@@ -41,9 +44,23 @@ function SurveyPage() {
     }
 
     fetchUser();
-  }, []);
+  }, [navigate]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
+  useEffect(() => {
+    if (surveyLoading) return;
+
+    if (!session) {
+      navigate("/login", { replace: true });
+    } else if (hasCompletedSurvey) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      setCheckingAccess(false); // Access granted to survey
+    }
+  }, [session, hasCompletedSurvey, surveyLoading, navigate]);
+
+  if (loading || surveyLoading || checkingAccess) {
+    return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
+  }
 
   const handleSignOut = async (e) => {
     e.preventDefault();
@@ -69,7 +86,7 @@ function SurveyPage() {
       </div>
 
       {/* Welcome Heading */}
-      <div className="mt-12 sm:mt-16 md:mt-20 text-cente">
+      <div className="mt-12 sm:mt-16 md:mt-20 text-center">
         <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 leading-tight">
           Welcome, {firstName||session?.user?.email}!
         </h1>
