@@ -273,10 +273,10 @@ function SurveyForm() {
     )}
 
 
-      {userType === "high_school" && step === 6 && (
-        <div>
-          <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What’s your ATAR status?</h2>
-          <div className="flex flex-col gap-3 mb-6">
+    {userType === "high_school" && step === 6 && (
+      <div>
+        <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What’s your ATAR status?</h2>
+         <div className="flex flex-col gap-3 mb-6">
             <Button color={formData.atar_status === "known" ? "blue" : "gray"} onClick={() => handleChange("atar_status", "known")} className="w-full">I already know my ATAR</Button>
             {formData.atar_status === "known" && (
               <input placeholder="Enter your ATAR" className="border p-2 w-full mb-4 mt-2" onChange={(e) => handleChange("atar", e.target.value)} />
