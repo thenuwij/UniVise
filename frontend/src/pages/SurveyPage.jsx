@@ -23,7 +23,7 @@ function SurveyPage() {
         }
 
         const { data, error } = await supabase
-          .from('profiles')  // Change to your actual table name if different
+          .from('profiles') 
           .select('first_name')
           .eq('id', user.id)
           .single();
@@ -42,7 +42,6 @@ function SurveyPage() {
 
     fetchUser();
   }, []);
-
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
 
@@ -75,8 +74,6 @@ function SurveyPage() {
           Welcome, {firstName||session?.user?.email}!
         </h1>
       </div>
-
-      {/* <hr className="w-1/2 border-t border-gray-300 my-4" /> */}
 
       {/* Survey Form */}
       <div className="flex flex-col items-center justify-center flex-grow w-full">
