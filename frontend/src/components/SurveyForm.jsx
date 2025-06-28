@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
+import { useSurvey } from "../context/SurveyContext";
 
 function SurveyForm() {
   const { session } = UserAuth();
@@ -12,6 +13,15 @@ function SurveyForm() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { hasCompletedSurvey } = useSurvey();
+
+  useEffect(() => {
+    // if (!session) {
+    //     navigate("/signin");
+    // } else if (hasCompletedSurvey) {
+    //     navigate("/dashboard");
+    // }
+  }, [session, hasCompletedSurvey, navigate]);
 
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
@@ -22,27 +32,43 @@ function SurveyForm() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    const { error } = await supabase.from("student_survey_data").insert([
-      {
-        user_id: session?.user?.id,
-        survey_type: "onboarding",
-        answers: formData,
-      },
-    ]);
+    if (userType == "high_school") {
+        const { error } = await supabase.from("student_school_data").insert([
+        {
+            user_id: session?.user?.id,
+            year: formData.year_other || formData.year || null,
+            academic_strengths: formData.subjects || [],
+            hobbies: formData.hobbies || [],
+            career_interests: formData.career_fields || [],
+            atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
+            confidence: formData.confidence || null,
+            degree_interest: formData.degree_interest || [],
+        },
+        ]);
 
-    if (error) {
-      console.error(error);
-      setMessage("Error submitting survey.");
-    } else {
-      setMessage("Survey submitted successfully!");
-      setTimeout(() => navigate("/dashboard"), 1000);
+        if (error) {
+            console.error(error);
+            setMessage("Error submitting survey.");
+        } else {
+            const { error: profileError } = await supabase
+                .from("profiles")
+                .update({ student_type: "high_school" })
+                .eq("id", session?.user?.id);
+
+            if (profileError) {
+                console.error(profileError);
+                setMessage("Survey submitted, but failed to update student type.");
+            } else {
+                setMessage("Survey submitted successfully!");
+                setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
+            }
+        }
     }
     setLoading(false);
   };
 
-  
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="w-full max-w-2xl sm:max-w-xl mx-auto p-6 sm:p-4">
     {step === 1 && (
         <div>
             <h2 className="text-4xl font-bold mb-6 text-center">Which describes you best?</h2>
@@ -52,7 +78,7 @@ function SurveyForm() {
                 size="xl"
                 className="py-6 text-lg"
                 onClick={() => {
-                setUserType("highschool");
+                setUserType("high_school");
                 handleNext();
                 }}
             >
@@ -74,7 +100,7 @@ function SurveyForm() {
         )}
 
       {/* High School Flow */}
-    {userType === "highschool" && step === 2 && (
+    {userType === "high_school" && step === 2 && (
     <div>
         <h2 className="text-4xl font-bold mb-6 text-center">What year are you currently in?</h2>
 
@@ -84,6 +110,7 @@ function SurveyForm() {
         onChange={(e) => handleChange("year", e.target.value)}
         >
         <option value="" disabled>Select your year</option>
+        <option value="Year 10">Year 10</option>
         <option value="Year 11">Year 11</option>
         <option value="Year 12">Year 12</option>
         <option value="Other">Other</option>
@@ -103,14 +130,20 @@ function SurveyForm() {
             Back
         </Button>
 
-        <Button onClick={handleNext} disabled={!formData.year}>
-            Next
+        <Button 
+        onClick={handleNext} 
+        disabled={
+            !formData.year || 
+            (formData.year === "Other" && !formData.year_other)
+        }
+        >
+        Next
         </Button>
         </div>
     </div>
     )}
 
-{userType === "highschool" && step === 3 && (
+{userType === "high_school" && step === 3 && (
   <div>
     <h2 className="text-4xl font-bold mb-6 text-center">What are your favourite subjects or academic strengths?</h2>
 
@@ -145,9 +178,9 @@ function SurveyForm() {
   </div>
 )}
 
-  {userType === "highschool" && step === 4 && (
+  {userType === "high_school" && step === 4 && (
         <div>
-          <h2 className="text-4xl font-bold mb-6 text-center">Outside of school, what are your hobbies or personal interests?</h2>
+          <h2 className="text-4xl font-bold mb-6 text-center">What are your hobbies/personal interests?</h2>
           <div className="flex flex-col gap-3 mb-6">
             {["Sports & Fitness", "Creative Arts (music, design, writing)", "Technology & Coding", "Community or Volunteering", "Gaming & Entertainment", "Other", "Not sure yet"].map((option) => (
               <Button
@@ -172,7 +205,7 @@ function SurveyForm() {
         </div>
       )}
 
-    {userType === "highschool" && step === 5 && (
+    {userType === "high_school" && step === 5 && (
     <div>
         <h2 className="text-4xl font-bold mb-6 text-center">What career field(s) interest you the most?</h2>
         <div className="flex flex-col gap-3 mb-6">
@@ -201,7 +234,7 @@ function SurveyForm() {
     )}
 
 
-      {userType === "highschool" && step === 6 && (
+      {userType === "high_school" && step === 6 && (
         <div>
           <h2 className="text-4xl font-bold mb-6 text-center">What’s your ATAR status?</h2>
           <div className="flex flex-col gap-3 mb-6">
@@ -217,12 +250,21 @@ function SurveyForm() {
           </div>
           <div className="flex justify-between">
             <Button onClick={handlePrev}>Back</Button>
-            <Button onClick={handleNext} disabled={!formData.atar_status}>Next</Button>
+            <Button 
+                onClick={handleNext} 
+                disabled={
+                    !formData.atar_status || 
+                    (formData.atar_status === "known" && !formData.atar) || 
+                    (formData.atar_status === "goal" && !formData.atar_goal)
+                }
+            >
+            Next
+            </Button>
           </div>
         </div>
       )}
 
-      {userType === "highschool" && step === 7 && (
+      {userType === "high_school" && step === 7 && (
         <div>
           <h2 className="text-4xl font-bold mb-6 text-center">How confident are you about your future study path?</h2>
           <div className="flex flex-col gap-3 mb-6">
@@ -244,10 +286,10 @@ function SurveyForm() {
         </div>
       )}
 
-    {userType === "highschool" && step === 8 && (
+    {userType === "high_school" && step === 8 && (
   <div>
     <h2 className="text-4xl font-bold mb-6 text-center">
-        What type of degree(s) are you most interested in?
+        What degree(s) are you most interested in?
     </h2>
     <div className="flex flex-col gap-3 mb-6">
       {[
@@ -284,7 +326,7 @@ function SurveyForm() {
 )}
 
 
-      {/* University Flow */}
+    {/* University Flow */}
     {userType === "university" && step === 2 && (
         <div>
             <h2 className="text-4xl font-bold mb-6 text-center">Which academic year are you in?</h2>
