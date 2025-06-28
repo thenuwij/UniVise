@@ -57,7 +57,7 @@ function SurveyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-white to-sky-100 flex flex-col items-center justify-center p-4 relative"
+    <div className="min-h-screen bg-gradient-to-br from-white via-sky-100 to-indigo-200 flex flex-col items-center relative"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Sign Out Button top-right */}
@@ -70,17 +70,22 @@ function SurveyPage() {
       </div>
 
       {/* Welcome Heading */}
-      <div className="absolute top-24 left-1/2 transform -translate-x-1/2">
-        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-2">
+      <div className="mt-12 sm:mt-16 md:mt-20 text-cente">
+        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 leading-tight">
           Welcome, {firstName||session?.user?.email}!
         </h1>
       </div>
 
-      {/* Survey Form */}
-     <div className="w-full max-w-6xl bg-gray-100 shadow-xl rounded-2xl p-6 sm:p-8 lg:p-12 border border-gray-200 relative flex flex-col items-center justify-center pt-40">
-        {/* Center form content */}
-        <SurveyForm />
+      {/* <hr className="w-1/2 border-t border-gray-300 my-4" /> */}
 
+      {/* Survey Form */}
+      <div className="flex flex-col items-center justify-center flex-grow w-full">
+        <div className="w-full max-w-6xl bg-white shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-12 border border-gray-200 flex flex-col items-center justify-center mb-12">
+          {/* Center form content */}
+          <div className="w-full max-w-2xl px-4 sm:px-0">
+            <SurveyForm />
+          </div>
+        </div>
       </div>
 
     </div>
