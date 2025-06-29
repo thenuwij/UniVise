@@ -1,4 +1,4 @@
-from supabase import create_client
-from backend.app.config import settings
+from supabase import create_client, Client
+from app.config import SUPABASE_ANON_KEY, SUPABASE_URL
 
-supabase = create_client(settings.supabase_url, settings.supabase_anon_key)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
