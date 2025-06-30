@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.utils.database import supabase  # your admin client
+from app.utils.database import supabase
 
 bearer_scheme = HTTPBearer()
 
@@ -24,14 +24,3 @@ async def get_current_user(
     except Exception as e:
         print("Error verifying token:", e)
         raise HTTPException(status_code=401, detail="Invalid or expired Supabase token")
-
-
-async def get_student_type(user=Depends(get_current_user)):
-    profile_resp = (
-        supabase.table("profiles").select("student_type").eq("id", user.id).execute()
-    )
-
-    if not profile_resp:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    return profile_resp.data[0]["student_type"]
