@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from .routers import auth
+from .routers import auth, recommendation
 
 app = FastAPI()
 load_dotenv()
@@ -15,3 +15,6 @@ app.add_middleware(
     allow_credentials=True,
 )
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(
+    recommendation.router, prefix="/recommendation", tags=["Recommendation"]
+)
