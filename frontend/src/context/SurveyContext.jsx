@@ -45,9 +45,7 @@ export const SurveyContextProvider = ({ children }) => {
     const fetchSurveyStatus = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        console.log("User from auth:", user);
         if (error || !user) {
-          console.error("Error fetching user:", error);
           setLoading(false);
           return;
         }
