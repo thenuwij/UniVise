@@ -3,8 +3,15 @@ import { Button } from 'flowbite-react'
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { DashboardNavBar } from '../components/DashboardNavBar';
+import { MenuBar } from '../components/MenuBar';
+import { useState } from 'react';
 
 function DashboardPage() {
+
+  const [isOpen, setIsOpen] = useState(false);
+  const openDrawer = () => setIsOpen(true);
+  const closeDrawer = () => setIsOpen(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -29,7 +36,8 @@ function DashboardPage() {
 
   return (
     <div>
-        <Button onClick={handleSignOut}>Sign Out</Button>
+      <DashboardNavBar onMenuClick={openDrawer} />
+      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
     </div>
   )
 }
