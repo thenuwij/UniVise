@@ -17,21 +17,18 @@ import { LuMenu } from "react-icons/lu";
 
 export function DashboardNavBar({ onMenuClick }) {
 
-  const [isOpen, setIsOpen] = useState(false);
-  const handleToggle = () => setIsOpen(!isOpen);
-
   return (
     <Navbar fluid rounded>
       <LuMenu className="w-10 h-10 ml-4" onClick={onMenuClick}/>
       <NavbarBrand>
-        <img src={logo} className="mt-4 h-18 w-18"/>
-        <span className="self-center whitespace-nowrap text-4xl font-semibold">Univise</span>
+        <img src={logo} className="mt-1 h-18 w-18"/>
+        <span className="self-center whitespace-nowrap text-4xl font-semibold mb-2">Univise</span>
       </NavbarBrand>
       <Dropdown
         arrowIcon={false}
         inline
         label={
-          <Avatar alt="User settings" img="https://flowbite.com/docs/images/people/profile-picture-5.jpg" rounded className="mr-5"/>
+          <Avatar alt="User settings" img="https://flowbite.com/docs/images/people/profile-picture-5.jpg" rounded className="mr-4 mb-2"/>
         }
       >
         <DropdownHeader>
