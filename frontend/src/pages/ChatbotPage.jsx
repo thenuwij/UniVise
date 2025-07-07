@@ -20,33 +20,29 @@ function ChatbotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-100 to-indigo-200 flex flex-col items-center relative"
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-white via-sky-50 to-indigo-100 px-4 relative"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Sign Out Button top-right */}
-      <div className="absolute top-4 sm:top-8 right-2 sm:right-4">
+    <div className="absolute top-4 right-4">
         <Button color="gray" size="sm" onClick={handleSignOut}>Sign Out</Button>
       </div>
 
-      <div className="absolute top-4 left-4 sm:left-6 lg:left-8">
+      <div className="absolute top-4 left-4">
         <Logo />
       </div>
 
       {/* Welcome Heading */}
-      <div className="mt-12 sm:mt-16 md:mt-20 text-center">
-        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 leading-tight">
-          UniVise AI Chat
+      <div className="text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+          Your Personal Advisor
         </h1>
-        <p className="text-gray-700 text-lg">Ask questions, get guidance, explore your pathways.</p>
+        <p className="text-gray-600 text-base">Friendly, personalised guidance</p>
       </div>
 
       {/* Chatbot Container */}
-      <div className="flex flex-col items-center justify-center flex-grow w-full">
-        <div className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-12 border border-gray-200 flex flex-col items-center justify-center mb-12">
-          <div className="w-full max-w-2xl px-4 sm:px-0">
+      <div className="w-full">
             <Chatbot />
-          </div>
-        </div>
       </div>
     </div>
   );
