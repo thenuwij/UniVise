@@ -1,13 +1,25 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
+import { supabase } from "../supabaseClient";
+import { useEffect } from "react";
 
 export function RecommendationTable() {
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await supabase.auth.getUser();
+      console.log("User:", user);
+    };
+    fetchUser();
+  }, []);
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeadCell>Product name</TableHeadCell>
+            <TableHeadCell>Product</TableHeadCell>
             <TableHeadCell>Color</TableHeadCell>
             <TableHeadCell>Category</TableHeadCell>
             <TableHeadCell>Price</TableHeadCell>
