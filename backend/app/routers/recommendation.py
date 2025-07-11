@@ -21,44 +21,43 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Invalid User")
 
     if student_type == "university":
-        if user_info["switching_pathway"] == "No, I’m happy with my current path":
-            is_switching = False
-            prompt = (
-                "You are a university career advisor for UNSW students. Based on the following student's profile, "
-                "recommend 4–5 university courses they should enrol in next:\n\n"
-                f"• Degree field: {user_info['degree_field']}\n"
-                f"• Degree stage: {user_info['degree_stage']}\n"
-                f"• Current WAM: {user_info['wam']}\n"
-                f"• Study feelings: {user_info['study_feelings']}\n"
-                f"• Interests: {user_info['interest_areas']} / {user_info['interest_areas_other']}\n"
-                f"• Hobbies: {user_info['hobbies']}\n\n"
-                "Return a JSON array with the following for each course:\n"
-                "- 'course': name/code of the recommended course\n"
-                "- 'reason': short explanation why it matches\n"
-                "- 'term': when the student should take it (e.g. Year 2 Term 1)\n"
-                "- 'skill_focus': main skills the course builds\n\n"
-                "Respond only with valid JSON, no intro or extra text."
-            )
-        else:
-            is_switching = True
-            prompt = (
-                "You are a university career advisor for UNSW students helping a student consider switching degrees. Based on their profile:\n\n"
-                f"• Current field: {user_info['degree_field']}\n"
-                f"• Current WAM: {user_info['wam']}\n"
-                f"• Reason for switching: {user_info['study_feelings']}\n"
-                f"• Interests: {user_info['interest_areas']} / {user_info['interest_areas_other']}\n"
-                f"• Hobbies: {user_info['hobbies']}\n"
-                f"• Confidence in career direction: {user_info['confidence']}\n\n"
-                "Recommend 4–5 alternative degrees in JSON. Each object should include:\n"
-                "- 'degree': suggested degree\n"
-                "- 'reason': why it suits them better\n"
-                "- 'transfer_ease': how hard it would be to switch from their current field\n"
-                "- 'university': recommended uni for it\n"
-                "- 'suitability_score': match score (0–100)\n\n"
-                "Respond only with valid JSON, no explanation or extra text."
-            )
+        prompt = (
+            "You are a university career advisor for UNSW students helping a student explore future job and career options. Based on their profile:\n\n"
+            f"• Current field: {user_info['degree_field']} / {user_info['degree_stage']} / {user_info['academic_year']}\n"
+            f"• Current WAM: {user_info['wam']}\n"
+            f"• Opinion on Studying current degree: {user_info['study_feelings']}\n"
+            f"• Study & Career interests: {user_info['interest_areas']} / {user_info['interest_areas_other']}\n"
+            f"• Hobbies: {user_info['hobbies']} / {user_info['hobbies_other']}\n"
+            f"• Confidence in career direction: {user_info['confidence']}\n\n"
+            f"• Needs help with career direction: {user_info['want_help']}\n\n"
+            "Using this information, return 4-5 recommended career roles as a JSON array."
+            " For each recommendation, return a JSON object with:\n"
+            "career_title: string — The name of the job role (e.g. Software Engineer"
+            "industry: string — The industry this job is in (e.g. Technology)"
+            "suitability_score: int — A score from 0 to 100 indicating how well this matches the student\n"
+            "reason: string — A detailed explanation of why this job is a good fit for the student\n"
+            "avg_salary_range: number — Estimated starting salary for this role (e.g. 80000)\n"
+            "education_required: string — The education level required for this role (e.g. Bachelor's degree in Computer Science)\n"
+            "skills_needed: array — A list of key skills needed for this role (e.g"
+            "reason: string — A detailed explanation of why this job is a good fit for the student\n\n"
+            "link: string — A link to a job description or career page for this role\n\n"
+            "source: string — The source of the recommendation (e.g. UNSW Career Services)\n\n"
+            "Respond only with valid JSON in this format, no explanation or extra text:\n"
+            "[\n"
+            "  {\n"
+            '    "career_title": "Software Engineer",\n'
+            '    "industry": "Technology",\n'
+            '    "suitability_score": 95,\n'
+            '    "reason": "This role aligns with your interests in software development and your current studies.",\n'
+            '    "avg_salary_range": 80000-120000,\n'
+            '    "education_required": "Bachelor\'s degree in Computer Science or related field",\n'
+            '    "skills_needed": ["Python", "Java", "Problem Solving"],\n'
+            '    "link": "https://www.unsw.edu.au/careers/jobs/software-engineer",\n'
+            '    "source": "UNSW Career Services"\n'
+            "  }\n"
+            "]"
+        )
     elif student_type == "high_school":
-        is_switching = False
         prompt = (
             "You are a highschool advisor for university major selection. A high school student has shared the following profile:\n\n"
             f"• Year level: {user_info['year']}\n"
@@ -121,7 +120,7 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
                 "atar_requirement": rec["atar_requirement"],
                 "suitability_score": rec["suitability_score"],
                 "est_completion_years": rec.get("estimated_completion_time", 3.0),
-                "reasoning": rec.get("reason"),
+                "reason": rec.get("reason"),
                 "sources": rec.get("source"),
                 "link": rec.get("link"),
                 "created_at": datetime.datetime.now().isoformat(),
@@ -137,5 +136,46 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
             )
 
         return {"status": "success", "recommendations": rows}
+    elif student_type == "university":
+        cleaned = recommendation.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(
+                r"^```json|^```|```$", "", cleaned, flags=re.MULTILINE
+            ).strip()
+
+        try:
+            parsed = json.loads(cleaned)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error parsing recommendation: {str(e)}\nRaw output: {recommendation}",
+            ) from e
+        rows = []
+        for rec in parsed:
+            row = {
+                "id": str(uuid.uuid4()),
+                "user_id": user.id,
+                "career_title": rec["career_title"],
+                "industry": rec["industry"],
+                "suitability_score": rec["suitability_score"],
+                "reason": rec.get("reason"),
+                "avg_salary_range": rec["avg_salary_range"],
+                "education_required": rec["education_required"],
+                "skills_needed": rec["skills_needed"],
+                "link": rec.get("link"),
+                "source": rec.get("source"),
+                "created_at": datetime.datetime.now().isoformat(),
+            }
+            rows.append(row)
+        response = supabase.table("career_recommendations").insert(rows).execute()
+        if not response:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error saving recommendations: {response.error.message}",
+            )
+        recommendation = {
+            "status": "success",
+            "recommendations": rows,
+        }
 
     return recommendation
