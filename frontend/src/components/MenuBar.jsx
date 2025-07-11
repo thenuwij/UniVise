@@ -23,6 +23,11 @@ import {
   HiShoppingBag,
   HiUsers,
 } from "react-icons/hi";
+import { TbMessageChatbotFilled } from "react-icons/tb";
+import { MdDashboard } from "react-icons/md";
+import { FaFingerprint } from "react-icons/fa";
+import { RiGuideFill } from "react-icons/ri";
+
 
 export function MenuBar({ isOpen, handleClose }) {
   return (
@@ -41,31 +46,19 @@ export function MenuBar({ isOpen, handleClose }) {
                 </form>
                 <SidebarItems>
                   <SidebarItemGroup>
-                    <SidebarItem href="/" icon={HiChartPie}>
-                      Dashboard
-                    </SidebarItem>
-                    <SidebarItem href="/e-commerce/products" icon={HiShoppingBag}>
-                      Products
-                    </SidebarItem>
-                    <SidebarItem href="/users/list" icon={HiUsers}>
-                      Users list
-                    </SidebarItem>
-                    <SidebarItem href="/authentication/sign-in" icon={HiLogin}>
-                      Sign in
-                    </SidebarItem>
-                    <SidebarItem href="/authentication/sign-up" icon={HiPencil}>
-                      Sign up
+                    <SidebarItem icon={TbMessageChatbotFilled}>
+                      Ask Eunice
                     </SidebarItem>
                   </SidebarItemGroup>
                   <SidebarItemGroup>
-                    <SidebarItem href="https://github.com/themesberg/flowbite-react/" icon={HiClipboard}>
-                      Docs
+                    <SidebarItem href="/dashboard" icon={MdDashboard}>
+                      Dashboard
                     </SidebarItem>
-                    <SidebarItem href="https://flowbite-react.com/" icon={HiCollection}>
-                      Components
+                    <SidebarItem icon={FaFingerprint}>
+                      My Traits
                     </SidebarItem>
-                    <SidebarItem href="https://github.com/themesberg/flowbite-react/issues" icon={HiInformationCircle}>
-                      Help
+                    <SidebarItem icon={RiGuideFill}>
+                      My Roadmap
                     </SidebarItem>
                   </SidebarItemGroup>
                 </SidebarItems>
