@@ -6,6 +6,8 @@ const SurveyContext = createContext();
 export const SurveyContextProvider = ({ children }) => {
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userType, setUserType] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const checkSurveyStatus = async (userType, userId) => {
     if (!userId) return;
@@ -20,7 +22,7 @@ export const SurveyContextProvider = ({ children }) => {
           .eq("user_id", userId)
           .single();
 
-        console.log("High school data lookup result:", data);
+        // console.log("High school data lookup result:", data);
 
         if (data) setHasCompletedSurvey(true);
       }
@@ -32,7 +34,7 @@ export const SurveyContextProvider = ({ children }) => {
           .eq("user_id", userId)
           .single();
 
-        console.log("University data lookup result:", data);
+        // console.log("University data lookup result:", data);
 
         if (data) setHasCompletedSurvey(true);
       }
@@ -50,13 +52,19 @@ export const SurveyContextProvider = ({ children }) => {
           return;
         }
 
+
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("student_type")
           .eq("id", user.id)
           .single();
 
-        console.log("Profile data:", profile);
+        if (profile?.student_type) {
+          setUserType(profile.student_type);
+          setUserId(user.id);
+          await checkSurveyStatus(profile.student_type, user.id);
+        }
+        // console.log("Profile data:", profile);
 
         if (profileError) {
           console.error("Error fetching profile:", profileError);
@@ -79,6 +87,8 @@ export const SurveyContextProvider = ({ children }) => {
         hasCompletedSurvey,
         loading,
         checkSurveyStatus,
+        userType,
+        userId,
       }}
     >
       {children}

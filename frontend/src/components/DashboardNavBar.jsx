@@ -14,8 +14,11 @@ import {
 import logo from "../assets/logo.svg"; 
 import { useState } from "react";
 import { LuMenu } from "react-icons/lu";
+import { UserAuth } from "../context/AuthContext";
 
 export function DashboardNavBar({ onMenuClick }) {
+
+  const { signOut } = UserAuth();
 
   return (
     <Navbar fluid rounded>
@@ -37,7 +40,7 @@ export function DashboardNavBar({ onMenuClick }) {
         </DropdownHeader>
         <DropdownItem>Settings</DropdownItem>
         <DropdownDivider />
-        <DropdownItem>Sign out</DropdownItem>
+        <DropdownItem onClick={signOut}>Sign out</DropdownItem>
       </Dropdown>
     </Navbar>
   );

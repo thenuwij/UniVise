@@ -14,35 +14,15 @@ function DashboardPage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session.access_token;
-      console.log(token);
-    };
-    fetchSession();
-  },[]);
-
-  const { signOut } = UserAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async (e) => {
-    try {
-      await signOut();
-      navigate("/")
-    } catch (err) {
-      console.error(err)
-    }
-  }
 
   return (
     <div>
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-      <div className="flex flex-col items-center justify-center h-full">
+      <div className="flex flex-col justify-center h-full mx-20">
         <h1 className='my-5'>
           <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
-            (Name)'s, Path Forward
+            Your Dashboard
           </span>
         </h1>
         <h2 className='mb-10'>
