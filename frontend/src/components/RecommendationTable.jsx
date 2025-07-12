@@ -2,11 +2,12 @@
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { supabase } from "../supabaseClient";
 import { useEffect, useState } from "react";
-import { useSurvey } from "../context/SurveyContext";
-import { IoMdArrowDropright } from "react-icons/io";
+import { UserAuth } from "../context/AuthContext";
 
 export function RecommendationTable() {
-  const { userType, userId } = useSurvey();
+  const { session } = UserAuth();
+  const userType = session?.user?.user_metadata?.student_type
+  const userId = session?.user?.id;
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
 
@@ -43,6 +44,8 @@ export function RecommendationTable() {
 
     if (userType && userId) {
       fetchRecommendations();
+    } else {
+      console.warn("User type or ID is not set, skipping recommendations fetch.");
     }
   }, [userType, userId]);
 
@@ -123,8 +126,17 @@ export function RecommendationTable() {
   };
 
   return (
-    <>
-      {displayTable()}
-    </>
-  );
+  <>
+    {!userType || !userId ? (
+      <div>
+        <p className="text-center text-gray-600">Loading user data...</p>
+        <p>{userType}</p>
+        <p>{userId}</p>
+      </div>
+    ) : (
+      displayTable()
+    )}
+  </>
+);
+
 }

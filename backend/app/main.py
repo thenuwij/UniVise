@@ -16,6 +16,7 @@ app.add_middleware(
         "https://your-frontend-domain.com",
     ],
     allow_credentials=True,
+
     allow_methods=["*"],
     allow_headers=["*"],
 )

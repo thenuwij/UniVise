@@ -6,15 +6,14 @@ router = APIRouter()
 
 
 @router.get("/student_type")
-async def get_student_type(user=Depends(get_current_user)):
-    profile_resp = (
-        supabase.table("profiles").select("student_type").eq("id", user.id).execute()
-    )
-
-    if not profile_resp:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    return profile_resp.data[0]["student_type"]
+async def get_student_type(user=Depends(get_current_user)) -> str:
+    # Grab it from the decoded JWT
+    student_type = getattr(user, "user_metadata", {}).get("student_type")
+    if student_type not in ("high_school", "university"):
+        raise HTTPException(
+            status_code=400, detail="student_type missing or invalid in token metadata"
+        )
+    return student_type
 
 
 @router.get("/user_info")

@@ -35,24 +35,15 @@ function RegisterForm() {
 
       setLoading(true);
       try { 
-        const result = await registerNewUser(email, password);
-        if (result.success && result.data?.user?.id) {
-          const { error: insertError } = await supabase.from('profiles').insert({
-            id: result.data.user.id,
-            first_name: firstName,
-            last_name: lastName,
-            date_of_birth: dob,
-            gender: gender,
-          });
-          
-          if (insertError) {
-            console.error("Error inserting profile:", insertError);
-            setError("An error occurred storing your profile. Please try again.");
-          } else {
-            navigate("/survey");
-          }
-        } else {
-          setError("An error occurred during registration.");
+        const result = await registerNewUser(email, password, firstName, lastName, dob, gender);
+        if (result.error) {
+          setError(result.error.message);
+          return;
+        }
+        if (result.data) {
+          console.log("User registered successfully:", result.data);
+          setError('');
+          navigate('/survey', { replace: true });
         }
       }catch (err) {
         setError("An error occured")
