@@ -66,7 +66,7 @@ function Chatbot() {
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white"
                 : "bg-white text-gray-900 border"
               }`}>
-                {msg.text}
+                <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
             </div>
           </div>
         ))}
@@ -84,6 +84,12 @@ function Chatbot() {
           className="flex-grow border border-gray-300 p-2 rounded-lg mr-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+          }}
           placeholder="Type your message..."
         />
         <button
