@@ -20,6 +20,26 @@ function SurveyForm() {
     setFormData({ ...formData, [field]: value });
   };
 
+  const generateRecommendations = async () => {
+    try {
+      const resp = await fetch("http://localhost:8000/recommendation/prompt", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to fetch recommendations");
+      }
+
+      const data = await resp.json();
+      console.log("Recommendations:", data);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+    }
+  }
+
   const handleSubmit = async () => {
     setLoading(true);
     if (userType == "high_school") {
@@ -45,12 +65,15 @@ function SurveyForm() {
                 .from("profiles")
                 .update({ student_type: "high_school" })
                 .eq("id", session?.user?.id);
-
+            const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
+              data: { student_type: userType }
+            });
             if (profileError) {
                 console.error(profileError);
                 setMessage("Survey submitted, but failed to update student type.");
             } else {
                 setMessage("Survey submitted successfully!");
+                await generateRecommendations();
                 setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
             }
         }
@@ -84,12 +107,17 @@ function SurveyForm() {
           .from("profiles")
           .update({ student_type: "university" })
           .eq("id", session?.user?.id);
+          
+        const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
+          data: { student_type: userType }
+        });
 
         if (profileError) {
           console.error(profileError);
           setMessage("Survey submitted, but failed to update student type.");
         } else {
           setMessage("Survey submitted successfully!");
+          await generateRecommendations();
           setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
         }
       }
@@ -346,7 +374,7 @@ function SurveyForm() {
     </div>
     <div className="flex justify-between">
       <Button onClick={handlePrev}>Back</Button>
-      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0} isProcessing={loading}>
+      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>
         {loading ? "Submitting..." : "Submit"}
       </Button>
     </div>
@@ -668,7 +696,6 @@ function SurveyForm() {
         <Button
           onClick={handleSubmit}
           disabled={!formData.confidence || !formData.want_help}
-          isProcessing={loading}
         >
           {loading ? "Submitting..." : "Submit"}
         </Button>
