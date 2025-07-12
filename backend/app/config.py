@@ -1,22 +1,27 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, AnyHttpUrl
-import pathlib
+import os
+from dotenv import load_dotenv
 
-BASE_DIR = pathlib.Path(__file__).parent.parent  # → backend/
+# Load .env file from the project root (../backend/.env)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
+# Supabase
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=BASE_DIR / ".env", env_file_encoding="utf-8"
-    )
+# OpenAI
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-    # Supabase
-    supabase_url: AnyHttpUrl = Field(..., env="SUPABASE_URL")
-    supabase_anon_key: str = Field(..., env="SUPABASE_ANON_KEY")
-    supabase_service_role_key: str = Field(..., env="SUPABASE_SERVICE_ROLE_KEY")
+# Optional: Raise an error if any required keys are missing
+REQUIRED_VARS = [
+    ("SUPABASE_URL", SUPABASE_URL),
+    ("SUPABASE_ANON_KEY", SUPABASE_ANON_KEY),
+    ("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
+    ("OPENAI_API_KEY", OPENAI_API_KEY),
+]
 
-    # OpenAI
-    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
-
-
-settings = Settings()
+missing_vars = [name for name, value in REQUIRED_VARS if not value]
+if missing_vars:
+    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")

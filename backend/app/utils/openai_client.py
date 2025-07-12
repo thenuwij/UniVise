@@ -1,21 +1,23 @@
-import openai
-from app.config import settings
+from openai import OpenAI
+from app.config import OPENAI_API_KEY
 
-client = openai.Client(api_key=settings.openai_api_key)
+openai = OpenAI(api_key=OPENAI_API_KEY)
 
-def ask_openai(message: str) -> str:
+def ask_openai(prompt: str) -> str:
     try:
-        response = client.chat.completions.create(
+        response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": message}
+                {
+                    "role": "system",
+                    "content": "You are a helpful and concise career advisor.",
+                },
+                {"role": "user", "content": prompt},
             ],
-            max_tokens=500
+            temperature=0.7,
+            max_tokens=1000,
         )
-        reply = response.choices[0].message.content.strip()
-        return reply
-
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print("OpenAI API error:", e)
         return "Sorry, I couldn't process your request."
