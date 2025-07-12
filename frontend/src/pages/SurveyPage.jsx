@@ -25,17 +25,7 @@ function SurveyPage() {
           return;
         }
 
-        const { data, error } = await supabase
-          .from('profiles') 
-          .select('first_name')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching first name:', error);
-        } else {
-          setFirstName(data.first_name);
-        }
+        setFirstName(user.user_metadata.first_name || '');
       } catch (err) {
         console.error('Unexpected error:', err);
       } finally {
