@@ -57,6 +57,7 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
             "  }\n"
             "]"
         )
+
     elif student_type == "high_school":
         prompt = (
             "You are a highschool advisor for university major selection. A high school student has shared the following profile:\n\n"
