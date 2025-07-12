@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import chatbot_routes
+from app.routers import admin
 
 
 app = FastAPI()
@@ -18,3 +19,4 @@ def read_root():
     return {"message": "Welcome to the Recommendation API"}
 
 app.include_router(chatbot_routes.router, prefix="/chat", tags=["Chatbot"])
+app.include_router(admin.router, prefix="/admin", tags=["Admin"])
