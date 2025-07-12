@@ -6,8 +6,6 @@ const SurveyContext = createContext();
 export const SurveyContextProvider = ({ children }) => {
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState(null);
-  const [id, setId] = useState(null);
 
   const checkSurveyStatus = async (userType, userId) => {
     if (!userId) return;
@@ -87,8 +85,6 @@ export const SurveyContextProvider = ({ children }) => {
         hasCompletedSurvey,
         loading,
         checkSurveyStatus,
-        userType: type,
-        userId: id,
       }}
     >
       {children}

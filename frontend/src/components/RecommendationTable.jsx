@@ -2,11 +2,12 @@
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { supabase } from "../supabaseClient";
 import { useEffect, useState } from "react";
-import { useSurvey } from "../context/SurveyContext";
-import { IoMdArrowDropright } from "react-icons/io";
+import { UserAuth } from "../context/AuthContext";
 
 export function RecommendationTable() {
-  const { userType, userId } = useSurvey();
+  const { session } = UserAuth();
+  const userType = session?.user?.user_metadata?.student_type
+  const userId = session?.user?.id;
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
 

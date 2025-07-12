@@ -65,7 +65,9 @@ function SurveyForm() {
                 .from("profiles")
                 .update({ student_type: "high_school" })
                 .eq("id", session?.user?.id);
-
+            const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
+              data: { student_type: userType }
+            });
             if (profileError) {
                 console.error(profileError);
                 setMessage("Survey submitted, but failed to update student type.");
@@ -105,6 +107,10 @@ function SurveyForm() {
           .from("profiles")
           .update({ student_type: "university" })
           .eq("id", session?.user?.id);
+          
+        const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
+          data: { student_type: userType }
+        });
 
         if (profileError) {
           console.error(profileError);
