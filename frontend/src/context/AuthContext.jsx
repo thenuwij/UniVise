@@ -22,7 +22,7 @@ export const AuthContextProvider = ({ children }) => {
     });
 
     if(error) {
-      console.error("User Error Signing Up")
+      console.error("User Error Signing Up", error)
       return { success: false, error };
       
     }

@@ -55,20 +55,6 @@ export const SurveyContextProvider = ({ children }) => {
           setLoading(false);
           return;
         }
-
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("student_type")
-          .eq("id", user.id)
-          .single();
-
-        console.log("Profile data:", profile);
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-        } else if (profile?.student_type) {
-          await checkSurveyStatus(profile.student_type, user.id);
-        }
       } catch (err) {
         console.error("Unexpected error:", err);
       } finally {

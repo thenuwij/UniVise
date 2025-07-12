@@ -61,21 +61,12 @@ function SurveyForm() {
             setMessage("Error submitting survey.");
             setLoading(false);
         } else {
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .update({ student_type: "high_school" })
-                .eq("id", session?.user?.id);
-            const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
-              data: { student_type: userType }
-            });
-            if (profileError) {
-                console.error(profileError);
-                setMessage("Survey submitted, but failed to update student type.");
-            } else {
+                await supabase.auth.updateUser({
+                    data: { student_type: "high_school" }
+                });
                 setMessage("Survey submitted successfully!");
                 await generateRecommendations();
-                setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
-            }
+                setTimeout(() => navigate("/dashboard", { replace: true }), 500);
         }
       }
 
@@ -103,23 +94,12 @@ function SurveyForm() {
         setMessage("Error submitting survey.");
         setLoading(false);
       } else {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ student_type: "university" })
-          .eq("id", session?.user?.id);
-          
-        const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
-          data: { student_type: userType }
-        });
-
-        if (profileError) {
-          console.error(profileError);
-          setMessage("Survey submitted, but failed to update student type.");
-        } else {
+          await supabase.auth.updateUser({
+            data: { student_type: "university" }
+          });
           setMessage("Survey submitted successfully!");
           await generateRecommendations();
-          setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
-        }
+          setTimeout(() => navigate("/dashboard", { replace: true }), 500);
       }
     }
   };
