@@ -43,6 +43,8 @@ export function RecommendationTable() {
 
     if (userType && userId) {
       fetchRecommendations();
+    } else {
+      console.warn("User type or ID is not set, skipping recommendations fetch.");
     }
   }, [userType, userId]);
 

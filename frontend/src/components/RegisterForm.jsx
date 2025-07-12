@@ -35,7 +35,7 @@ function RegisterForm() {
 
       setLoading(true);
       try { 
-        const result = await registerNewUser(email, password);
+        const result = await registerNewUser(email, password, firstName, lastName, dob, gender);
         if (result.success && result.data?.user?.id) {
           const { error: insertError } = await supabase.from('profiles').insert({
             id: result.data.user.id,
