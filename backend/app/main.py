@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from .routers import auth, recommendation, user
+
+from .routers import auth, recommendation, user, chatbot_routes
 
 app = FastAPI()
 load_dotenv()
@@ -18,3 +19,4 @@ app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(
     recommendation.router, prefix="/recommendation", tags=["Recommendation"]
 )
+app.include_router(chatbot_routes.router, prefix="/chat", tags=["Chatbot"])
