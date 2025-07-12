@@ -123,8 +123,17 @@ export function RecommendationTable() {
   };
 
   return (
-    <>
-      {displayTable()}
-    </>
-  );
+  <>
+    {!userType || !userId ? (
+      <div>
+        <p className="text-center text-gray-600">Loading user data...</p>
+        <p>{userType}</p>
+        <p>{userId}</p>
+      </div>
+    ) : (
+      displayTable()
+    )}
+  </>
+);
+
 }

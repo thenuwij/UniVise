@@ -71,7 +71,7 @@ function SurveyForm() {
                 setMessage("Survey submitted, but failed to update student type.");
             } else {
                 setMessage("Survey submitted successfully!");
-                generateRecommendations();
+                await generateRecommendations();
                 setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
             }
         }
@@ -111,7 +111,7 @@ function SurveyForm() {
           setMessage("Survey submitted, but failed to update student type.");
         } else {
           setMessage("Survey submitted successfully!");
-          generateRecommendations();
+          await generateRecommendations();
           setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
         }
       }
@@ -368,7 +368,7 @@ function SurveyForm() {
     </div>
     <div className="flex justify-between">
       <Button onClick={handlePrev}>Back</Button>
-      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0} isProcessing={loading}>
+      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>
         {loading ? "Submitting..." : "Submit"}
       </Button>
     </div>
@@ -690,7 +690,6 @@ function SurveyForm() {
         <Button
           onClick={handleSubmit}
           disabled={!formData.confidence || !formData.want_help}
-          isProcessing={loading}
         >
           {loading ? "Submitting..." : "Submit"}
         </Button>
