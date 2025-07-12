@@ -20,6 +20,26 @@ function SurveyForm() {
     setFormData({ ...formData, [field]: value });
   };
 
+  const generateRecommendations = async () => {
+    try {
+      const resp = await fetch("http://localhost:8000/recommendation/prompt", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to fetch recommendations");
+      }
+
+      const data = await resp.json();
+      console.log("Recommendations:", data);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+    }
+  }
+
   const handleSubmit = async () => {
     setLoading(true);
     if (userType == "high_school") {
@@ -51,6 +71,7 @@ function SurveyForm() {
                 setMessage("Survey submitted, but failed to update student type.");
             } else {
                 setMessage("Survey submitted successfully!");
+                generateRecommendations();
                 setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
             }
         }
@@ -90,6 +111,7 @@ function SurveyForm() {
           setMessage("Survey submitted, but failed to update student type.");
         } else {
           setMessage("Survey submitted successfully!");
+          generateRecommendations();
           setTimeout(() => navigate("/dashboard", { replace: true }), 1000);
         }
       }
