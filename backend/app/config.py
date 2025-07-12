@@ -14,7 +14,6 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Optional: Raise an error if any required keys are missing
 REQUIRED_VARS = [
     ("SUPABASE_URL", SUPABASE_URL),
     ("SUPABASE_ANON_KEY", SUPABASE_ANON_KEY),
