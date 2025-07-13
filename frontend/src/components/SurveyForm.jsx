@@ -3,6 +3,8 @@ import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
+import SurveyProgressBar from "../components/SurveyProgressBar";
+
 
 function SurveyForm() {
   const { session } = UserAuth();
