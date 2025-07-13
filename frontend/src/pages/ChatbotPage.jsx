@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "flowbite-react";
 import Logo from "../components/Logo";
 import Chatbot from "../components/Chatbot";
+import { MenuBar } from "../components/MenuBar";
+import { useState } from "react";
+import { DashboardNavBar } from "../components/DashboardNavBar";
 
 function ChatbotPage() {
   const { signOut, session } = UserAuth();
@@ -19,30 +22,24 @@ function ChatbotPage() {
     }
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+  const openDrawer = () => setIsOpen(true);
+  const closeDrawer = () => setIsOpen(false);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-white via-sky-50 to-indigo-100 px-4 relative"
-      style={{ paddingTop: 'env(safe-area-inset-top)' }}
-    >
-      {/* Sign Out Button top-right */}
-    <div className="absolute top-4 right-4">
-        <Button color="gray" size="sm" onClick={handleSignOut}>Sign Out</Button>
-      </div>
+    <div>
+      <DashboardNavBar onMenuClick={openDrawer} />
+      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+      <div className="flex flex-col justify-center h-full mx-20">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-4xl font-semibold text-gray-700 mt-5">
+            Ask me anything about your future!
+          </h1>
+        </div>
 
-      <div className="absolute top-4 left-4">
-        <Logo />
-      </div>
-
-      {/* Welcome Heading */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-          Your Personal Advisor
-        </h1>
-        <p className="text-gray-600 text-base">Friendly, personalised guidance</p>
-      </div>
-
-      {/* Chatbot Container */}
-      <div className="w-full">
-            <Chatbot />
+        <div className="w-full">
+              <Chatbot />
+        </div>
       </div>
     </div>
   );

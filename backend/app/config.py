@@ -8,8 +8,8 @@ load_dotenv(dotenv_path)
 
 # Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
-SUPABASE_ROLE_KEY = os.getenv("SUPABASE_ROLE_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -24,4 +24,6 @@ REQUIRED_VARS = [
 
 missing_vars = [name for name, value in REQUIRED_VARS if not value]
 if missing_vars:
-    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
+    raise EnvironmentError(
+        f"Missing required environment variables: {', '.join(missing_vars)}"
+    )
