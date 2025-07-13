@@ -5,12 +5,13 @@ import RegisterPage from "./pages/RegisterPage";
 import SurveyPage from "./pages/SurveyPage";
 import DashboardPage from "./pages/DashboardPage";
 import PrivateRoute from "./components/PrivateRoute";
+import ChatbotPage from './pages/ChatbotPage';
 
 export const router = createBrowserRouter([
   { path: "/", element: <App/> },
   { path: "/login", element: <LoginPage/> },
   { path: "/register", element: <RegisterPage/> },
   { path: "/survey", element: <PrivateRoute><SurveyPage/></PrivateRoute>},
-  { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>}
-
+  { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
+  { path: "/chatbot", element: <PrivateRoute><ChatbotPage /></PrivateRoute>} 
 ]);
