@@ -1,4 +1,3 @@
-import React from "react";
 import PersonalityQuizForm from "../components/PersonalityQuizForm";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";

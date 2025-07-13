@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { personalityQuestions } from "../data/PersonalityQuestions.js";
 import ProgressBar from "./ProgressBar";
+import { supabase } from "../supabaseClient";
+import { UserAuth } from "../context/AuthContext";
 
 const PersonalityQuizForm = () => {
   const navigate = useNavigate();
+  const quizRef = useRef(null);
+  const { session } = UserAuth();
 
   const groupedByType = personalityQuestions.reduce((acc, question) => {
     acc[question.type] = acc[question.type] || [];
@@ -15,6 +19,13 @@ const PersonalityQuizForm = () => {
   const types = Object.keys(groupedByType);
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+
+  useEffect(() => {
+  if (quizRef.current) {
+    quizRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+}, [currentGroupIndex]);
+
 
   const currentType = types[currentGroupIndex];
   const currentGroup = groupedByType[currentType];
@@ -27,13 +38,30 @@ const PersonalityQuizForm = () => {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentGroupIndex + 1 < types.length) {
       setCurrentGroupIndex(currentGroupIndex + 1);
     } else {
       const result = calculateResult(answers);
-      localStorage.setItem("personality_result", JSON.stringify(result));
-      navigate("/quiz/result");
+      // Save to Supabase
+    const { error } = await supabase.from("personality_results").insert([
+      {
+        user_id: session?.user?.id,
+        trait_scores: result.traitScores,
+        top_types: result.topTypes,
+        result_summary: result.resultSummary,
+      },
+    ]);
+
+  if (error) {
+    console.error("Error saving personality result:", error);
+    alert("Something went wrong while submitting your quiz. Please try again.");
+  } else {
+    console.log("Personality result saved.");
+    alert("Your personality quiz has been submitted successfully!");
+    // You can redirect or reset the form here
+    navigate("/dashboard");
+  }
     }
   };
 
@@ -61,7 +89,7 @@ const PersonalityQuizForm = () => {
 
   return (
     <div className="w-full max-w-6xl px-6 sm:px-10">
-      <div className="bg-white rounded-2xl shadow-2xl p-12 sm:p-20 transition-all duration-300">
+      <div ref={quizRef} className="bg-white rounded-2xl shadow-2xl p-12 sm:p-20 transition-all duration-300">
         <div className="mb-10">
           <ProgressBar progress={progress} />
         </div>

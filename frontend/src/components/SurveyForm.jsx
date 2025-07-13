@@ -67,8 +67,9 @@ function SurveyForm() {
                     data: { student_type: "high_school" }
                 });
                 setMessage("Survey submitted successfully!");
-                navigate("/quiz/loading");
+                await generateRecommendations();
                 setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
+                
         }
       }
 
@@ -100,7 +101,7 @@ function SurveyForm() {
             data: { student_type: "university" }
           });
           setMessage("Survey submitted successfully!");
-          navigate("/quiz/loading");
+          await generateRecommendations();
           setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
       }
     }
@@ -111,7 +112,7 @@ function SurveyForm() {
 
    <SurveyProgressBar 
       step={step} 
-      totalSteps={userType === "high_school" ? 8 : 10} 
+      totalSteps={userType === "high_school" ? 8 : 11} 
     />
 
     {step === 1 && (
@@ -404,7 +405,7 @@ function SurveyForm() {
     <div>
       <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What academic year of your degree are you in?</h2>
       <div className="flex flex-col gap-3 mb-6">
-        {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6 or later", "Other"].map((option) => (
+        {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5 or later"].map((option) => (
           <Button
             key={option}
             color={formData.academic_year === option ? "blue" : "gray"}
@@ -415,17 +416,10 @@ function SurveyForm() {
           </Button>
         ))}
       </div>
-      {formData.academic_year === "Other" && (
-        <input
-          type="text"
-          placeholder="Please specify"
-          className="border p-2 w-full mb-4"
-          onChange={(e) => handleChange("academic_year_other", e.target.value)}
-        />
-      )}
+
       <div className="flex justify-between">
         <Button onClick={handlePrev}>Back</Button>
-        <Button onClick={handleNext} disabled={!formData.academic_year || (formData.academic_year === "Other" && !formData.academic_year_other)}>Next</Button>
+        <Button onClick={handleNext} disabled={!formData.academic_year}>Next</Button>
       </div>
     </div>
   )}
@@ -646,7 +640,9 @@ function SurveyForm() {
 
   {userType === "university" && step === 10 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">How confident are you about your future career path?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        How confident are you about your future career path?
+      </h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Very confident — I know what I want",
@@ -663,7 +659,23 @@ function SurveyForm() {
           </Button>
         ))}
       </div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Would you like help exploring how your courses, majors, and career options connect?</h2>
+      <div className="flex justify-between">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button
+          onClick={handleNext}
+          disabled={!formData.confidence}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  )}
+
+  {userType === "university" && step === 11 && (
+    <div>
+      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Would you like help exploring how your courses, majors, and career options connect?
+      </h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Yes, that would be helpful",
@@ -683,7 +695,7 @@ function SurveyForm() {
         <Button onClick={handlePrev}>Back</Button>
         <Button
           onClick={handleSubmit}
-          disabled={!formData.confidence || !formData.want_help}
+          disabled={!formData.want_help}
         >
           {loading ? "Submitting..." : "Submit"}
         </Button>
@@ -691,6 +703,8 @@ function SurveyForm() {
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
   )}
+
+
     </div>
   );
 }

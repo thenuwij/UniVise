@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 
+
 const LoadingPersonalityPage = () => {
   const navigate = useNavigate();
   const { session } = UserAuth();
@@ -11,19 +12,11 @@ const LoadingPersonalityPage = () => {
   useEffect(() => {
     const prepare = async () => {
       try {
-        // Fetch user details (or store in localStorage if needed)
+        // Fetch user details
         const { data: user } = await supabase.auth.getUser();
         const studentType = user.user.user_metadata?.student_type;
 
-        // Generate recommendations (you can modify as needed)
-        const resp = await fetch("http://localhost:8000/recommendation/prompt", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        });
-
-        if (!resp.ok) throw new Error("Failed to generate");
+        //await generateRecommendations(session); 
 
         setStatus("Ready! Launching your quiz...");
         setTimeout(() => navigate("/quiz"), 1500); // slight delay for smoothness
