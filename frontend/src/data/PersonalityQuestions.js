@@ -2,104 +2,44 @@
 
 export const personalityQuestions = [
   // Realistic (R)
-  {
-    id: 1,
-    text: "I enjoy working with tools, machines, or hands-on projects.",
-    type: "R",
-  },
-  {
-    id: 2,
-    text: "I prefer outdoor activities and physical tasks over desk work.",
-    type: "R",
-  },
-  {
-    id: 3,
-    text: "I like building, fixing, or crafting things myself.",
-    type: "R",
-  },
+  { id: 1, question: "I enjoy building or fixing things with my hands.", type: "realistic" },
+  { id: 2, question: "I like working outdoors or with animals.", type: "realistic" },
+  { id: 3, question: "I’m good at operating tools or machinery.", type: "realistic" },
+  { id: 4, question: "I prefer doing physical tasks over desk work.", type: "realistic" },
+  { id: 5, question: "I enjoy activities like hiking, repairing, or constructing.", type: "realistic" },
 
   // Investigative (I)
-  {
-    id: 4,
-    text: "I enjoy exploring ideas, theories, or complex problems.",
-    type: "I",
-  },
-  {
-    id: 5,
-    text: "I like experimenting and analyzing data to find patterns.",
-    type: "I",
-  },
-  {
-    id: 6,
-    text: "I’m curious and enjoy asking questions to learn more.",
-    type: "I",
-  },
+  { id: 6, question: "I enjoy solving puzzles or problems that require deep thinking.", type: "investigative" },
+  { id: 7, question: "I like analyzing data or researching new ideas.", type: "investigative" },
+  { id: 8, question: "I enjoy science, mathematics, or technical subjects.", type: "investigative" },
+  { id: 9, question: "I’m curious about how things work.", type: "investigative" },
+  { id: 10, question: "I prefer thinking through a problem rather than jumping into action.", type: "investigative" },
 
   // Artistic (A)
-  {
-    id: 7,
-    text: "I enjoy expressing myself through art, music, or writing.",
-    type: "A",
-  },
-  {
-    id: 8,
-    text: "I value creativity and like to think outside the box.",
-    type: "A",
-  },
-  {
-    id: 9,
-    text: "I prefer flexible and unstructured environments.",
-    type: "A",
-  },
+  { id: 11, question: "I enjoy expressing myself creatively through writing, music, or art.", type: "artistic" },
+  { id: 12, question: "I prefer open-ended tasks over structured routines.", type: "artistic" },
+  { id: 13, question: "I often come up with original ideas or perspectives.", type: "artistic" },
+  { id: 14, question: "I feel energized by creative challenges or storytelling.", type: "artistic" },
+  { id: 15, question: "I enjoy designing or creating new things.", type: "artistic" },
 
   // Social (S)
-  {
-    id: 10,
-    text: "Helping others gives me a sense of fulfillment.",
-    type: "S",
-  },
-  {
-    id: 11,
-    text: "I’m good at understanding how others feel.",
-    type: "S",
-  },
-  {
-    id: 12,
-    text: "I enjoy teaching, counseling, or guiding people.",
-    type: "S",
-  },
+  { id: 16, question: "I enjoy helping others learn or solve problems.", type: "social" },
+  { id: 17, question: "I like working in teams and collaborating with others.", type: "social" },
+  { id: 18, question: "I’m often seen as supportive and empathetic.", type: "social" },
+  { id: 19, question: "I enjoy mentoring, volunteering, or community work.", type: "social" },
+  { id: 20, question: "I feel fulfilled when I make a difference in someone’s life.", type: "social" },
 
   // Enterprising (E)
-  {
-    id: 13,
-    text: "I’m confident taking the lead in group situations.",
-    type: "E",
-  },
-  {
-    id: 14,
-    text: "I enjoy motivating others and driving results.",
-    type: "E",
-  },
-  {
-    id: 15,
-    text: "I like influencing people and sharing new ideas.",
-    type: "E",
-  },
+  { id: 21, question: "I enjoy leading projects or persuading others.", type: "enterprising" },
+  { id: 22, question: "I feel comfortable speaking in front of a group.", type: "enterprising" },
+  { id: 23, question: "I like setting goals and taking initiative.", type: "enterprising" },
+  { id: 24, question: "I’m interested in business, politics, or entrepreneurship.", type: "enterprising" },
+  { id: 25, question: "I enjoy negotiating, selling, or pitching ideas.", type: "enterprising" },
 
   // Conventional (C)
-  {
-    id: 16,
-    text: "I enjoy organizing information and maintaining order.",
-    type: "C",
-  },
-  {
-    id: 17,
-    text: "I prefer tasks that require attention to detail and accuracy.",
-    type: "C",
-  },
-  {
-    id: 18,
-    text: "I’m comfortable following structured procedures or systems.",
-    type: "C",
-  },
+  { id: 26, question: "I enjoy organizing schedules, plans, or documents.", type: "conventional" },
+  { id: 27, question: "I prefer clear instructions and structure in my work.", type: "conventional" },
+  { id: 28, question: "I’m good at keeping records or managing data.", type: "conventional" },
+  { id: 29, question: "I find satisfaction in following procedures accurately.", type: "conventional" },
+  { id: 30, question: "I like working with numbers, spreadsheets, or administrative tasks.", type: "conventional" }
 ];

@@ -4,6 +4,7 @@ import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 import Logo from "../components/Logo";
+import { motion } from "framer-motion"; // ✅ Add animation support
 
 const PersonalityQuizPage = () => {
   const { session, signOut } = UserAuth();
@@ -20,9 +21,13 @@ const PersonalityQuizPage = () => {
   };
 
   return (
-    <div
+    <motion.div
       className="min-h-screen bg-gradient-to-br from-white via-sky-100 to-indigo-200 flex flex-col items-center relative"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
       {/* Sign Out Button */}
       <div className="absolute top-4 sm:top-8 right-2 sm:right-4">
@@ -43,11 +48,11 @@ const PersonalityQuizPage = () => {
         </h1>
       </div>
 
-      {/* Just the form - no extra white box */}
+      {/* Quiz Form Section */}
       <div className="flex-grow w-full flex items-center justify-center px-4 pb-20">
         <PersonalityQuizForm />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

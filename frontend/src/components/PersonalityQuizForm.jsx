@@ -4,24 +4,32 @@ import { personalityQuestions } from "../data/PersonalityQuestions.js";
 import ProgressBar from "./ProgressBar";
 
 const PersonalityQuizForm = () => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
   const navigate = useNavigate();
 
-  const currentQuestion = personalityQuestions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / personalityQuestions.length) * 100;
-  const currentAnswer = answers[currentQuestion.id]?.score || null;
+  const groupedByType = personalityQuestions.reduce((acc, question) => {
+    acc[question.type] = acc[question.type] || [];
+    acc[question.type].push(question);
+    return acc;
+  }, {});
 
-  const handleAnswer = (score) => {
+  const types = Object.keys(groupedByType);
+  const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+
+  const currentType = types[currentGroupIndex];
+  const currentGroup = groupedByType[currentType];
+  const progress = ((currentGroupIndex + 1) / types.length) * 100;
+
+  const handleScore = (questionId, type, score) => {
     setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.id]: { type: currentQuestion.type, score },
+      [questionId]: { type, score },
     }));
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex + 1 < personalityQuestions.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    if (currentGroupIndex + 1 < types.length) {
+      setCurrentGroupIndex(currentGroupIndex + 1);
     } else {
       const result = calculateResult(answers);
       localStorage.setItem("personality_result", JSON.stringify(result));
@@ -30,10 +38,12 @@ const PersonalityQuizForm = () => {
   };
 
   const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    if (currentGroupIndex > 0) {
+      setCurrentGroupIndex(currentGroupIndex - 1);
     }
   };
+
+  const allAnswered = currentGroup.every((q) => answers[q.id]);
 
   const calculateResult = (answers) => {
     const traitScores = {};
@@ -42,7 +52,6 @@ const PersonalityQuizForm = () => {
     });
     const sorted = Object.entries(traitScores).sort((a, b) => b[1] - a[1]);
     const topTypes = sorted.slice(0, 2).map(([type]) => type);
-
     return {
       traitScores,
       topTypes,
@@ -57,32 +66,59 @@ const PersonalityQuizForm = () => {
           <ProgressBar progress={progress} />
         </div>
 
-        <div className="text-center mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 leading-snug max-w-5xl mx-auto">
-            {currentQuestion.text}
-          </h2>
-        </div>
+      <div className="text-center mb-10">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+          Please rate the following statements
+        </h2>
+        <p className="text-sm text-gray-500">Your honest answers help us personalize your UniVise journey</p>
+      </div>
 
-        <div className="flex items-center justify-between text-gray-500 text-base font-medium mb-8 px-2 sm:px-14">
-          <span>Strongly Disagree</span>
-          <span>Strongly Agree</span>
-        </div>
-
-        <div className="flex justify-between items-center gap-6 px-2 sm:px-14 mb-12">
-          {[1, 2, 3, 4, 5].map((score) => {
-            const isSelected = currentAnswer === score;
+        <div className="space-y-12">
+          {currentGroup.map((question) => {
+            const currentAnswer = answers[question.id]?.score || null;
             return (
-              <button
-                key={score}
-                onClick={() => handleAnswer(score)}
-                className={`w-16 h-16 sm:w-20 sm:h-20 text-xl font-semibold rounded-full transition-transform duration-200 hover:scale-110 shadow-md
-                  ${isSelected ? "ring-4 ring-indigo-400" : ""}
-                  ${score === 3 ? "bg-gray-200 hover:bg-gray-300 text-gray-800" : ""}
-                  ${score < 3 ? "bg-red-100 hover:bg-red-200 text-red-700" : ""}
-                  ${score > 3 ? "bg-green-100 hover:bg-green-200 text-green-700" : ""}`}
-              >
-                {score}
-              </button>
+              <div key={question.id}>
+                <div className="text-center mb-6">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-700 max-w-4xl mx-auto">
+                    {question.question}
+                  </h3>
+                </div>
+
+              <div className="flex justify-between items-end gap-6 px-2 sm:px-14 mb-10">
+                {[1, 2, 3, 4, 5].map((score) => {
+                  const isSelected = currentAnswer === score;
+                  const label =
+                    score === 1
+                      ? "Strongly Disagree"
+                      : score === 3
+                      ? "Neutral"
+                      : score === 5
+                      ? "Strongly Agree"
+                      : null;
+
+                  return (
+                    <div key={score} className="flex flex-col items-center space-y-2">
+                      {label && (
+                        <span className="text-xs sm:text-sm text-gray-400 text-center whitespace-nowrap w-28">
+                          {label}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleScore(question.id, question.type, score)}
+                        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-md
+                          ${isSelected ? "ring-4 ring-indigo-400" : ""}
+                          ${score === 3 ? "bg-gray-200 hover:bg-gray-300" : ""}
+                          ${score < 3 ? "bg-red-100 hover:bg-red-200" : ""}
+                          ${score > 3 ? "bg-green-100 hover:bg-green-200" : ""}`}
+                      >
+                        <span className="sr-only">{score}</span>
+                      </button>
+                    </div>
+                  );
+                })}   
+              </div>
+
+              </div>
             );
           })}
         </div>
@@ -90,17 +126,17 @@ const PersonalityQuizForm = () => {
         <div className="flex justify-between mt-4">
           <button
             onClick={handlePrev}
-            disabled={currentQuestionIndex === 0}
+            disabled={currentGroupIndex === 0}
             className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg shadow-sm disabled:opacity-40"
           >
             Back
           </button>
           <button
             onClick={handleNext}
-            disabled={!currentAnswer}
+            disabled={!allAnswered}
             className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg shadow-sm disabled:opacity-50"
           >
-            {currentQuestionIndex + 1 === personalityQuestions.length ? "Finish" : "Next"}
+            {currentGroupIndex + 1 === types.length ? "Finish" : "Next"}
           </button>
         </div>
       </div>

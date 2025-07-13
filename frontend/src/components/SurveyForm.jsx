@@ -67,8 +67,8 @@ function SurveyForm() {
                     data: { student_type: "high_school" }
                 });
                 setMessage("Survey submitted successfully!");
-                await generateRecommendations();
-                setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+                navigate("/quiz/loading");
+                setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
         }
       }
 
@@ -100,8 +100,8 @@ function SurveyForm() {
             data: { student_type: "university" }
           });
           setMessage("Survey submitted successfully!");
-          await generateRecommendations();
-          setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+          navigate("/quiz/loading");
+          setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
       }
     }
   };
