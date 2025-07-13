@@ -108,6 +108,12 @@ function SurveyForm() {
 
   return (
     <div className="w-full max-w-2xl sm:max-w-xl mx-auto p-6 sm:p-4">
+
+   <SurveyProgressBar 
+      step={step} 
+      totalSteps={userType === "high_school" ? 8 : 10} 
+    />
+
     {step === 1 && (
         <div>
             <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Which describes you best?</h2>
