@@ -3,6 +3,7 @@ import { MenuBar } from '../components/MenuBar'
 import { DashboardNavBar } from '../components/DashboardNavBar'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { FileUpload } from '../components/FileUpload'
 
 function ProfilePage() {
 
@@ -62,8 +63,8 @@ function ProfilePage() {
         <h1 className='text-sky-800 text-4xl'>My Account</h1>
       </div>
       <div>
-        <div className='flex flex-col gap-4 ml-20 mr-20 max-w-1/3'>
-          <div className='bg-white p-6 rounded-lg shadow-md'>
+        <div className='flex gap-4 m-6 ml-20'>
+          <div className='bg-white p-6 rounded-lg shadow-md mt-4 w-1/3'>
             <h2 className='text-2xl font-semibold mb-4'>About Me</h2>
             <p><strong>First Name:</strong> {firstName}</p>
             <p><strong>Last Name:</strong> {lastName}</p>
@@ -72,10 +73,15 @@ function ProfilePage() {
             <p><strong>Academic Type:</strong> {studentType}</p>
           </div>
 
-          <div className='bg-white p-6 rounded-lg shadow-md mt-4'>
+          <div className='bg-white p-6 rounded-lg shadow-md mt-4 w-1/3'>
             <h2 className='text-2xl font-semibold mb-4'>Additional Information</h2>
             <p><strong>Interests:</strong> {interests || 'Not specified'}</p>
             <p><strong>University:</strong> {university || 'Not specified'}</p>
+          </div>
+          
+          <div className='bg-white p-3 rounded-lg shadow-md mt-4 w-1/3'>
+            <h2 className='text-2xl font-semibold mb-4'>Transcript/Report</h2>
+            <FileUpload/>
           </div>
         </div>
       </div>
