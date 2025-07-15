@@ -6,7 +6,7 @@ export function FileUpload() {
     <div className="flex w-full items-center justify-center">
       <Label
         htmlFor="dropzone-file"
-        className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg shadow-md bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-300"
+        className="flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg shadow-md bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-300"
       >
         <div>
           <svg

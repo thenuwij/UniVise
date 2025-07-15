@@ -4,7 +4,7 @@ import { DashboardNavBar } from '../components/DashboardNavBar'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { FileUpload } from '../components/FileUpload'
-import { Button, Checkbox, Dropdown, DropdownItem, Label, TextInput } from "flowbite-react";
+import { Button, Checkbox, Dropdown, DropdownItem, Label, TextInput, Avatar } from "flowbite-react";
 import { data } from 'react-router-dom'
 
 function ProfilePage() {
@@ -100,10 +100,10 @@ function ProfilePage() {
     <div>
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-      <div className='ml-20 text-4xl font-bold mt-10 mb-4'>
+      <div className='ml-20 text-4xl font-bold mt-10'>
         <div className='flex justify-between'>
-          <h1 className='text-sky-800 text-4xl'>My Account</h1>
-          <Button pill className='mr-10' onClick={() => setIsEditing(true)}>Edit</Button>
+          <h1 className='text-sky-800 text-4xl ml-10 mb-10'>My Account</h1>
+          <Button pill className='mr-20' onClick={() => setIsEditing(true)}>Edit</Button>
         </div>
       </div>
       <div>
@@ -113,7 +113,7 @@ function ProfilePage() {
           <form onSubmit={handleSave}>
             <div className='flex gap-4 m-6 ml-20 h-screen'>
               <div className='bg-white p-6 rounded-lg shadow-md mt-4 w-1/3 h-2/3'>
-                <h2 className='text-2xl font-semibold mb-4'>About Me</h2>
+                <h2 className='text-2xl font-semibold'>About Me</h2>
                 <TextInput id='firstName' placeholder={firstName}/>
                 <TextInput id='lastName' placeholder={lastName}/>
                 <TextInput id='email' placeholder={email}/>
@@ -154,64 +154,92 @@ function ProfilePage() {
           ) 
           : 
           (
-            <div className='flex gap-4 m-6 ml-20 h-screen'>
-              <div className='bg-white p-6 rounded-lg shadow-md mt-4 w-1/3 h-2/3'>
-                <h2 className='text-2xl font-semibold my-3'>About Me</h2>
-                <p><strong>First Name:</strong> {firstName}</p>
-                <p><strong>Last Name:</strong> {lastName}</p>
-                <p><strong>Email:</strong> {email}</p>
-                <p><strong>Gender:</strong> {gender}</p>
-                <p><strong>Date of Birth:</strong> {dob}</p>
-                <p>
-                    <strong>Hobbies:</strong>{' '}
-                      {hobbies && hobbies.length > 0
-                        ? hobbies.map((hobby, idx) => (
-                          <span key={hobby}>
-                            {hobby}
-                            {idx < hobbies.length - 1 && ', '}
-                          </span>
-                        ))
-                      : 'None specified'}
-                </p>
-                
-                
-                <h2 className='text-2xl font-semibold my-3'>Academic Information</h2>
-                <p><strong>Academic Type:</strong> {year} ({studentType})</p>
-                {
-                  studentType === "High School" ? (
-                    <>
-                      <p><strong>ATAR:</strong> {atar}</p>
-                      <p><strong>Academic Strengths: {academicStrengths}</strong></p>
-                      <p><strong>Career Interests:</strong> {careerInterests}</p>
+            <div className='flex gap-10 justify-center'>
+              <div className='flex flex-col gap-5 w-1/2'>
+                  <div className='bg-white p-6 rounded-lg shadow-md'>
+                    <h2 className='text-2xl font-semibold my-3'>About Me</h2>
+                    <div className='flex flex-col gap-1'>
+                      <p>First Name: {firstName}</p>
+                      <p>Last Name: {lastName}</p>
+                      <p>Email: {email}</p>
+                      <p>Gender: {gender}</p>
+                      <p>Date of Birth: {dob}</p>
                       <p>
-                          <strong>Degree Interests:</strong>{' '}
-                            {degreeInterests && degreeInterests.length > 0
-                              ? degreeInterests.map((interest, idx) => (
-                                <span key={interest}>
-                                  {interest}
-                                  {idx < degreeInterests.length - 1 && ', '}
-                                </span>
-                              ))
+                        Hobbies:{' '}
+                        {hobbies && hobbies.length > 0
+                          ? hobbies.map((hobby, idx) => (
+                            <span key={hobby}>
+                              {hobby}
+                              {idx < hobbies.length - 1 && ', '}
+                            </span>
+                          ))
+                          : 'None specified'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='bg-white p-6 rounded-lg shadow-md'>
+                    <h2 className='text-2xl font-semibold my-3'>Academic Information</h2>
+                    <p>Academic Type: {year} ({studentType})</p>
+                    {studentType === "High School" ? (
+                      <div className='flex flex-col gap-1'>
+                        <p>ATAR: {atar}</p>
+                        <p>Academic Strengths: {academicStrengths}</p>
+                        <p>Career Interests: {careerInterests}</p>
+                        <p>
+                          Degree Interests:{' '}
+                          {degreeInterests && degreeInterests.length > 0
+                            ? degreeInterests.map((interest, idx) => (
+                              <span key={interest}>
+                                {interest}
+                                {idx < degreeInterests.length - 1 && ', '}
+                              </span>
+                            ))
                             : 'None specified'}
                         </p>
-                      <p><strong>Confidence:</strong>{confidence}</p>
-                    </>
-                  ) : (
-                    <>
-                      <p><strong>Degree Stage:</strong> {degreeStage}</p>
-                      <p><strong>Degree Field:</strong> {degreeField}</p>
-                      <p><strong>WAM:</strong> {wam}</p>
-                      <p><strong>Career Interests</strong> {careerInterests}</p>
-                      <p><strong>Confidence:</strong> {confidence}</p>
-                    </>
-                  )
-                }
+                        <p>Confidence:{confidence}</p>
+                      </div>
+                    ) : (
+                      <div className='flex flex-col gap-1'>
+                        <p>Degree Stage: {degreeStage}</p>
+                        <p>Degree Field: {degreeField}</p>
+                        <p>WAM: {wam}</p>
+                        <p>Career Interests {careerInterests}</p>
+                        <p>Confidence: {confidence}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                  <div className="flex flex-col gap-5 w-1/3">
+                    <div className='bg-white p-6 rounded-lg shadow-md flex flex-col'>
+                      <h2 className='text-2xl font-semibold'>Profile Picture</h2>
+                      <Avatar rounded size='xl' className='py-5'/>
+                    </div>
+                    <div className='bg-white p-6 rounded-lg shadow-md flex flex-col'>
+                        <div>
+                          {
+                            studentType === 'University' ? (
+                              <div>  
+                                <h2 className='text-2xl font-semibold'>Transcript</h2>
+                                <p className='mb-2'>Upload your most recent transcript</p>
+                              </div> 
+                            ) 
+                            :
+                            (
+                              <div>
+                                <h2 className='text-2xl font-semibold'>School Report</h2>
+                                <p className='mb-2'>Upload your most recent school report</p>
+                              </div>
+                            ) 
+                            
+                          }
+                        </div>
+                        <div>    
+                          <FileUpload/>
+                        </div>  
+                    </div>
+                </div>  
               </div>
-              <div className='bg-white p-3 rounded-lg shadow-md mt-4 w-1/3 h-2/5'>
-                <h2 className='text-2xl font-semibold mb-4'>Transcript/Report</h2>
-                <FileUpload/>
-              </div>
-            </div>
+            
           )
         }
       </div>
