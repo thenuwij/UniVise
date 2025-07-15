@@ -67,7 +67,7 @@ function ProfilePage() {
 
           setAtar(data.atar)
           setYear(data.year)
-          setAcademicStrengths(data.academicStrengths)
+          setAcademicStrengths(data.academic_strengths)
           setCareerInterests(data.career_interests)
           setDegreeInterests(data.degree_interest)
           setHobbies(data.hobbies)
@@ -102,54 +102,151 @@ function ProfilePage() {
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       <div className='ml-20 text-4xl font-bold mt-10'>
         <div className='flex justify-between'>
-          <h1 className='text-sky-800 text-4xl ml-10 mb-10'>My Account</h1>
-          <Button pill className='mr-20' onClick={() => setIsEditing(true)}>Edit</Button>
+          <h1 className='text-sky-800 text-4xl ml-10'>My Account</h1>
+          {
+            isEditing ? (
+              <div className='flex gap-3 mr-20 mb-10'>
+                <Button pill color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
+                <Button pill>Save</Button>
+              </div>
+            ) : (
+              <>
+                <Button pill className='mr-20' onClick={() => setIsEditing(true)}>Edit</Button>
+              </>
+            )
+          }
         </div>
       </div>
       <div>
         {
           isEditing ? 
           (
-          <form onSubmit={handleSave}>
-            <div className='flex gap-4 m-6 ml-20 h-screen'>
-              <div className='bg-white p-6 rounded-lg shadow-md mt-4 w-1/3 h-2/3'>
-                <h2 className='text-2xl font-semibold'>About Me</h2>
-                <TextInput id='firstName' placeholder={firstName}/>
-                <TextInput id='lastName' placeholder={lastName}/>
-                <TextInput id='email' placeholder={email}/>
-                <TextInput id='gender' placeholder={gender}/>
-                <TextInput id='dob' placeholder={dob} />
-                <TextInput id='hobby' placeholder={hobbies} />
-                <h2 className='text-2xl font-semibold mb-4'>Academic Information</h2>
-                <div className='flex'>
-                  <Dropdown label="Student Type" inline>
-                    <DropdownItem>University</DropdownItem>
-                    <DropdownItem>High School</DropdownItem>
-                  </Dropdown>
-                  {
-                    studentType === "University" ? 
-                    (
-                      <Dropdown label="Year" inline>
-                        <DropdownItem>Year 1</DropdownItem>
-                        <DropdownItem>Year 2</DropdownItem>
-                        <DropdownItem>Year 3</DropdownItem>
-                        <DropdownItem>Year 4</DropdownItem>
-                        <DropdownItem>Year 5+</DropdownItem>
-                        <DropdownItem>Postgraduate/Other</DropdownItem>
-                      </Dropdown>
-                    ) : (
-                      <Dropdown label="Grade" inline>
-                        <DropdownItem>Year 10</DropdownItem>
-                        <DropdownItem>Year 11</DropdownItem>
-                        <DropdownItem>Year 12</DropdownItem>
-                      </Dropdown>
-                    )
-                  }
+          <form onSubmit={handleSave} className='flex justify-center gap-6'>
+              <div className='flex flex-col gap-4 w-1/2'>
+
+                {/* Box 1 */}
+                <div className='bg-white p-6 rounded-lg shadow-md'>
+                  <h2 className='text-2xl font-semibold mb-2'>About Me</h2>
+                  <div className='flex flex-col gap-4'>
+                    <TextInput id='firstName' placeholder={firstName}/>
+                    <TextInput id='lastName' placeholder={lastName}/>
+                    <TextInput id='email' placeholder={email}/>
+                    <TextInput id='gender' placeholder={gender}/>
+                    <TextInput id='dob' type='date' placeholder={dob} />
+                    <TextInput id='hobby' placeholder={hobbies} />
+                  </div>
                 </div>
-                <TextInput id="careerInterests" placeholder={careerInterests}/>
-                <TextInput id="degreeInterests" placeholder={degreeInterests}/>
+
+                {/* Box 2 */}
+                <div className='bg-white p-6 rounded-lg shadow-md'>
+                  <h2 className='text-2xl font-semibold mb-2 mt-4'>Academic Information</h2>
+                  <div className='flex flex-col gap-4'>
+                    <div className='flex gap-2 w-2/3'>
+                      <Dropdown label={studentType} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1' >
+                        <DropdownItem>University</DropdownItem>
+                        <DropdownItem>High School</DropdownItem>
+                      </Dropdown>
+                      {
+                        studentType === "University" ? 
+                        (
+                          <div>
+                            <Dropdown label={year} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                              <DropdownItem>Year 1</DropdownItem>
+                              <DropdownItem>Year 2</DropdownItem>
+                              <DropdownItem>Year 3</DropdownItem>
+                              <DropdownItem>Year 4</DropdownItem>
+                              <DropdownItem>Year 5+</DropdownItem>
+                              <DropdownItem>Postgraduate/Other</DropdownItem>
+                            </Dropdown>
+                            <Dropdown label="Degree Stage" className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                              <DropdownItem>Bachelors Degree</DropdownItem>
+                              <DropdownItem>Masters / Degree</DropdownItem>
+                              <DropdownItem>PhD or Doctoral Program</DropdownItem>
+                              <DropdownItem>Other</DropdownItem>
+                            </Dropdown>
+                            <TextInput label="Degree Field" placeholder={degreeField}/>
+
+                          </div>
+                        ) : (
+                          <Dropdown label={year} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                            <DropdownItem>Year 10</DropdownItem>
+                            <DropdownItem>Year 11</DropdownItem>
+                            <DropdownItem>Year 12</DropdownItem>
+                          </Dropdown>
+                        )
+                      }
+                    </div>
+                    {
+                      studentType === "High School" ? (
+                        <div className='flex flex-col gap-4'>
+                          <div>
+                            <p className='text-sm'>ATAR</p>
+                            <TextInput label="ATAR" placeholder={atar}/>
+                          </div>  
+                          <div>
+                            <p className='text-sm'>Academic Strengths</p>
+                            <TextInput label="Academic Strengths" placeholder={academicStrengths}/>
+                          </div>
+                          <div>
+                            <p className='text-sm'>Degree Interests</p>
+                            <TextInput label="Degree Interests" placeholder={degreeInterests}/>
+                          </div>
+                          <div>
+                            <p className='text-sm'>Career Interests</p>
+                            <TextInput label="Career Interests" placeholder={careerInterests}/>
+                          </div>
+                          <div>
+                            <p className='text-sm'>Confidence Level</p>
+                            <Dropdown  label={confidence} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                              <DropdownItem>Very confident - I know what I want</DropdownItem>
+                              <DropdownItem>Somewhat confident - I have ideas but unsure</DropdownItem>
+                              <DropdownItem>Not confident - I need help figuring out</DropdownItem>
+                            </Dropdown>
+                          </div>
+
+
+                        </div> 
+                      ) : (
+                        <div>
+                          <TextInput label="WAM" placeholder={`${wam} WAM`}/>
+                          <TextInput label="Career Interests" placeholder={careerInterests}/>
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </div> 
+              <div>
+               <div className="flex flex-col gap-5">
+                    <div className='bg-white p-6 rounded-lg shadow-md flex flex-col'>
+                      <h2 className='text-2xl font-semibold'>Profile Picture</h2>
+                      <Avatar rounded size='xl' className='py-5'/>
+                    </div>
+                    <div className='bg-white p-6 rounded-lg shadow-md flex flex-col'>
+                        <div>
+                          {
+                            studentType === 'University' ? (
+                              <div>  
+                                <h2 className='text-2xl font-semibold'>Transcript</h2>
+                                <p className='mb-1'>Upload your most recent transcript</p>
+                              </div> 
+                            ) 
+                            :
+                            (
+                              <div>
+                                <h2 className='text-2xl font-semibold'>School Report</h2>
+                                <p className='mb-1'>Upload your most recent school report</p>
+                              </div>
+                            ) 
+                            
+                          }
+                        </div>
+                        <div>    
+                          <FileUpload/>
+                        </div>  
+                    </div>
+                </div>  
               </div>
-             </div> 
           </form>
           ) 
           : 
@@ -183,8 +280,26 @@ function ProfilePage() {
                     {studentType === "High School" ? (
                       <div className='flex flex-col gap-1'>
                         <p>ATAR: {atar}</p>
-                        <p>Academic Strengths: {academicStrengths}</p>
-                        <p>Career Interests: {careerInterests}</p>
+                        <p>Academic Strengths:{' '}
+                          {academicStrengths && academicStrengths.length > 0
+                          ? academicStrengths.map((interest, idx) => (
+                            <span key={interest}>
+                              {interest}
+                              {idx < academicStrengths.length - 1 && ', '}
+                            </span>
+                          ))
+                          : 'None specified'}
+                          </p>
+                        <p>Career Interests:{' '} 
+                          {careerInterests && careerInterests.length > 0
+                          ? careerInterests.map((interest, idx) => (
+                            <span key={interest}>
+                              {interest}
+                              {idx < careerInterests.length - 1 && ', '}
+                            </span>
+                          ))
+                          : 'None specified'}
+                        </p>
                         <p>
                           Degree Interests:{' '}
                           {degreeInterests && degreeInterests.length > 0
@@ -220,14 +335,14 @@ function ProfilePage() {
                             studentType === 'University' ? (
                               <div>  
                                 <h2 className='text-2xl font-semibold'>Transcript</h2>
-                                <p className='mb-2'>Upload your most recent transcript</p>
+                                <p className='mb-1'>Upload your most recent transcript</p>
                               </div> 
                             ) 
                             :
                             (
                               <div>
                                 <h2 className='text-2xl font-semibold'>School Report</h2>
-                                <p className='mb-2'>Upload your most recent school report</p>
+                                <p className='mb-1'>Upload your most recent school report</p>
                               </div>
                             ) 
                             
