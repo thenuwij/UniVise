@@ -228,14 +228,14 @@ function ProfilePage() {
                             studentType === 'University' ? (
                               <div>  
                                 <h2 className='text-2xl font-semibold'>Transcript</h2>
-                                <p className='mb-1'>Upload your most recent transcript</p>
+                                <p className='mb-2 font-light'>Upload your most recent transcript</p>
                               </div> 
                             ) 
                             :
                             (
                               <div>
                                 <h2 className='text-2xl font-semibold'>School Report</h2>
-                                <p className='mb-1'>Upload your most recent school report</p>
+                                <p className='mb-2 font-light'>Upload your most recent school report</p>
                               </div>
                             ) 
                             
@@ -251,11 +251,11 @@ function ProfilePage() {
           ) 
           : 
           (
-            <div className='flex gap-10 justify-center'>
+            <div className='flex gap-10 justify-center mt-10'>
               <div className='flex flex-col gap-5 w-1/2'>
                   <div className='bg-white p-6 rounded-lg shadow-md'>
                     <h2 className='text-2xl font-semibold my-3'>About Me</h2>
-                    <div className='flex flex-col gap-1'>
+                    <div className='flex flex-col gap-4 text-xl font-light'>
                       <p>First Name: {firstName}</p>
                       <p>Last Name: {lastName}</p>
                       <p>Email: {email}</p>
@@ -274,11 +274,11 @@ function ProfilePage() {
                       </p>
                     </div>
                   </div>
-                  <div className='bg-white p-6 rounded-lg shadow-md'>
-                    <h2 className='text-2xl font-semibold my-3'>Academic Information</h2>
-                    <p>Academic Type: {year} ({studentType})</p>
+                  <div className='bg-white p-6 rounded-lg shadow-md text-xl'>
+                    <h2 className='text-2xl font-semibold my-3 gap-4'>Academic Information</h2>
+                    <p className='font-light'>Academic Type: {year} ({studentType})</p>
                     {studentType === "High School" ? (
-                      <div className='flex flex-col gap-1'>
+                      <div className='flex flex-col gap-4 mt-4 font-light'>
                         <p>ATAR: {atar}</p>
                         <p>Academic Strengths:{' '}
                           {academicStrengths && academicStrengths.length > 0
@@ -311,7 +311,7 @@ function ProfilePage() {
                             ))
                             : 'None specified'}
                         </p>
-                        <p>Confidence:{confidence}</p>
+                        <p>Confidence: {confidence}</p>
                       </div>
                     ) : (
                       <div className='flex flex-col gap-1'>
@@ -324,7 +324,7 @@ function ProfilePage() {
                     )}
                   </div>
                 </div>
-                  <div className="flex flex-col gap-5 w-1/3">
+                  <div className="flex flex-col gap-5 1/4">
                     <div className='bg-white p-6 rounded-lg shadow-md flex flex-col'>
                       <h2 className='text-2xl font-semibold'>Profile Picture</h2>
                       <Avatar rounded size='xl' className='py-5'/>
@@ -335,14 +335,14 @@ function ProfilePage() {
                             studentType === 'University' ? (
                               <div>  
                                 <h2 className='text-2xl font-semibold'>Transcript</h2>
-                                <p className='mb-1'>Upload your most recent transcript</p>
+                                <p className='mb-2 font-light'>Upload your most recent transcript</p>
                               </div> 
                             ) 
                             :
                             (
                               <div>
                                 <h2 className='text-2xl font-semibold'>School Report</h2>
-                                <p className='mb-1'>Upload your most recent school report</p>
+                                <p className='mb-2 font-light'>Upload your most recent school report</p>
                               </div>
                             ) 
                             
