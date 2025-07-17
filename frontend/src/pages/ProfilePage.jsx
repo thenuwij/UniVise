@@ -4,8 +4,10 @@ import { DashboardNavBar } from '../components/DashboardNavBar'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { FileUpload } from '../components/FileUpload'
-import { Button, Checkbox, Dropdown, DropdownItem, Label, TextInput, Avatar } from "flowbite-react";
+import { Button, Checkbox, Dropdown, DropdownItem, Label, TextInput, Avatar, Tooltip, Badge } from "flowbite-react";
 import { data } from 'react-router-dom'
+import { HiX } from 'react-icons/hi'
+
 
 function ProfilePage() {
 
@@ -15,25 +17,129 @@ function ProfilePage() {
   const [ dob, setDob ] = useState('Not Specified');
   const [ gender, setGender ] = useState('Not Specified');
   const [ studentType, setStudentType ] = useState('Not Specified');
-  const [ careerInterests, setCareerInterests ] = useState('Not Specified');
-  const [ degreeInterests, setDegreeInterests] = useState([]);
+  const [ careerInterests, setCareerInterests ] = useState(['']);
+  const [ degreeInterests, setDegreeInterests] = useState(['']);
   const [ year, setYear ] = useState('Not Specified');
-  const [ academicStrengths, setAcademicStrengths ] = useState('Not Specified');
+  const [ academicStrengths, setAcademicStrengths ] = useState(['']);
   const [confidence, setConfidence] = useState('Not Specified')
-  const [ hobbies, setHobbies ] = useState([]);
+  const [hobbies, setHobbies] = useState([])
   const [ university, setUniversity ] = useState('Not Specified');
   const [ isEditing, setIsEditing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [ atar, setAtar ] = useState('Not Specified');
-  const [ degreeStage, setDegreeStage] = useState('Not Specified')
+  const [ degreeStage, setDegreeStage] = useState()
   const [ degreeField, setDegreeField] = useState('Not Specified')
-  const [ wam, setWam] = useState('Not Specified')
+  const [ wam, setWam] = useState()
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  const handleSave = () => {
-    return
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    try {
+      
+        const { data: emailData, error: emailError } = await supabase.auth.updateUser({
+          email: email
+        });
+        if (emailError) {
+          console.error('Error updating email:', emailError);
+          return;
+        }
+      
+      const { data: authData, error: authError } = await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          dob,
+          gender,
+        },
+        });
+      if (authError) {
+        console.error('Error updating auth metadata:', authError);
+        return;
+      } else {
+        console.log('success', authData)
+        setIsEditing(false)
+      }
+
+      if (studentType === 'High School') {
+
+        const { data: { user }, error } = await supabase.auth.getUser();
+        await supabase
+          .from("student_school_data")
+          .update({
+            hobbies: hobbies,
+            academic_strengths: academicStrengths,
+            degree_interest: degreeInterests,
+            career_interests: careerInterests,
+            confidence: confidence
+          })
+          .eq('user_id', user.id)
+      }
+    } catch (error) {
+      console.log(error)
+      return;
+    }
+  }
+
+  function TagInput({ values, setValues, placeholder }) {
+    const [next, setNext] = useState('')
+
+    const addTag = () => {
+      const t = next.trim()
+      if (t && !values.includes(t)) {
+        setValues([...values, t])
+      }
+      setNext('')
+    }
+
+    const removeTag = (i) => {
+      setValues(values.filter((_, idx) => idx !== i))
+    }
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        addTag()
+      } else if (e.key === 'Backspace' && !next) {
+        // delete last tag when input empty
+        removeTag(values.length - 1)
+      }
+    }
+
+    return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <TextInput
+          placeholder={placeholder}
+          value={next}
+          onChange={e => setNext(e.target.value)}
+          onKeyDown={onKeyDown}
+        />
+        <Button onClick={addTag} disabled={!next.trim()}>
+          Add
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {values.map((tag, i) => (
+          <Badge
+            key={tag + i}
+            size="sm"
+            color="info"
+          >
+          <div className="flex items-center">  
+            <span>{tag}</span>
+            <HiX
+              onClick={() => removeTag(i)}
+            />
+          </div>
+          </Badge>
+        ))}
+      </div>
+    </div>
+  )
   }
 
   useEffect(() => {
@@ -67,10 +173,34 @@ function ProfilePage() {
 
           setAtar(data.atar)
           setYear(data.year)
-          setAcademicStrengths(data.academic_strengths)
-          setCareerInterests(data.career_interests)
-          setDegreeInterests(data.degree_interest)
-          setHobbies(data.hobbies)
+
+          const rawStrengths = data.academic_strengths
+          const arrStrengths = Array.isArray(rawStrengths)
+            ? rawStrengths : typeof rawStrengths === 'string'
+            ? rawStrengths.split(',').map(h=> h.trim()).filter(Boolean) : []
+          setAcademicStrengths(arrStrengths)
+
+          const rawCareerInterests = data.career_interests
+          const arrCareerInterests = Array.isArray(rawCareerInterests)
+            ? rawCareerInterests : typeof rawCareerInterests === 'string'
+            ? rawCareerInterests.split(',').map(h=> h.trim()).filter(Boolean) : []
+
+          setCareerInterests(arrCareerInterests)
+
+          const rawDegreeInterest = data.degree_interests
+          const arrDegreeInterest = Array.isArray(rawDegreeInterest)
+            ? rawDegreeInterest : typeof rawDegreeInterest === 'string'
+            ? rawDegreeInterest.split(',').map(h=> h.trim()).filter(Boolean) : []
+
+          setDegreeInterests(arrDegreeInterest)
+
+          const rawHobbies = data.hobbies
+          const arrHobbies = Array.isArray(rawHobbies) 
+            ? rawHobbies : typeof rawHobbies === 'string'
+            ? rawHobbies.split(',').map(h => h.trim()).filter(Boolean)
+            : [];
+          setHobbies(arrHobbies);
+
           setConfidence(data.confidence)
           setStudentType('High School')
         } else if (studentType === 'university') {
@@ -107,7 +237,7 @@ function ProfilePage() {
             isEditing ? (
               <div className='flex gap-3 mr-20 mb-10'>
                 <Button pill color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button pill>Save</Button>
+                <Button pill type='submit' form='profileForm'>Save</Button>
               </div>
             ) : (
               <>
@@ -121,19 +251,47 @@ function ProfilePage() {
         {
           isEditing ? 
           (
-          <form onSubmit={handleSave} className='flex justify-center gap-6'>
+            
+          <form id="profileForm" onSubmit={handleSave} className='flex justify-center gap-6'>
               <div className='flex flex-col gap-4 w-1/2'>
 
                 {/* Box 1 */}
                 <div className='bg-white p-6 rounded-lg shadow-md'>
                   <h2 className='text-2xl font-semibold mb-2'>About Me</h2>
                   <div className='flex flex-col gap-4'>
-                    <TextInput id='firstName' placeholder={firstName}/>
-                    <TextInput id='lastName' placeholder={lastName}/>
-                    <TextInput id='email' placeholder={email}/>
-                    <TextInput id='gender' placeholder={gender}/>
-                    <TextInput id='dob' type='date' placeholder={dob} />
-                    <TextInput id='hobby' placeholder={hobbies} />
+                    <div className='text-sm'>
+                      <p>First Name</p>
+                      <TextInput id='firstName'type='text' placeholder={firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
+                    </div>
+                    <div className='text-sm'>
+                      <p>Last Name</p>
+                      <TextInput id='lastName' type='text' placeholder={lastName} value ={lastName} onChange={(e) => setLastName(e.target.value)}/>
+                    </div>
+                    <div className='text-sm'>
+                      <p>Email</p>
+                      <TextInput id='email' type = 'email' placeholder={email} value ={email} onChange={(e) => setEmail(e.target.value)}/>
+                    </div>
+                    <div className='text-sm'>
+                      <p>Gender</p>
+                      <Dropdown label={gender} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                        <DropdownItem onClick={() => setGender('Male')}>Male</DropdownItem>
+                        <DropdownItem onClick={() => setGender('Female')}>Female</DropdownItem>
+                        <DropdownItem onClick={() => setGender('Other')}>Other</DropdownItem>
+                        <DropdownItem onClick={() => setGender('Prefer not to say')}>Prefer not to say</DropdownItem>
+                      </Dropdown>
+                    </div>
+                    <div className='text-sm'>
+                      <p>Date of Birth</p>
+                      <TextInput id='dob' type='date' placeholder={dob} className='w-1/3' value={dob} onChange={(e) => setDob(e.target.value)}/>
+                    </div>  
+                    <div className='text-sm'>
+                      <p>Hobbies</p>  
+                      <TagInput 
+                        values={hobbies}
+                        setValues={setHobbies}
+                        placeholder="Type Hobby and add"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -141,75 +299,118 @@ function ProfilePage() {
                 <div className='bg-white p-6 rounded-lg shadow-md'>
                   <h2 className='text-2xl font-semibold mb-2 mt-4'>Academic Information</h2>
                   <div className='flex flex-col gap-4'>
-                    <div className='flex gap-2 w-2/3'>
-                      <Dropdown label={studentType} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1' >
-                        <DropdownItem>University</DropdownItem>
-                        <DropdownItem>High School</DropdownItem>
-                      </Dropdown>
+                    <div className='flex gap-2 w-2/3 text-sm'>
+                      <div>
+                        <p>School Type</p>
+                        <Tooltip content="Cannot be changed.">
+                          <Dropdown disabled label={studentType} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                            <DropdownItem onClick={() => setStudentType('University')}>University</DropdownItem>
+                            <DropdownItem onClick={() => setStudentType('High School')}>High School</DropdownItem>
+                          </Dropdown>
+                        </Tooltip>  
+                      </div>  
                       {
                         studentType === "University" ? 
                         (
-                          <div>
+                          <div className='text-sm'>
+                            <p>Year</p>
                             <Dropdown label={year} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
-                              <DropdownItem>Year 1</DropdownItem>
-                              <DropdownItem>Year 2</DropdownItem>
-                              <DropdownItem>Year 3</DropdownItem>
-                              <DropdownItem>Year 4</DropdownItem>
-                              <DropdownItem>Year 5+</DropdownItem>
-                              <DropdownItem>Postgraduate/Other</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 1')}>Year 1</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 2')}>Year 2</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 3')}>Year 3</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 4')}>Year 4</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 5')}>Year 5+</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Postgraduate/Other')}>Postgraduate/Other</DropdownItem>
                             </Dropdown>
-                            <Dropdown label="Degree Stage" className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
-                              <DropdownItem>Bachelors Degree</DropdownItem>
-                              <DropdownItem>Masters / Degree</DropdownItem>
-                              <DropdownItem>PhD or Doctoral Program</DropdownItem>
-                              <DropdownItem>Other</DropdownItem>
-                            </Dropdown>
-                            <TextInput label="Degree Field" placeholder={degreeField}/>
-
                           </div>
                         ) : (
-                          <Dropdown label={year} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
-                            <DropdownItem>Year 10</DropdownItem>
-                            <DropdownItem>Year 11</DropdownItem>
-                            <DropdownItem>Year 12</DropdownItem>
-                          </Dropdown>
+                          <div>
+                            <p>Year</p>
+                            <Dropdown label={year} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                              <DropdownItem onClick={() => setYear('Year 10')}>Year 10</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 11')}>Year 11</DropdownItem>
+                              <DropdownItem onClick={() => setYear('Year 12')}>Year 12</DropdownItem>
+                            </Dropdown>
+                           </div> 
                         )
                       }
                     </div>
+                    { 
+                      studentType === "University" ? (
+                        <>
+                        <div className='text-sm'>
+                          <p>Degree Stage</p>
+                          <Dropdown label={degreeStage} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
+                              <DropdownItem onClick={() => setDegreeStage('Bachelors Degree')}>Bachelors Degree</DropdownItem>
+                              <DropdownItem onClick={() => setDegreeStage('Masters Degree')}>Masters Degree</DropdownItem>
+                              <DropdownItem onClick={() => setDegreeStage('PhD or Doctoral Program')}>PhD or Doctoral Program</DropdownItem>
+                              <DropdownItem onClick={() => setDegreeStage('Other')}>Other</DropdownItem>
+                            </Dropdown>
+                        </div>
+                        <div className='text-sm'>
+                          <p>Degree Field</p>  
+                          <TextInput label="Degree Field" placeholder={degreeField} value={degreeField} onChange={(e) => setDegreeField(e.target.value)}/>
+                         </div> 
+                        </>
+                      ) : (<></>)
+                    }
                     {
                       studentType === "High School" ? (
                         <div className='flex flex-col gap-4'>
                           <div>
                             <p className='text-sm'>ATAR</p>
-                            <TextInput label="ATAR" placeholder={atar}/>
+                            <TextInput type='number' label="ATAR" placeholder={atar} value={atar} onChange={(e) => setAtar(e.target.value)}/>
                           </div>  
                           <div>
+                            
                             <p className='text-sm'>Academic Strengths</p>
-                            <TextInput label="Academic Strengths" placeholder={academicStrengths}/>
+                               <TagInput 
+                                  values={academicStrengths}
+                                  setValues={setAcademicStrengths}
+                                  placeholder="Type academic strengths and add"
+                                />
                           </div>
                           <div>
                             <p className='text-sm'>Degree Interests</p>
-                            <TextInput label="Degree Interests" placeholder={degreeInterests}/>
+                              <TagInput 
+                                values={degreeInterests}
+                                setValues={setDegreeInterests}
+                                placeholder="Type degree interests and add"
+                              />
                           </div>
                           <div>
                             <p className='text-sm'>Career Interests</p>
-                            <TextInput label="Career Interests" placeholder={careerInterests}/>
+                             <TagInput 
+                                values={careerInterests}
+                                setValues={setCareerInterests}
+                                placeholder="Type career interests and add"
+                              />
                           </div>
                           <div>
                             <p className='text-sm'>Confidence Level</p>
                             <Dropdown  label={confidence} className='bg-gray-100 hover:bg-gray-200 text-gray-500 border-1'>
-                              <DropdownItem>Very confident - I know what I want</DropdownItem>
-                              <DropdownItem>Somewhat confident - I have ideas but unsure</DropdownItem>
-                              <DropdownItem>Not confident - I need help figuring out</DropdownItem>
+                              <DropdownItem onClick={() => setConfidence('Very confident - I know what I want')}>Very confident - I know what I want</DropdownItem>
+                              <DropdownItem onClick={() => setConfidence('Somewhat confident - I have ideas but unsure')}>Somewhat confident - I have ideas but unsure</DropdownItem>
+                              <DropdownItem onClick={() => setConfidence('Not confident - I need help figuring out')}>Not confident - I need help figuring out</DropdownItem>
                             </Dropdown>
                           </div>
 
 
                         </div> 
                       ) : (
-                        <div>
-                          <TextInput label="WAM" placeholder={`${wam} WAM`}/>
-                          <TextInput label="Career Interests" placeholder={careerInterests}/>
+                        <div className='gap-4 text-sm'>
+                          <div className='mb-4'>
+                            <p>Weighted Average Mark (WAM)</p>
+                            <TextInput type="number" placeholder={wam} value={wam} onChange={(e) => setWam(e.target.value)}/>
+                          </div>
+                          <div>
+                            <p>Career Interests</p>  
+                             <TagInput 
+                                values={careerInterests}
+                                setValues={setCareerInterests}
+                                placeholder="Type career interests and add"
+                              />
+                          </div>
                         </div>
                       )
                     }
@@ -314,11 +515,21 @@ function ProfilePage() {
                         <p>Confidence: {confidence}</p>
                       </div>
                     ) : (
-                      <div className='flex flex-col gap-1'>
+                      <div className='flex flex-col gap-4 mt-4 font-light'>
                         <p>Degree Stage: {degreeStage}</p>
                         <p>Degree Field: {degreeField}</p>
                         <p>WAM: {wam}</p>
-                        <p>Career Interests {careerInterests}</p>
+                        <p>Career Interests:{' '}
+                          {careerInterests && careerInterests.length > 0
+                            ? careerInterests.map((interest, idx) => (
+                            <span key={interest}>
+                              {interest}
+                              {idx < careerInterests.length - 1 && ', '}
+                            </span>
+                          ))
+                          : 'None specified'}
+
+                        </p>
                         <p>Confidence: {confidence}</p>
                       </div>
                     )}
