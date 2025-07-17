@@ -1,14 +1,74 @@
+import React, { useState } from "react"
+import { FileInput, Label, Spinner } from "flowbite-react"
+import { supabase } from "../supabaseClient"
 
-import { FileInput, Label } from "flowbite-react";
+export function FileUpload({
+  userId,
+  bucket = "reports",
+  table = "student_school_data",
+  column = "report_url",
+  onUpload = () => {}
+}) {
+  const [loading, setLoading] = useState(false)
 
-export function FileUpload() {
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !userId) return
+
+    setLoading(true)
+    try {
+      // 1. build a unique path
+      const ext = file.name.split(".").pop()
+      const path = `${userId}-${Date.now()}.${ext}`
+      console.log(path)
+      
+      const { data, error } = await supabase
+        .storage
+        .from(bucket)
+        .upload(path, file, { upsert: false })
+      
+      if (error) {
+        console.log("Error Uploading to bucket", error)
+      } else {
+        console.log("Uploaded Successfully to bucket")
+      }
+
+      // // 3. get public URL
+      // const { publicURL, error: urlErr } = supabase
+      //   .storage
+      //   .from(bucket)
+      //   .getPublicUrl(path)
+      // if (urlErr) throw urlErr
+
+      // // 4. persist in your table
+      // const { error: dbErr } = await supabase
+      //   .from(table)
+      //   .update({ column: publicURL })
+      //   .eq("user_id", userId)
+      // if (dbErr) throw dbErr
+
+      // // 5. notify parent
+      // onUpload(publicURL)
+    } catch (err) {
+      console.error("Upload failed:", err.message)
+      alert("Failed to upload file.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex w-full items-center justify-center">
       <Label
         htmlFor="dropzone-file"
-        className="flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg shadow-md bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-300"
+        className="relative flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg shadow-md bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-300"
       >
-        <div>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/75 rounded-lg">
+            <Spinner size="lg" />
+          </div>
+        )}
+        <div className={loading ? "opacity-25" : ""}>
           <svg
             className="mb-4 h-8 w-8 text-gray-500 dark:text-gray-400"
             aria-hidden="true"
@@ -27,10 +87,17 @@ export function FileUpload() {
           <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
             <span className="font-semibold">Click to upload</span> or drag and drop
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            PDF, PNG, JPG or GIF
+          </p>
         </div>
-        <FileInput id="dropzone-file" className="hidden" />
+        <FileInput
+          id="dropzone-file"
+          className="hidden"
+          onChange={handleFileChange}
+          disabled={loading}
+        />
       </Label>
     </div>
-  );
+  )
 }

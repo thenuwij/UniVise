@@ -30,6 +30,8 @@ function ProfilePage() {
   const [ degreeStage, setDegreeStage] = useState()
   const [ degreeField, setDegreeField] = useState('Not Specified')
   const [ wam, setWam] = useState()
+  const [reportUrl, setReportUrl] = useState()
+  const [userId, setUserId] = useState();
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
@@ -158,12 +160,14 @@ function ProfilePage() {
         const dob = user.user_metadata.dob || '';
         const studentType = user.user_metadata.student_type || '';
         const gender = user.user_metadata.gender || ''
-
+        
+        setUserId(user.id)
         setFirstName(firstName);
         setLastName(lastName);
         setEmail(email);
         setGender(gender)
         setDob(dob);
+        console.log(studentType)
         if (studentType === 'high_school') {
           const { data } = await supabase
           .from("student_school_data")
@@ -560,7 +564,18 @@ function ProfilePage() {
                           }
                         </div>
                         <div>    
-                          <FileUpload/>
+                          <FileUpload
+                            userId={userId}
+                            bucket="reports"
+                            table="student_school_data"
+                            column="report_url"
+                            onUpload={url => setReportUrl(url)}
+                          />
+                          {reportUrl && (
+                            <a href={reportUrl} target="_blank" className="mt-2 block underline">
+                              View uploaded document
+                            </a>
+                          )}
                         </div>  
                     </div>
                 </div>  
