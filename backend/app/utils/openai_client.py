@@ -14,7 +14,7 @@ def ask_openai(prompt: str) -> str:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful and concise career advisor.",
+                    "content": "You are a helpful expert career advisor.",
                 },
                 {"role": "user", "content": prompt},
             ],
