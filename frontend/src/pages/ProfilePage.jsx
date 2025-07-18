@@ -30,7 +30,7 @@ function ProfilePage() {
   const [ degreeStage, setDegreeStage] = useState()
   const [ degreeField, setDegreeField] = useState('Not Specified')
   const [ wam, setWam] = useState()
-  const [reportUrl, setReportUrl] = useState()
+  const [reportPath, setReportPath] = useState(null)
   const [userId, setUserId] = useState();
 
   const openDrawer = () => setIsOpen(true);
@@ -177,6 +177,7 @@ function ProfilePage() {
 
           setAtar(data.atar)
           setYear(data.year)
+          setReportPath(data.report_path)
 
           const rawStrengths = data.academic_strengths
           const arrStrengths = Array.isArray(rawStrengths)
@@ -222,6 +223,7 @@ function ProfilePage() {
           setHobbies(data.hobbies)
           setConfidence(data.confidence)
           setYear(data.academic_year)
+          setReportPath(data.report_path)
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -563,16 +565,33 @@ function ProfilePage() {
                             
                           }
                         </div>
-                        <div>    
-                          <FileUpload
-                            userId={userId}
-                            bucket="reports"
-                            table="student_school_data"
-                            column="report_url"
-                            onUpload={url => setReportUrl(url)}
-                          />
-                          {reportUrl && (
-                            <a href={reportUrl} target="_blank" className="mt-2 block underline">
+                        <div>  
+                          {
+                            studentType === 'High School' || studentType === 'high_school' ? 
+                            (
+                               <FileUpload
+                                  userId={userId}
+                                  reportType = {"highschool_reports"}
+                                  bucket="reports"
+                                  table="student_school_data"
+                                  column="report_path"
+                                  onUpload={url => setReportPath(url)}
+                                />
+                            ) : (
+                               <FileUpload
+                                  userId={userId}
+                                  reportType = {"uni_transcripts"}
+                                  bucket="reports"
+                                  table="student_uni_data"
+                                  column="report_path"
+                                  onUpload={url => setReportPath(url)}
+                      
+                                />
+                            )
+                          }
+        
+                          {reportPath && (
+                            <a href={reportPath} target="_blank" className="mt-2 block underline">
                               View uploaded document
                             </a>
                           )}

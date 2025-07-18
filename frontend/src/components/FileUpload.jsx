@@ -1,15 +1,10 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { FileInput, Label, Spinner } from "flowbite-react"
 import { supabase } from "../supabaseClient"
 
-export function FileUpload({
-  userId,
-  bucket = "reports",
-  table = "student_school_data",
-  column = "report_url",
-  onUpload = () => {}
-}) {
+export function FileUpload({ userId, reportType, bucket, table, column, onUpload }) {
   const [loading, setLoading] = useState(false)
+  const [url, setUrl] = useState(false)
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
@@ -19,13 +14,12 @@ export function FileUpload({
     try {
       // 1. build a unique path
       const ext = file.name.split(".").pop()
-      const path = `${userId}-${Date.now()}.${ext}`
-      console.log(path)
+      const path = `${reportType}/${userId}.${ext}`
       
       const { data, error } = await supabase
         .storage
         .from(bucket)
-        .upload(path, file, { upsert: false })
+        .upload(path, file, { upsert: true })
       
       if (error) {
         console.log("Error Uploading to bucket", error)
@@ -33,22 +27,17 @@ export function FileUpload({
         console.log("Uploaded Successfully to bucket")
       }
 
-      // // 3. get public URL
-      // const { publicURL, error: urlErr } = supabase
-      //   .storage
-      //   .from(bucket)
-      //   .getPublicUrl(path)
-      // if (urlErr) throw urlErr
+      // 4. persist in your table
+      const { error: dbErr } = await supabase
+        .from(table)
+        .update({ [column]: path })
+        .eq("user_id", userId)
+      if (dbErr) {
+        console.log(dbErr)
+      }
 
-      // // 4. persist in your table
-      // const { error: dbErr } = await supabase
-      //   .from(table)
-      //   .update({ column: publicURL })
-      //   .eq("user_id", userId)
-      // if (dbErr) throw dbErr
-
-      // // 5. notify parent
-      // onUpload(publicURL)
+      // 5. notify parent
+      onUpload(path)
     } catch (err) {
       console.error("Upload failed:", err.message)
       alert("Failed to upload file.")
@@ -58,6 +47,7 @@ export function FileUpload({
   }
 
   return (
+
     <div className="flex w-full items-center justify-center">
       <Label
         htmlFor="dropzone-file"
@@ -99,5 +89,6 @@ export function FileUpload({
         />
       </Label>
     </div>
+  
   )
 }
