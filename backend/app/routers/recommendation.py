@@ -183,7 +183,7 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
     return recommendation
 
 
-@router.post("/recommendation/explain", response_model=ExplainResponse)
+@router.post("/explain", response_model=ExplainResponse)
 async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
@@ -221,6 +221,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
             7. **Source citations:** List the URLs (university handbook or official course page) you used to inform your recommendation.
 
             Use encouraging, confidence-building language so the student feels fully equipped to decide on their future degree.
+            
             
             Follow the example Output:
                     > **Degree:** Bachelor of Engineering (Honours)  
@@ -270,7 +271,8 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
                 6. **Additional factors:** Mention networking opportunities, professional associations, location/remoteness considerations, or average starting salaries.  
                 7. **Source citations:** Provide the URLs (industry reports, government labour data, professional body pages) you used to inform your recommendation.
                 
-                Follow the Example Output:
+                Respond in only valid JSON format:
+                
                     > **Career:** Full-Stack Software Engineer  
                     > **Industry:** Tech / Web Development  
                     > **Suitability Score:** 88/100  
