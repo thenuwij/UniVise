@@ -193,8 +193,10 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
 
     if student_type == "high_school":
         table = "degree_recommendations"
+        report_table = "school_report_analysis"
     else:
         table = "career_recommendations"
+        report_table = "transcript_analysis"
 
     recommendation = (
         supabase.table(table).select("*").eq("id", req.rec_id).single().execute()
@@ -203,12 +205,24 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
     if not recommendation:
         raise HTTPException(status_code=404, detail="Recommendation not Found")
 
+    report = (
+        supabase.table(report_table)
+        .select("analysis")
+        .eq("user_id", user.id)
+        .single()
+        .execute
+    )
+
+    if not report:
+        report = "Student did not provide"
+
     if student_type == "high_school":
         prompt = f"""
        You are an empathetic, expert academic advisor whose mission is to give a high-school student all the clarity and confidence they need to choose the perfect university degree.
             **Inputs**  
-            - The student’s profile from “student_school_data” (ATAR, subject strengths, career interests, extracurriculars, goals, etc.)  {user_info}
-            - The degree recommendation record (degree name, university, ATAR requirement, suitability score, estimated completion years, etc.) {recommendation}
+            - The student’s profile based off initial survey (Academic Strengths, Hobbies, ATAR goal or estimate, career and degree interests, confidence in future direction):  {user_info}
+            - Student Report Analysis: {report}
+            - The degree recommendation record (degree name, university, ATAR requirement, suitability score, estimated completion years, etc.): {recommendation}
 
             **Task**  
             Write a warm, detailed multi-paragraph narrative that:
@@ -259,6 +273,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
             You are an empathetic, expert career advisor whose mission is to give a university student all the clarity and confidence they need to choose the perfect career path.
                 **Inputs**  
                 - The student’s profile from “student_uni_data” (current WAM, major, skills, extracurriculars, internships, career goals, etc.):  {user_info}
+                - Student Transcript Analysis: {report}
                 - The career recommendation record (career title, industry, suitability score, education required, average salary range, etc.): {recommendation}
 
                 **Task**  
@@ -308,16 +323,17 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
 
     explanation = ask_openai(prompt)
 
-    response = (
-        supabase.table(table)
-        .update({"explanation": explanation})
-        .eq("id", req.rec_id)
-        .execute()
-    )
+    return explanation  # TO CONTINUE
+    # response = (
+    #     supabase.table(table)
+    #     .update({"explanation": explanation})
+    #     .eq("id", req.rec_id)
+    #     .execute()
+    # )
 
-    if not response:
-        raise HTTPException(
-            status_code=400, detail="Could not store explanation in supabase table"
-        )
+    # if not response:
+    #     raise HTTPException(
+    #         status_code=400, detail="Could not store explanation in supabase table"
+    #     )
 
-    return ExplainResponse(explanation=explanation)
+    # return ExplainResponse(explanation=explanation)
