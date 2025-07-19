@@ -13,6 +13,8 @@ export function RecommendationTable() {
   const [recommendations, setRecommendations] = useState([]);
   const navigate = useNavigate();
 
+  console.log(session)
+
   useEffect(() => {
     const fetchRecommendations = async () => {
       setLoading(true);
