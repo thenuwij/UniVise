@@ -4,11 +4,14 @@ from app.utils.database import supabase
 from .user import get_user_info, get_student_type
 from app.utils.openai_client import ask_openai, ask_gemini
 
+
 from PyPDF2 import PdfReader
 from docx import Document
 from PIL import Image
 import pytesseract
 import io
+import datetime
+import json
 
 router = APIRouter()
 
@@ -52,11 +55,14 @@ def extract_text_from_file(data: bytes, filename: str) -> str:
 @router.post("/analyse")
 async def analyse_report(user=Depends(get_current_user)):
     student_type = await get_student_type(user)
+    user_info = await get_user_info(user, student_type)
 
     if student_type == "high_school":
         table = "student_school_data"
+        report_table = "school_report_analysis"
     else:
         table = "student_uni_data"
+        report_table = "transcript_analysis"
 
     report_path = (
         supabase.table(table)
@@ -107,7 +113,28 @@ async def analyse_report(user=Depends(get_current_user)):
         **University Transcript:**  
         {report_text}
       """
+    ai_output_str = ask_gemini(prompt)
+    text = ai_output_str.strip()
+    if text.startswith("```"):
+        # remove ```json or ``` at top/bottom
+        text = text.strip("```json").strip("```").strip()
 
-    response = ask_gemini(prompt)
+    # 1. Parse it into a native dict
+    try:
+        ai_output = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise HTTPException(500, f"Could not parse LLM output as JSON: {e}")
 
-    return response
+    # 2. Upsert in one go (avoids having to check update vs insert yourself)
+    upsert_payload = {
+        "user_id": user.id,
+        "analysis": ai_output,  # dict → JSONB
+        "report_path": user_info["report_path"],
+        "analysed_at": datetime.datetime.now().isoformat(),
+    }
+
+    resp = supabase.table(report_table).upsert(upsert_payload).execute()
+    if not resp:
+        raise HTTPException(500, f"DB upsert failed: {resp.error.message}")
+
+    return {"analysis": ai_output}
