@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import PrivateRoute from "./components/PrivateRoute";
 import ChatbotPage from './pages/ChatbotPage';
 import ProfilePage from './pages/ProfilePage';
+import RecommendationPage from "./pages/RecommendationPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <App/> },
@@ -15,5 +16,6 @@ export const router = createBrowserRouter([
   { path: "/survey", element: <PrivateRoute><SurveyPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
   { path: "/chatbot", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
-  { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>}
+  { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>},
+  { path: "/recommendation/:id" , element: <PrivateRoute><RecommendationPage/></PrivateRoute>}
 ]);

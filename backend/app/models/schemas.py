@@ -24,3 +24,11 @@ class UniProfile(BaseModel):
     top_courses: List[str]
     interests: Optional[List[str]]
     traits: dict
+
+
+class ExplainRequest(BaseModel):
+    rec_id: str
+
+
+class ExplainResponse(BaseModel):
+    explanation: str
