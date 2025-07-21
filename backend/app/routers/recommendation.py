@@ -1,5 +1,5 @@
 import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from dependencies import get_current_user
 from app.utils.database import supabase
 from .user import get_user_info, get_student_type
@@ -14,7 +14,10 @@ router = APIRouter()
 
 
 @router.get("/prompt")
-async def get_recommendation_prompts(user=Depends(get_current_user)):
+async def get_recommendation_prompts(
+    background_tasks: BackgroundTasks,
+    user=Depends(get_current_user),
+):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
 
@@ -131,6 +134,9 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
 
         response = supabase.table("degree_recommendations").insert(rows).execute()
 
+        for row in rows:
+            background_tasks.add_task(explain_rec, row["id"], user)
+
         if not response:
             raise HTTPException(
                 status_code=500,
@@ -169,7 +175,12 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
                 "created_at": datetime.datetime.now().isoformat(),
             }
             rows.append(row)
+
         response = supabase.table("career_recommendations").insert(rows).execute()
+
+        for row in rows:
+            background_tasks.add_task(explain_rec, row["id"], user)
+
         if not response:
             raise HTTPException(
                 status_code=500,
@@ -183,8 +194,8 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
     return recommendation
 
 
-@router.post("/explain")
-async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
+@router.post("/{rec_id}/explain")
+async def explain_rec(rec_id: str, user=Depends(get_current_user)):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
 
@@ -201,7 +212,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
         response_table = "career_rec_details"
 
     recommendation = (
-        supabase.table(table).select("*").eq("id", req.rec_id).single().execute()
+        supabase.table(table).select("*").eq("id", rec_id).single().execute()
     )
 
     if not recommendation:
@@ -216,7 +227,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
     )
 
     if not report:
-        report = "Student did not provide"
+        report = "Student did not provide a report. Ignore this part for now"
 
     if student_type == "high_school":
         prompt = f"""
@@ -382,7 +393,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
 
     if student_type == "high_school":
         details = {
-            "id": str(req.rec_id),
+            "id": rec_id,
             "explanation": parsed["explanation"],
             "insights": parsed["insights"],
             "score_breakdown": parsed["score_breakdown"],
@@ -394,7 +405,7 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
         }
     elif student_type == "university":
         details = {
-            "id": str(req.rec_id),
+            "id": rec_id,
             "explanation": parsed["explanation"],
             "companies": parsed["companies"],
             "insights": parsed["insights"],

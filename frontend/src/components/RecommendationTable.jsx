@@ -1,7 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { supabase } from "../supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect,useRef, useState } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -13,9 +13,8 @@ export function RecommendationTable() {
   const [recommendations, setRecommendations] = useState([]);
   const navigate = useNavigate();
 
-  console.log(session)
-
   useEffect(() => {
+    
     const fetchRecommendations = async () => {
       setLoading(true);
 
@@ -37,7 +36,8 @@ export function RecommendationTable() {
         if (response?.error) {
           console.error("Error fetching recommendations:", response.error);
         } else {
-          setRecommendations(response.data);
+          const recs = response.data;
+          setRecommendations(recs);
           console.log("Fetched recommendations:", response.data);}
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -52,6 +52,10 @@ export function RecommendationTable() {
       console.warn("User type or ID is not set, skipping recommendations fetch.");
     }
   }, [userType, userId]);
+
+
+
+
 
   const displayTable = () => {
     if (userType === "high_school") {
