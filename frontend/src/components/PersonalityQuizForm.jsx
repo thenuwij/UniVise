@@ -43,7 +43,7 @@ const PersonalityQuizForm = () => {
       setCurrentGroupIndex(currentGroupIndex + 1);
     } else {
       const result = calculateResult(answers);
-      // Save to Supabase
+
     const { error } = await supabase.from("personality_results").insert([
       {
         user_id: session?.user?.id,
@@ -59,7 +59,7 @@ const PersonalityQuizForm = () => {
   } else {
     console.log("Personality result saved.");
     alert("Your personality quiz has been submitted successfully!");
-    // You can redirect or reset the form here
+
     navigate("/dashboard");
   }
     }
