@@ -87,31 +87,39 @@ async def analyse_report(user=Depends(get_current_user)):
 
     if student_type == "high_school":
         prompt = f"""
-          You are an expert high‐school academic analyst. Analyze the following student report and return **only** a single valid JSON object with these keys:
+          You are an expert high‐school academic analyst. Analyse the following student school report and return a detailed analysis on the report. 
+          This report will later be used for openAI to read again so return in markdown:
 
-          - **average_mark** (number): the overall average of all subject marks.  
-          - **top_subjects** (array of strings): the three subjects with the highest marks.  
-          - **bottom_subjects** (array of strings): the three subjects with the lowest marks.  
+          - **top_subjects** (array of strings): Subjects with the highest marks (2-3 subjects including the results/marks/rank if available).  
+          - **bottom_subjects** (array of strings): Subjects with the lowest marks (1-2 subjects).  
           - **strengths** (array of strings): short phrases describing the student’s strongest areas.  
           - **weaknesses** (array of strings): short phrases describing areas needing improvement.  
-          - **recommendations** (array of strings): actionable study tips or resources to address weaknesses.
+          - **Evaluation** (string): A strong detailed explanation to what you analysed and can determine based on the results.
+          - **Recommendation (string): Recommend Study Habits, which areas to focus on or prioritise and what to do heading forward.
 
           **High-School Report:**  
           {report_text}
+          
+          Return  **only** a single valid JSON object.
         """
     else:
         prompt = f"""
-        You are a seasoned university academic advisor. Analyze the following transcript and return **only** a single valid JSON object with these keys:
+        You are a seasoned university academic advisor. Analyse the following transcript and return a detailed analysis on the report.
+        This reort will later be used for openAI to read again so return in markdown:
 
         - **current_WAM** (number): the student’s weighted average mark.  
         - **high_achievements** (array of strings): the course codes or names where the student excelled.  
-        - **low_performance** (array of strings): the course codes or names with the lowest grades.  
-        - **skill_gaps** (array of strings): areas or subjects where additional study would be beneficial.  
-        - **recommended_courses** (array of strings): two or three electives or advanced courses to strengthen those gaps.  
-        - **academic_summary** (string): a concise paragraph summarizing their overall academic standing and next steps.
+        - **low_performance** (array of strings): the course codes or names with the lowest grades.    
+        - **strengths** (array of strings): short phrases describing the student’s strongest areas.  
+        - **weaknesses** (array of strings): short phrases describing areas needing improvement.  
+        - **Evaluation** (string): a concise paragraph summarizing their overall academic standing and next steps.
+        - **Recommendation (string): Recommend which areas to focus on or prioritise and what to do heading forward.
 
         **University Transcript:**  
         {report_text}
+      
+        Return  **only** a single valid JSON object.
+
       """
     ai_output_str = ask_gemini(prompt)
     text = ai_output_str.strip()

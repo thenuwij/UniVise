@@ -4,7 +4,7 @@ from dependencies import get_current_user
 from app.utils.database import supabase
 from .user import get_user_info, get_student_type
 from app.utils.openai_client import ask_openai
-from app.models.schemas import ExplainResponse, ExplainRequest
+from app.models.schemas import ExplainRequest
 
 import json
 import uuid
@@ -183,7 +183,7 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
     return recommendation
 
 
-@router.post("/explain", response_model=ExplainResponse)
+@router.post("/explain")
 async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
@@ -194,9 +194,11 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
     if student_type == "high_school":
         table = "degree_recommendations"
         report_table = "school_report_analysis"
+        response_table = "degree_rec_details"
     else:
         table = "career_recommendations"
         report_table = "transcript_analysis"
+        response_table = "career_rec_details"
 
     recommendation = (
         supabase.table(table).select("*").eq("id", req.rec_id).single().execute()
@@ -218,122 +220,196 @@ async def explain_rec(req: ExplainRequest, user=Depends(get_current_user)):
 
     if student_type == "high_school":
         prompt = f"""
-       You are an empathetic, expert academic advisor whose mission is to give a high-school student all the clarity and confidence they need to choose the perfect university degree.
-            **Inputs**  
-            - The student’s profile based off initial survey (Academic Strengths, Hobbies, ATAR goal or estimate, career and degree interests, confidence in future direction):  {user_info}
-            - Student Report Analysis: {report}
-            - The degree recommendation record (degree name, university, ATAR requirement, suitability score, estimated completion years, etc.): {recommendation}
+            You are an expert academic advisor. You have three inputs:
 
-            **Task**  
-            Write a warm, detailed multi-paragraph narrative that:
-            1. **Matches profile → degree:** Point out exactly which pieces of the student’s ATAR, subject strengths, interests, or goals led you to this degree choice.  
-            2. **Why this university is #1:** Highlight this school’s program reputation, entry standards, campus culture, support services, or any unique features.  
-            3. **Suitability score breakdown:** Explain in plain English how you calculated the suitability score (e.g., 50% academic readiness, 30% interest alignment, 20% career outlook).  
-            4. **Example majors or specialisations:** Suggest two or three specialised streams or majors within this degree that fit the student’s interests.  
-            5. **Career pathways after graduation:** Describe two realistic job titles or industries the student could enter with this degree.  
-            6. **Additional considerations:** Note scholarships, location factors, internship or industry links, or support programs they should explore.  
-            7. **Source citations:** List the URLs (university handbook or official course page) you used to inform your recommendation.
+            1. User Profile & Survey:
+            {user_info}
 
-            Use encouraging, confidence-building language so the student feels fully equipped to decide on their future degree.
-            
-            
-            Follow the example Output:
-                    > **Degree:** Bachelor of Engineering (Honours)  
-                    > **University:** University of New South Wales  
-                    > **Suitability Score:** 92/100  
+            2. Report Analysis – a JSON object with:
+            {report}
 
-                    **Congratulations!** Based on your outstanding ATAR of 95.2 and top-scoring results in Maths Advanced (94) and Physics (88), it’s clear you possess both the numerical aptitude and scientific curiosity that engineering demands. Your leadership as Robotics Club president and your success in the Maths Olympiad demonstrate not only technical skill but also a passion for solving real-world problems.
+            3. Recommendation Record:
+            {recommendation}
 
-                    **Why UNSW?** UNSW’s Engineering faculty consistently ranks in the global top 50, offering world-class maker spaces, industry-linked capstone projects, and dedicated student support programs. Its well-established cooperative education (Co-op) scheme will place you with leading tech companies, ensuring you graduate with practical experience and a robust professional network.
+            Task: Produce only a single valid JSON object (no markdown, no commentary) with these keys:
 
-                    **Suitability Score Breakdown:**  
-                    - **50% Academic Readiness:** Your ATAR and subject scores comfortably exceed the program’s minimum of 98.  
-                    - **30% Interest Alignment:** Your extracurriculars and goals map directly onto UNSW’s strong Robotics and Mechatronics streams.  
-                    - **20% Career Outlook:** Engineering graduates from UNSW command some of the highest starting salaries in Australia and enjoy a 95% employment rate within six months.
+            - `explanation` (string): a warm narrative that ties profile + report analysis to the recommendation (balance career and degree interests as much as report marks).  
+            - `insights` (object):
+                - `average_mark` (number)  
+                - `top_subjects` (array of strings)  
+                - `career_interests` (array of strings)  
+                - `degree_interests` (array of strings)  
+                - `bottom_subjects` (array of strings)  
+            - `score_breakdown` (object):
+                - `academic_match` (string)  
+                - `interest_fit` (string)  
+                - `career_outlook` (string)  
+            - `specialisations` (array of strings)  
+            - `career_pathways` (array of strings)  
+            - `entry_requirements` (string)  
+            - `next_steps` (array of strings)  
+            - `resources` (array of strings: URLs)  
 
-                    **Potential Specialisations:**  
-                    - Robotics & Autonomous Systems  
-                    - Mechatronics & Intelligent Machines  
-                    - AI & Data Engineering
-
-                    **Post-Graduation Careers:**  
-                    - Mechatronics Engineer at a manufacturing R&D lab  
-                    - Autonomous Systems Designer for automotive or aerospace  
-                    - Control Systems Analyst in renewable energy
-
-                    **Additional Considerations:**  
-                    Check out the Co-op scholarship options and UNSW’s maker-space workshops. The Kensington campus also offers vibrant student clubs like Formula SAE and AI Hackathons—perfect for building your portfolio.
-
-                    **Sources:**  
-                    - UNSW Engineering Handbook: https://www.unsw.edu.au/engineering-handbook  
-                    - BE(Hons) course page: https://www.handbook.unsw.edu.au/undergraduate/courses/2025/3800
+            Example Format:
+            {{
+            "explanation": "With an outstanding average mark of 92.5 and top scores in Maths Advanced, Physics, and Chemistry, you demonstrate the analytical rigor this Engineering program demands. Your strengths in quantitative reasoning and lab work align perfectly with hands-on projects in UNSW’s Engineering faculty. While your English and History marks lag slightly, targeted essay practice and structured study sessions will close that gap. Overall, your profile and report show you’re ideally positioned to excel in a Bachelor of Engineering (Honours).",
+            "insights": {{
+                "average_mark": 92.5,
+                "top_subjects": ["Maths Advanced", "Physics", "Chemistry"],
+                "career_interests": ["Robotics", "AI"],
+                "degree_interests": ["Engineering"],
+                "bottom_subjects": ["English", "History"]
+            }},
+            "score_breakdown": {{
+                "academic_match": "50% — your marks exceed the 96 ATAR requirement and show mastery of core STEM subjects",
+                "interest_fit": "30% — your passion for problem-solving and robotics maps to Mechatronics & Autonomous Systems",
+                "career_outlook": "20% — engineering graduates enjoy >95% employment within six months and strong starting salaries"
+            }},
+            "specialisations": [
+                "Robotics & Autonomous Systems",
+                "Mechatronics & Intelligent Machines",
+                "AI & Data Engineering"
+            ],
+            "career_pathways": [
+                "Mechatronics Engineer at a manufacturing R&D lab",
+                "Autonomous Systems Designer in automotive or aerospace",
+                "Control Systems Analyst in renewable energy"
+            ],
+            "entry_requirements": "ATAR ≥ 96; Maths Advanced and Physics prerequisites; 4 years full-time",
+            "next_steps": [
+                "Book an Engineering faculty info session",
+                "Apply for the UNSW Dean’s Scholarship by Sept 15",
+                "Join the campus robotics club for hands-on experience"
+            ],
+            "resources": [
+                "https://www.sydney.edu.au/engineering-handbook",
+                "https://www.sydney.edu.au/scholarships/deans-scholarship"
+            ]
+            }}
             """
+
     elif student_type == "university":
         prompt = f"""
-            You are an empathetic, expert career advisor whose mission is to give a university student all the clarity and confidence they need to choose the perfect career path.
-                **Inputs**  
-                - The student’s profile from “student_uni_data” (current WAM, major, skills, extracurriculars, internships, career goals, etc.):  {user_info}
-                - Student Transcript Analysis: {report}
-                - The career recommendation record (career title, industry, suitability score, education required, average salary range, etc.): {recommendation}
+            You are an expert university career advisor. You have three inputs:
 
-                **Task**  
-                Write a detailed multi-paragraph explanation that:
-                1. **Matches profile → career:** Show exactly which elements of the student’s WAM, skills, internship experience, or goals led you to this career recommendation.  
-                2. **Why this field is #1:** Emphasise industry demand, growth outlook, cultural fit, or any standout opportunities in this sector.  
-                3. **Suitability score breakdown:** Explain in plain English how you derived the suitability score (e.g., 40% academic performance, 30% skills match, 30% market demand).  
-                4. **Career specialisations or roles:** List two or three sub-roles or specialisations within this career path they could pursue.  
-                5. **Education or upskilling roadmap:** Outline any further certifications, courses, or postgraduate options that would enhance their prospects.  
-                6. **Additional factors:** Mention networking opportunities, professional associations, location/remoteness considerations, or average starting salaries.  
-                7. **Source citations:** Provide the URLs (industry reports, government labour data, professional body pages) you used to inform your recommendation.
-                
-                Respond in only valid JSON format:
-                
-                    > **Career:** Full-Stack Software Engineer  
-                    > **Industry:** Tech / Web Development  
-                    > **Suitability Score:** 88/100  
+            1. User Profile & Survey:
+            {user_info}
 
-                    **Well done on your progress so far!** Your WAM of 6.8 in Computer Science, combined with hands-on experience as a Frontend Developer at TechCorp, shows you have both the theoretical foundation and practical chops to excel in full-stack roles. Your proficiency in JavaScript, React, and Python gives you a versatile toolkit for end-to-end development.
+            2. Report Analysis – a JSON object:
+            {report}
 
-                    **Why Full-Stack?** The global demand for full-stack engineers continues to grow at over 15% annually, as startups and enterprises alike seek developers who can bridge front-end user experiences with robust back-end systems. Your knack for UI/UX (demonstrated by open-source contributions) and your backend problem-solving make this path an ideal match.
+            3. Recommendation Record:
+            {recommendation}
 
-                    **Suitability Score Breakdown:**  
-                    - **40% Academic Performance:** Your solid WAM reflects strong algorithmic and architectural understanding.  
-                    - **30% Skill Match:** Mastery of React and Python covers the most in-demand front-end and back-end frameworks.  
-                    - **30% Market Demand:** Full-stack roles remain among the highest-hiring and best-paid positions in tech.
+            Task: Produce only a single valid JSON object (no markdown, no commentary) with these keys:
+            - explanation (string)
+            - companies (array of strings)
+            - insights (object with keys current_WAM, top_courses, bottom_courses, skills_matched, experience_matched)
+            - score_breakdown (object with keys academic_performance, skill_match, market_demand)
+            - job_opportunity (string)
+            - next_steps (array of strings)
+            - resources (array of URLs)
 
-                    **Specialisation Tracks:**  
-                    - Front-End Architect (React, Vue, UX optimisations)  
-                    - Back-End Engineer (Django, Flask, microservices)  
-                    - DevOps & Cloud (CI/CD pipelines, AWS deployments)
+        Example output:
+            {{
+            "explanation": "Your strong WAM of 6.7 in your LLB, combined with high distinctions in Contract Law and Corporate Governance, shows you have the analytical rigor and commercial awareness needed for corporate law. Your summer clerkship at Smith & Partners and active role in the Commercial Law Society demonstrate both practical experience and genuine interest in this field. That blend of academic excellence and hands-on exposure makes Corporate Lawyer a natural recommendation for you.",
+            "companies": [
+                "MinterEllison",
+                "Herbert Smith Freehills",
+                "Clayton Utz",
+                "King & Wood Mallesons",
+                "JP Morgan (Legal Dept.)"
+            ],
+            "insights": {{
+                "current_WAM": 6.7,
+                "top_courses": [
+                "Contract Law (High Distinction)",
+                "Corporate Governance (Distinction)"
+                ],
+                "bottom_courses": [
+                "Property Law (Credit)",
+                "Criminal Law (Credit)"
+                ],
+                "skills_matched": [
+                "Legal research & drafting",
+                "Contract negotiation",
+                "Analytical reasoning"
+                ],
+                "experience_matched": [
+                "Summer clerkship at Smith & Partners",
+                "Committee member, Commercial Law Society"
+                ]
+            }},
+            "score_breakdown": {{
+                "academic_performance": "40% — your WAM and core corporate unit results exceed benchmarks for graduate roles",
+                "skill_match": "30% — your demonstrated research, writing and negotiation skills align precisely with the demands of corporate practice",
+                "market_demand": "30% — demand for qualified corporate lawyers remains steady in major firms and in-house teams"
+            }},
+            "job_opportunity": "Highly competitive — roughly 8–10 applicants per grad role at top firms. Success depends on strong internships, networking and PLT completion.",
+            "next_steps": [
+                "Complete Practical Legal Training (PLT) to qualify for admission",
+                "Apply for graduate programs at top corporate firms",
+                "Network at Law Society corporate law events",
+                "Publish a sample contract review or client memo in your portfolio"
+            ],
+            "resources": [
+                "https://www.lawsociety.com.au/careers/corporate-law",
+                "https://www.abs.gov.au/legal-services-statistics",
+                "https://www.university.edu.au/law/handbook/corporate-law"
+            ]
+            }}
+            """
 
-                    **Upskilling Roadmap:**  
-                    - AWS Certified Developer badge to deepen cloud expertise.  
-                    - Advanced React Patterns course to master performance tuning.  
-                    - Docker & Kubernetes workshop for containerisation skills.
-
-                    **Additional Factors:**  
-                    Attend local TechConnect meetups to network with hiring managers. Consider remote-friendly internships at companies like RemoteBase. Starting salaries for junior full-stack engineers average A$85K–A$100K in Sydney.
-
-                    **Sources:**  
-                    - ABS Labour Force Data: https://www.abs.gov.au/labour-force  
-                    - SEEK Career Insights: https://www.seek.com.au/career-advice/software-engineer-salary
-        """
     else:
         raise HTTPException(status_code=400, detail="Unknown student type")
 
-    explanation = ask_openai(prompt)
+    raw_response = ask_openai(prompt)
 
-    return explanation  # TO CONTINUE
-    # response = (
-    #     supabase.table(table)
-    #     .update({"explanation": explanation})
-    #     .eq("id", req.rec_id)
-    #     .execute()
-    # )
+    cleaned_response = raw_response.strip()
+    if cleaned_response.startswith("```"):
+        cleaned_response = re.sub(
+            r"^```json|^```|```$", "", cleaned_response, flags=re.MULTILINE
+        ).strip()
+    try:
+        parsed = json.loads(cleaned_response)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error parsing details: {str(e)}\nRaw output: {raw_response}",
+        ) from e
 
-    # if not response:
-    #     raise HTTPException(
-    #         status_code=400, detail="Could not store explanation in supabase table"
-    #     )
+    details = {}
 
-    # return ExplainResponse(explanation=explanation)
+    if student_type == "high_school":
+        details = {
+            "id": str(req.rec_id),
+            "explanation": parsed["explanation"],
+            "insights": parsed["insights"],
+            "score_breakdown": parsed["score_breakdown"],
+            "specialisations": parsed["specialisations"],
+            "career_pathways": parsed["career_pathways"],
+            "entry_requirements": parsed["entry_requirements"],
+            "next_steps": parsed["next_steps"],
+            "resources": parsed["resources"],
+        }
+    elif student_type == "university":
+        details = {
+            "id": str(req.rec_id),
+            "explanation": parsed["explanation"],
+            "companies": parsed["companies"],
+            "insights": parsed["insights"],
+            "score_breakdown": parsed["score_breakdown"],
+            "job_opportunity": parsed["job_opportunity"],
+            "next_steps": parsed["next_steps"],
+            "resources": parsed["resources"],
+        }
+
+    response = supabase.table(response_table).upsert(details).execute()
+
+    if not response:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error saving recommendations: {response.error.message}",
+        )
+
+    return details

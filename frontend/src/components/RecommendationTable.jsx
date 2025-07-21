@@ -109,7 +109,7 @@ export function RecommendationTable() {
             </TableRow>
           ) : recommendations.length > 0 ? (
             recommendations.map((rec) => (
-              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate('/recommendation')}>
+              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate(`/recommendation/${rec.id}`)}>
                 <TableCell>{rec.career_title}</TableCell>
                 <TableCell>{rec.industry}</TableCell>
                 <TableCell>{rec.suitability_score}</TableCell>
