@@ -148,34 +148,77 @@ function RecommendationPage() {
               </p>
             </AccordionContent>
           </AccordionPanel>
-          <AccordionPanel>
-            <AccordionTitle>Specialisations</AccordionTitle>
-              {specialisations.length > 0 && (
-                <AccordionContent>
-                  <ul className="list-disc list-inside ml-4 space-y-1">
-                    {specialisations.map((spec, idx) => (
-                      <li key={idx}>
-                        {spec}
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              )}
-          </AccordionPanel>
-           <AccordionPanel>
-            <AccordionTitle>Career Pathways</AccordionTitle>
-              {careerPaths.length > 0 && (
-                  <AccordionContent>
-                    <ul className="list-disc list-inside ml-4 space-y-1">
-                      {careerPaths.map((path, idx) => (
-                        <li key={idx}>
-                          {path}
-                        </li>
-                      ))}
-                    </ul>
-                  </AccordionContent>
-              )}
-          </AccordionPanel>
+          {
+            userType == 'high_school' ? 
+            (
+            <>
+              <AccordionPanel>
+                <AccordionTitle>Specialisations</AccordionTitle>
+                  {specialisations.length > 0 && (
+                    <AccordionContent>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        {specialisations.map((spec, idx) => (
+                          <li key={idx}>
+                            {spec}
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  )}
+              </AccordionPanel>
+              <AccordionPanel>
+                <AccordionTitle>Career Pathways</AccordionTitle>
+                  {careerPaths.length > 0 && (
+                    <AccordionContent>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        {careerPaths.map((path, idx) => (
+                          <li key={idx}>
+                            {path}
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  )}
+              </AccordionPanel>
+              </>
+
+              
+            ) : 
+            (
+            <>
+              <AccordionPanel>
+                  <AccordionTitle>Companies</AccordionTitle>
+                    {companies.length > 0 && (
+                      <AccordionContent>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          {companies.map((company, idx) => (
+                            <li key={idx}>
+                              {company}
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    )}
+                </AccordionPanel>
+                <AccordionPanel>
+                <AccordionTitle>Career Pathways</AccordionTitle>
+                  {jobOpp.length > 0 && (
+                    <AccordionContent>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        {jobOpp.map((job, idx) => (
+                          <li key={idx}>
+                            {job}
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  )}
+                </AccordionPanel>
+            </>
+            )
+          }
+
+          
 
           <AccordionPanel>
             <AccordionTitle>Next Steps</AccordionTitle>
