@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient';
 import { UserAuth } from '../context/AuthContext';
 import { MenuBar } from '../components/MenuBar';
 import { DashboardNavBar } from '../components/DashboardNavBar';
 import {
+  Button,
   Card,
   Accordion,
   AccordionPanel,
@@ -14,6 +15,7 @@ import {
   Badge,
   ListGroupItem
 } from 'flowbite-react'
+import { IoChevronBackCircleSharp } from "react-icons/io5";
 
 function RecommendationPage() {
 
@@ -23,6 +25,7 @@ function RecommendationPage() {
   
   const { id } = useParams()
   const { session } = UserAuth()
+  const navigate = useNavigate();
   const userType = session?.user?.user_metadata?.student_type
   const [recommendationDetails, setRecommendationDetails] = useState([]);
   const [error, setError] = useState(null)
@@ -107,30 +110,35 @@ function RecommendationPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-
-      <main className="container mx-auto p-6">
-        <Card className="mb-6">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            {recommendation.title}
-          </h2>
-          <p className="mt-2 text-lg text-gray-700">
-            {recommendation.subtitle}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {recommendation.badges.map((badge, idx) => (
-              <Badge key={idx} color={badge.color} size="lg">
-                {badge.label}
-              </Badge>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-800">Why?</h3>
-          <p className="text-gray-700 leading-relaxed">{explanation}</p>
-        </Card>
-
-        <Accordion>
+      <div className='flex'>
+        <Button pill className='ml-10 mt-5' size='lg' onClick={() => navigate('/dashboard')}>Back</Button>
+      </div>
+      <main className="mx-auto p-6 flex gap-10 h-screen ml-5 items-start">
+        <div className='flex flex-col w-3/5 gap-4'>
+          <Card>
+            <h2 className="text-5xl font-bold text-blue-700">
+              {recommendation.title}
+            </h2>
+            <p className="text-2xl text-blue-900">
+              {recommendation.subtitle}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-4">
+              {recommendation.badges.map((badge, idx) => (
+                <Badge key={idx} color={badge.color} size="lg">
+                  {badge.label}
+                </Badge>
+              ))}
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800">Summary</h3>
+            <p className="text-gray-700 leading-relaxed text-lg">{explanation}</p>
+          </Card>
+          <Card>
+            <h3 className="text-xl font-semibold text-gray-800">Our Insights</h3>
+              <p className="text-gray-700 leading-relaxed text-lg">{explanation}</p>
+          </Card>
+        </div>
+        
+        <Accordion className='w-1/3'>
           <AccordionPanel>
             <AccordionTitle>Score Breakdown?</AccordionTitle>
             <AccordionContent>
