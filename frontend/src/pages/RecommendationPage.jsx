@@ -149,9 +149,8 @@ function RecommendationPage() {
             </AccordionContent>
           </AccordionPanel>
           {
-            userType == 'high_school' ? 
+            userType === 'high_school' ? 
             (
-            <>
               <AccordionPanel>
                 <AccordionTitle>Specialisations</AccordionTitle>
                   {specialisations.length > 0 && (
@@ -166,26 +165,8 @@ function RecommendationPage() {
                     </AccordionContent>
                   )}
               </AccordionPanel>
-              <AccordionPanel>
-                <AccordionTitle>Career Pathways</AccordionTitle>
-                  {careerPaths.length > 0 && (
-                    <AccordionContent>
-                      <ul className="list-disc list-inside ml-4 space-y-1">
-                        {careerPaths.map((path, idx) => (
-                          <li key={idx}>
-                            {path}
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  )}
-              </AccordionPanel>
-              </>
-
-              
             ) : 
             (
-            <>
               <AccordionPanel>
                   <AccordionTitle>Companies</AccordionTitle>
                     {companies.length > 0 && (
@@ -200,7 +181,28 @@ function RecommendationPage() {
                       </AccordionContent>
                     )}
                 </AccordionPanel>
-                <AccordionPanel>
+            )
+          }
+
+          {
+            userType == 'high_school' ? (
+              <AccordionPanel>
+                <AccordionTitle>Career Pathways</AccordionTitle>
+                  {careerPaths.length > 0 && (
+                    <AccordionContent>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        {careerPaths.map((path, idx) => (
+                          <li key={idx}>
+                            {path}
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  )}
+              </AccordionPanel>
+            ) 
+            : (
+              <AccordionPanel>
                 <AccordionTitle>Career Pathways</AccordionTitle>
                   {jobOpp.length > 0 && (
                     <AccordionContent>
@@ -213,8 +215,7 @@ function RecommendationPage() {
                       </ul>
                     </AccordionContent>
                   )}
-                </AccordionPanel>
-            </>
+              </AccordionPanel>
             )
           }
 
@@ -240,17 +241,10 @@ function RecommendationPage() {
             <AccordionTitle>Resources</AccordionTitle>
             {resources.length > 0 && (
               <AccordionContent>
-                <ListGroup flush>
+                <ListGroup>
                   {resources.map((res, idx) => (
                     <ListGroupItem key={idx} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                      <a
-                        href={res.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                      >
                         {res}
-                      </a>
                     </ListGroupItem>
                   ))}
                 </ListGroup>
