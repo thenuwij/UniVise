@@ -28,7 +28,3 @@ class UniProfile(BaseModel):
 
 class ExplainRequest(BaseModel):
     rec_id: str
-
-
-class ExplainResponse(BaseModel):
-    explanation: str
