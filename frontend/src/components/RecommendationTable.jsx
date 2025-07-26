@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from 
 import { supabase } from "../supabaseClient";
 import { useEffect, useState } from "react";
 import { UserAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export function RecommendationTable() {
   const { session } = UserAuth();
@@ -10,6 +11,9 @@ export function RecommendationTable() {
   const userId = session?.user?.id;
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const navigate = useNavigate();
+
+  console.log(session)
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -69,7 +73,7 @@ export function RecommendationTable() {
             </TableRow>
           ) : recommendations.length > 0 ? (
             recommendations.map((rec) => (
-              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md">
+              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate(`/recommendation/${rec.id}`)}>
                 <TableCell>{rec.degree_name}</TableCell>
                 <TableCell>{rec.university_name}</TableCell>
                 <TableCell>{rec.atar_requirement}</TableCell>
@@ -105,7 +109,7 @@ export function RecommendationTable() {
             </TableRow>
           ) : recommendations.length > 0 ? (
             recommendations.map((rec) => (
-              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md">
+              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate('/recommendation')}>
                 <TableCell>{rec.career_title}</TableCell>
                 <TableCell>{rec.industry}</TableCell>
                 <TableCell>{rec.suitability_score}</TableCell>
