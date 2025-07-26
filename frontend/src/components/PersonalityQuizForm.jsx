@@ -44,14 +44,19 @@ const PersonalityQuizForm = () => {
     } else {
       const result = calculateResult(answers);
 
-    const { error } = await supabase.from("personality_results").insert([
-      {
-        user_id: session?.user?.id,
-        trait_scores: result.traitScores,
-        top_types: result.topTypes,
-        result_summary: result.resultSummary,
-      },
-    ]);
+  const { error } = await supabase
+    .from("personality_results")
+    .upsert(
+      [
+        {
+          user_id: session?.user?.id,
+          trait_scores: result.traitScores,
+          top_types: result.topTypes,
+          result_summary: result.resultSummary,
+        },
+      ],
+      { onConflict: ["user_id"] }
+    );
 
   if (error) {
     console.error("Error saving personality result:", error);
@@ -60,7 +65,7 @@ const PersonalityQuizForm = () => {
     console.log("Personality result saved.");
     alert("Your personality quiz has been submitted successfully!");
 
-    navigate("/dashboard");
+    navigate("/quiz/result");
   }
     }
   };
