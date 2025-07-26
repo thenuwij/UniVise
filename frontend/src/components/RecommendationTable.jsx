@@ -1,7 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { supabase } from "../supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect,useRef, useState } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -13,9 +13,8 @@ export function RecommendationTable() {
   const [recommendations, setRecommendations] = useState([]);
   const navigate = useNavigate();
 
-  console.log(session)
-
   useEffect(() => {
+    
     const fetchRecommendations = async () => {
       setLoading(true);
 
@@ -37,7 +36,8 @@ export function RecommendationTable() {
         if (response?.error) {
           console.error("Error fetching recommendations:", response.error);
         } else {
-          setRecommendations(response.data);
+          const recs = response.data;
+          setRecommendations(recs);
           console.log("Fetched recommendations:", response.data);}
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -52,6 +52,10 @@ export function RecommendationTable() {
       console.warn("User type or ID is not set, skipping recommendations fetch.");
     }
   }, [userType, userId]);
+
+
+
+
 
   const displayTable = () => {
     if (userType === "high_school") {
@@ -73,7 +77,7 @@ export function RecommendationTable() {
             </TableRow>
           ) : recommendations.length > 0 ? (
             recommendations.map((rec) => (
-              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate(`/recommendation/${rec.id}`)}>
+              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => {navigate(`/recommendation/${rec.id}`, { state: { rec } })}}>
                 <TableCell>{rec.degree_name}</TableCell>
                 <TableCell>{rec.university_name}</TableCell>
                 <TableCell>{rec.atar_requirement}</TableCell>
@@ -109,7 +113,7 @@ export function RecommendationTable() {
             </TableRow>
           ) : recommendations.length > 0 ? (
             recommendations.map((rec) => (
-              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => navigate('/recommendation')}>
+              <TableRow key={rec.id} className="hover:bg-gray-100 dark:hover:bg-gray-200 border-b-gray-300 text-md" onClick={() => {navigate(`/recommendation/${rec.id}`, { state: { rec } })}}>
                 <TableCell>{rec.career_title}</TableCell>
                 <TableCell>{rec.industry}</TableCell>
                 <TableCell>{rec.suitability_score}</TableCell>
