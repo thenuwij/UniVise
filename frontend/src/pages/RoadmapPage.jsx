@@ -3,118 +3,53 @@ import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
-import ProgramSelector from "../components/ProgramSelector";
 import Roadmap from "../components/Roadmap";
 import DegreeSearch from "../components/DegreeSearch";
-import { Button } from "flowbite-react";
+import { Button, Modal } from "flowbite-react";
 
 function RoadmapPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [programs, setPrograms] = useState([]);
-  const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedProgramData, setSelectedProgramData] = useState(null);
   const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { session } = UserAuth();
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const fetchRecommendations = async () => {
       if (!session) return;
 
       const { data, error } = await supabase
-        .from("program_info")
-        .select("*")
-        .eq("user_id", session.user.id);
+        .from("final_degree_recommendations")
+        .select(
+          "degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
+        )
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
 
-      if (!error) setPrograms(data);
-      else console.error("Error fetching programs:", error);
+      if (!error && data?.length > 0) {
+        const formatted = data.map((deg) => ({
+          degreeName: deg.degree_name,
+          reason: deg.reason,
+          specialisations: deg.specialisations,
+          courseBreakdown: {
+            "Year 1": deg.year_1_courses,
+            "Year 2": deg.year_2_courses,
+            "Year 3": deg.year_3_courses,
+            "Year 4": deg.year_4_courses,
+          },
+        }));
+        setRecommended(formatted);
+      } else {
+        console.error("Error fetching recommendations:", error);
+      }
     };
 
-const fetchRecommendations = async () => {
-  if (!session) return;
-
-  const { data, error } = await supabase
-    .from("final_degree_recommendations")
-    .select(
-      "degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
-    )
-    .eq("user_id", session.user.id)
-    .order("created_at", { ascending: false });
-
-  if (!error && data?.length > 0) {
-    const formatted = data.map((deg) => ({
-      degreeName: deg.degree_name,
-      reason: deg.reason,
-      specialisations: deg.specialisations,
-      courseBreakdown: {
-        "Year 1": deg.year_1_courses,
-        "Year 2": deg.year_2_courses,
-        "Year 3": deg.year_3_courses,
-        "Year 4": deg.year_4_courses,
-      },
-    }));
-    setRecommended(formatted);
-  } else {
-    console.error("Error fetching recommendations:", error);
-  }
-};
-
-    fetchPrograms();
     fetchRecommendations();
   }, [session]);
-
-  useEffect(() => {
-    const selected = programs.find((p) => p.id === selectedProgramId);
-    if (selected) setSelectedProgramData(selected.program_info);
-    else setSelectedProgramData(null);
-  }, [selectedProgramId, programs]);
-
-  const handleDegreeSelect = async (degree) => {
-    if (!session) return;
-    setLoading(true);
-
-    try {
-      const res = await fetch("http://localhost:8000/program-info", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          degree_name: degree.program_name,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (res.ok) {
-        const { data, error } = await supabase
-          .from("program_info")
-          .insert([
-            {
-              user_id: session.user.id,
-              program_name: degree.program_name,
-              program_info: result,
-            },
-          ])
-          .select();
-
-        if (error) throw error;
-
-        setPrograms((prev) => [...prev, ...data]);
-        setSelectedProgramId(data[0].id);
-      } else {
-        console.error("AI error:", result);
-      }
-    } catch (err) {
-      console.error("Error handling degree selection:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRecommendedClick = (degree) => {
     setSelectedProgramData({
@@ -122,6 +57,23 @@ const fetchRecommendations = async () => {
       courseBreakdown: degree.courseBreakdown,
       specialisations: degree.specialisations,
     });
+    setIsModalOpen(true);
+  };
+
+  const handleDegreeSelect = (degree) => {
+    console.log("Degree selected (no action taken):", degree.program_name);
+    
+    // setSelectedProgramData({
+    //   degreeName: degree.program_name,
+    //   courseBreakdown: {
+    //     "Year 1": degree.year_1_courses || [],
+    //     "Year 2": degree.year_2_courses || [],
+    //     "Year 3": degree.year_3_courses || [],
+    //     "Year 4": degree.year_4_courses || [],
+    //   },
+    //   specialisations: degree.majors || [],
+    // });
+    // setIsModalOpen(true);
   };
 
   return (
@@ -161,30 +113,23 @@ const fetchRecommendations = async () => {
               </div>
             )}
 
-            <div className="mb-10">
-              <h2 className="text-2xl font-bold text-slate-700 mb-4">
-                Or explore a custom pathway:
-              </h2>
+            <div className="mt-10">
               <DegreeSearch onSelectDegree={handleDegreeSelect} />
             </div>
-
-            {programs.length > 0 && (
-              <>
-                <ProgramSelector
-                  programs={programs}
-                  selectedId={selectedProgramId}
-                  onSelect={setSelectedProgramId}
-                />
-              </>
-            )}
-
-            {selectedProgramData && (
-              <div className="mt-10">
-                <Roadmap programData={selectedProgramData} />
-              </div>
-            )}
           </>
         )}
+
+        <Modal
+          show={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          size="4xl"
+          dismissible
+        >
+          <Modal.Header>Program Roadmap</Modal.Header>
+          <Modal.Body>
+            {selectedProgramData && <Roadmap programData={selectedProgramData} />}
+          </Modal.Body>
+        </Modal>
       </div>
     </div>
   );

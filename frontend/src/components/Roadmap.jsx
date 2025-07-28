@@ -3,7 +3,6 @@ import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
-import ProgramSelector from "../components/ProgramSelector";
 import Roadmap from "../components/Roadmap";
 import DegreeSearch from "../components/DegreeSearch";
 
@@ -19,7 +18,6 @@ function RoadmapPage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // Fetch program_info if it exists for this user
   useEffect(() => {
     const fetchPrograms = async () => {
       if (!session) return;
@@ -38,14 +36,12 @@ function RoadmapPage() {
     fetchPrograms();
   }, [session]);
 
-  // Update selected program
   useEffect(() => {
     const selected = programs.find((p) => p.id === selectedProgramId);
     if (selected) setSelectedProgramData(selected.program_info);
     else setSelectedProgramData(null);
   }, [selectedProgramId, programs]);
 
-  // Fetch fallback AI recommendation from backend if no program_info exists
   useEffect(() => {
     const fetchFinalRecommendations = async () => {
       if (!session || programs.length > 0) return;
@@ -74,10 +70,8 @@ function RoadmapPage() {
     fetchFinalRecommendations();
   }, [session, programs]);
 
-  // DegreeSearch callback
   const handleDegreeSelect = (degree) => {
     console.log("Degree selected:", degree);
-    // Optionally trigger roadmap generation here
   };
 
   return (
@@ -91,11 +85,6 @@ function RoadmapPage() {
 
         {programs.length > 0 ? (
           <>
-            <ProgramSelector
-              programs={programs}
-              selectedId={selectedProgramId}
-              onSelect={setSelectedProgramId}
-            />
             {selectedProgramData && <Roadmap programData={selectedProgramData} />}
           </>
         ) : finalRecommendationData ? (
