@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .routers import auth, recommendation, user, chatbot_routes, reports
+from .routers import auth, recommendation, user, chatbot_routes, reports, program_info
+from app.routers.final_plan import router as final_plan_router
+
 
 app = FastAPI()
 load_dotenv()
@@ -21,3 +23,5 @@ app.include_router(
 )
 app.include_router(chatbot_routes.router, prefix="/chat", tags=["Chatbot"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
+app.include_router(program_info.router, prefix="/program")
+app.include_router(final_plan_router, prefix="/final-degree-plan")

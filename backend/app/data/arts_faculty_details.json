@@ -1,0 +1,116 @@
+[
+  {
+    "program_name": "Bachelor of Arts",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.1,
+    "portfolio_available": true,
+    "description": "Pursue your passion for the humanities, creative arts and social sciences. Gain critical thinking, problem-solving and communication skills while tackling challenges like climate change and cultural diversity.",
+    "career_outcomes": "Consulting, Education, Government and public service, Media and journalism, Non-profit organisations",
+    "majors": [
+      "Asian Studies",
+      "Criminology",
+      "Creative Writing",
+      "English",
+      "Environmental Humanities",
+      "European Studies",
+      "Film Studies",
+      "Geographical Studies",
+      "Global Development",
+      "History",
+      "Indigenous Studies",
+      "Languages (Chinese, French, German, Japanese, Korean, Spanish)",
+      "Linguistics",
+      "Media, Culture and Technology",
+      "Music Studies",
+      "Philosophy",
+      "Politics and International Relations",
+      "Sociology",
+      "Studies in Psychology",
+      "Theatre and Performance"
+    ],
+    "minors": [
+      "Art History and Theory",
+      "Australian Studies",
+      "Game Art",
+      "Gender Studies",
+      "Indonesian Studies",
+      "International Political Economy",
+      "Italian Studies",
+      "Modern Greek Studies",
+      "Policy, Power and Government",
+      "Security Studies"
+    ],
+    "double_degrees": [
+      "Advanced Mathematics (Hons)",
+      "Advanced Science (Hons)",
+      "Commerce",
+      "Computer Science",
+      "Economics",
+      "Education (Secondary)",
+      "Engineering (Hons)",
+      "Environmental Management",
+      "Fine Arts",
+      "Law",
+      "Media",
+      "Medical Studies/Doctor of Medicine",
+      "Science",
+      "Social Work (Hons)"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Design",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.05,
+    "portfolio_available": true,
+    "description": "Make your mark transforming creativity into real-world design solutions with lasting impact. Choose from three distinct specialisations where you’ll gain practical skills and develop your independent thinking, so you can challenge the everyday and forge a lifelong creative career.",
+    "career_outcomes": "Experience and event designer, Film, television and mobile producer, Graphic designer, Jewellery or textile designer, UX designer, Visual communicator or illustrator",
+    "majors": [
+      "Computational Design",
+      "Industrial Design",
+      "Integrated Design",
+      "3D Visualisation",
+      "Experience",
+      "Fashion",
+      "Graphics",
+      "Interaction",
+      "Object",
+      "Textiles"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Commerce",
+      "Education (Secondary)",
+      "Media"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Fine Arts",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 66.55,
+    "portfolio_available": true,
+    "description": "Build technical skills in a creative field that matters to you. With a specialisation in Animation and Moving Image, Art Theory, Music or Visual Arts, you'll develop your artistic practice through workshops, studios and industry events.",
+    "career_outcomes": "Animator or visual effects artist, Art critic or gallery curator, Advertising or creative director, Film producer, Digital publisher or content specialist, Sound designer or music producer",
+    "majors": [
+        "Animation and Moving Image",
+        "Art Theory",
+        "Music",
+        "Visual Arts"
+    ],
+    "minors": [],
+    "double_degrees": [
+        "Advanced Science (Hons)",
+        "Arts",
+        "Commerce",
+        "Computer Science",
+        "Education (Secondary)",
+        "Engineering (Hons)",
+        "Law",
+        "Science",
+        "Media"
+    ]
+  }
+
+]

@@ -1,0 +1,108 @@
+{
+  "Science": [
+    {
+      "program_name": "Advanced Science (Hons)",
+      "uac_code": "429350"
+    },
+    {
+      "program_name": "Advanced Science (Hons)/Arts",
+      "uac_code": "429370"
+    },
+    {
+      "program_name": "Advanced Science (Hons)/Computer Science",
+      "uac_code": "429361"
+    },
+    {
+      "program_name": "Advanced Science (Hons)/Engineering (Hons)",
+      "uac_code": "429360"
+    },
+    {
+      "program_name": "Advanced Science (Hons)/Fine Arts",
+      "uac_code": "429396"
+    },
+    {
+      "program_name": "Advanced Science (Hons)/Social Sciences",
+      "uac_code": "429380"
+    },
+    {
+      "program_name": "Aviation (Flying)",
+      "uac_code": "429500"
+    },
+    {
+      "program_name": "Aviation (Management)",
+      "uac_code": "429520"
+    },
+    {
+      "program_name": "Aviation (Remotely Piloted Aircraft Systems)",
+      "uac_code": "429510"
+    },
+    {
+      "program_name": "Biotechnology (Hons)",
+      "uac_code": "429400"
+    },
+    {
+      "program_name": "Data Science and Decisions",
+      "uac_code": "490150"
+    },
+    {
+      "program_name": "Environmental Management",
+      "uac_code": "429540"
+    },
+    {
+      "program_name": "Environmental Management/Arts",
+      "uac_code": "120560"
+    },
+    {
+      "program_name": "Materials Science and Engineering (Hons)",
+      "uac_code": "429600"
+    },
+    {
+      "program_name": "Materials Science and Engineering (Hons)/Commerce",
+      "uac_code": "429610"
+    },
+    {
+      "program_name": "Materials Science and Engineering (Hons)/Engineering Science (Chemical Engineering)",
+      "uac_code": "429620"
+    },
+    {
+      "program_name": "Materials Science and Engineering (Hons)/M Biomedical Engineering",
+      "uac_code": "429630"
+    },
+    {
+      "program_name": "Medical Science",
+      "uac_code": "420700"
+    },
+    {
+      "program_name": "Medicinal Chemistry (Hons)",
+      "uac_code": "429720"
+    },
+    {
+      "program_name": "Psychological Science",
+      "uac_code": "429800"
+    },
+    {
+      "program_name": "Psychology (Hons)",
+      "uac_code": "429850"
+    },
+    {
+      "program_name": "Science",
+      "uac_code": "429000"
+    },
+    {
+      "program_name": "Science/Arts",
+      "uac_code": "429200"
+    },
+    {
+      "program_name": "Science/Fine Arts",
+      "uac_code": "429240"
+    },
+    {
+      "program_name": "Science/Social Sciences",
+      "uac_code": "429210"
+    },
+    {
+      "program_name": "Science (Advanced Mathematics) (Hons)",
+      "uac_code": "420200"
+    }
+  ]
+}

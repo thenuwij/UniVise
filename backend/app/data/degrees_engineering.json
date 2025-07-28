@@ -1,0 +1,161 @@
+{
+  "Engineering": [
+    {
+      "program_name": "Computer Science",
+      "uac_code": "425800"
+    },
+    {
+      "program_name": "Computer Science (Advanced)",
+      "uac_code": "425805"
+    },
+    {
+      "program_name": "Computer Science/Arts",
+      "uac_code": "425800"
+    },
+    {
+      "program_name": "Computer Science/Fine Arts (Hons)",
+      "uac_code": "425810"
+    },
+    {
+      "program_name": "Computer Science/Science",
+      "uac_code": "425800"
+    },
+    {
+      "program_name": "Cyber Security (Sydney)",
+      "uac_code": "425860"
+    },
+    {
+      "program_name": "Engineering (Honours) (Flexible First Year)",
+      "uac_code": "425000"
+    },
+    {
+      "program_name": "Aerospace Engineering (Honours)",
+      "uac_code": "425050"
+    },
+    {
+      "program_name": "Bioinformatics Engineering (Honours)",
+      "uac_code": "425770"
+    },
+    {
+      "program_name": "Biomedical Engineering (Honours)",
+      "uac_code": "425040"
+    },
+    {
+      "program_name": "Chemical Engineering (Honours)",
+      "uac_code": "425550"
+    },
+    {
+      "program_name": "Chemical Product Engineering (Honours)",
+      "uac_code": "425550"
+    },
+    {
+      "program_name": "Civil Engineering (Honours)",
+      "uac_code": "425400"
+    },
+    {
+      "program_name": "Environmental Engineering (Honours)",
+      "uac_code": "425470"
+    },
+    {
+      "program_name": "Computer Engineering (Honours)",
+      "uac_code": "425700"
+    },
+    {
+      "program_name": "Geoenergy & Geostorage Engineering (Honours)",
+      "uac_code": "425030"
+    },
+    {
+      "program_name": "Electrical Engineering (Honours)",
+      "uac_code": "425100"
+    },
+    {
+      "program_name": "Mechanical Engineering (Honours)",
+      "uac_code": "425050"
+    },
+    {
+      "program_name": "Mechanical & Manufacturing Engineering (Honours)",
+      "uac_code": "425050"
+    },
+    {
+      "program_name": "Mining Engineering (Honours)",
+      "uac_code": "425300"
+    },
+    {
+      "program_name": "Photovoltaics & Solar Energy (Honours)",
+      "uac_code": "425200"
+    },
+    {
+      "program_name": "Quantum Engineering (Honours)",
+      "uac_code": "425100"
+    },
+    {
+      "program_name": "Software Engineering (Honours)",
+      "uac_code": "425750"
+    },
+    {
+      "program_name": "Renewable Energy Engineering (Honours)",
+      "uac_code": "425200"
+    },
+
+    {
+      "program_name": "Surveying (Honours)",
+      "uac_code": "425500"
+    },
+    {
+      "program_name": "Robotics & Mechatronics Engineering (Honours)",
+      "uac_code": "425020"
+    },
+    {
+      "program_name": "Telecommunications (Honours)",
+      "uac_code": "425100"
+    },
+    {
+      "program_name": "Engineering (Hons)/Arts",
+      "uac_code": "425850"
+    },
+    {
+      "program_name": "Engineering (Hons) (Civil with Architecture)",
+      "uac_code": "425450"
+    },
+    {
+      "program_name": "Engineering (Hons)/Commerce",
+      "uac_code": "425900"
+    },
+    {
+      "program_name": "Engineering (Hons)/Computer Science",
+      "uac_code": "425850"
+    },
+    {
+      "program_name": "Engineering (Hons)/Engineering Science",
+      "uac_code": "425401"
+    },
+    {
+      "program_name": "Engineering (Hons)/M Biomedical Engineering",
+      "uac_code": "425950"
+    },
+    {
+      "program_name": "Engineering (Hons)/Science",
+      "uac_code": "425850"
+    },
+    {
+      "program_name": "Engineering (Hons) (Civil)/Surveying",
+      "uac_code": "425402"
+    },
+    {
+      "program_name": "Engineering (Hons) (Electrical)/M Engineering (Electrical)",
+      "uac_code": "425150"
+    },
+    {
+      "program_name": "Food Science (Hons)",
+      "uac_code": "425600"
+    },
+    {
+      "program_name": "Undergraduate Certificate in Engineering",
+      "uac_code": "425960"
+    },
+    {
+      "program_name": "Undergraduate Certificate in Computer Science",
+      "uac_code": "425970"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import RecommendationPage from "./pages/RecommendationPage";
 import PersonalityQuizPage from "./pages/PersonalityQuizPage";
 import PersonalityResultPage from "./pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
+import RoadmapPage from "./pages/RoadmapPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <App/> },
@@ -23,5 +24,6 @@ export const router = createBrowserRouter([
   { path: "/recommendation/:id" , element: <PrivateRoute><RecommendationPage/></PrivateRoute>},
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
-  { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> }
+  { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
+  { path: "/roadmap", element: <PrivateRoute><RoadmapPage/></PrivateRoute> }
 ]);

@@ -46,10 +46,12 @@ export const AuthContextProvider = ({ children }) => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      console.log("Initial Session:", session?.access_token);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      console.log("Auth Changed Session:", session?.access_token);
     });
   }, []);
 
