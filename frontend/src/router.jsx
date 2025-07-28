@@ -11,7 +11,6 @@ import RecommendationPage from "./pages/RecommendationPage";
 import PersonalityQuizPage from "./pages/PersonalityQuizPage";
 import PersonalityResultPage from "./pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
-import RoadmapPage from "./pages/RoadmapPage";
 import UniversityPathwaysPage from "./pages/UniversityPathwaysPage";
 import ExploreByDegreePage from "./pages/ExploreByDegreePage";
 
@@ -27,7 +26,6 @@ export const router = createBrowserRouter([
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
-  { path: "/roadmap", element: <PrivateRoute><RoadmapPage/></PrivateRoute> },
   { path: "/university-pathways", element: <PrivateRoute><UniversityPathwaysPage /></PrivateRoute> },
   { path: "/explore-by-degree", element: <PrivateRoute><ExploreByDegreePage /></PrivateRoute> },
 
