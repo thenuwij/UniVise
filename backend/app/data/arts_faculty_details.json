@@ -6,7 +6,13 @@
     "lowest_atar": 65.1,
     "portfolio_available": true,
     "description": "Pursue your passion for the humanities, creative arts and social sciences. Gain critical thinking, problem-solving and communication skills while tackling challenges like climate change and cultural diversity.",
-    "career_outcomes": "Consulting, Education, Government and public service, Media and journalism, Non-profit organisations",
+    "career_outcomes": [
+      "Consulting",
+      "Education",
+      "Government and public service",
+      "Media and journalism",
+      "Non-profit organisations"
+    ],
     "majors": [
       "Asian Studies",
       "Criminology",
@@ -65,7 +71,14 @@
     "lowest_atar": 65.05,
     "portfolio_available": true,
     "description": "Make your mark transforming creativity into real-world design solutions with lasting impact. Choose from three distinct specialisations where you’ll gain practical skills and develop your independent thinking, so you can challenge the everyday and forge a lifelong creative career.",
-    "career_outcomes": "Experience and event designer, Film, television and mobile producer, Graphic designer, Jewellery or textile designer, UX designer, Visual communicator or illustrator",
+    "career_outcomes": [
+      "Experience and event designer",
+      "Film, television and mobile producer",
+      "Graphic designer",
+      "Jewellery or textile designer",
+      "UX designer",
+      "Visual communicator or illustrator"
+    ],
     "majors": [
       "Computational Design",
       "Industrial Design",
@@ -92,25 +105,319 @@
     "lowest_atar": 66.55,
     "portfolio_available": true,
     "description": "Build technical skills in a creative field that matters to you. With a specialisation in Animation and Moving Image, Art Theory, Music or Visual Arts, you'll develop your artistic practice through workshops, studios and industry events.",
-    "career_outcomes": "Animator or visual effects artist, Art critic or gallery curator, Advertising or creative director, Film producer, Digital publisher or content specialist, Sound designer or music producer",
+    "career_outcomes": [
+      "Animator or visual effects artist",
+      "Art critic or gallery curator",
+      "Advertising or creative director",
+      "Film producer",
+      "Digital publisher or content specialist",
+      "Sound designer or music producer"
+    ],
     "majors": [
-        "Animation and Moving Image",
-        "Art Theory",
-        "Music",
-        "Visual Arts"
+      "Animation and Moving Image",
+      "Art Theory",
+      "Music",
+      "Visual Arts"
     ],
     "minors": [],
     "double_degrees": [
-        "Advanced Science (Hons)",
-        "Arts",
-        "Commerce",
-        "Computer Science",
-        "Education (Secondary)",
-        "Engineering (Hons)",
-        "Law",
-        "Science",
-        "Media"
+      "Advanced Science (Hons)",
+      "Arts",
+      "Commerce",
+      "Computer Science",
+      "Education (Secondary)",
+      "Engineering (Hons)",
+      "Law",
+      "Science",
+      "Media"
     ]
+  },
+  {
+    "program_name": "Bachelor of Politics, Philosophy and Economics",
+    "uac_code": "422310",
+    "duration_years": 3,
+    "lowest_selection_rank": 90.0,
+    "lowest_atar": 78.75,
+    "portfolio_available": false,
+    "description": "Get to the heart of how our world works and learn to create solutions to global challenges. You’ll gain in-depth knowledge and a unique skillset to drive important social, political and economic change.",
+    "career_outcomes": "Humanitarian groups, Non-government agencies, Political parties, Public policy, Diplomacy, Economic analysis",
+    "majors": [
+      "Politics",
+      "Philosophy",
+      "Economics"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Law"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Social Sciences",
+    "uac_code": "422301",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.4,
+    "portfolio_available": true,
+    "description": "Shape an inclusive tomorrow that’s better for all. Understanding social systems and advocating for thoughtful social policy has the power to transform our communities. Gain skills that impact policy, drive social change and make a real difference to local and global communities, with one of the top 30 Social Sciences schools globally.",
+    "career_outcomes": "International business consultant, Journalist, Political adviser, Policy analyst, Research officer",
+    "majors": [
+      "Economics",
+      "Environmental Humanities",
+      "Geographical Studies",
+      "Global Development",
+      "Human Resource Management",
+      "Indigenous Studies",
+      "Innovation, Strategy and Entrepreneurship",
+      "International Business",
+      "International Studies",
+      "Marketing",
+      "Media, Culture and Technology",
+      "Politics and International Relations",
+      "Sociology"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Advanced Science (Hons)",
+      "Law",
+      "Media",
+      "Science",
+      "Social Work (Hons)"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Media",
+    "uac_code": "422800",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 66.15,
+    "portfolio_available": true,
+    "description": "Develop specialist expertise in the evolving world of media, with five specialisations to choose from. Gain practical on-the-job skills along with the conceptual, strategic, creative and critical capabilities to make your mark in a range of exciting media industries.",
+    "career_outcomes": "Advertising and creative services, Animation and filmmaking, Corporate affairs, Game design, Journalism, Public relations and communications, Video or sound production",
+    "majors": [
+      "Cinema Studies",
+      "Communication and Journalism",
+      "Media Studies",
+      "Public Relations and Advertising",
+      "Screen Production"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Arts",
+      "Commerce",
+      "Design",
+      "Fine Arts",
+      "Law",
+      "Social Sciences"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Education (Secondary)",
+    "uac_code": "422100",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.1,
+    "portfolio_available": true,
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a constantly changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": [
+      "Arts",
+      "Commerce",
+      "Design",
+      "Economics",
+      "Fine Arts",
+      "Science"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Arts/Education (Secondary)",
+    "uac_code": "422100",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.1,
+    "portfolio_available": true,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Education (Secondary)",
+    "uac_code": "422120",
+    "duration_years": 4,
+    "lowest_selection_rank": 94.0,
+    "lowest_atar": 92.95,
+    "portfolio_available": false,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Design/Education (Secondary)",
+    "uac_code": "422145",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 70.8,
+    "portfolio_available": true,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Economics/Education (Secondary)",
+    "uac_code": "422130",
+    "duration_years": 4,
+    "lowest_selection_rank": 91.0,
+    "lowest_atar": 79.25,
+    "portfolio_available": false,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Fine Arts/Education (Secondary)",
+    "uac_code": "422143",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.85,
+    "portfolio_available": true,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Science/Education (Secondary)",
+    "uac_code": "422110",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 68.4,
+    "portfolio_available": false,
+    "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced or Extension 1 depending on area of study; plus one or more: Biology, Chemistry",
+    "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
+    "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Education (Primary) (Honours)",
+    "uac_code": "422160",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.15,
+    "portfolio_available": false,
+    "assumed_knowledge": "Three Band 5 HSC results (including one in English) and a Mathematics Band 4 HSC result",
+    "description": "Make a real impact on the lives of primary school children with hands-on experience from your first year. Learn from world-class practitioners and become a confident, professionally-accredited teacher able to apply the latest research to shape the future of education in Australia.",
+    "career_outcomes": "Primary school teacher, Education consulting, Education policy",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Social Work (Honours)",
+    "uac_code": "422400",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 65.15,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Make a difference in the lives of those who need it most. Gain practical skills to shape healthier, happier relationships and communities, with direct guidance from industry professionals and current social workers.",
+    "career_outcomes": "Child protection, Community development, Government departments, Human rights advocacy, Mental health support, Social justice, Welfare agencies",
+    "majors": [],
+    "minors": [],
+    "double_degrees": ["Arts", "Criminology and Criminal Justice", "Law", "Social Sciences"]
+  },
+  {
+    "program_name": "Bachelor of Architectural Studies",
+    "uac_code": "423000",
+    "duration_years": 3,
+    "lowest_selection_rank": 90.0,
+    "lowest_atar": 78.1,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Design buildings and places that improve the lives of people and communities. Learn how to use space, materials, technologies and the environment to create innovative architecture that considers sustainability, inclusivity and connectivity.",
+    "career_outcomes": "Architect, Building scientist, Environmental consultant, Interior design architect",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Interior Architecture (Honours)",
+    "uac_code": "423400",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 68.1,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Innovate and improve the interior environments where we work, rest and play. Study and work within a design community that collectively reimagines and reshapes the interior environments within our homes, workspaces and cities.",
+    "career_outcomes": "Interior architect, Interior designer (residential, retail, hospitality, medical, hotel, exhibition), Designer in architecture and design practices, Private consultant (residential, retail, workplace, hospitality)",
+    "majors": [],
+    "minors": [
+      "Computational Design",
+      "Construction Management and Property",
+      "Industrial Design",
+      "Landscape Architecture"
+    ],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Landscape Architecture (Honours)",
+    "uac_code": "423500",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 68.05,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Design high-performing urban and regional landscapes that are adaptive and resilient to human-induced climate change. Explore the local landscapes and systems of the Sydney region and experiment with novel design solutions that foster a socially- and environmentally-just world.",
+    "career_outcomes": "Design and policy strategist, Landscape architect, Parks and recreation manager, Project manager, Urban designer",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of City Planning (Honours)",
+    "uac_code": "423600",
+    "duration_years": 4,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 68.3,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Shape the communities of tomorrow by designing sustainable, equitable and inspiring built environments. Consider city economics, environmental science, transport, sociology, urban design and more to get to the heart of what makes great places thrive.",
+    "career_outcomes": "Environmental planner, Heritage officer, Property developer, Social and community planner, Urban planner, Urban policy analyst",
+    "majors": [],
+    "minors": [],
+    "double_degrees": ["Law"]
+  },
+  {
+    "program_name": "Bachelor of Construction Management and Property",
+    "uac_code": "423200",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 68.35,
+    "portfolio_available": true,
+    "assumed_knowledge": null,
+    "description": "Bring sustainable places to life with specialised knowledge of how people, processes and products work together. Gain essential management and technology skills in construction and property economics and apply theory through high-level problem-solving and leadership opportunities.",
+    "career_outcomes": "Construction planning and management, Property development, Quantity surveying, Site management",
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
   }
-
 ]
+
+
+
