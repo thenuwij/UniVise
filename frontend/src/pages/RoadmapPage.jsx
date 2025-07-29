@@ -9,6 +9,8 @@ function RoadmapPage() {
  console.log("🧭 RoadmapPage component loaded");
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [userType, setUserType] = useState("university");
+  const [hasTranscript, setHasTranscript] = useState(false);
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
@@ -37,6 +39,42 @@ useEffect(() => {
       }
 
       console.log("👤 Logged in user ID:", user.id);
+
+      // === 0. Check userType and transcript analysis ===
+        const { data: profileData, error: profileError } = await supabase
+        .from("student_profiles")
+        .select("user_type")
+        .eq("user_id", user.id)
+        .single();
+
+        const currentUserType = profileData?.user_type || "university";
+        setUserType(currentUserType);
+
+        const analysisTable = currentUserType === "high_school"
+        ? "school_report_analysis"
+        : "transcript_analysis";
+
+        const { data: analysisData, error: analysisError } = await supabase
+        .from(analysisTable)
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+        if (analysisError) {
+        console.error("Error checking transcript:", analysisError.message);
+        setHasTranscript(false);
+        return;
+        }
+
+        if (analysisData !== null) {
+        console.log("📄 Transcript or school report found");
+        setHasTranscript(true);
+        } else {
+        console.log("📄 No transcript or report found");
+        setHasTranscript(false);
+        }
+
+
 
       // === 1. Check transcript roadmap ===
       const { data: transcript, error: transcriptError } = await supabase
@@ -91,7 +129,7 @@ useEffect(() => {
       console.log("🔁 Backend response:", res.status, text);
 
       if (!res.ok) {
-        throw new Error("❌ Backend returned error");
+        throw new Error("Backend returned error");
       }
 
       const generated = JSON.parse(text);
@@ -128,15 +166,29 @@ useEffect(() => {
             Select from a program plan below or upload your transcript to generate your personalised roadmap.
         </p>
         </div>
-
+        
         <div className="flex flex-col items-center px-6 max-w-7xl mx-auto w-full">
         <section className="w-full mb-12 text-center">
-            <button
-            onClick={() => console.log("TODO: Link to transcript-based roadmap generation")}
-            className="px-8 py-4 rounded-xl text-white bg-sky-700 hover:bg-sky-800 text-lg font-semibold shadow-md transition"
-            >
+        <button
+            onClick={() => {
+            if (hasTranscript) {
+                navigate("/roadmap/transcript"); // Or trigger OpenAI request if desired
+            }
+            }}
+            disabled={!hasTranscript}
+            className={`px-8 py-4 rounded-xl text-white text-lg font-semibold shadow-md transition ${
+            hasTranscript
+                ? "bg-sky-700 hover:bg-sky-800 cursor-pointer"
+                : "bg-sky-300 cursor-not-allowed"
+            }`}
+        >
             Generate Roadmap Using Transcript
-            </button>
+        </button>
+        {!hasTranscript && (
+            <p className="text-sm text-gray-500 mt-2 italic">
+            Upload a transcript to enable this option.
+            </p>
+        )}
         </section>
 
         <section className="w-full mb-20">
@@ -150,19 +202,18 @@ useEffect(() => {
                 {finalRecommendations.map(({ id, degree_name, reason }) => (
                     <div
                     key={id}
-                    onClick={() =>
-                        setSelectedDegreeId((prevId) => (prevId === id ? null : id))
-                    }
-                    className={`cursor-pointer rounded-3xl p-6 shadow-md transition-all duration-300 border ${
+                    onClick={() => {
+                        setSelectedDegreeId(id);
+                        setSelectedDegreeObject({ id, degree_name, reason }); 
+                    }}
+                    className={`cursor-pointer rounded-3xl p-6 border shadow-md transition-all duration-300 ${
                         selectedDegreeId === id
                         ? "bg-sky-100 border-sky-600 shadow-lg scale-[1.02]"
                         : "bg-white border-slate-200 hover:shadow-md hover:scale-[1.01]"
-                    } flex flex-col justify-between`}
+                    }`}
                     >
                     <div>
-                        <h3 className="text-lg font-semibold text-sky-900 mb-2">
-                        {degree_name}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-sky-900 mb-2">{degree_name}</h3>
                         <p className="text-sm text-slate-700">{reason}</p>
                     </div>
                     </div>

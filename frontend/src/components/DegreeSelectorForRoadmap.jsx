@@ -23,14 +23,17 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
     fetchFaculties();
   }, []);
 
-  // Fetch filtered degrees
+  // Fetch filtered degrees (only if query is at least 1 character)
   useEffect(() => {
     const fetchDegrees = async () => {
+      if (query.length < 1) {
+        setResults([]);
+        return;
+      }
+
       let builder = supabase.from("unsw_degrees").select("*");
 
-      if (query.length >= 2) {
-        builder = builder.ilike("program_name", `%${query}%`);
-      }
+      builder = builder.ilike("program_name", `%${query}%`);
 
       if (facultyFilter) {
         builder = builder.eq("faculty", facultyFilter);
@@ -67,28 +70,41 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
         </select>
       </div>
 
+      {query.length === 0 && (
+        <p className="text-center text-gray-400 mt-6 text-base">
+          Start typing to search for degrees.
+        </p>
+      )}
+
       {results.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {results.map((degree) => (
-            <div
-              key={degree.id}
-              onClick={() => onSelect(degree)}
-              className={`cursor-pointer bg-white border rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block text-left ${
-                selectedId === degree.id
-                  ? "border-sky-600 bg-sky-100 scale-[1.03]"
-                  : "border-gray-200"
-              }`}
-            >
-              <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                {degree.program_name}
-              </h3>
-              <p className="text-sm text-slate-500">{degree.faculty}</p>
-            </div>
-          ))}
+          {results.map((deg) => {
+            const isSelected = selectedId === deg.id;
+            return (
+              <div
+                key={deg.id}
+                onClick={() => {
+                  if (!isSelected) {
+                    onSelect(deg);
+                  }
+                }}
+                className={`cursor-pointer rounded-2xl border px-4 py-3 shadow transition-all duration-200 ${
+                  isSelected
+                    ? "bg-sky-100 border-sky-600 shadow-md scale-[1.02]"
+                    : "bg-white border-slate-300 hover:shadow hover:scale-[1.01]"
+                }`}
+              >
+                <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                  {deg.program_name}
+                </h3>
+                <p className="text-sm text-slate-500">{deg.faculty}</p>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {results.length === 0 && query.length >= 2 && (
+      {query.length >= 1 && results.length === 0 && (
         <p className="text-center text-gray-400 mt-10 text-base">
           No degrees found. Try another keyword.
         </p>
