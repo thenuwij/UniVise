@@ -121,7 +121,7 @@ useEffect(() => {
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
         <div className="max-w-7xl mx-auto py-20 px-6">
-        <h1 className="text-5xl font-light text-slate-800 mb-6 text-center">
+        <h1 className="text-6xl font-light text-slate-800 mb-6 text-center">
             My Roadmap
         </h1>
         <p className="text-xl text-slate-600 text-center max-w-3xl mx-auto">
@@ -140,7 +140,7 @@ useEffect(() => {
         </section>
 
         <section className="w-full mb-20">
-            <h2 className="text-3xl font-light text-slate-800 mb-6">
+            <h2 className="text-4xl font-light text-slate-800 mb-6">
             Recommended Degrees
             </h2>
             {finalRecommendations.length === 0 ? (
@@ -172,7 +172,7 @@ useEffect(() => {
         </section>
 
         <section className="w-full mb-12">
-            <h2 className="text-3xl font-light text-slate-800 mb-6">Search Degrees</h2>
+            <h2 className="text-4xl font-light text-slate-800 mb-6">Search Degrees</h2>
             <DegreeSelectorForRoadmap
             selectedId={selectedDegreeId}
             onSelect={(deg) => {

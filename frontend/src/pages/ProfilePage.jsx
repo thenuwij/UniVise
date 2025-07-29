@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { UserAuth } from "../context/AuthContext";
 import { MenuBar } from '../components/MenuBar'
 import { DashboardNavBar } from '../components/DashboardNavBar'
 import { useState } from 'react'
@@ -11,6 +12,7 @@ import { HiX } from 'react-icons/hi'
 
 function ProfilePage() {
 
+  const { session } = UserAuth();
   const [ firstName, setFirstName ] = useState('Not Specified');
   const [ lastName, setLastName ] = useState('Not Specified');
   const [ email, setEmail ] = useState('Not Specified');
@@ -575,7 +577,30 @@ function ProfilePage() {
                                   bucket="reports"
                                   table="student_school_data"
                                   column="report_path"
-                                  onUpload={url => setReportPath(url)}
+                                  onUpload={async (path) => {
+                                    setReportPath(path);
+                                    try {
+                                      const res = await fetch("http://localhost:8000/reports/analyse", {
+                                        method: "POST",
+                                        headers: {
+                                          Authorization: `Bearer ${session.access_token}`,
+                                        },
+                                        body: JSON.stringify({
+                                          user_id: userId,
+                                          file_path: path,
+                                        }),
+                                      });
+
+                                      if (!res.ok) {
+                                        throw new Error("Analysis failed");
+                                      }
+
+                                      const result = await res.json();
+                                      console.log("Analysis result:", result);
+                                    } catch (err) {
+                                      console.error("Analysis error:", err);
+                                    }
+                                  }}
                                 />
                             ) : (
                                <FileUpload
@@ -584,8 +609,31 @@ function ProfilePage() {
                                   bucket="reports"
                                   table="student_uni_data"
                                   column="report_path"
-                                  onUpload={url => setReportPath(url)}
-                      
+                                  onUpload={async (path) => {
+                                    setReportPath(path);
+
+                                    try {
+                                      const res = await fetch("http://localhost:8000/reports/analyse", {
+                                        method: "POST",
+                                        headers: {
+                                          Authorization: `Bearer ${session.access_token}`,
+                                        },
+                                        body: JSON.stringify({
+                                          user_id: userId,
+                                          file_path: path,
+                                        }),
+                                      });
+
+                                      if (!res.ok) {
+                                        throw new Error("Analysis failed");
+                                      }
+
+                                      const result = await res.json();
+                                      console.log("Analysis result:", result);
+                                    } catch (err) {
+                                      console.error("Analysis error:", err);
+                                    }
+                                  }}
                                 />
                             )
                           }
