@@ -1,45 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 
-function DegreeSearch() {
+function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
   const [query, setQuery] = useState("");
   const [facultyFilter, setFacultyFilter] = useState("");
   const [results, setResults] = useState([]);
   const [faculties, setFaculties] = useState([]);
-  const [recommended, setRecommended] = useState([]);
-  const { session } = UserAuth();
-
-  // Fetch recommended degrees from final_degree_recommendations
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (!session) return;
-
-      const { data, error } = await supabase
-        .from("final_degree_recommendations")
-        .select("degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
-
-      if (!error && data?.length > 0) {
-        const formatted = data.map((deg) => ({
-          degreeName: deg.degree_name,
-          reason: deg.reason,
-          specialisations: deg.specialisations,
-          courseBreakdown: {
-            "Year 1": deg.year_1_courses,
-            "Year 2": deg.year_2_courses,
-            "Year 3": deg.year_3_courses,
-            "Year 4": deg.year_4_courses,
-          },
-        }));
-        setRecommended(formatted);
-      }
-    };
-
-    fetchRecommendations();
-  }, [session]);
 
   // Fetch faculty list
   useEffect(() => {
@@ -54,7 +20,6 @@ function DegreeSearch() {
         setFaculties(uniqueFaculties);
       }
     };
-
     fetchFaculties();
   }, []);
 
@@ -74,36 +39,11 @@ function DegreeSearch() {
       const { data, error } = await builder;
       if (!error) setResults(data);
     };
-
     fetchDegrees();
   }, [query, facultyFilter]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      {/* 🔹 AI Recommendations Section */}
-      {recommended.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-2xl font-semibold text-slate-800 mb-4 text-center">
-            Based on your UniVise recommendations
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {recommended.map((degree, idx) => (
-              <Link
-                to={`/degrees/${degree.id}`}
-                key={idx}
-                className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all block"
-              >
-                <h3 className="text-lg font-semibold text-indigo-700 mb-1">
-                  {degree.degreeName}
-                </h3>
-                <p className="text-sm text-slate-600">{degree.reason}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 🔍 Search & Filter Controls */}
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center">
         <input
           type="text"
@@ -127,20 +67,23 @@ function DegreeSearch() {
         </select>
       </div>
 
-      {/* 🎓 Matching Degrees Section */}
       {results.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {results.map((degree) => (
-            <Link
-              to={`/degrees/${degree.id}`}
+            <div
               key={degree.id}
-              className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block"
+              onClick={() => onSelect(degree)}
+              className={`cursor-pointer bg-white border rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block text-left ${
+                selectedId === degree.id
+                  ? "border-sky-600 bg-sky-100 scale-[1.03]"
+                  : "border-gray-200"
+              }`}
             >
               <h3 className="text-lg font-semibold text-slate-800 mb-1">
                 {degree.program_name}
               </h3>
               <p className="text-sm text-slate-500">{degree.faculty}</p>
-            </Link>
+            </div>
           ))}
         </div>
       )}
@@ -154,4 +97,4 @@ function DegreeSearch() {
   );
 }
 
-export default DegreeSearch;
+export default DegreeSelectorForRoadmap;
