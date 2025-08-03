@@ -1,15 +1,59 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { UserAuth } from "../context/AuthContext"; 
 import { useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 
 function DegreeDetailPage() {
+  const { session, user } = UserAuth();
   const { degreeId } = useParams();
   const [degree, setDegree] = useState(null);
   const [majors, setMajors] = useState([]);
   const [minors, setMinors] = useState([]);
   const [doubleDegrees, setDoubleDegrees] = useState([]);
+  const [advisorSummary, setAdvisorSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const advisorRef = useRef(null);
+  const [error, setError] = useState(null);
+
+
+
+  const fetchSmartAdvisor = async () => {
+    setLoadingSummary(true);
+    setError(null);
+    setAdvisorSummary(null);
+
+    try {
+      const res = await fetch("http://localhost:8000/smart-summary/degree", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`, // Optional if using auth
+        },
+        body: JSON.stringify({ degree_id: degreeId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Something went wrong");
+      }
+
+      setAdvisorSummary(data.summary);
+
+      if (advisorRef.current) {
+        advisorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+
 
   useEffect(() => {
     const fetchDegreeData = async () => {
@@ -61,8 +105,7 @@ function DegreeDetailPage() {
       <div className="flex flex-col flex-1">
         <DashboardNavBar />
         <main className="flex-1 overflow-y-auto px-4 py-14">
-          <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl px-8 sm:px-14 py-16 space-y-16">
-
+         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl px-8 sm:px-14 py-16 space-y-10">
             {/* Header Card */}
             <div className="bg-sky-50 border border-sky-100 rounded-2xl shadow-md p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div>
@@ -71,10 +114,47 @@ function DegreeDetailPage() {
                 </h1>
                 <p className="text-lg text-sky-600">{degree.faculty}</p>
               </div>
-              <button className="px-6 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition text-sm font-medium shadow">
-                + Save Degree
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button className="px-6 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition text-sm font-medium shadow">
+                  + Save Degree
+                </button>
+              </div>
             </div>
+
+            {/* Smart Advisor Prompt Section */}
+            <section
+              ref={advisorRef}
+              className="bg-green-50 border border-green-100 p-6 rounded-2xl shadow-sm"
+            >
+              {loadingSummary ? (
+                <div className="italic text-center text-gray-600">
+                  Generating your Smart Advisor summary...
+                </div>
+              ) : advisorSummary ? (
+                <>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Smart Advisor Summary</h2>
+                  <div className="text-gray-700 whitespace-pre-line">{advisorSummary}</div>
+                </>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold text-emerald-800 mb-1">Need guidance?</h2>
+                    <p className="text-sm text-emerald-700 max-w-2xl">
+                      Click below to generate a personalized summary of how this degree aligns with your goals, interests, and personality.
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      onClick={fetchSmartAdvisor}
+                      className="px-6 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition text-sm font-medium shadow"
+                    >
+                      Smart Advisor
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
 
             {/* Overview */}
             <section>
@@ -88,8 +168,8 @@ function DegreeDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-base bg-neutral-50 border border-neutral-200 p-6 rounded-xl text-gray-700 shadow-sm">
                 <div><strong>Duration:</strong> {degree.duration_years} year(s)</div>
                 <div><strong>UAC Code:</strong> {degree.uac_code || "N/A"}</div>
-                <div><strong>Selection Rank:</strong> {degree.lowest_selection_rank || "N/A"}</div>
-                <div><strong>ATAR:</strong> {degree.lowest_atar || "N/A"}</div>
+                <div><strong>Lowest Selection Rank:</strong> {degree.lowest_selection_rank || "N/A"}</div>
+                <div><strong>Lowest ATAR:</strong> {degree.lowest_atar || "N/A"}</div>
                 <div><strong>Portfolio:</strong> {degree.portfolio_available ? "Available" : "Not Required"}</div>
                 {degree.assumed_knowledge && (
                   <div><strong>Assumed Knowledge:</strong> {degree.assumed_knowledge}</div>
@@ -152,7 +232,7 @@ function DegreeDetailPage() {
                 <p className="text-gray-400 italic">No career outcomes listed.</p>
               )}
             </section>
-
+            
           </div>
         </main>
       </div>
