@@ -240,7 +240,7 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": ["Asian Studies", "Creative Writing", "English", "History", "Philosophy", "Politics and International Relations", "Sociology", "Theatre and Performance"],
     "minors": [],
     "double_degrees": []
   },
@@ -254,7 +254,7 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": ["Accounting", "Business Analytics", "Finance", "Information Systems", "International Business", "Marketing"],
     "minors": [],
     "double_degrees": []
   },
@@ -268,7 +268,7 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": ["3D Visualisation", "Computational Design", "Graphics", "Interaction", "Integrated Design", "Object", "Textiles"],
     "minors": [],
     "double_degrees": []
   },
@@ -282,7 +282,7 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": ["Econometrics", "Economics", "Financial Economics"],
     "minors": [],
     "double_degrees": []
   },
@@ -296,7 +296,7 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": ["Animation and Moving Image", "Art Theory", "Music", "Visual Arts"],
     "minors": [],
     "double_degrees": []
   },
@@ -310,7 +310,28 @@
     "assumed_knowledge": "Band 5 in any HSC English course or equivalent; Mathematics Advanced or Extension 1 depending on area of study; plus one or more: Biology, Chemistry",
     "description": "Drive meaningful impact with a career as a dedicated secondary school educator. Learn to support students in a changing world and help shape and inspire future generations.",
     "career_outcomes": "Secondary school teacher, Corporate trainer, Curriculum officer, Education consultant",
-    "majors": [],
+    "majors": [
+      "Anatomy",
+      "Biochemistry and Molecular Biology",
+      "Biotechnology",
+      "Chemistry",
+      "Climate Systems Science",
+      "Ecology",
+      "Food Science",
+      "Genetics",
+      "Geography",
+      "Marine and Coastal Science",
+      "Materials Science",
+      "Mathematics",
+      "Microbiology",
+      "Molecular and Cell Biology",
+      "Pathology",
+      "Pharmacology",
+      "Physical Oceanography",
+      "Physics",
+      "Psychology",
+      "Statistics"
+    ],
     "minors": [],
     "double_degrees": []
   },
@@ -340,7 +361,12 @@
     "career_outcomes": "Child protection, Community development, Government departments, Human rights advocacy, Mental health support, Social justice, Welfare agencies",
     "majors": [],
     "minors": [],
-    "double_degrees": ["Arts", "Criminology and Criminal Justice", "Law", "Social Sciences"]
+    "double_degrees": [
+      "Arts",
+      "Criminology and Criminal Justice",
+      "Law",
+      "Social Sciences"
+    ]
   },
   {
     "program_name": "Bachelor of Architectural Studies",
@@ -416,7 +442,37 @@
     "majors": [],
     "minors": [],
     "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Design/Media",
+    "uac_code": "421051",
+    "duration_years": 3,
+    "lowest_selection_rank": 80.0,
+    "lowest_atar": 66.15,
+    "portfolio_available": true,
+    "description": "Combine creative design practice with media specialisations to shape the future of communication, technology, and storytelling. This dual degree equips you with practical design skills alongside deep knowledge of media theory and production.",
+    "career_outcomes": [
+      "UX/UI designer",
+      "Visual communicator or illustrator",
+      "Digital content strategist",
+      "Media producer",
+      "Advertising and creative services",
+      "Public relations and communications"
+    ],
+    "majors": [
+      "Computational Design",
+      "Industrial Design",
+      "Integrated Design",
+      "Cinema Studies",
+      "Communication and Journalism",
+      "Media Studies",
+      "Public Relations and Advertising",
+      "Screen Production"
+    ],
+    "minors": [],
+    "double_degrees": []
   }
+
 ]
 
 

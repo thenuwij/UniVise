@@ -57,8 +57,11 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
-                    <SidebarItem icon={RiGuideFill}>
+                    <SidebarItem href="/roadmap" icon={RiGuideFill}>
                       My Roadmap
+                    </SidebarItem>
+                    <SidebarItem href="/university-pathways" icon={HiSearch}>
+                      Explore Pathways
                     </SidebarItem>
                   </SidebarItemGroup>
                 </SidebarItems>

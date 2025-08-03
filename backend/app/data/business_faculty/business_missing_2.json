@@ -1,0 +1,566 @@
+[
+  {
+    "program_name": "Bachelor of Actuarial Studies/Science",
+    "uac_code": "424350",
+    "faculty": "UNSW Business School",
+    "duration_years": 3,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced or equivalent.",
+    "description": "The Actuarial Studies/Science degree combines core business knowledge with scientific depth, enabling careers in data-driven finance and insurance sectors.",
+    "career_outcomes": [
+      "Actuary",
+      "Data Scientist",
+      "Risk Analyst",
+      "Insurance Strategist",
+      "Financial Analyst"
+    ],
+    "majors": [],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce (Co-op)",
+    "uac_code": "424600",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced or equivalent.",
+    "description": "The Commerce (Co-op) program integrates academic learning with industry placements, providing a competitive edge through real-world business experience.",
+    "career_outcomes": [
+      "Business Consultant",
+      "Financial Analyst",
+      "Management Trainee",
+      "Marketing Manager",
+      "Investment Analyst"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Commerce/Advanced Mathematics (Hons)",
+      "Commerce/Advanced Science (Hons)",
+      "Commerce/Arts",
+      "Commerce/Computer Science",
+      "Commerce/Design",
+      "Commerce/Economics",
+      "Commerce/Media",
+      "Commerce/Science",
+      "Commerce/Aviation (Management)"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Commerce (Co-op) (Hons)",
+    "uac_code": "424601",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced or equivalent.",
+    "description": "This honours version of the Co-op program extends the core business experience with a final-year thesis and deeper research insight.",
+    "career_outcomes": [
+      "Business Analyst",
+      "Graduate Consultant",
+      "Corporate Strategist",
+      "Research Analyst",
+      "Operations Manager"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Commerce/Advanced Mathematics (Hons)",
+      "Commerce/Advanced Science (Hons)",
+      "Commerce/Arts",
+      "Commerce/Computer Science",
+      "Commerce/Design",
+      "Commerce/Economics",
+      "Commerce/Media",
+      "Commerce/Science",
+      "Commerce/Aviation (Management)"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Commerce/Advanced Mathematics (Hons)",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Extension 1 or 2 recommended.",
+    "description": "Combining commerce with advanced mathematics, this program equips students for analytical roles across finance, technology, and quantitative research.",
+    "career_outcomes": [
+      "Quantitative Analyst",
+      "Data Scientist",
+      "Financial Engineer",
+      "Actuarial Analyst",
+      "Business Intelligence Analyst"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Advanced Science (Hons)",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced or equivalent.",
+    "description": "This double degree offers a solid grounding in science and business, ideal for careers that span both technical and commercial sectors.",
+    "career_outcomes": [
+      "Product Development Analyst",
+      "Scientific Marketing Manager",
+      "Tech Commercialisation Officer",
+      "Operations Analyst",
+      "Consulting Associate"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Arts",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "English Standard and Mathematics Advanced.",
+    "description": "This double degree balances business acumen with arts-based communication, international studies, or languages, opening diverse career pathways.",
+    "career_outcomes": [
+      "Policy Advisor",
+      "Communications Consultant",
+      "Cultural Analyst",
+      "Marketing Manager",
+      "HR Business Partner"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Aviation (Management)",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced and Physics recommended.",
+    "description": "Designed for future aviation professionals, this program merges airline operations, logistics, and business strategy.",
+    "career_outcomes": [
+      "Aviation Manager",
+      "Airport Operations Specialist",
+      "Logistics Coordinator",
+      "Airline Strategy Consultant",
+      "Transport Analyst"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Computer Science",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Extension 1 recommended.",
+    "description": "This double degree prepares students to bridge software development and business, ideal for fintech and tech startups.",
+    "career_outcomes": [
+      "Software Product Manager",
+      "Business Systems Analyst",
+      "Fintech Developer",
+      "Startup Founder",
+      "Tech Consultant"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Design",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "English Standard and Mathematics Advanced.",
+    "description": "Merging creative design with commercial principles, this degree empowers careers at the intersection of branding, UX, and entrepreneurship.",
+    "career_outcomes": [
+      "UX/UI Designer",
+      "Brand Strategist",
+      "Marketing Creative Lead",
+      "Innovation Consultant",
+      "E-commerce Manager"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Economics",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced.",
+    "description": "A comprehensive double degree that builds strong capabilities in both business operations and economic theory, ideal for corporate and public sector roles.",
+    "career_outcomes": [
+      "Economist",
+      "Financial Analyst",
+      "Policy Advisor",
+      "Market Researcher",
+      "Business Strategist"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Media",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "English Standard and Mathematics Advanced.",
+    "description": "Blending business and media skills, this double degree is ideal for students interested in digital marketing, journalism, and content strategy.",
+    "career_outcomes": [
+      "Digital Marketing Analyst",
+      "Media Planner",
+      "Content Strategist",
+      "Communications Officer",
+      "Social Media Manager"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Commerce/Science",
+    "uac_code": "424100",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced and a science subject.",
+    "description": "This program combines scientific inquiry with commercial problem-solving, suited for roles that require both technical and managerial expertise.",
+    "career_outcomes": [
+      "Business Analyst",
+      "Science Commercialisation Officer",
+      "Operations Manager",
+      "Environmental Consultant",
+      "Research Coordinator"
+    ],
+    "majors": [
+      "Accounting",
+      "Finance",
+      "Economics",
+      "Information Systems",
+      "Marketing",
+      "Business Analytics",
+      "International Business",
+      "Human Resource Management",
+      "Taxation"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Economics/Advanced Mathematics (Hons)",
+    "uac_code": "121160",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 95,
+    "lowest_atar": 92,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Extension 1 or 2.",
+    "description": "A rigorous program that combines deep economic analysis with mathematical modelling, ideal for research, academia, and high-level analytics.",
+    "career_outcomes": [
+      "Quantitative Economist",
+      "Data Analyst",
+      "Policy Researcher",
+      "Academician",
+      "Modelling Specialist"
+    ],
+    "majors": [
+      "Economics",
+      "Financial Economics",
+      "Econometrics",
+      "Business Strategy and Economic Management"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Economics/Advanced Science (Hons)",
+    "uac_code": "424470",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced and one science subject.",
+    "description": "Combining economics and science disciplines, this double degree prepares graduates for roles in environmental economics, healthcare, and beyond.",
+    "career_outcomes": [
+      "Health Economist",
+      "Environmental Consultant",
+      "Scientific Policy Analyst",
+      "Economic Modeller",
+      "Public Sector Researcher"
+    ],
+    "majors": [
+      "Economics",
+      "Financial Economics",
+      "Econometrics",
+      "Business Strategy and Economic Management"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Economics/Arts",
+    "uac_code": "424450",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "English Standard and Mathematics Advanced.",
+    "description": "This degree enhances economic knowledge with critical thinking and global perspectives from the arts, ideal for government, NGOs, and business.",
+    "career_outcomes": [
+      "Policy Officer",
+      "Public Affairs Consultant",
+      "Development Economist",
+      "Trade Analyst",
+      "NGO Strategist"
+    ],
+    "majors": [
+      "Economics",
+      "Financial Economics",
+      "Econometrics",
+      "Business Strategy and Economic Management"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Economics/Science",
+    "uac_code": "424450",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced and a science subject.",
+    "description": "Designed for students interested in economic analysis within scientific domains such as health, environment, or technology policy.",
+    "career_outcomes": [
+      "Environmental Economist",
+      "Health Policy Advisor",
+      "Scientific Investment Analyst",
+      "Economic Consultant",
+      "Data Strategist"
+    ],
+    "majors": [
+      "Economics",
+      "Financial Economics",
+      "Econometrics",
+      "Business Strategy and Economic Management"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Information Systems",
+    "uac_code": "424500",
+    "faculty": "UNSW Business School",
+    "duration_years": 3,
+    "lowest_selection_rank": 91,
+    "lowest_atar": 89,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced.",
+    "description": "This program develops skills in managing technology-enabled business systems, including databases, security, and digital transformation.",
+    "career_outcomes": [
+      "IT Consultant",
+      "Systems Analyst",
+      "Enterprise Architect",
+      "Cybersecurity Analyst",
+      "Technology Project Manager"
+    ],
+    "majors": [
+      "Information Systems",
+      "Business Analytics"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Information Systems/Computer Science"
+    ]
+  },
+  {
+    "program_name": "Bachelor of Information Systems/Computer Science",
+    "uac_code": "424510",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 93,
+    "lowest_atar": 90,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Extension 1 recommended.",
+    "description": "A powerful combination that merges business system design with deep computing knowledge, suited for tech-heavy roles in industry and consulting.",
+    "career_outcomes": [
+      "Solutions Architect",
+      "Technical Business Analyst",
+      "Systems Developer",
+      "Digital Strategist",
+      "Software Consultant"
+    ],
+    "majors": [
+      "Information Systems",
+      "Business Analytics"
+    ],
+    "minors": [],
+    "double_degrees": []
+  },
+  {
+    "program_name": "Bachelor of Information Systems (Co-op) (Hons)",
+    "uac_code": "424640",
+    "faculty": "UNSW Business School",
+    "duration_years": 4,
+    "lowest_selection_rank": 95,
+    "lowest_atar": 92,
+    "portfolio": false,
+    "assumed_knowledge": "Mathematics Advanced.",
+    "description": "This Co-op honours program blends real-world placements with deep tech and business knowledge, producing high-calibre graduates for strategic IT roles.",
+    "career_outcomes": [
+      "Digital Transformation Consultant",
+      "Strategic IT Manager",
+      "Cyber Risk Analyst",
+      "Enterprise Systems Architect",
+      "Product Owner"
+    ],
+    "majors": [
+      "Information Systems",
+      "Business Analytics"
+    ],
+    "minors": [],
+    "double_degrees": [
+      "Information Systems/Computer Science"
+    ]
+  }
+]
+
+

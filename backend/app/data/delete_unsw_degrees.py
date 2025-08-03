@@ -9,6 +9,6 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Delete all existing rows for Arts faculty
-response = supabase.table("unsw_degrees").delete().eq("faculty", "Arts, Design & Architecture").execute()
+response = supabase.table("unsw_degrees").delete().eq("faculty", "Science").execute()
 
-print("✅ Deleted degrees:", response.data)
+print("Deleted degrees: \n", response.data)

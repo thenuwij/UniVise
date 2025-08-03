@@ -6,7 +6,7 @@ import DegreeSelectorForRoadmap from "../components/DegreeSelectorForRoadmap";
 import { supabase } from "../supabaseClient";
 
 function RoadmapPage() {
- console.log("🧭 RoadmapPage component loaded");
+ console.log("RoadmapPage component loaded");
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [userType, setUserType] = useState("university");
@@ -20,21 +20,21 @@ function RoadmapPage() {
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
 
 useEffect(() => {
-  console.log("📡 useEffect triggered");
+  console.log("useEffect triggered");
   async function fetchInitialData() {
     try {
-      console.log("📡 useEffect triggered");
+      console.log("useEffect triggered");
 
       const { data: userData, error: userError } = await supabase.auth.getUser();
       const user = userData?.user;
 
       if (userError) {
-        console.error("❌ Error fetching user:", userError.message);
+        console.error("Error fetching user:", userError.message);
         return;
       }
 
       if (!user) {
-        console.log("❌ No user found");
+        console.log("No user found");
         return;
       }
 
@@ -67,10 +67,10 @@ useEffect(() => {
         }
 
         if (analysisData !== null) {
-        console.log("📄 Transcript or school report found");
+        console.log("Transcript or school report found");
         setHasTranscript(true);
         } else {
-        console.log("📄 No transcript or report found");
+        console.log("No transcript or report found");
         setHasTranscript(false);
         }
 
@@ -84,11 +84,11 @@ useEffect(() => {
         .single();
 
       if (transcriptError) {
-        console.warn("⚠️ Transcript fetch error (might be fine):", transcriptError.message);
+        console.warn("Transcript fetch error (might be fine):", transcriptError.message);
       }
 
       if (transcript) {
-        console.log("✅ Found transcript roadmap");
+        console.log("Found transcript roadmap");
         setTranscriptRoadmap(transcript);
       }
 
@@ -104,16 +104,16 @@ useEffect(() => {
         return;
       }
 
-      console.log("📦 Supabase final_degree_recommendations:", final);
+      console.log("Supabase final_degree_recommendations:", final);
 
       if (final && final.length > 0) {
-        console.log("🎓 Setting finalRecommendations state");
+        console.log("Setting finalRecommendations state");
         setFinalRecommendations(final);
         return;
       }
 
       // === 3. Trigger backend if missing ===
-      console.log("🚀 No existing recommendations — generating via backend...");
+      console.log("No existing recommendations — generating via backend...");
 
       const hardcodedToken = "eyJhbGciOiJIUzI1NiIsImtpZCI6ImhNV2p4NmxuVlY1TnMwOWEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2ZydGlhY2Vwdm1rbnBtbm1wd2R2LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJhMzU4ZjhmZS0zODcyLTQ2M2ItOWRkNS1hMGM5NWM5NjFiNzgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzUzNzU0OTEyLCJpYXQiOjE3NTM3NTEzMTIsImVtYWlsIjoidW5pMkBkb21haW4uY29tIiwic3ViIjoiYTM1OGY4ZmUtMzg3Mi00NjNiLTlkZDUtYTBjOTVjOTYxYjc4In0.hbJRaO5u9TcqSWsMAD1InORwx3okCQZYALMv0PR-PGE";
 
@@ -126,17 +126,17 @@ useEffect(() => {
       });
 
       const text = await res.text();
-      console.log("🔁 Backend response:", res.status, text);
+      console.log("Backend response:", res.status, text);
 
       if (!res.ok) {
         throw new Error("Backend returned error");
       }
 
       const generated = JSON.parse(text);
-      console.log("✅ Parsed backend result:", generated);
+      console.log("Parsed backend result:", generated);
       setFinalRecommendations(generated);
     } catch (err) {
-      console.error("💥 Error during roadmap setup:", err);
+      console.error("Error during roadmap setup:", err);
     }
   }
 
@@ -172,7 +172,7 @@ useEffect(() => {
         <button
             onClick={() => {
             if (hasTranscript) {
-                navigate("/roadmap/transcript"); // Or trigger OpenAI request if desired
+                navigate("/roadmap/transcript"); 
             }
             }}
             disabled={!hasTranscript}

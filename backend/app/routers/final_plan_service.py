@@ -9,7 +9,7 @@ def safe_get_year_courses(breakdown, year):
     return breakdown.get(year, [])
 
 async def generate_final_plan(user_id: str):
-    # Step 1: Fetch career recommendations
+    # Fetch career recommendations
     rec_response = (
         supabase
         .from_("career_recommendations")
@@ -23,7 +23,7 @@ async def generate_final_plan(user_id: str):
 
     recommendations = rec_response.data
 
-    # Step 2: Fetch UNSW degrees
+    # Fetch UNSW degrees
     degrees_response = (
         supabase
         .from_("unsw_degrees")
@@ -41,39 +41,39 @@ async def generate_final_plan(user_id: str):
     unsw_degree_list = "\n".join([f"- {name}" for name in degree_names])
 
     prompt = f"""
-You are a UNSW academic advisor.
+                You are a UNSW academic advisor.
 
-The student received these career recommendations:
-{user_recs_text}
+                The student received these career recommendations:
+                {user_recs_text}
 
-Now, here is a list of official UNSW degrees to choose from:
-{unsw_degree_list}
+                Now, here is a list of official UNSW degrees to choose from:
+                {unsw_degree_list}
 
-Task:
-- Recommend up to 2 UNSW degrees that best match the career options listed.
-- For each degree, include:
-  - Degree Name
-  - A short reason why it matches
-  - A realistic year-by-year course breakdown (real UNSW course codes)
-  - Mention any relevant specialisations or double degrees
-- Respond in valid JSON only. No markdown or explanations.
+                Task:
+                - Recommend up to 2 UNSW degrees that best match the career options listed.
+                - For each degree, include:
+                - Degree Name
+                - A short reason why it matches
+                - A realistic year-by-year course breakdown (real UNSW course codes)
+                - Mention any relevant specialisations or double degrees
+                - Respond in valid JSON only. No markdown or explanations.
 
-Example:
-[
-  {{
-    "degreeName": "Software Engineering (Honours)",
-    "reason": "...",
-    "courseBreakdown": {{
-      "Year 1": ["COMP1511", "MATH1131", "ENGG1000"],
-      "Year 2": ["COMP2511", "ELEC2142", "GENZ2000"]
-    }},
-    "specialisations": [...],
-    "doubleDegrees": [...]
-  }}
-]
-"""
+                Example:
+                [
+                {{
+                    "degreeName": "Software Engineering (Honours)",
+                    "reason": "...",
+                    "courseBreakdown": {{
+                    "Year 1": ["COMP1511", "MATH1131", "ENGG1000"],
+                    "Year 2": ["COMP2511", "ELEC2142", "GENZ2000"]
+                    }},
+                    "specialisations": [...],
+                    "doubleDegrees": [...]
+                }}
+                ]
+                """
 
-    # Step 4: Query OpenAI
+    # Query OpenAI
     result = ask_openai(prompt).strip()
     if result.startswith("```"):
         result = re.sub(r"^```json|^```|```$", "", result, flags=re.MULTILINE).strip()
@@ -83,7 +83,7 @@ Example:
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 
-    # Step 5: Insert each degree into Supabase
+    # Insert each degree into Supabase
     rows = []
     for degree in degrees:
         breakdown = degree.get("courseBreakdown", {})

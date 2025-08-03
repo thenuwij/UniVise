@@ -78,7 +78,7 @@ function DegreeDetailPage() {
 
             {/* Overview */}
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Overview</h2>
+              <h2 className="text-3xl font-semibold text-gray-800 mb-4">Overview</h2>
               <p className="text-base text-gray-700 leading-relaxed">{degree.description}</p>
             </section>
 

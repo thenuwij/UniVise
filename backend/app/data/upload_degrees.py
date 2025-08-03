@@ -11,11 +11,11 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # === Load JSON data ===
-json_path = os.path.join("data", "arts_faculty_details.json")  # adjust as needed
+json_path = os.path.join("data", "degrees_engineering.json")
 with open(json_path, "r") as f:
     degrees = json.load(f)
 
-faculty = "Arts, Design & Architecture"
+faculty = "Engineering"
 
 for degree in degrees:
     # Match by program_name and optional uac_code
