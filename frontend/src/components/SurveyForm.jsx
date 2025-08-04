@@ -4,7 +4,7 @@ import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import SurveyProgressBar from "../components/SurveyProgressBar";
-
+import { FileUpload } from '../components/FileUpload'
 
 function SurveyForm() {
   const { session } = UserAuth();
@@ -14,6 +14,8 @@ function SurveyForm() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [reportPath, setReportPath] = useState(null)
+  
 
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
@@ -363,13 +365,39 @@ function SurveyForm() {
     </div>
     <div className="flex justify-between">
       <Button onClick={handlePrev}>Back</Button>
-      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>
-        {loading ? "Submitting..." : "Submit"}
-      </Button>
+      <Button onClick={handleNext} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>Next</Button>
     </div>
-    {message && <p className="mt-2 text-center">{message}</p>}
   </div>
-)}
+  )}
+
+  { userType == "high_school" && step === 9 && (
+    <div>
+      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Please upload your most recent academic transcript or school report (optional)
+      </h2>
+      <FileUpload
+        userId={session?.user?.id}
+        reportType={"highschool_reports"}
+        bucket="reports"
+        table="student_school_data"
+        column="report_path"
+        onUpload={url => setReportPath(url)}
+      />
+      {reportPath && (
+        <a href={reportPath} target="_blank" className="mt-2 block underline">
+          View uploaded document
+        </a>
+      )}
+      <div className="flex justify-between mt-6">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button onClick={handleSubmit}>
+          {loading ? "Submitting..." : "Submit"}
+        </Button>
+      </div>
+      {message && <p className="mt-2 text-center">{message}</p>}
+    </div>
+    
+  )}
 
   {userType === "university" && step === 2 && (
     <div>

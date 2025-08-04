@@ -37,8 +37,11 @@ export function RecommendationTable() {
           console.error("Error fetching recommendations:", response.error);
         } else {
           const recs = response.data;
-          setRecommendations(recs);
-          console.log("Fetched recommendations:", response.data);}
+          setRecommendations(
+            recs.sort((a, b) => b.suitability_score - a.suitability_score)
+          );
+          console.log("Fetched recommendations:", response.data);
+        }
       } catch (err) {
         console.error("Unexpected error:", err);
       } finally {

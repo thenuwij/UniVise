@@ -251,7 +251,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
                 - `career_interests` (array of strings)  
                 - `degree_interests` (array of strings)  
                 - `bottom_subjects` (array of strings)  
-            - `score_breakdown` (object):
+            - `score_breakdown` (object): It should contain three keys that add up to 100%:
                 - `academic_match` (string)  
                 - `interest_fit` (string)  
                 - `career_outlook` (string)  
@@ -318,7 +318,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             - explanation (string)
             - companies (array of strings)
             - insights (object with keys current_WAM, top_courses, bottom_courses, skills_matched, experience_matched)
-            - score_breakdown (object with keys academic_performance, skill_match, market_demand)
+            - score_breakdown (object with keys academic_performance, skill_match, market_demand) that add up to 100%
             - job_opportunity (string)
             - next_steps (array of strings)
             - resources (array of URLs)

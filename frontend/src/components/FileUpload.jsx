@@ -1,10 +1,34 @@
 import React, { useEffect, useState } from "react"
 import { FileInput, Label, Spinner } from "flowbite-react"
 import { supabase } from "../supabaseClient"
+import { UserAuth } from "../context/AuthContext";
 
 export function FileUpload({ userId, reportType, bucket, table, column, onUpload }) {
+  const { session } = UserAuth();
   const [loading, setLoading] = useState(false)
   const [url, setUrl] = useState(false)
+
+  const analyseFile = async () => {
+    console.log("Analysing file...")
+    try {
+      const resp = await fetch("http://localhost:8000/reports/analyse", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to analyse file");
+      }
+
+      const data = await resp.json();
+      console.log("analysis:", data);
+    } catch (error) {
+      console.error("Error analysing file:", error);
+    }
+  }
+
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
@@ -38,6 +62,9 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
 
       // 5. notify parent
       onUpload(path)
+      analyseFile();
+
+      //6. Analyse the report
     } catch (err) {
       console.error("Upload failed:", err.message)
       alert("Failed to upload file.")
