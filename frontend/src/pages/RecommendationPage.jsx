@@ -35,6 +35,7 @@ function RecommendationPage() {
   const [specialisations, setSpecialisations] = useState([]);
   const [careerPaths, setCareerPaths] = useState([]);
   const [entryRequirements, setEntryRequirements] = useState([]);
+  const [summary, setSummary] = useState('');
   const [nextSteps, setNextSteps] = useState([]);
   const [resources, setResources] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -99,6 +100,7 @@ function RecommendationPage() {
         setCompanies(data.companies)
         setJobOpp(data.job_opportunity)
         setRecommendationDetails(data)
+        setSummary(data.summary)
       }
     }
 
@@ -130,7 +132,7 @@ function RecommendationPage() {
               ))}
             </div>
             <h3 className="text-xl font-semibold text-gray-800">Summary</h3>
-            <p className="text-gray-700 leading-relaxed text-lg">{explanation}</p>
+            <p className="text-gray-700 leading-relaxed text-lg">{summary}</p>
           </Card>
           <Card>
             <h3 className="text-xl font-semibold text-gray-800">Our Insights</h3>

@@ -260,6 +260,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             - `entry_requirements` (string)  
             - `next_steps` (array of strings)  
             - `resources` (array of strings: URLs)  
+            - `summary` (string): a concise summary of the degree details. Make it similar to the information in respect to the university handbook.
 
             Example Format:
             {{
@@ -295,7 +296,8 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "resources": [
                 "https://www.sydney.edu.au/engineering-handbook",
                 "https://www.sydney.edu.au/scholarships/deans-scholarship"
-            ]
+            ],
+            "summary": "The Bachelor of Engineering (Honours) at UNSW is a 4-year program that prepares students for careers in engineering with a focus on practical and theoretical knowledge. It requires an ATAR of 96 or higher, with Maths Advanced and Physics as prerequisites. The program offers specialisations in Robotics, Mechatronics, and AI, among others."
             }}
             """
 
@@ -320,6 +322,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             - job_opportunity (string)
             - next_steps (array of strings)
             - resources (array of URLs)
+            - summary (string): a concise summary of the career details. Make it similar to the information in respect to the job role.
 
         Example output:
             {{
@@ -367,7 +370,8 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
                 "https://www.lawsociety.com.au/careers/corporate-law",
                 "https://www.abs.gov.au/legal-services-statistics",
                 "https://www.university.edu.au/law/handbook/corporate-law"
-            ]
+            ],
+            "summary": "Corporate Lawyer is a highly sought-after role in the legal field, focusing on advising businesses on legal matters, drafting contracts, and ensuring compliance with regulations. It requires a strong academic background in law, particularly in corporate and commercial subjects, along with practical experience through clerkships or internships. The role typically demands excellent analytical and negotiation skills, with a competitive job market requiring candidates to excel academically and build professional networks."
             }}
             """
 
@@ -402,6 +406,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "entry_requirements": parsed["entry_requirements"],
             "next_steps": parsed["next_steps"],
             "resources": parsed["resources"],
+            "summary": parsed["summary"],
         }
     elif student_type == "university":
         details = {
@@ -413,6 +418,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "job_opportunity": parsed["job_opportunity"],
             "next_steps": parsed["next_steps"],
             "resources": parsed["resources"],
+            "summary": parsed["summary"],
         }
 
     response = supabase.table(response_table).upsert(details).execute()

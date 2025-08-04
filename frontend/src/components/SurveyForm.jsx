@@ -67,8 +67,8 @@ function SurveyForm() {
                     data: { student_type: "high_school" }
                 });
                 setMessage("Survey submitted successfully!");
-                await generateRecommendations();
-                setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
+                generateRecommendations().catch(console.error);
+                navigate("/quiz/loading");
                 
         }
       }
