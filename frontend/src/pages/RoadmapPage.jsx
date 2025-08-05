@@ -158,43 +158,58 @@ useEffect(() => {
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-        <div className="max-w-7xl mx-auto py-20 px-6">
-        <h1 className="text-6xl font-light text-slate-800 mb-6 text-center">
-            My Roadmap
+       <div className="max-w-7xl mx-auto py-20 px-6 text-center">
+        <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+          My Roadmap
         </h1>
-        <p className="text-xl text-slate-600 text-center max-w-3xl mx-auto">
-            Select from a program plan below or upload your transcript to generate your personalised roadmap.
+        <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
+          UniVise helps you plan your academic future. Explore recommended UNSW degrees or upload your transcript to generate a roadmap tailored just for you.
         </p>
-        </div>
-        
-        <div className="flex flex-col items-center px-6 max-w-7xl mx-auto w-full">
-        <section className="w-full mb-12 text-center">
+
         <button
-            onClick={() => {
+          onClick={() => {
             if (hasTranscript) {
-                navigate("/roadmap/transcript"); 
+              navigate("/roadmap/transcript");
             }
-            }}
-            disabled={!hasTranscript}
-            className={`px-8 py-4 rounded-xl text-white text-lg font-semibold shadow-md transition ${
-            hasTranscript
-                ? "bg-sky-700 hover:bg-sky-800 cursor-pointer"
-                : "bg-sky-300 cursor-not-allowed"
+          }}
+          disabled={!hasTranscript}
+          className={`inline-flex items-center justify-center px-5 py-3 text-base font-medium text-white rounded-lg transition
+            ${
+              hasTranscript
+                ? "bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+                : "bg-blue-300 cursor-not-allowed"
             }`}
         >
-            Generate Roadmap Using Transcript
+          Generate Using Transcript
+          <svg
+            className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 14 10"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M1 5h12m0 0L9 1m4 4L9 9"
+            />
+          </svg>
         </button>
+
         {!hasTranscript && (
-            <p className="text-sm text-gray-500 mt-2 italic">
+          <p className="text-sm text-gray-500 mt-2 italic">
             Upload a transcript to enable this option.
-            </p>
+          </p>
         )}
-        </section>
+        </div>
+
+        
+        <div className="flex flex-col items-center px-6 max-w-7xl mx-auto w-full">
 
         <section className="w-full mb-20">
-            <h2 className="text-4xl font-light text-slate-800 mb-6">
-            Recommended Degrees
-            </h2>
+            <h2 class="text-4xl font-bold dark:text-white">Recommended Degrees</h2>
             {finalRecommendations.length === 0 ? (
             <p className="text-gray-500 italic">No recommendations available.</p>
             ) : (
@@ -223,7 +238,7 @@ useEffect(() => {
         </section>
 
         <section className="w-full mb-12">
-            <h2 className="text-4xl font-light text-slate-800 mb-6">Search Degrees</h2>
+            <h2 class="text-4xl font-bold dark:text-white">Search Degrees</h2>
             <DegreeSelectorForRoadmap
             selectedId={selectedDegreeId}
             onSelect={(deg) => {
