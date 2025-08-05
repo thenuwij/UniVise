@@ -43,7 +43,7 @@ def ask_gemini(prompt: str) -> str:
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
-            max_tokens=1000,
+            max_tokens=2048,
         )
         print(response.choices[0].message.content)
         return response.choices[0].message.content.strip()

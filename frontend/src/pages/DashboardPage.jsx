@@ -16,7 +16,10 @@ function DashboardPage() {
 
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-100
+">
+  
+
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       <div className="flex flex-col justify-center h-full mx-20">
