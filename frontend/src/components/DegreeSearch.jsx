@@ -85,8 +85,22 @@ function DegreeSearch() {
   }, [query, facultyFilter]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
-      {recommended.length > 0 && (
+      <div className="w-full max-w-5xl mx-auto">
+
+        <div className="text-center mb-10">
+          <h1 className="mb-4 text-3xl font-extrabold md:text-5xl lg:text-6xl leading-tight">
+            <div className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-sky-600 inline-block">
+              Search Degrees
+            </div>
+          </h1>
+          <p className="text-lg font-medium text-slate-800 lg:text-xl">
+            Explore UNSW degree programs, filter by faculty, and find what suits you.
+          </p>
+        </div>
+
+        {recommended.length > 0 && (
+
+        
         <div className="mb-16">
           <h2 className="text-2xl font-semibold text-slate-800 mb-4 text-center">
             Based on your UniVise recommendations
@@ -118,12 +132,15 @@ function DegreeSearch() {
         />
 
         {!showFilter && (
-          <button
+         <button
             onClick={() => setShowFilter(true)}
-            className="px-6 py-3 rounded-full bg-sky-200 text-black font-semibold text-base hover:bg-sky-300 transition-all shadow-md"
+            className="px-6 py-3 rounded-full bg-white border border-slate-200 font-semibold text-base hover:shadow-md transition-all shadow flex items-center justify-center"
           >
-            + Add Filter
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
+              + Add Filter
+            </span>
           </button>
+
         )}
       </div>
 

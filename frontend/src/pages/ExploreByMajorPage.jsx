@@ -16,10 +16,6 @@ function ExploreByMajorPage() {
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       <div className="max-w-5xl mx-auto py-20 px-6">
-        <h1 className="text-5xl font-light text-slate-800 mb-12 text-center">
-          Explore Majors
-        </h1>
-
         <MajorSearch onSelectMajor={setSelectedMajor} />
 
         {/* Optionally add a detailed card here */}

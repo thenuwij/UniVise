@@ -11,7 +11,15 @@ function CourseSearch() {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const { data, error } = await supabase.from("unsw_courses").select("*");
+    const { data, error } = await supabase
+      .from("unsw_courses")
+      .select("*")
+      .range(0, 2999); // Fetches rows 0 through 2999 (inclusive)
+
+
+      console.log("Fetched courses:", data?.length);
+
+
       if (!error) {
         setCourses(data);
 
@@ -48,7 +56,7 @@ function CourseSearch() {
             Search Courses
           </div>{" "}
         </h1>
-        <p className="text-lg font-medium text-slate-800 lg:text-xl dark:text-slate-200">
+        <p className="text-lg font-medium text-slate-800 lg:text-xl">
           Explore course information, filter by faculty, and find what fits your goals.
         </p>
 
@@ -56,20 +64,26 @@ function CourseSearch() {
 
 
 
-      <input
-        type="text"
-        placeholder="Search by course code or title..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full px-4 py-2 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-      />
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 justify-center">
+        <input
+          type="text"
+          placeholder="Start typing to search for courses"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 rounded-xl px-5 py-3 text-base border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all w-full sm:w-auto"
+        />
 
-      <button
-        onClick={() => setShowFilters(!showFilters)}
-        className="mb-4 text-sm text-white bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition"
-      >
-        {showFilters ? "Hide Filters" : "Add Filter"}
-      </button>
+        {!showFilters && (
+          <button
+            onClick={() => setShowFilters(true)}
+            className="px-6 py-3 rounded-full bg-white border border-slate-200 font-semibold text-base hover:shadow-md transition-all shadow flex items-center justify-center"
+          >
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
+              + Add Filter
+            </span>
+          </button>
+        )}
+      </div>
 
       {showFilters && (
         <div className="mb-6">
@@ -93,21 +107,20 @@ function CourseSearch() {
 
      {query.length >= 1 || facultyFilter ? (
         filteredCourses.length > 0 ? (
-          <ul className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {filteredCourses.map((course) => (
-              <li key={course.id}>
-                <Link
-                  to={`/course/${course.id}`}
-                  className="block bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-indigo-50 transition"
-                >
-                  <h2 className="text-xl font-semibold text-slate-800">
-                    {course.code}: {course.title}
-                  </h2>
-                  <p className="text-sm text-slate-600">{course.faculty}</p>
-                </Link>
-              </li>
+              <Link
+                to={`/course/${course.id}`}
+                key={course.id}
+                className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block"
+              >
+                <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                  {course.code}: {course.title}
+                </h3>
+                <p className="text-sm text-slate-500">{course.faculty}</p>
+              </Link>
             ))}
-          </ul>
+          </div>
         ) : (
           <p className="text-center text-slate-500 mt-8">
             No matching courses found.

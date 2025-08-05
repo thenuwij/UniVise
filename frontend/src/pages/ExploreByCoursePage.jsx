@@ -14,6 +14,7 @@ function ExploreByCoursePage() {
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       <div className="max-w-5xl mx-auto py-20 px-6">
+
         <CourseSearch />
       </div>
     </div>
