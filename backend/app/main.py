@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .routers import auth, recommendation, user, chatbot_routes, reports
+from .routers import auth, chat, recommendation, user, reports
 
 app = FastAPI()
 load_dotenv()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://your-frontend-domain.com"],
+    allow_origins=["http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
@@ -19,5 +19,5 @@ app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(
     recommendation.router, prefix="/recommendation", tags=["Recommendation"]
 )
-app.include_router(chatbot_routes.router, prefix="/chat", tags=["Chatbot"])
+app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
