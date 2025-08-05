@@ -40,7 +40,7 @@ async def get_recommendation_prompts(
             "industry: string — The industry this job is in (e.g. Technology)"
             "suitability_score: int — A score from 0 to 100 indicating how well this matches the student\n"
             "reason: string — A detailed explanation of why this job is a good fit for the student\n"
-            "avg_salary_range: number — Estimated starting salary for this role (e.g. 80000)\n"
+            "avg_salary_range: number — Estimated starting salary for this role (Examples: $80000, $80000-$120000, Varies Widely)\n"
             "education_required: string — The education level required for this role (e.g. Bachelor's degree in Computer Science)\n"
             "skills_needed: array — A list of key skills needed for this role (e.g"
             "reason: string — A detailed explanation of why this job is a good fit for the student\n\n"
@@ -53,7 +53,7 @@ async def get_recommendation_prompts(
             '    "industry": "Technology",\n'
             '    "suitability_score": 95,\n'
             '    "reason": "This role aligns with your interests in software development and your current studies.",\n'
-            '    "avg_salary_range": 80000-120000,\n'
+            '    "avg_salary_range": "$80000-$120000",\n'
             '    "education_required": "Bachelor\'s degree in Computer Science or related field",\n'
             '    "skills_needed": ["Python", "Java", "Problem Solving"],\n'
             '    "link": "https://www.unsw.edu.au/careers/jobs/software-engineer",\n'
@@ -74,8 +74,8 @@ async def get_recommendation_prompts(
             f"• Confidence in future direction: {user_info['confidence']}\n\n"
             "Using this information, return 4–5 recommended degrees as a JSON array. "
             "For each recommendation, return a JSON object with:\n"
-            "degree_name: string — The name of the degree (e.g. Bachelor of Computer Science)"
-            "university_name: string — The full university name (e.g. University of Sydney)"
+            "degree_name: string — The name of the degree (e.g. Bachelor of Computer Science)\n"
+            "university_name: string — The full university name (e.g. University of Sydney) - New South Wales based universities only\n"
             "atar_requirement: int — The ATAR requirement for this degree (e.g. 90.00)\n"
             "suitability_score: int — A score from 0 to 100 indicating how well this matches the student\n"
             "estimated_completion_time: number — Estimated time to complete this degree (e.g. 3 years full-time)\n"

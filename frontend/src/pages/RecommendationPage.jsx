@@ -213,16 +213,10 @@ function RecommendationPage() {
             ) 
             : (
               <AccordionPanel>
-                <AccordionTitle>Career Pathways</AccordionTitle>
+                <AccordionTitle>Job Market</AccordionTitle>
                   {jobOpp.length > 0 && (
                     <AccordionContent>
-                      <ul className="list-disc list-inside ml-4 space-y-1">
-                        {jobOpp.map((job, idx) => (
-                          <li key={idx}>
-                            {job}
-                          </li>
-                        ))}
-                      </ul>
+                      {jobOpp}
                     </AccordionContent>
                   )}
               </AccordionPanel>

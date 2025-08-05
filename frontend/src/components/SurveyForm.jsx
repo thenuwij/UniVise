@@ -24,6 +24,26 @@ function SurveyForm() {
     setFormData({ ...formData, [field]: value });
   };
 
+  const analyseFile = async () => {
+    try {
+      const resp = await fetch("http://localhost:8000/reports/analyse", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to analyse file");
+      }
+
+      const data = await resp.json();
+      console.log("analysis:", data);
+    } catch (error) {
+      console.error("Error analysing file:", error);
+    }
+  }
+
   const generateRecommendations = async () => {
     try {
       const resp = await fetch("http://localhost:8000/recommendation/prompt", {
@@ -57,6 +77,7 @@ function SurveyForm() {
             atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
             confidence: formData.confidence || null,
             degree_interest: formData.degree_interest || [],
+            report_path: reportPath || null,
         },
         ]);
 
@@ -69,6 +90,8 @@ function SurveyForm() {
                     data: { student_type: "high_school" }
                 });
                 setMessage("Survey submitted successfully!");
+                const analysis = await analyseFile();
+                console.log("Report analysis:", analysis);
                 generateRecommendations().catch(console.error);
                 navigate("/quiz/loading");
                 
@@ -91,6 +114,7 @@ function SurveyForm() {
           hobbies_other: formData.hobbies_other || null,
           confidence: formData.confidence || null,
           want_help: formData.want_help || null,
+          report_path: reportPath || null,
         },
       ]);
 
@@ -103,8 +127,10 @@ function SurveyForm() {
             data: { student_type: "university" }
           });
           setMessage("Survey submitted successfully!");
-          await generateRecommendations();
-          setTimeout(() => navigate("/quiz/loading", { replace: true }), 500);
+          const analysis = await analyseFile();
+          console.log("Report analysis:", analysis);
+          generateRecommendations().catch(console.error);
+          navigate("/quiz/loading");
       }
     }
   };
@@ -373,7 +399,7 @@ function SurveyForm() {
   { userType == "high_school" && step === 9 && (
     <div>
       <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
-        Please upload your most recent academic transcript or school report (optional)
+        Optional: Upload your most recent school report
       </h2>
       <FileUpload
         userId={session?.user?.id}
@@ -722,14 +748,44 @@ function SurveyForm() {
       <div className="flex justify-between">
         <Button onClick={handlePrev}>Back</Button>
         <Button
-          onClick={handleSubmit}
+          onClick={handleNext}
           disabled={!formData.want_help}
         >
+          Next
+        </Button>
+      </div>
+      {message && <p className="mt-2 text-center">{message}</p>}
+    </div>
+  )}
+
+  { userType == "university" && step === 12 && (
+    <div>
+      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Optional: Upload your most recent academic transcript
+      </h2>
+      <FileUpload
+        userId={session?.user?.id}
+        reportType = {"uni_transcripts"}
+        bucket="reports"
+        table="student_uni_data"
+        column="report_path"
+        onUpload={url => setReportPath(url)}
+
+      />
+      {reportPath && (
+        <a href={reportPath} target="_blank" className="mt-2 block underline">
+          View uploaded document
+        </a>
+      )}
+      <div className="flex justify-between mt-6">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button onClick={handleSubmit}>
           {loading ? "Submitting..." : "Submit"}
         </Button>
       </div>
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
+    
   )}
 
 
