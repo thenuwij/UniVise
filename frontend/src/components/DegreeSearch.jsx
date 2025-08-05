@@ -9,20 +9,22 @@ function DegreeSearch() {
   const [results, setResults] = useState([]);
   const [faculties, setFaculties] = useState([]);
   const [recommended, setRecommended] = useState([]);
+  const [showFilter, setShowFilter] = useState(false);
   const { session } = UserAuth();
 
-  // Fetch recommended degrees from final_degree_recommendations
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!session) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("final_degree_recommendations")
-        .select("degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations")
+        .select(
+          "degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
+        )
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (!error && data?.length > 0) {
+      if (data?.length > 0) {
         const formatted = data.map((deg) => ({
           degreeName: deg.degree_name,
           reason: deg.reason,
@@ -41,38 +43,42 @@ function DegreeSearch() {
     fetchRecommendations();
   }, [session]);
 
-  // Fetch faculty list
   useEffect(() => {
     const fetchFaculties = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("unsw_degrees")
         .select("faculty")
         .neq("faculty", "");
 
-      if (!error && data) {
-        const uniqueFaculties = [...new Set(data.map((d) => d.faculty))];
-        setFaculties(uniqueFaculties);
+      if (data) {
+        const unique = [...new Set(data.map((d) => d.faculty))];
+        setFaculties(unique);
       }
     };
 
     fetchFaculties();
   }, []);
 
-  // Fetch filtered degrees
   useEffect(() => {
     const fetchDegrees = async () => {
+      if (query.length < 2 && facultyFilter === "") {
+        const { data } = await supabase.from("unsw_degrees").select("*");
+        setResults(data || []);
+        return;
+      }
+
       let builder = supabase.from("unsw_degrees").select("*");
 
       if (query.length >= 2) {
         builder = builder.ilike("program_name", `%${query}%`);
       }
 
-      if (facultyFilter) {
+      if (facultyFilter !== "") {
         builder = builder.eq("faculty", facultyFilter);
       }
 
-      const { data, error } = await builder;
-      if (!error) setResults(data);
+      const { data } = await builder;
+      if (data) setResults(data);
     };
 
     fetchDegrees();
@@ -80,7 +86,6 @@ function DegreeSearch() {
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      {/* 🔹 AI Recommendations Section */}
       {recommended.length > 0 && (
         <div className="mb-16">
           <h2 className="text-2xl font-semibold text-slate-800 mb-4 text-center">
@@ -103,52 +108,65 @@ function DegreeSearch() {
         </div>
       )}
 
-      {/* 🔍 Search & Filter Controls */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center">
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 justify-center">
         <input
           type="text"
-          placeholder="Search degree name"
+          placeholder="Start typing to search for degrees"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 rounded-xl px-5 py-3 text-base border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 transition-all w-full sm:w-auto"
         />
 
-        <select
-          value={facultyFilter}
-          onChange={(e) => setFacultyFilter(e.target.value)}
-          className="rounded-xl px-5 py-3 text-base border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 transition-all w-full sm:w-auto"
-        >
-          <option value="">All Faculties</option>
-          {faculties.map((faculty) => (
-            <option key={faculty} value={faculty}>
-              {faculty}
-            </option>
-          ))}
-        </select>
+        {!showFilter && (
+          <button
+            onClick={() => setShowFilter(true)}
+            className="px-6 py-3 rounded-full bg-sky-200 text-black font-semibold text-base hover:bg-sky-300 transition-all shadow-md"
+          >
+            + Add Filter
+          </button>
+        )}
       </div>
 
-      {/* 🎓 Matching Degrees Section */}
-      {results.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {results.map((degree) => (
-            <Link
-              to={`/degrees/${degree.id}`}
-              key={degree.id}
-              className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block"
-            >
-              <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                {degree.program_name}
-              </h3>
-              <p className="text-sm text-slate-500">{degree.faculty}</p>
-            </Link>
-          ))}
+      {showFilter && (
+        <div className="mb-10 text-center">
+          <select
+            value={facultyFilter}
+            onChange={(e) => setFacultyFilter(e.target.value)}
+            className="rounded-xl px-5 py-3 text-base border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 transition-all w-full sm:w-auto"
+          >
+            <option value="">All Faculties</option>
+            {faculties.map((faculty) => (
+              <option key={faculty} value={faculty}>
+                {faculty}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
-      {results.length === 0 && query.length >= 2 && (
-        <p className="text-center text-gray-400 mt-10 text-base">
-          No degrees found. Try another keyword.
-        </p>
+      {(query.length >= 2 || facultyFilter !== "" || results.length > 0) && (
+        <>
+          {results.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {results.map((degree) => (
+                <Link
+                  to={`/degrees/${degree.id}`}
+                  key={degree.id}
+                  className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200 block"
+                >
+                  <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                    {degree.program_name}
+                  </h3>
+                  <p className="text-sm text-slate-500">{degree.faculty}</p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-400 mt-10 text-base">
+              No degrees found. Try another keyword or change the filter.
+            </p>
+          )}
+        </>
       )}
     </div>
   );
