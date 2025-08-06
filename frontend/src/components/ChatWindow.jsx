@@ -4,6 +4,8 @@ import { IoSend } from "react-icons/io5";
 import { supabase } from "../supabaseClient";
 import { TbRobot } from "react-icons/tb";
 import { UserAuth } from "../context/AuthContext";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatWindow({ convId }) {
   const { session } = UserAuth();
@@ -108,7 +110,7 @@ export default function ChatWindow({ convId }) {
     }
   }
 
-  // ─── ChatBubble in same file ─────────────────────────────
+    // ─── ChatBubble in same file ─────────────────────────────
   function ChatBubble({ sender, text, created_at }) {
     const isUser = sender === "user";
 
@@ -118,10 +120,9 @@ export default function ChatWindow({ convId }) {
           isUser ? "justify-end" : "justify-start"
         }`}
       >
-        {/* Bubble with ch-based max width */}
         <div
           className={`
-            max-w-[60ch] p-3 text-lg whitespace-pre-wrap break-words
+            max-w-[60ch] p-3 text-lg break-words
             ${
               isUser
                 ? "bg-indigo-600 text-white rounded-bl-2xl rounded-tl-2xl rounded-tr-2xl"
@@ -129,8 +130,41 @@ export default function ChatWindow({ convId }) {
             }
           `}
         >
-          {text}
-          <div className="text-[14px] text-white mt-3 text-right">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // strip default <p> margin
+              p: ({ node, ...props }) => (
+                <p className="m-0 leading-snug" {...props} />
+              ),
+              // tighten headings
+              h1: ({ ...props }) => (
+                <h1 className="m-0 text-xl font-semibold" {...props} />
+              ),
+              h2: ({ ...props }) => (
+                <h2 className="m-0 text-lg font-semibold" {...props} />
+              ),
+              // lists: no top/bottom margin, small indent
+              ul: ({ ...props }) => (
+                <ul className="list-disc ml-4 my-1" {...props} />
+              ),
+              ol: ({ ...props }) => (
+                <ol className="list-decimal ml-4 my-1" {...props} />
+              ),
+              li: ({ ...props }) => <li className="ml-2" {...props} />,
+              // code blocks / inline code
+              code: ({ inline, ...props }) =>
+                inline ? (
+                  <code className="bg-gray-700 px-1 rounded" {...props} />
+                ) : (
+                  <pre className="bg-gray-700 p-2 rounded overflow-auto" {...props} />
+                ),
+            }}
+          >
+            {text}
+          </ReactMarkdown>
+
+          <div className="text-[14px] mt-2 text-white text-right">
             {new Date(created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -140,6 +174,7 @@ export default function ChatWindow({ convId }) {
       </div>
     );
   }
+
 
 return (
     <div className="flex flex-col h-full">
