@@ -61,42 +61,40 @@ export default function ChatWindow({ convId }) {
     setInput("");
 
     if (textAreaRef.current) textAreaRef.current.style.height = "auto";
-    try {
-    const res = await fetch(
-      `http://localhost:8000/chat/conversations/${convId}/reply`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ content: text }),
-      }
-    );
-    if (!res.ok) {
-      console.error("Reply endpoint returned", res.status, await res.text());
-      return;
-    }
-    const json = await res.json();
-    if (!json.reply) {
-      console.error("No `reply` field in JSON:", json);
-      return;
-    }
+    const res = await fetch(`http://localhost:8000/chat/conversations/${convId}/reply/stream`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: text }),
+    });
 
-    setMessages(m => [
-      ...m,
-      {
-        sender:    "bot",
-        text:      json.reply,
-        created_at: new Date().toISOString(),
-        },
-      ]);
-    } catch (err) {
-      console.error("Error fetching bot reply", err);
+    if (!res.ok) throw new Error(await res.text());
+
+    // 1. Create a new “bot” entry with empty text
+    setMessages(ms => [
+      ...ms,
+      { sender: "bot", text: "", created_at: new Date().toISOString() }
+    ]);
+
+    // 2. Stream tokens and append to the last message
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunk = decoder.decode(value || new Uint8Array());
+      setMessages(ms => {
+        const last = ms[ms.length - 1];
+        // update its text field
+        const updated = { ...last, text: last.text + chunk };
+        return [...ms.slice(0, -1), updated];
+      });
     }
-
-  };
-
+  }
 
   // ─── ChatBubble in same file ─────────────────────────────
   function ChatBubble({ sender, text, created_at }) {

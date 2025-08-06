@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_current_user
 from .user import (
     get_user_info,
@@ -7,17 +7,14 @@ from .user import (
     get_user_academic_analysis,
 )
 from app.utils.database import supabase
-from app.utils.openai_client import ask_chat_completion
+from app.utils.openai_client import ask_chat_completion_stream
 from fastapi.responses import StreamingResponse
-
-import json
-import datetime
 
 router = APIRouter()
 
 
-@router.post("/conversations/{conv_id}/reply")
-async def reply_to_conversation(conv_id: str, user=Depends(get_current_user)):
+@router.post("/conversations/{conv_id}/reply/stream")
+async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_user)):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
     recommendations = await get_user_recommendations(user, student_type)
@@ -52,21 +49,30 @@ async def reply_to_conversation(conv_id: str, user=Depends(get_current_user)):
         "Keep these details in mind when you respond. Make it conversational. I dont expect you to write long paragraphs but rather keep the conversation going. Active Listening."
     )
 
-    ai_response = ask_chat_completion(history, prompt)
+    # 1. Kick off the streaming API call
+    stream = ask_chat_completion_stream(history, prompt)
 
-    resp = (
-        supabase.table("conversation_messages")
-        .insert(
+    # 2. Define a generator that yields each token as it comes
+    async def event_generator():
+        full_response = ""
+        for chunk in stream:
+            # Safely read the `.content` attribute
+            delta = chunk.choices[0].delta
+            token = delta.content or ""
+            full_response += token
+            if token:  # only yield when there’s new text
+                yield token
+        # 3. Once done, persist the full bot message
+        supabase.table("conversation_messages").insert(
             {
                 "conversation_id": conv_id,
                 "sender": "bot",
-                "content": ai_response,
+                "content": full_response,
             }
-        )
-        .execute()
+        ).execute()
+
+    # 4. Return a text/event-stream so the browser can process it
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
     )
-
-    if not resp:
-        raise HTTPException(status_code=500, detail="Invalid response")
-
-    return {"reply": ai_response}
