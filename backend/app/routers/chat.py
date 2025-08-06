@@ -8,6 +8,7 @@ from .user import (
 )
 from app.utils.database import supabase
 from app.utils.openai_client import ask_chat_completion
+from fastapi.responses import StreamingResponse
 
 import json
 import datetime
