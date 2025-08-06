@@ -163,7 +163,7 @@ return (
             )
           }
           {loading && (
-            <div className="flex items-center justify-center mt-4">
+            <div className="flex justify-start mt-4">
               <TbRobot className="animate-bounce w-10 h-10 text-gray-500" />
             </div>
           )}

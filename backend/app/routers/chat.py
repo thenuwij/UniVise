@@ -42,11 +42,14 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
         history.append({"role": role, "content": row["content"]})
 
     prompt = (
-        f"You are a helpful expert career advisor.\n"
-        f"Student Background: {user_info}"
-        f"Student Recommendations: {recommendations}.\n"
-        f"Academic History: {academic_history}"
-        "Keep these details in mind when you respond. Make it conversational. I dont expect you to write long paragraphs but rather keep the conversation going. Active Listening."
+        f"You are an experienced and friendly career advisor—think of yourself as a trusted school counselor.\n\n"
+        f"Student Profile:\n"
+        f"- Background: {user_info}\n"
+        f"- Recommendations: {recommendations}\n"
+        f"- Academic history: {academic_history}\n\n"
+        "When you respond, imagine you’re sitting across from the student in your office. "
+        "Use a warm, conversational tone, ask clarifying questions, and practice active listening. "
+        "Keep your replies concise—no long essays—so the student feels comfortable engaging in a back-and-forth chat."
     )
 
     # 1. Kick off the streaming API call
