@@ -5,6 +5,7 @@ import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
+import { TbRobot } from "react-icons/tb";
 
 export default function ChatbotPage() {
   const navigate = useNavigate();
@@ -33,8 +34,9 @@ export default function ChatbotPage() {
       <div className="flex-1 overflow-hidden">
           {conversationId
             ? <ChatWindow convId={conversationId} />
-            : <div className="h-full flex items-center justify-center text-gray-500">
-                Select or create a conversation to begin.
+            : <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <TbRobot className="inline-block mb-2 w-20 h-20 text-gray-400 animate-bounce"/>
+                Select or create a new chat to begin.
               </div>
           }
         </div>

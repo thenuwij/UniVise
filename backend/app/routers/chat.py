@@ -1,121 +1,71 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from dependencies import get_current_user
+from .user import (
+    get_user_info,
+    get_student_type,
+    get_user_recommendations,
+    get_user_academic_analysis,
+)
 from app.utils.database import supabase
+from app.utils.openai_client import ask_chat_completion
 
 import json
 import datetime
 
-router = APIRouter(prefix="/chat", tags=["Chat"])
+router = APIRouter()
 
 
-@router.post("/conversations")
-async def create_conversation(user=Depends(get_current_user)):
-    """
-    Create a new chatbot conversation.
-    """
+@router.post("/conversations/{conv_id}/reply")
+async def reply_to_conversation(conv_id: str, user=Depends(get_current_user)):
+    student_type = await get_student_type(user)
+    user_info = await get_user_info(user, student_type)
+    recommendations = await get_user_recommendations(user, student_type)
+    academic_history = await get_user_academic_analysis(user, student_type)
+
+    if not student_type or not user_info or not recommendations:
+        raise HTTPException(status_code=401, detail="Invalid User")
+
+    user_messages = (
+        supabase.table("conversation_messages")
+        .select("sender, content")
+        .eq("conversation_id", conv_id)
+        .order("created_at")
+        .execute()
+    )
+
+    if not user_messages:
+        raise HTTPException(status_code=500, detail="Invalid messages")
+
+    rows = user_messages.data
+
+    history = []
+    for row in rows:
+        role = "assistant" if row["sender"] == "bot" else "user"
+        history.append({"role": role, "content": row["content"]})
+
+    prompt = (
+        f"You are a helpful expert career advisor.\n"
+        f"Student Background: {user_info}"
+        f"Student Recommendations: {recommendations}.\n"
+        f"Academic History: {academic_history}"
+        "Keep these details in mind when you respond. Make it conversational. I dont expect you to write long paragraphs but rather keep the conversation going. Active Listening."
+    )
+
+    ai_response = ask_chat_completion(history, prompt)
+
     resp = (
-        await supabase.table("conversations")
+        supabase.table("conversation_messages")
         .insert(
             {
-                "user_id": user.id,
-                "created_at": datetime.datetime.utcnow().isoformat(),
+                "conversation_id": conv_id,
+                "sender": "bot",
+                "content": ai_response,
             }
         )
         .execute()
     )
 
     if not resp:
-        raise HTTPException(status_code=500, detail="Failed to create conversation")
+        raise HTTPException(status_code=500, detail="Invalid response")
 
-    conversation = resp.data[0]
-    return {"conversation_id": conversation["id"]}
-
-
-@router.get("/conversations")
-async def get_conversations(user=Depends(get_current_user)):
-    """
-    Get all chatbot conversations for the user.
-    """
-    resp = (
-        await supabase.table("conversations")
-        .select("*")
-        .eq("user_id", user.id)
-        .execute()
-    )
-
-    if not resp:
-        raise HTTPException(status_code=500, detail="Failed to fetch conversations")
-
-    return resp.data
-
-
-@router.get("/conversations/{conversation_id}/messages")
-async def get_conversation_messages(
-    conversation_id: str, user=Depends(get_current_user)
-):
-    """
-    Get all messages in a specific conversation.
-    """
-    resp = (
-        await supabase.table("messages")
-        .select("*")
-        .eq("conversation_id", conversation_id)
-        .eq("user_id", user.id)
-        .execute()
-    )
-
-    if not resp:
-        raise HTTPException(status_code=500, detail="Failed to fetch messages")
-
-    return resp.data
-
-
-@router.post("/conversations/{conversation_id}/messages")
-async def add_message(
-    conversation_id: str, request: Request, user=Depends(get_current_user)
-):
-    """
-    Add a new message to a conversation.
-    """
-    data = await request.json()
-    message = data.get("message")
-
-    if not message:
-        raise HTTPException(status_code=400, detail="Message content is required")
-
-    resp = (
-        await supabase.table("messages")
-        .insert(
-            {
-                "conversation_id": conversation_id,
-                "user_id": user.id,
-                "content": message,
-                "created_at": datetime.datetime.utcnow().isoformat(),
-            }
-        )
-        .execute()
-    )
-
-    if not resp:
-        raise HTTPException(status_code=500, detail="Failed to add message")
-
-    return {"message_id": resp.data[0]["id"], "content": message}
-
-
-@router.delete("/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str, user=Depends(get_current_user)):
-    """
-    Delete a specific conversation.
-    """
-    resp = (
-        await supabase.table("conversations")
-        .delete()
-        .eq("id", conversation_id)
-        .eq("user_id", user.id)
-        .execute()
-    )
-
-    if not resp:
-        raise HTTPException(status_code=500, detail="Failed to delete conversation")
-
-    return {"detail": "Conversation deleted successfully"}
+    return {"reply": ai_response}

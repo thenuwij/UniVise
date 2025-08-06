@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List, Dict, Optional
 
 load_dotenv()
 
@@ -51,3 +52,28 @@ def ask_gemini(prompt: str) -> str:
     except Exception as e:
         print("Gemini API error:", e)
         return "Sorry could process Gemini request"
+
+
+def ask_chat_completion(
+    history: List[Dict[str, str]],
+    system_prompt: str,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0.6,
+    max_tokens: int = 500,
+) -> str:
+    # 1. Build the full messages list
+    messages = [{"role": "system", "content": system_prompt}] + history
+
+    # 2. Call OpenAI’s chat completion
+    try:
+        response = openai.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        # In production you might log and re-raise
+        print("Chat API error:", e)
+        return "Sorry, I couldn't process your message right now."

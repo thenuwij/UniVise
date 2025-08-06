@@ -6,7 +6,6 @@ import { Button } from 'flowbite-react';
 import { UserAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import Conversation from './Conversation';
-import { v4 as uuid } from 'uuid';
 
 function ChatSidebar() {
 
@@ -15,9 +14,8 @@ function ChatSidebar() {
   const [conversations, setConversations] = useState([]);
   const navigate = useNavigate();
 
-  const handleCreate = async (title) => {
+  const handleCreate = async ({ title, conversationId }) => {
 
-    const conversationId = uuid();
     const { data, error } = await supabase
       .from("conversations")
       .insert(
