@@ -11,6 +11,7 @@ export default function ChatWindow({ convId }) {
   const firstName = (session.user.user_metadata.first_name);
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
+  const [streamStarted, setStreamStarted] = useState(false);
   const [loading, setLoading]   = useState(false);
   const chatEndRef              = useRef(null);
   const textAreaRef             = useRef(null);
@@ -42,6 +43,9 @@ export default function ChatWindow({ convId }) {
 
   const sendMessage = async () => {
     const text = input.trim();
+
+    setLoading(true);
+    setStreamStarted(false)
     // insert user message
     const { data: userMsg } = await supabase
       .from("conversation_messages")
@@ -70,7 +74,10 @@ export default function ChatWindow({ convId }) {
       body: JSON.stringify({ content: text }),
     });
 
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      setLoading(false);
+      throw new Error(await res.text());
+    }
 
     // 1. Create a new “bot” entry with empty text
     setMessages(ms => [
@@ -87,6 +94,11 @@ export default function ChatWindow({ convId }) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
       const chunk = decoder.decode(value || new Uint8Array());
+      setLoading(false);
+
+      if (chunk && !streamStarted) {
+        setStreamStarted(true);
+      }
       setMessages(ms => {
         const last = ms[ms.length - 1];
         // update its text field
@@ -150,6 +162,13 @@ return (
               ))
             )
           }
+          {loading && (
+            <div className="flex items-center justify-center mt-4">
+              <TbRobot className="animate-bounce w-10 h-10 text-gray-500" />
+            </div>
+          )}
+          {/* Scroll to bottom */}
+          <div className="h-0.5" />
           <div ref={chatEndRef} />
         </div>
       </div>
