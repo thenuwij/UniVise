@@ -83,7 +83,7 @@ function CourseDetailPage() {
                 <h2 className="text-2xl font-semibold text-slate-800 mb-6">Key Information</h2>
                 <div className="grid grid-cols-1 gap-4">
                   {[
-                    { label: "UOC", value: `${course.uoc} Units of Credit` },
+                    { label: "UOC", value: `${course.uoc}` },
                     { label: "Faculty", value: course.faculty },
                     { label: "School", value: course.school },
                     { label: "Study Level", value: course.study_level },

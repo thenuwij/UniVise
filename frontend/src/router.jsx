@@ -16,7 +16,9 @@ import ExploreByMajorPage from "./pages/ExploreByMajorPage";
 import ExploreByCoursePage from "./pages/ExploreByCoursePage";
 import DegreeDetailPage from "./pages/DegreeDetailPage";
 import RoadmapPage from "./pages/RoadmapPage";
+import RoadmapPathPage from "./pages/RoadmapPathPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
+import LoadingRoadmapPage from "./pages/LoadingRoadmapPage";
 
 
 
@@ -38,5 +40,7 @@ export const router = createBrowserRouter([
   { path: "/explore-by-course", element: <PrivateRoute><ExploreByCoursePage /></PrivateRoute> },
   { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
-  { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> }
+  { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },
+  { path: "/roadmap/path", element: <PrivateRoute><RoadmapPathPage /></PrivateRoute> },
+  { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
 ]);
