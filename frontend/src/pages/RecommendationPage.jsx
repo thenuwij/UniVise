@@ -109,18 +109,20 @@ function RecommendationPage() {
 
   console.log(specialisations)
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 overflow-auto">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       <div className='flex'>
-        <Button pill className='ml-10 mt-5' size='lg' onClick={() => navigate('/dashboard')}>Back</Button>
+        <Button pill className='ml-10 mt-5 bg-gradient-to-br from-purple-600 to-blue-500
+              text-white hover:bg-gradient-to-bl' size='md' onClick={() => navigate('/dashboard')}>Back</Button>
       </div>
-      <main className="mx-auto p-6 flex gap-10 h-screen ml-5 items-start">
-        <div className='flex flex-col w-3/5 gap-4'>
-          <Card>
-            <h2 className="text-5xl font-bold text-blue-700">
-              {recommendation.title}
-            </h2>
+      <main className="mx-auto p-6 flex gap-10 h-screen items-start ml-20">
+        <div className='flex flex-col w-3/5 gap-5 '>
+          <h2 className="text-6xl text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 h-16">
+            {recommendation.title}
+          </h2>
+          <Card className="bg-white shadow-lg p-4 mt-5">
+            <h3 className="text-3xl text-gray-800">Summary</h3>
             <p className="text-2xl text-blue-900">
               {recommendation.subtitle}
             </p>
@@ -131,132 +133,106 @@ function RecommendationPage() {
                 </Badge>
               ))}
             </div>
-            <h3 className="text-xl font-semibold text-gray-800">Summary</h3>
             <p className="text-gray-700 leading-relaxed text-lg">{summary}</p>
           </Card>
           <Card>
-            <h3 className="text-xl font-semibold text-gray-800">Our Insights</h3>
+            <h3 className="text-xl text-gray-800">Our Insights</h3>
               <p className="text-gray-700 leading-relaxed text-lg">{explanation}</p>
           </Card>
+          <Card>
+            <h3 className="text-xl mb-2">Next Steps</h3>
+            {nextSteps.length > 0 ? (
+              <ul className="list-disc list-inside space-y-1">
+                {nextSteps.map((step, idx) => (
+                  <li key={idx}>{step}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No next steps available.</p>
+            )}
+          </Card>
         </div>
-        
-        <Accordion className='w-1/3'>
-          <AccordionPanel>
-            <AccordionTitle>Score Breakdown?</AccordionTitle>
-            <AccordionContent>
+        <div className='flex flex-col w-2/5 gap-5 mt-26 mr-10'>
+         <div className="space-y-6">
+            <Card>
+              <h3 className="text-xl mb-2">Score Breakdown</h3>
               <p className='mb-5 text-lg'>
                 Here is a breakdown to why we believe this is the right fit for you!
               </p>
-              <p className="mb-2 text-gray-500 dark:text-gray-400">
-                {scoreBreakdown.academic_match}
-              </p>
-              <p className="text-gray-500 dark:text-gray-400">
-                {scoreBreakdown.interest_fit}
-              </p>
-              <p className="text-gray-500 dark:text-gray-400">
-                {scoreBreakdown.career_outlook}
-              </p>
-            </AccordionContent>
-          </AccordionPanel>
+              <ul className="list-disc list-inside space-y-1">
+                <li>{scoreBreakdown.academic_performance}</li>
+                <li>{scoreBreakdown.skill_match}</li>
+                <li>{scoreBreakdown.market_demand}</li>
+              </ul>
+            </Card>
+          </div>  
           {
-            userType === 'high_school' ? 
-            (
-              <AccordionPanel>
-                <AccordionTitle>Specialisations</AccordionTitle>
-                  {specialisations.length > 0 && (
-                    <AccordionContent>
-                      <ul className="list-disc list-inside ml-4 space-y-1">
-                        {specialisations.map((spec, idx) => (
-                          <li key={idx}>
-                            {spec}
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  )}
-              </AccordionPanel>
-            ) : 
-            (
-              <AccordionPanel>
-                  <AccordionTitle>Companies</AccordionTitle>
-                    {companies.length > 0 && (
-                      <AccordionContent>
-                        <ul className="list-disc list-inside ml-4 space-y-1">
-                          {companies.map((company, idx) => (
-                            <li key={idx}>
-                              {company}
-                            </li>
-                          ))}
-                        </ul>
-                      </AccordionContent>
-                    )}
-                </AccordionPanel>
+            userType === 'high_school' ? (
+              <Card>
+                <h3 className="text-xl mb-2">Specialisations</h3>
+                {specialisations.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {specialisations.map((spec, idx) => (
+                      <li key={idx}>{spec}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No specialisations available.</p>
+                )}
+              </Card>
+            ) : (
+              <Card>
+                <h3 className="text-xl mb-2">Companies</h3>
+                {companies.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {companies.map((company, idx) => (
+                      <li key={idx}>{company}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="  text-gray-500">No companies available.</p>
+                )}
+              </Card>
             )
           }
-
           {
-            userType == 'high_school' ? (
-              <AccordionPanel>
-                <AccordionTitle>Career Pathways</AccordionTitle>
-                  {careerPaths.length > 0 && (
-                    <AccordionContent>
-                      <ul className="list-disc list-inside ml-4 space-y-1">
-                        {careerPaths.map((path, idx) => (
-                          <li key={idx}>
-                            {path}
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  )}
-              </AccordionPanel>
-            ) 
-            : (
-              <AccordionPanel>
-                <AccordionTitle>Job Market</AccordionTitle>
-                  {jobOpp.length > 0 && (
-                    <AccordionContent>
-                      {jobOpp}
-                    </AccordionContent>
-                  )}
-              </AccordionPanel>
+            userType === 'high_school' ? (
+              <Card>
+                <h3 className="text-xl mb-2">Career Pathways</h3>
+                {careerPaths.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {careerPaths.map((path, idx) => (
+                      <li key={idx}>{path}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No career pathways available.</p>
+                )}
+              </Card>
+            ) : (
+              <Card>
+                <h3 className="text-xl mb-2">Job Opportunities</h3>
+                {jobOpp ? (
+                  <p>{jobOpp}</p>
+                ) : (
+                  <p className="text-gray-500">No job opportunities available.</p>
+                )}
+              </Card>
             )
           }
-
-          
-
-          <AccordionPanel>
-            <AccordionTitle>Next Steps</AccordionTitle>
-            {nextSteps.length > 0 && (
-              <AccordionContent>
-                <ol className="list-decimal list-inside ml-4 space-y-1">
-                  {nextSteps.map((step, idx) => (
-                    <li key={idx} className="text-gray-700 dark:text-gray-300">
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </AccordionContent>
+          <Card>
+            <h3 className="text-xl mb-2">Resources</h3>
+            {resources.length > 0 ? (
+              <ul className="list-disc list-inside space-y-1">
+                {resources.map((resource, idx) => (
+                  <li key={idx}>{resource}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No resources available.</p>
             )}
-          </AccordionPanel>
-
-          
-          <AccordionPanel>
-            <AccordionTitle>Resources</AccordionTitle>
-            {resources.length > 0 && (
-              <AccordionContent>
-                <ListGroup>
-                  {resources.map((res, idx) => (
-                    <ListGroupItem key={idx} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                        {res}
-                    </ListGroupItem>
-                  ))}
-                </ListGroup>
-              </AccordionContent>
-            )}
-          </AccordionPanel>
-          
-        </Accordion>
+          </Card>
+        </div>
       </main>
     </div>
   )
