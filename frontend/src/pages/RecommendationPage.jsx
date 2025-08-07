@@ -152,11 +152,11 @@ function RecommendationPage() {
             )}
           </Card>
         </div>
-        <div className='flex flex-col w-2/5 gap-5 mt-26 mr-10'>
+        <div className='flex flex-col w-2/5 gap-3 mt-26 mr-10'>
          <div className="space-y-6">
             <Card>
-              <h3 className="text-xl mb-2">Score Breakdown</h3>
-              <p className='mb-5 text-lg'>
+              <h3 className="text-xl">Score Breakdown</h3>
+              <p className='text-lg'>
                 Here is a breakdown to why we believe this is the right fit for you!
               </p>
               <ul className="list-disc list-inside space-y-1">
@@ -169,7 +169,7 @@ function RecommendationPage() {
           {
             userType === 'high_school' ? (
               <Card>
-                <h3 className="text-xl mb-2">Specialisations</h3>
+                <h3 className="text-xl">Specialisations</h3>
                 {specialisations.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1">
                     {specialisations.map((spec, idx) => (
@@ -182,7 +182,7 @@ function RecommendationPage() {
               </Card>
             ) : (
               <Card>
-                <h3 className="text-xl mb-2">Companies</h3>
+                <h3 className="text-xl">Top Companies</h3>
                 {companies.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1">
                     {companies.map((company, idx) => (
@@ -198,7 +198,7 @@ function RecommendationPage() {
           {
             userType === 'high_school' ? (
               <Card>
-                <h3 className="text-xl mb-2">Career Pathways</h3>
+                <h3 className="text-xl">Career Pathways</h3>
                 {careerPaths.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1">
                     {careerPaths.map((path, idx) => (
@@ -211,7 +211,7 @@ function RecommendationPage() {
               </Card>
             ) : (
               <Card>
-                <h3 className="text-xl mb-2">Job Opportunities</h3>
+                <h3 className="text-xl">Job Opportunities</h3>
                 {jobOpp ? (
                   <p>{jobOpp}</p>
                 ) : (
@@ -221,7 +221,7 @@ function RecommendationPage() {
             )
           }
           <Card>
-            <h3 className="text-xl mb-2">Resources</h3>
+            <h3 className="text-xl2">Resources</h3>
             {resources.length > 0 ? (
               <ul className="list-disc list-inside space-y-1">
                 {resources.map((resource, idx) => (
