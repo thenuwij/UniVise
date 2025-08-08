@@ -104,23 +104,44 @@ async def analyse_report(user=Depends(get_current_user)):
         """
     else:
         prompt = f"""
-        You are a seasoned university academic advisor. Analyse the following transcript and return a detailed analysis on the report.
-        This reort will later be used for openAI to read again so return in markdown:
+        You are a seasoned UNSW academic advisor. Analyse the following university transcript text and extract key academic information.
 
-        - **current_WAM** (number): the student’s weighted average mark.  
-        - **high_achievements** (array of strings): the course codes or names where the student excelled.  
-        - **low_performance** (array of strings): the course codes or names with the lowest grades.    
-        - **strengths** (array of strings): short phrases describing the student’s strongest areas.  
-        - **weaknesses** (array of strings): short phrases describing areas needing improvement.  
-        - **Evaluation** (string): a concise paragraph summarizing their overall academic standing and next steps.
-        - **Recommendation (string): Recommend which areas to focus on or prioritise and what to do heading forward.
+        Return the result as a single valid JSON object. Do not use markdown or explanations. Only include fields if the information is clearly present in the transcript.
 
-        **University Transcript:**  
+        The JSON must include the following fields:
+
+        - **full_name** (string): Student’s full name  
+        - **student_id** (string): UNSW student ID  
+        - **degree_program** (string): Full name of the degree program (e.g. "Bachelor of Engineering (Honours)")  
+        - **major** (string): Name of the major or specialisation (e.g. "Computer Engineering")  
+        - **wam** (number): Final Weighted Average Mark  
+        - **uoc_attempted** (number): Total Units of Credit attempted  
+        - **uoc_completed** (number): Total Units of Credit successfully completed  
+        - **term_summaries** (array of objects): For each term:
+        - `term` (string): e.g. "Term 1 2021"
+        - `wam` (number): WAM for that term if present
+        - `courses` (array): Each course with:
+            - `code`: Course code (e.g. "COMP1511")
+            - `title`: Course title
+            - `uoc`: Units of Credit
+            - `mark`: Mark (if available)
+            - `grade`: Grade (e.g. "HD", "DN", "PS")
+
+        Also include:
+
+        - **high_achievements** (array of strings): Courses with high marks or HDs  
+        - **low_performance** (array of strings): Courses with lowest grades or weak performance  
+        - **strengths** (array of strings): Short phrases summarizing strong academic areas  
+        - **weaknesses** (array of strings): Areas needing improvement  
+        - **evaluation** (string): A concise paragraph summarizing overall academic standing  
+        - **recommendation** (string): Specific advice on what to improve or prioritize going forward
+
+        Return only the JSON result. Do not include markdown, explanation, or commentary.
+
+        Transcript Text:
         {report_text}
-      
-        Return  **only** a single valid JSON object.
+        """
 
-      """
     ai_output_str = ask_gemini(prompt)
     text = ai_output_str.strip()
     if text.startswith("```"):
