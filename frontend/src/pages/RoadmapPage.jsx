@@ -100,7 +100,6 @@ function RoadmapPage() {
 
   const renderDegreeSelector = () => (
     <section className="w-full mb-12">
-      <h2 className="text-4xl font-bold dark:text-white mt-12 mb-6">Search Degrees</h2>
       <DegreeSelectorForRoadmap
         selectedId={selectedDegreeId}
         onSelect={(deg) => {
@@ -138,7 +137,7 @@ function RoadmapPage() {
           {userType === "high_school" ? (
             "Based on your personality and career interests, UniVise recommends degrees that align with your goals. Select a degree to begin your journey."
           ) : (
-            "Based on your transcript and career goals, UniVise recommends UNSW degrees and helps plan your year-by-year roadmap."
+            "Upload your transcript on profile page or select a degree below to generate the roadmap."
           )}
         </p>
       </div>
