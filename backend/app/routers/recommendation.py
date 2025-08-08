@@ -40,7 +40,7 @@ async def get_recommendation_prompts(
             "industry: string — The industry this job is in (e.g. Technology)"
             "suitability_score: int — A score from 0 to 100 indicating how well this matches the student\n"
             "reason: string — A detailed explanation of why this job is a good fit for the student\n"
-            "avg_salary_range: number — Estimated starting salary for this role (e.g. 80000)\n"
+            "avg_salary_range: number — Estimated starting salary for this role (Examples: $80000, $80000-$120000, Varies Widely)\n"
             "education_required: string — The education level required for this role (e.g. Bachelor's degree in Computer Science)\n"
             "skills_needed: array — A list of key skills needed for this role (e.g"
             "reason: string — A detailed explanation of why this job is a good fit for the student\n\n"
@@ -53,7 +53,7 @@ async def get_recommendation_prompts(
             '    "industry": "Technology",\n'
             '    "suitability_score": 95,\n'
             '    "reason": "This role aligns with your interests in software development and your current studies.",\n'
-            '    "avg_salary_range": 80000-120000,\n'
+            '    "avg_salary_range": "$80000-$120000",\n'
             '    "education_required": "Bachelor\'s degree in Computer Science or related field",\n'
             '    "skills_needed": ["Python", "Java", "Problem Solving"],\n'
             '    "link": "https://www.unsw.edu.au/careers/jobs/software-engineer",\n'
@@ -74,8 +74,8 @@ async def get_recommendation_prompts(
             f"• Confidence in future direction: {user_info['confidence']}\n\n"
             "Using this information, return 4–5 recommended degrees as a JSON array. "
             "For each recommendation, return a JSON object with:\n"
-            "degree_name: string — The name of the degree (e.g. Bachelor of Computer Science)"
-            "university_name: string — The full university name (e.g. University of Sydney)"
+            "degree_name: string — The name of the degree (e.g. Bachelor of Computer Science)\n"
+            "university_name: string — The full university name (e.g. University of Sydney) - New South Wales based universities only\n"
             "atar_requirement: int — The ATAR requirement for this degree (e.g. 90.00)\n"
             "suitability_score: int — A score from 0 to 100 indicating how well this matches the student\n"
             "estimated_completion_time: number — Estimated time to complete this degree (e.g. 3 years full-time)\n"
@@ -251,7 +251,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
                 - `career_interests` (array of strings)  
                 - `degree_interests` (array of strings)  
                 - `bottom_subjects` (array of strings)  
-            - `score_breakdown` (object):
+            - `score_breakdown` (object): It should contain three keys that add up to 100%:
                 - `academic_match` (string)  
                 - `interest_fit` (string)  
                 - `career_outlook` (string)  
@@ -260,6 +260,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             - `entry_requirements` (string)  
             - `next_steps` (array of strings)  
             - `resources` (array of strings: URLs)  
+            - `summary` (string): a concise summary of the degree details. Make it similar to the information in respect to the university handbook.
 
             Example Format:
             {{
@@ -295,7 +296,8 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "resources": [
                 "https://www.sydney.edu.au/engineering-handbook",
                 "https://www.sydney.edu.au/scholarships/deans-scholarship"
-            ]
+            ],
+            "summary": "The Bachelor of Engineering (Honours) at UNSW is a 4-year program that prepares students for careers in engineering with a focus on practical and theoretical knowledge. It requires an ATAR of 96 or higher, with Maths Advanced and Physics as prerequisites. The program offers specialisations in Robotics, Mechatronics, and AI, among others."
             }}
             """
 
@@ -316,10 +318,11 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             - explanation (string)
             - companies (array of strings)
             - insights (object with keys current_WAM, top_courses, bottom_courses, skills_matched, experience_matched)
-            - score_breakdown (object with keys academic_performance, skill_match, market_demand)
+            - score_breakdown (object with keys academic_performance, skill_match, market_demand) that add up to 100%
             - job_opportunity (string)
             - next_steps (array of strings)
             - resources (array of URLs)
+            - summary (string): a concise summary of the career details. Make it similar to the information in respect to the job role.
 
         Example output:
             {{
@@ -367,7 +370,8 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
                 "https://www.lawsociety.com.au/careers/corporate-law",
                 "https://www.abs.gov.au/legal-services-statistics",
                 "https://www.university.edu.au/law/handbook/corporate-law"
-            ]
+            ],
+            "summary": "Corporate Lawyer is a highly sought-after role in the legal field, focusing on advising businesses on legal matters, drafting contracts, and ensuring compliance with regulations. It requires a strong academic background in law, particularly in corporate and commercial subjects, along with practical experience through clerkships or internships. The role typically demands excellent analytical and negotiation skills, with a competitive job market requiring candidates to excel academically and build professional networks."
             }}
             """
 
@@ -402,6 +406,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "entry_requirements": parsed["entry_requirements"],
             "next_steps": parsed["next_steps"],
             "resources": parsed["resources"],
+            "summary": parsed["summary"],
         }
     elif student_type == "university":
         details = {
@@ -413,6 +418,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
             "job_opportunity": parsed["job_opportunity"],
             "next_steps": parsed["next_steps"],
             "resources": parsed["resources"],
+            "summary": parsed["summary"],
         }
 
     response = supabase.table(response_table).upsert(details).execute()

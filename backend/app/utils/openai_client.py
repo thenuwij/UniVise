@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List, Dict, Optional
 
 load_dotenv()
 
@@ -51,3 +52,21 @@ def ask_gemini(prompt: str) -> str:
     except Exception as e:
         print("Gemini API error:", e)
         return "Sorry could process Gemini request"
+
+
+def ask_chat_completion_stream(
+    history: List[Dict[str, str]],
+    system_prompt: str,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0.6,
+    max_tokens: int = 500,
+):
+    messages = [{"role": "system", "content": system_prompt}] + history
+    # ask OpenAI to stream
+    return openai.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        stream=True,
+    )
