@@ -55,9 +55,10 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
-                    <SidebarItem href="/roadmap" icon={RiGuideFill}>
+                    <SidebarItem href="/roadmap-entryload" icon={RiGuideFill}>
                       My Roadmap
                     </SidebarItem>
+
 
                     {/* Collapsible UNSW Pathways Section */}
                     <div

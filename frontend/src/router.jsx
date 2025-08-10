@@ -17,8 +17,11 @@ import ExploreByCoursePage from "./pages/ExploreByCoursePage";
 import DegreeDetailPage from "./pages/DegreeDetailPage";
 import RoadmapPage from "./pages/RoadmapPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
-
-
+import LoadingRoadmapPage from "./pages/LoadingRoadmapPage";
+import RoadmapSchoolPage from "./pages/RoadmapSchoolPage";
+import RoadmapUNSWPage from "./pages/RoadmapUNSWPage";
+import RoadmapTranscriptPage from "./pages/RoadmapTranscriptPage";
+import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 
 
 export const router = createBrowserRouter([
@@ -39,5 +42,10 @@ export const router = createBrowserRouter([
   { path: "/explore-by-course", element: <PrivateRoute><ExploreByCoursePage /></PrivateRoute> },
   { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
-  { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> }
+  { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },
+  { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
+  { path: "/roadmap/school", element: <PrivateRoute><RoadmapSchoolPage /></PrivateRoute> },
+  { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
+  { path: "/roadmap/transcript", element: <PrivateRoute><RoadmapTranscriptPage /></PrivateRoute> },
+  { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> }
 ]);

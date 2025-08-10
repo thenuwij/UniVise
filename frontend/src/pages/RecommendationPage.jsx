@@ -39,7 +39,8 @@ function RecommendationPage() {
   const [nextSteps, setNextSteps] = useState([]);
   const [resources, setResources] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [jobOpp, setJobOpp] = useState('');
+  const [jobOpp, setJobOpp] = useState([]);
+
   
   const location = useLocation()
   const { rec } = location.state || {}
@@ -98,7 +99,7 @@ function RecommendationPage() {
         setCareerPaths(data.career_pathways)
         setEntryRequirements(data.entry_requirements)
         setCompanies(data.companies)
-        setJobOpp(data.job_opportunity)
+        setJobOpp(Array.isArray(data.job_opportunity) ? data.job_opportunity : [data.job_opportunity].filter(Boolean));
         setRecommendationDetails(data)
         setSummary(data.summary)
       }

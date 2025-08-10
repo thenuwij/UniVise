@@ -5,7 +5,7 @@ from app.routers.final_plan_service import generate_final_plan
 router = APIRouter()
 
 @router.post("/")
-async def get_final_degree_plan(user=Depends(get_current_user)):
+async def get_final_recommendations(user=Depends(get_current_user)):
     """
     Generate a final degree plan for the user based on their recommendations.
     """
