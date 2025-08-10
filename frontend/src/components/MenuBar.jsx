@@ -55,7 +55,7 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
-                    <SidebarItem href="/roadmap-loading" icon={RiGuideFill}>
+                    <SidebarItem href="/roadmap-entryload" icon={RiGuideFill}>
                       My Roadmap
                     </SidebarItem>
 

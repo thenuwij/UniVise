@@ -54,13 +54,37 @@ function RoadmapPage() {
     fetchInitialData();
   }, []);
 
-  const handleProceed = () => {
+  // Replace this function in RoadmapPage.jsx
+  const handleProceed = async () => {
     if (!selectedDegreeId || !selectedDegreeObject) {
       alert("Please select a degree to proceed.");
       return;
     }
-    navigate(`/roadmap/${selectedDegreeId}`);
+
+    if (userType === "high_school") {
+      if (selectedDegreeObject.source === "unsw_selector") {
+        navigate("/roadmap-loading", {
+          state: { type: "unsw", degree: selectedDegreeObject },
+          replace: true,
+        });
+        return;
+      }
+
+      navigate("/roadmap-loading", {
+        state: { type: "school", degree: selectedDegreeObject },
+        replace: true,
+      });
+      return;
+    }
+
+    // University users → UNSW flow
+    navigate("/roadmap-loading", {
+      state: { type: "unsw", degree: selectedDegreeObject },
+      replace: true,
+    });
   };
+
+
 
   const renderRecommendations = () => (
     <section className="w-full mb-12">
@@ -76,7 +100,13 @@ function RoadmapPage() {
               key={id}
               onClick={() => {
                 setSelectedDegreeId(id);
-                setSelectedDegreeObject({ id, degree_name, reason });
+                setSelectedDegreeObject({
+                  source: userType === "high_school" ? "hs_recommendation" : "uni_recommendation",
+                  id, // <- recommendation_id for HS school flow
+                  degree_name,
+                  university_name,
+                  reason,
+                });
               }}
               className={`cursor-pointer rounded-3xl p-6 border shadow-md transition-all duration-300 ${
                 selectedDegreeId === id
@@ -86,7 +116,9 @@ function RoadmapPage() {
                   : "bg-white border-slate-200 hover:shadow-md hover:scale-[1.01]"
               }`}
             >
-              <h3 className={`text-lg font-semibold ${userType === "university" ? "text-sky-900" : "text-purple-800"} mb-2`}>{degree_name}</h3>
+              <h3 className={`text-lg font-semibold ${userType === "university" ? "text-sky-900" : "text-purple-800"} mb-2`}>
+                {degree_name}
+              </h3>
               {userType === "high_school" && (
                 <p className="text-sm text-gray-500 mb-2 italic">{university_name}</p>
               )}
@@ -104,7 +136,10 @@ function RoadmapPage() {
         selectedId={selectedDegreeId}
         onSelect={(deg) => {
           setSelectedDegreeId(deg.id);
-          setSelectedDegreeObject(deg);
+          setSelectedDegreeObject({
+            ...deg,
+            source: "unsw_selector",
+          });
         }}
       />
     </section>
@@ -134,11 +169,9 @@ function RoadmapPage() {
           My Roadmap
         </h1>
         <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
-          {userType === "high_school" ? (
-            "Based on your personality and career interests, UniVise recommends degrees that align with your goals. Select a degree to begin your journey."
-          ) : (
-            "Upload your transcript on profile page or select a degree below to generate the roadmap."
-          )}
+          {userType === "high_school"
+            ? "Based on your personality and career interests, UniVise recommends degrees that align with your goals. Select a degree to begin your journey."
+            : "Upload your transcript on profile page or select a degree below to generate the roadmap."}
         </p>
       </div>
 
