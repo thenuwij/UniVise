@@ -1,57 +1,93 @@
 # app/utils/user_context.py
 
 from app.utils.database import supabase
-from datetime import datetime
+
+def _first_or_empty(res):
+    try:
+        data = getattr(res, "data", None) or []
+        return data[0] if isinstance(data, list) and data else {}
+    except Exception:
+        return {}
+
+def _select_latest(table: str, cols: str, user_id: str, order_col: str | None):
+    """
+    Try selecting latest by order_col if provided; if that fails (column missing),
+    retry without ordering. Always returns a dict (possibly empty).
+    """
+    # 1) try with ordering (if requested)
+    if order_col:
+        try:
+            res = (
+                supabase
+                .from_(table)
+                .select(cols)
+                .eq("user_id", user_id)
+                .order(order_col, desc=True)
+                .limit(1)
+                .execute()
+            )
+            got = _first_or_empty(res)
+            if got:
+                return got
+        except Exception:
+            pass  # fall through to no-order
+
+    # 2) no ordering fallback
+    res = (
+        supabase
+        .from_(table)
+        .select(cols)
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    return _first_or_empty(res)
 
 async def get_user_context(user_id: str) -> dict:
-    # === High School Profile ===
-    hs_response = (
-        supabase
-        .from_("student_school_data")
-        .select("academic_strengths, hobbies, career_interests, confidence, degree_interest")
-        .eq("user_id", user_id)
-        .execute()
+    # === High School Profile (no created_at assumption) ===
+    highschool_data = _select_latest(
+        table="student_school_data",
+        cols="academic_strengths,hobbies,career_interests,confidence,degree_interest",
+        user_id=user_id,
+        order_col=None,   # set to "created_at" if that column exists in your schema
     )
-    highschool_data = hs_response.data[0] if hs_response.data else {}
 
-    # === University Profile ===
-    uni_response = (
-        supabase
-        .from_("student_uni_data")
-        .select("degree_stage, academic_year, degree_field, switching_pathway, study_feelings, interest_areas, hobbies, confidence, want_help")
-        .eq("user_id", user_id)
-        .execute()
+    # === University Profile (avoid created_at ordering; it doesn't exist) ===
+    university_data = _select_latest(
+        table="student_uni_data",
+        cols="degree_stage,academic_year,degree_field,switching_pathway,study_feelings,interest_areas,hobbies,confidence,want_help",
+        user_id=user_id,
+        order_col=None,   # was causing 42703 before
     )
-    university_data = uni_response.data[0] if uni_response.data else {}
 
-    # === Final Degree Recommendation ===
-    roadmap_response = (
-        supabase
-        .from_("final_degree_recommendations")
-        .select("degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations")
-        .eq("user_id", user_id)
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
+    # === Final Degree Recommendation (created_at likely exists; try it, fall back if not) ===
+    plan_raw = _select_latest(
+        table="final_degree_recommendations",
+        cols="degree_name,reason,created_at",
+        user_id=user_id,
+        order_col="created_at",   # will auto-fallback if missing
     )
-    roadmap_data = roadmap_response.data[0] if roadmap_response.data else {}
 
-    # === Personality Result ===
-    personality_response = (
-        supabase
-        .from_("personality_results")
-        .select("trait_scores, top_types, result_summary, created_at")
-        .eq("user_id", user_id)
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    personality_data = personality_response.data[0] if personality_response.data else {}
-
-    return {
-        "highschool": highschool_data,
-        "university": university_data,
-        "roadmap": roadmap_data,
-        "personality": personality_data,
+    final_plan = {
+        "degree_name": plan_raw.get("degree_name"),
+        "reason": plan_raw.get("reason"),
+        "created_at": plan_raw.get("created_at"),
+        "years": [],            # keep stable shape for callers expecting it
+        "specialisations": [],  # removed in DB; expose empty list for compat
     }
 
+    # === Personality Result (created_at may exist; try it, fall back if not) ===
+    personality_data = _select_latest(
+        table="personality_results",
+        cols="trait_scores,top_types,result_summary,created_at",
+        user_id=user_id,
+        order_col="created_at",
+    )
+
+    return {
+        "highschool": highschool_data or {},
+        "university": university_data or {},
+        "personality": personality_data or {},
+        "final_plan": final_plan,
+        "roadmap": final_plan,   # backward-compatible alias
+    }

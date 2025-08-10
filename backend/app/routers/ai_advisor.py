@@ -44,29 +44,39 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     context = await get_user_context(user.id)
 
     # Build OpenAI prompt
+        # Build OpenAI prompt
     prompt = f"""
-    You are a helpful and intelligent academic advisor AI.
+    You are UniVise's Smart Advisor.
+    Your job is to give the student a clear, concise, and personal recommendation for the degree below, based on their profile.
 
-    A student is considering the following UNSW degree: "{degree['program_name']}"  
-    Degree Description: {degree['description']}  
-    Career Outcomes: {degree.get('career_outcomes', [])}
+    Degree: {degree['program_name']}
+    Description: {degree['description']}
+    Career Outcomes: {', '.join(career_outcomes_list) or 'N/A'}
 
     Student Profile:
     - Personality Traits: {context['personality'].get('top_types')}
-    - Strengths and Interest Areas: {context['highschool'].get('academic_strengths') or context['university'].get('interest_areas')}
+    - Strengths & Interest Areas: {context['highschool'].get('academic_strengths') or context['university'].get('interest_areas')}
     - Career Goal or Degree Focus: {context['highschool'].get('career_interests') or context['university'].get('degree_field')}
 
-    Write a polished, concise, and encouraging academic advisor-style summary that includes:
+    FORMAT your answer like this:
+    Fit Score: [0–100 based on how well this degree matches the student]
 
-    • Why this degree is a strong fit for the student's personality, strengths, and goals  
-    • The specific career paths this degree can lead to based on the students interests and goals
-    • What the learning experience will be like and how it suits the student's profile  
-    • Optional: Similar degrees and majors the student may also wish to explore
+    Why this degree fits you:
+    [2–3 short sentences directly linking the student's personality, strengths, and goals to the degree]
 
-    Tone: Professional, clear, and supportive — like a real UNSW academic advisor.  
-    Avoid: numbered lists, markdown formatting (e.g. **bold**, asterisks), and emojis.  
-    Structure: Use short paragraphs with clear sentences and occasional bullet points to improve readability.
+    Career Directions:
+    • [Career path 1]
+    • [Career path 2]
+    • [Career path 3] (optional)
+
+    You may also like:
+    [1–2 related degrees or majors if relevant, otherwise omit]
+
+    Tone: Friendly, encouraging, and direct. Avoid long paragraphs. 
+    No markdown formatting like **bold**. 
+    Keep it scannable and easy to understand at a glance.
     """
+
 
 
     try:
