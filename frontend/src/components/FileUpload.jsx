@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { FileInput, Label, Spinner } from "flowbite-react"
 import { supabase } from "../supabaseClient"
+import { UserAuth } from "../context/AuthContext";
 
 export function FileUpload({ userId, reportType, bucket, table, column, onUpload }) {
+  const { session } = UserAuth();
   const [loading, setLoading] = useState(false)
   const [url, setUrl] = useState(false)
 
@@ -38,6 +40,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
 
       // 5. notify parent
       onUpload(path)
+
     } catch (err) {
       console.error("Upload failed:", err.message)
       alert("Failed to upload file.")

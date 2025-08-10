@@ -44,7 +44,7 @@ export function MenuBar({ isOpen, handleClose }) {
                 </form>
                 <SidebarItems>
                   <SidebarItemGroup>
-                    <SidebarItem href="/chatbot" icon={TbMessageChatbotFilled}>
+                    <SidebarItem href="/chat" icon={TbMessageChatbotFilled}>
                       Ask Eunice
                     </SidebarItem>
                   </SidebarItemGroup>

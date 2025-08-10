@@ -29,7 +29,7 @@ function DashboardPage() {
           </span>
         </h1>
         <h2 className='mb-10'>
-          <span className="text-xl font-semibold text-gray-700">
+          <span className="text-2xl font-semibold text-gray-700">
             Here's what Eunice's recommendations are for you!
           </span>
         </h2>
