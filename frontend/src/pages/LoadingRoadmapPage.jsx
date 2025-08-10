@@ -1,32 +1,47 @@
 // LoadingRoadmapPage.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
+
 
 function LoadingRoadmapPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
   const [progress, setProgress] = useState(0);
+  const ranRef = useRef(false);
+
+  // Always animate the bar until we finish (set to 100)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setProgress((p) => (p < 95 ? p + 1.2 : p));
+    }, 150);
+    return () => clearInterval(id);
+  }, []);
+
+
 
   useEffect(() => {
-    let intervalId;
+
+
+    const userId = session?.user?.id;
+    const accessToken = session?.access_token;
+    // NOTE: do NOT coalesce to null here; we distinguish undefined vs null
+    const type = state?.type;      // undefined until navigation state arrives
+    const degree = state?.degree ?? null;
+
+    // 1) Prerequisites not ready? stay on loading screen
+    if (!userId || !accessToken) return;
+    if (typeof type === "undefined") return;  // wait for navigation state
+
+    // 2) Prevent React 18 StrictMode double-run in dev
+    if (ranRef.current) return;
+    ranRef.current = true;
 
     const generateAndWait = async () => {
-      const userId = session?.user?.id;
-      if (!userId) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const accessToken = session?.access_token;
-      const type = state?.type || null;
-      const degree = state?.degree || null;
-
       try {
         if (type === "school") {
-          // ---------- SCHOOL ROADMAP FLOW ----------
           if (!degree) throw new Error("Missing degree context for school flow.");
 
           const body = {
@@ -49,18 +64,13 @@ function LoadingRoadmapPage() {
           if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
           navigate("/roadmap/school", {
-            state: {
-              degree,
-              payload: json?.payload || null,
-              roadmap_id: json?.roadmap_id || null,
-            },
+            state: { degree, payload: json?.payload || null, roadmap_id: json?.roadmap_id || null },
             replace: true,
           });
           return;
         }
 
         if (type === "unsw") {
-          // ---------- UNSW ROADMAP FLOW ----------
           if (!degree) throw new Error("Missing degree context for UNSW flow.");
 
           const body = {
@@ -84,57 +94,48 @@ function LoadingRoadmapPage() {
           if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
           navigate("/roadmap/unsw", {
-            state: {
-              degree,
-              payload: json?.payload || null,
-              roadmap_id: json?.roadmap_id || null,
-            },
+            state: { degree, payload: json?.payload || null, roadmap_id: json?.roadmap_id || null },
             replace: true,
           });
           return;
         }
 
-        // ---------- DEFAULT UNIVERSITY FLOW (fallback) ----------
-        await fetch("/api/final-unsw-degrees", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: "include",
-        });
+        // 3) Fallback ONLY when the caller explicitly passed null for type
+        if (type === null) {
+          await fetch("/api/final-unsw-degrees", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            credentials: "include",
+          });
 
-        const retries = 10;
-        for (let i = 0; i < retries; i++) {
-          const { data: check } = await supabase
-            .from("final_degree_recommendations")
-            .select("id")
-            .eq("user_id", userId)
-            .limit(1)
-            .maybeSingle();
+          const retries = 10;
+          for (let i = 0; i < retries; i++) {
+            const { data: check } = await supabase
+              .from("final_degree_recommendations")
+              .select("id")
+              .eq("user_id", userId)
+              .limit(1)
+              .maybeSingle();
 
-          if (check) break;
-          await new Promise((res) => setTimeout(res, 1000));
+            if (check) break;
+            await new Promise((res) => setTimeout(res, 1000));
+          }
+
+          navigate("/roadmap", { replace: true });
         }
-
-        navigate("/roadmap", { replace: true });
       } catch (e) {
         console.error("LoadingRoadmapPage error:", e);
         navigate("/roadmap", { replace: true });
       } finally {
-        clearInterval(intervalId);
         setProgress(100);
       }
     };
 
-    // Smooth progress bar
-    intervalId = setInterval(() => {
-      setProgress((prev) => (prev < 95 ? prev + 1.5 : prev));
-    }, 150);
-
     generateAndWait();
-    return () => clearInterval(intervalId);
-  }, [session, navigate, state]);
+  }, [session, state, navigate, supabase]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
