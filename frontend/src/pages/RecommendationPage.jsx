@@ -7,16 +7,24 @@ import { DashboardNavBar } from "../components/DashboardNavBar";
 import {
   Badge,
   Button,
-  Card,
   ListGroup,
   ListGroupItem,
   Tooltip,
 } from "flowbite-react";
 import { IoChevronBackCircleSharp } from "react-icons/io5";
-import { HiExternalLink, HiMap, HiCheckCircle,HiArrowRight } from "react-icons/hi";
+import { HiExternalLink, HiMap, HiCheckCircle } from "react-icons/hi";
+
+// -------------------- Shared Aura wrapper --------------------
+function AuraCard({ children, className = "" }) {
+  return (
+    <div className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm ${className}`}>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(640px_240px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_240px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
+      <div className="relative p-6 md:p-7">{children}</div>
+    </div>
+  );
+}
 
 // -------------------- UI Subcomponents --------------------
-
 function ErrorBanner({ message }) {
   if (!message) return null;
   return (
@@ -30,44 +38,45 @@ function ErrorBanner({ message }) {
 
 function LoadingSkeleton() {
   return (
-    <Card className="border border-slate-200/60">
+    <AuraCard>
       <div className="animate-pulse space-y-3">
         <div className="h-6 w-2/3 bg-slate-200 rounded" />
         <div className="h-4 w-1/2 bg-slate-200 rounded" />
         <div className="h-4 w-full bg-slate-200 rounded" />
         <div className="h-4 w-5/6 bg-slate-200 rounded" />
       </div>
-    </Card>
+    </AuraCard>
   );
 }
 
 function HeaderCard({ title, subtitle, badges = [], summary }) {
   return (
-    <Card className="border border-slate-200/60 shadow-sm">
+    <AuraCard>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl lg:text-5xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+            Recommendation
+          </div>
+          <h1 className="mt-3 text-3xl lg:text-5xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 py-1">
             {title}
           </h1>
           {subtitle && <p className="mt-2 text-lg text-slate-600">{subtitle}</p>}
         </div>
-      
       </div>
-      
 
       {Array.isArray(badges) && badges.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {badges.map((b, i) => (
             <Badge key={i} color={b.color} size="sm" className="px-2.5 py-1">
               {b.label}
             </Badge>
           ))}
-        
         </div>
       )}
+
       {summary && <p className="mt-4 text-slate-700 leading-relaxed">{summary}</p>}
-      
-    </Card>
+    </AuraCard>
   );
 }
 
@@ -79,24 +88,23 @@ function InsightsCard({ explanation }) {
     .filter(Boolean);
 
   return (
-    <Card className="border-slate-200/60">
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">Our Insights</h3>
       <div className="mt-3 space-y-3">
         {chunks.map((chunk, i) => (
           <div
             key={i}
-            className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3"
+            className="rounded-xl bg-white/80 border border-slate-200 px-4 py-3"
           >
             <p className="text-slate-700">{chunk}</p>
           </div>
         ))}
       </div>
-    </Card>
+    </AuraCard>
   );
 }
 
 function ScoreCard({ scores = {}, userType }) {
-  // choose which keys to show based on userType
   const items = (userType === "university"
     ? [
         { key: "academic_performance", label: "Academic Performance" },
@@ -112,33 +120,22 @@ function ScoreCard({ scores = {}, userType }) {
 
   if (items.length === 0) return null;
 
-  // helper: accept 0–1 or 0–100 and clamp
   const toPercent = (value) => {
     if (value == null) return 0;
-
-    // If it's already a number, clamp to 0–100
-    if (typeof value === "number") {
-      return Math.max(0, Math.min(100, value <= 1 ? value * 100 : value));
-    }
-
-    // If it's a string, extract the first number before '%'
+    if (typeof value === "number") return Math.max(0, Math.min(100, value <= 1 ? value * 100 : value));
     if (typeof value === "string") {
-      const match = value.match(/(\d+(?:\.\d+)?)\s*%/);
-      if (match) {
-        return Math.max(0, Math.min(100, parseFloat(match[1])));
-      }
+      const match = value.match(/(\d+(?:\.\d+)?)\s*%?/);
+      if (match) return Math.max(0, Math.min(100, parseFloat(match[1])));
     }
-
     return 0;
   };
 
-
   return (
-    <Card>
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">Score Breakdown</h3>
       <p className="text-sm text-slate-500">Why this recommendation fits you</p>
 
-      <div className="mt-2 space-y-2">
+      <div className="mt-4 space-y-4">
         {items.map(({ key, label }) => {
           const val = toPercent(scores[key]);
           return (
@@ -159,26 +156,22 @@ function ScoreCard({ scores = {}, userType }) {
           );
         })}
       </div>
-    </Card>
+    </AuraCard>
   );
 }
-
 
 function NextStepsTimeline({ steps = [] }) {
   if (!Array.isArray(steps) || steps.length === 0) return null;
 
   return (
-    <Card>
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">Next Steps</h3>
-
       <ol className="mt-4 relative border-s border-slate-200 pl-6">
         {steps.map((s, i) => (
           <li key={i} className="mb-6 relative">
-            {/* Marker */}
             <span className="absolute -left-3 top-0 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-blue-500 ring-white">
               <HiCheckCircle className="h-3.5 w-3.5 text-white" />
             </span>
-
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-slate-800 ml-4">Step {i + 1}</h4>
             </div>
@@ -186,25 +179,23 @@ function NextStepsTimeline({ steps = [] }) {
           </li>
         ))}
       </ol>
-      
-    </Card>
+    </AuraCard>
   );
 }
 
 function RoadmapCard({ userType, onClick }) {
   const isHS = userType === "high_school";
-
-  const blurb = "Turn this recommendation into a semester roadmap with electives, projects, and internships."
-
-  // Button copy per your request: “Want to start planning? Create … !”
-  const buttonText = "Start generating your road map now!"
+  const blurb = isHS
+    ? "Turn this into an ATAR-ready plan with subjects, milestones, and deadlines."
+    : "Turn this into a semester roadmap with electives, projects, and internships.";
+  const buttonText = "Start generating your roadmap now!";
 
   const chips = isHS
     ? ["Subject plan", "Milestones", "Deadlines", "ATAR focus"]
     : ["Skills plan", "Projects", "Internships", "Milestones"];
 
   return (
-    <Card className="border border-slate-200/60">
+    <AuraCard>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-xl font-semibold text-slate-800">Roadmap</h3>
@@ -223,11 +214,11 @@ function RoadmapCard({ userType, onClick }) {
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-4">
         <Button
           pill
-          onClick={onClick} // e.g., () => navigate('/roadmap')
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-95 border-0 w-full md:w-auto text-left whitespace-normal"
+          onClick={onClick}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-95 border-0 w-full md:w-auto"
         >
           <span className="inline-flex items-center">
             <HiMap className="mr-2 h-5 w-5" />
@@ -235,14 +226,14 @@ function RoadmapCard({ userType, onClick }) {
           </span>
         </Button>
       </div>
-    </Card>
+    </AuraCard>
   );
 }
 
 function ChipGrid({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
-    <Card>
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
       <div className="mt-3 flex flex-wrap gap-2">
         {items.map((t, i) => (
@@ -254,53 +245,47 @@ function ChipGrid({ title, items = [] }) {
           </span>
         ))}
       </div>
-    </Card>
+    </AuraCard>
   );
 }
 
 function SimpleListCard({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
-    <Card>
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
       <ul className="mt-3 space-y-2">
         {items.map((it, i) => (
           <li key={i} className="flex items-start gap-2 text-slate-700">
-            <span className="mt-1 h-2 w-2 rounded-full bg-slate-400" />
+            <span className="mt-2 h-2 w-2 rounded-full bg-slate-500" />
             <span>{it}</span>
           </li>
         ))}
       </ul>
-    </Card>
+    </AuraCard>
   );
 }
 
 function ResourcesCard({ resources = [] }) {
   if (!Array.isArray(resources) || resources.length === 0) return null;
 
-  const copy = (url) => navigator.clipboard?.writeText?.(url);
-
-  // Helper to extract a nice label
   const getDisplayText = (url) => {
     try {
       const { hostname, pathname } = new URL(url);
-      // Show just domain if path is short, else domain + first segment
       if (pathname && pathname !== "/") {
         const firstSegment = pathname.split("/").filter(Boolean)[0];
-        return firstSegment
-          ? `${hostname} / ${firstSegment}`
-          : hostname;
+        return firstSegment ? `${hostname} / ${firstSegment}` : hostname;
       }
       return hostname;
     } catch {
-      return url; // fallback to full url if invalid
+      return url;
     }
   };
 
   return (
-    <Card>
+    <AuraCard>
       <h3 className="text-xl font-semibold text-slate-800">Resources</h3>
-      <div>
+      <div className="mt-2">
         <ListGroup>
           {resources.map((r, i) => (
             <ListGroupItem
@@ -311,7 +296,7 @@ function ResourcesCard({ resources = [] }) {
                 href={r}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-0.5 text-blue-600 hover:underline"
+                className="flex items-center gap-1 text-blue-600 hover:underline"
               >
                 <HiExternalLink className="shrink-0" />
                 <span>{getDisplayText(r)}</span>
@@ -320,13 +305,11 @@ function ResourcesCard({ resources = [] }) {
           ))}
         </ListGroup>
       </div>
-    </Card>
+    </AuraCard>
   );
 }
 
-
 // -------------------- Page Component --------------------
-
 function RecommendationPage() {
   const [isOpen, setIsOpen] = useState(false);
   const openDrawer = () => setIsOpen(true);
@@ -398,21 +381,15 @@ function RecommendationPage() {
         if (dbErr) throw dbErr;
         if (!isMounted) return;
 
-        // Safely set all fields
         setExplanation(data?.explanation || "");
         setSummary(data?.summary || "");
         setNextSteps(Array.isArray(data?.next_steps) ? data.next_steps : []);
         setResources(Array.isArray(data?.resources) ? data.resources : []);
-        setSpecialisations(
-          Array.isArray(data?.specialisations) ? data.specialisations : []
-        );
-        setCareerPaths(
-          Array.isArray(data?.career_pathways) ? data.career_pathways : []
-        );
-        setEntryRequirements(
-          Array.isArray(data?.entry_requirements) ? data.entry_requirements : []
-        );
+        setSpecialisations(Array.isArray(data?.specialisations) ? data.specialisations : []);
+        setCareerPaths(Array.isArray(data?.career_pathways) ? data.career_pathways : []);
+        setEntryRequirements(Array.isArray(data?.entry_requirements) ? data.entry_requirements : []);
         setCompanies(Array.isArray(data?.companies) ? data.companies : []);
+
         const opp = Array.isArray(data?.job_opportunity)
           ? data.job_opportunity
           : data?.job_opportunity
@@ -420,10 +397,7 @@ function RecommendationPage() {
           : [];
         setJobOpp(opp);
 
-        const sb =
-          typeof data?.score_breakdown === "object" && data?.score_breakdown
-            ? data.score_breakdown
-            : {};
+        const sb = typeof data?.score_breakdown === "object" && data?.score_breakdown ? data.score_breakdown : {};
         setScoreBreakdown(sb);
       } catch (e) {
         console.error("Fetch error:", e);
@@ -439,7 +413,6 @@ function RecommendationPage() {
     };
   }, [id, userType]);
 
-  // Fallback title/subtitle if user refreshed and location.state is gone
   const fallbackTitle =
     userType === "high_school" ? "Degree Recommendation" : "Career Recommendation";
 
@@ -476,7 +449,6 @@ function RecommendationPage() {
                 badges={recommendation?.badges || []}
                 summary={summary}
               />
-
               <InsightsCard explanation={explanation} />
               <NextStepsTimeline steps={nextSteps} />
             </>
@@ -492,9 +464,10 @@ function RecommendationPage() {
             </>
           ) : (
             <>
-            <ScoreCard scores={scoreBreakdown} />
-            <RoadmapCard userType={userType} onClick={() => navigate('/roadmap-entryload')} />
+              {/* Pass userType so the correct score labels render */}
+              <ScoreCard scores={scoreBreakdown} userType={userType} />
 
+              <RoadmapCard userType={userType} onClick={() => navigate('/roadmap-entryload')} />
 
               {userType === "high_school" ? (
                 <ChipGrid title="Specialisations" items={specialisations} />
@@ -508,12 +481,8 @@ function RecommendationPage() {
                 <SimpleListCard title="Job Opportunities" items={jobOpp} />
               )}
 
-              {/* Optional: show entry requirements for HS */}
               {userType === "high_school" && entryRequirements?.length > 0 && (
-                <SimpleListCard
-                  title="Entry Requirements"
-                  items={entryRequirements}
-                />
+                <SimpleListCard title="Entry Requirements" items={entryRequirements} />
               )}
 
               <ResourcesCard resources={resources} />
