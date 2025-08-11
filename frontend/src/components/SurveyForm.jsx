@@ -3,6 +3,8 @@ import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
+import SurveyProgressBar from "../components/SurveyProgressBar";
+import { FileUpload } from '../components/FileUpload'
 
 function SurveyForm() {
   const { session } = UserAuth();
@@ -12,6 +14,8 @@ function SurveyForm() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [reportPath, setReportPath] = useState(null)
+  
 
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
@@ -19,6 +23,26 @@ function SurveyForm() {
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
+
+  const analyseFile = async () => {
+    try {
+      const resp = await fetch("http://localhost:8000/reports/analyse", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to analyse file");
+      }
+
+      const data = await resp.json();
+      console.log("analysis:", data);
+    } catch (error) {
+      console.error("Error analysing file:", error);
+    }
+  }
 
   const generateRecommendations = async () => {
     try {
@@ -53,6 +77,7 @@ function SurveyForm() {
             atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
             confidence: formData.confidence || null,
             degree_interest: formData.degree_interest || [],
+            report_path: reportPath || null,
         },
         ]);
 
@@ -65,8 +90,11 @@ function SurveyForm() {
                     data: { student_type: "high_school" }
                 });
                 setMessage("Survey submitted successfully!");
-                await generateRecommendations();
-                setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+                const analysis = await analyseFile();
+                console.log("Report analysis:", analysis);
+                generateRecommendations().catch(console.error);
+                navigate("/quiz/loading");
+                
         }
       }
 
@@ -86,6 +114,7 @@ function SurveyForm() {
           hobbies_other: formData.hobbies_other || null,
           confidence: formData.confidence || null,
           want_help: formData.want_help || null,
+          report_path: reportPath || null,
         },
       ]);
 
@@ -98,14 +127,22 @@ function SurveyForm() {
             data: { student_type: "university" }
           });
           setMessage("Survey submitted successfully!");
-          await generateRecommendations();
-          setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+          const analysis = await analyseFile();
+          console.log("Report analysis:", analysis);
+          generateRecommendations().catch(console.error);
+          navigate("/quiz/loading");
       }
     }
   };
 
   return (
     <div className="w-full max-w-2xl sm:max-w-xl mx-auto p-6 sm:p-4">
+
+   <SurveyProgressBar 
+      step={step} 
+      totalSteps={userType === "high_school" ? 8 : 11} 
+    />
+
     {step === 1 && (
         <div>
             <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Which describes you best?</h2>
@@ -354,13 +391,39 @@ function SurveyForm() {
     </div>
     <div className="flex justify-between">
       <Button onClick={handlePrev}>Back</Button>
-      <Button onClick={handleSubmit} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>
-        {loading ? "Submitting..." : "Submit"}
-      </Button>
+      <Button onClick={handleNext} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>Next</Button>
     </div>
-    {message && <p className="mt-2 text-center">{message}</p>}
   </div>
-)}
+  )}
+
+  { userType == "high_school" && step === 9 && (
+    <div>
+      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Optional: Upload your most recent school report
+      </h2>
+      <FileUpload
+        userId={session?.user?.id}
+        reportType={"highschool_reports"}
+        bucket="reports"
+        table="student_school_data"
+        column="report_path"
+        onUpload={url => setReportPath(url)}
+      />
+      {reportPath && (
+        <a href={reportPath} target="_blank" className="mt-2 block underline">
+          View uploaded document
+        </a>
+      )}
+      <div className="flex justify-between mt-6">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button onClick={handleSubmit}>
+          {loading ? "Submitting..." : "Submit"}
+        </Button>
+      </div>
+      {message && <p className="mt-2 text-center">{message}</p>}
+    </div>
+    
+  )}
 
   {userType === "university" && step === 2 && (
     <div>
@@ -396,7 +459,7 @@ function SurveyForm() {
     <div>
       <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What academic year of your degree are you in?</h2>
       <div className="flex flex-col gap-3 mb-6">
-        {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6 or later", "Other"].map((option) => (
+        {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5 or later"].map((option) => (
           <Button
             key={option}
             color={formData.academic_year === option ? "blue" : "gray"}
@@ -407,17 +470,10 @@ function SurveyForm() {
           </Button>
         ))}
       </div>
-      {formData.academic_year === "Other" && (
-        <input
-          type="text"
-          placeholder="Please specify"
-          className="border p-2 w-full mb-4"
-          onChange={(e) => handleChange("academic_year_other", e.target.value)}
-        />
-      )}
+
       <div className="flex justify-between">
         <Button onClick={handlePrev}>Back</Button>
-        <Button onClick={handleNext} disabled={!formData.academic_year || (formData.academic_year === "Other" && !formData.academic_year_other)}>Next</Button>
+        <Button onClick={handleNext} disabled={!formData.academic_year}>Next</Button>
       </div>
     </div>
   )}
@@ -638,7 +694,9 @@ function SurveyForm() {
 
   {userType === "university" && step === 10 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">How confident are you about your future career path?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        How confident are you about your future career path?
+      </h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Very confident — I know what I want",
@@ -655,7 +713,23 @@ function SurveyForm() {
           </Button>
         ))}
       </div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Would you like help exploring how your courses, majors, and career options connect?</h2>
+      <div className="flex justify-between">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button
+          onClick={handleNext}
+          disabled={!formData.confidence}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  )}
+
+  {userType === "university" && step === 11 && (
+    <div>
+      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Would you like help exploring how your courses, majors, and career options connect?
+      </h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Yes, that would be helpful",
@@ -674,15 +748,47 @@ function SurveyForm() {
       <div className="flex justify-between">
         <Button onClick={handlePrev}>Back</Button>
         <Button
-          onClick={handleSubmit}
-          disabled={!formData.confidence || !formData.want_help}
+          onClick={handleNext}
+          disabled={!formData.want_help}
         >
-          {loading ? "Submitting..." : "Submit"}
+          Next
         </Button>
       </div>
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
   )}
+
+  { userType == "university" && step === 12 && (
+    <div>
+      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+        Optional: Upload your most recent academic transcript
+      </h2>
+      <FileUpload
+        userId={session?.user?.id}
+        reportType = {"uni_transcripts"}
+        bucket="reports"
+        table="student_uni_data"
+        column="report_path"
+        onUpload={url => setReportPath(url)}
+
+      />
+      {reportPath && (
+        <a href={reportPath} target="_blank" className="mt-2 block underline">
+          View uploaded document
+        </a>
+      )}
+      <div className="flex justify-between mt-6">
+        <Button onClick={handlePrev}>Back</Button>
+        <Button onClick={handleSubmit}>
+          {loading ? "Submitting..." : "Submit"}
+        </Button>
+      </div>
+      {message && <p className="mt-2 text-center">{message}</p>}
+    </div>
+    
+  )}
+
+
     </div>
   );
 }

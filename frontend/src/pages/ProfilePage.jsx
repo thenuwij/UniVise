@@ -1,7 +1,5 @@
 import { FileUpload } from '../components/FileUpload'
-
-// src/pages/ProfilePage.jsx
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { MenuBar } from "../components/MenuBar";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { supabase } from "../supabaseClient";
@@ -12,7 +10,6 @@ import {
   Label,
   TextInput,
   Avatar,
-  Tooltip,
   Badge,
   Select
 } from "flowbite-react";

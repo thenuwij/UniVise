@@ -1,0 +1,28 @@
+{
+  "Law & Justice": [
+    { "program_name": "Actuarial Studies/Law", "uac_code": "426080" },
+    { "program_name": "Advanced Mathematics (Hons)/Law", "uac_code": "426000" },
+    { "program_name": "Advanced Science (Hons)/Law", "uac_code": "426000" },
+    { "program_name": "Arts/Law", "uac_code": "426000" },
+    { "program_name": "City Planning (Hons)/Law", "uac_code": "426000" },
+    { "program_name": "Commerce/Law", "uac_code": "426000" },
+    { "program_name": "Computer Science/Law", "uac_code": "426000" },
+    { "program_name": "Criminology and Criminal Justice", "uac_code": "422350" },
+    { "program_name": "Criminology and Criminal Justice/Law", "uac_code": "426000" },
+    { "program_name": "Criminology and Criminal Justice/Psychology (Hons)", "uac_code": "422360" },
+    { "program_name": "Criminology and Criminal Justice/Psychological Science", "uac_code": "422370" },
+    { "program_name": "Data Science and Decisions/Law", "uac_code": "426000" },
+    { "program_name": "Economics/Law", "uac_code": "426000" },
+    { "program_name": "Engineering (Hons)/Law", "uac_code": "426000" },
+    { "program_name": "Fine Arts/Law", "uac_code": "426000" },
+    { "program_name": "Media/Law", "uac_code": "426000" },
+    { "program_name": "Medicinal Chemistry (Hons)/Law", "uac_code": "426000" },
+    { "program_name": "Politics, Philosophy and Economics/Law", "uac_code": "426000" },
+    { "program_name": "Psychological Science/Law", "uac_code": "426000" },
+    { "program_name": "Psychology (Hons)/Law", "uac_code": "426060" },
+    { "program_name": "Science/Law", "uac_code": "426000" },
+    { "program_name": "Social Sciences/Law", "uac_code": "426000" },
+    { "program_name": "Social Work (Hons)/Criminology and Criminal Justice", "uac_code": "422403" },
+    { "program_name": "Social Work (Hons)/Law", "uac_code": "426070" }
+  ]
+}

@@ -1,5 +1,4 @@
 import {
-  Button,
   Drawer,
   DrawerHeader,
   DrawerItems,
@@ -13,23 +12,22 @@ import {
 import { useState } from "react";
 
 import {
-  HiChartPie,
   HiClipboard,
   HiCollection,
-  HiInformationCircle,
-  HiLogin,
-  HiPencil,
   HiSearch,
-  HiShoppingBag,
   HiUsers,
+  HiChevronDown,
+  HiChevronRight,
+  HiBriefcase,
 } from "react-icons/hi";
 import { TbMessageChatbotFilled } from "react-icons/tb";
 import { MdDashboard } from "react-icons/md";
 import { FaFingerprint } from "react-icons/fa";
 import { RiGuideFill } from "react-icons/ri";
 
-
 export function MenuBar({ isOpen, handleClose }) {
+  const [showPathways, setShowPathways] = useState(false);
+
   return (
     <>
       <Drawer open={isOpen} onClose={handleClose}>
@@ -46,7 +44,7 @@ export function MenuBar({ isOpen, handleClose }) {
                 </form>
                 <SidebarItems>
                   <SidebarItemGroup>
-                    <SidebarItem href="/chatbot" icon={TbMessageChatbotFilled}>
+                    <SidebarItem href="/chat" icon={TbMessageChatbotFilled}>
                       Ask Eunice
                     </SidebarItem>
                   </SidebarItemGroup>
@@ -57,8 +55,11 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
-                    <SidebarItem icon={RiGuideFill}>
+                    <SidebarItem href="/roadmap-entryload" icon={RiGuideFill}>
                       My Roadmap
+                    </SidebarItem>
+                   <SidebarItem href="/planner" icon={HiBriefcase}>
+                      My Planner
                     </SidebarItem>
                   </SidebarItemGroup>
                 </SidebarItems>
