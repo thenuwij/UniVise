@@ -45,7 +45,7 @@ function DashboardPage() {
             Dashboard
           </div>
 
-          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-700">
+          <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold text-gray-700">
             {greeting} {displayName}!
           </h1>
 
@@ -54,7 +54,7 @@ function DashboardPage() {
           </p>
         </div>
        {/* Promo row — right aligned, two cards side-by-side on large screens */}
-        <div className="mt-7 flex">
+        <div className="mt-7 flex gap-4">
           <EuniceChatCard userType={session?.user?.user_metadata?.student_type} />
           <MyPlannerCard />
         </div>
