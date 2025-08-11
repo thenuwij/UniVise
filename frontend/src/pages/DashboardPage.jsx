@@ -7,6 +7,7 @@ import { DashboardNavBar } from '../components/DashboardNavBar';
 import { MenuBar } from '../components/MenuBar';
 import { RecommendationTable } from '../components/RecommendationTable';
 import MyPlannerCard from '../components/MyPlannerCard.jsx';
+import EuniceChatCard from '../components/EuniceChatCard.jsx';
 
 
 function DashboardPage() {
@@ -44,7 +45,7 @@ function DashboardPage() {
             Dashboard
           </div>
 
-          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 leading-tight">
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-700">
             {greeting} {displayName}!
           </h1>
 
@@ -52,21 +53,21 @@ function DashboardPage() {
             {today} • Your recommendations, Planner, and Roadmap in one place.
           </p>
         </div>
+       {/* Promo row — right aligned, two cards side-by-side on large screens */}
+        <div className="mt-7 flex">
+          <EuniceChatCard userType={session?.user?.user_metadata?.student_type} />
+          <MyPlannerCard />
+        </div>
 
+        
         {/* Recommendations */}
-        <div className="mt-8 mb-2">
-          <span className="text-lg font-semibold text-gray-800">
-            Here's what Eunice's recommendations are for you
+        <div className="mt-8 mb-4">
+          <span className="text-2xl font-semibold text-gray-800">
+            Here's what Eunice's recommendations are for you!
           </span>
         </div>
         <RecommendationTable />
 
-        {/* Promo card — right aligned */}
-        <div className="mt-10 flex">
-          <div className="ml-auto">
-            <MyPlannerCard />
-          </div>
-        </div>
       </div>
     </div>
   );
