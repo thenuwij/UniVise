@@ -52,7 +52,7 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem href="/dashboard" icon={MdDashboard}>
                       Dashboard
                     </SidebarItem>
-                    <SidebarItem icon={FaFingerprint}>
+                    <SidebarItem href="/quiz/result" icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
                     <SidebarItem href="/roadmap-entryload" icon={RiGuideFill}>
