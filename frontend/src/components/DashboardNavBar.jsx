@@ -48,11 +48,11 @@ export function DashboardNavBar({ onMenuClick }) {
   }, []);
 
   return (
-    <Navbar fluid className="bg-white dark: bg-gradient-to-l from-sky-500 to-indigo-600 h-20">
-      <LuMenu className="w-10 h-10 ml-4 mb-4 text-white" onClick={onMenuClick}/>
+    <Navbar fluid className="bg-white dark: bg-gradient-to-l from-sky-500 to-indigo-600 h-16">
+      <LuMenu className="w-7 h-7 ml-4 mb-4 text-white" onClick={onMenuClick}/>
       <NavbarBrand>
-        <img src={logo} className="h-18 w-18 mt-1"/>
-        <span className="self-center whitespace-nowrap text-4xl text-white font-semibold mb-2">Univise</span>
+        <img src={logo} className="h-14 w-14 mt-1"/>
+        <span className="self-center whitespace-nowrap text-3xl text-white font-semibold mb-2">Univise</span>
       </NavbarBrand>
       <Dropdown
         arrowIcon={false}
