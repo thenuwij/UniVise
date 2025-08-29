@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
+import { TermsText } from "./TermsText";
 
 
 function RegisterForm() {
@@ -18,11 +19,12 @@ function RegisterForm() {
     const [agreed, setAgreed] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState('');
-    const navigate = useNavigate()
-
-    const { session, registerNewUser } = UserAuth();
-    console.log(session);
+    const [openModal, setOpenModal] = useState(false)
     
+    const navigate = useNavigate()
+    const { session, registerNewUser } = UserAuth();
+    
+
     const handleRegister = async (e) => {
       e.preventDefault();
 
@@ -159,10 +161,20 @@ function RegisterForm() {
         />
         <Label htmlFor="agree" className="flex">
           I agree with the&nbsp;
-          <Link href="#" className="text-blue-400 hover:underline dark:text-cyan-500">
+          <button
+            type="button"
+            className="text-blue-500 hover:underline"
+            onClick={() => setOpenModal(true)}
+          >
             terms and conditions
-          </Link>
+          </button>
         </Label>
+        <Modal show={openModal} onClose={() => setOpenModal(false)}>
+          <ModalHeader>Terms & Conditions</ModalHeader>
+            <ModalBody>
+              <TermsText/>
+          </ModalBody>
+        </Modal>
       </div>
       <div className="flex justify-center mb-7">
         <Link>
