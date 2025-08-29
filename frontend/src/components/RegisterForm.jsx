@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
+import { TermsText } from "./TermsText";
 
 
 function RegisterForm() {
@@ -18,11 +19,12 @@ function RegisterForm() {
     const [agreed, setAgreed] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState('');
-    const navigate = useNavigate()
-
-    const { session, registerNewUser } = UserAuth();
-    console.log(session);
+    const [openModal, setOpenModal] = useState(false)
     
+    const navigate = useNavigate()
+    const { session, registerNewUser } = UserAuth();
+    
+
     const handleRegister = async (e) => {
       e.preventDefault();
 
@@ -53,7 +55,7 @@ function RegisterForm() {
     }
 
     return (
-    <form className="flex w-100 flex-col gap-4">
+    <form className="flex w-100 flex-col gap-3">
       <div>
         <div className="mb-2 block">
           <Label htmlFor='firstName'>First Name</Label>
@@ -151,7 +153,7 @@ function RegisterForm() {
         shadow 
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mt-4">
         <Checkbox 
         id="agree"
         checked={agreed}
@@ -159,14 +161,24 @@ function RegisterForm() {
         />
         <Label htmlFor="agree" className="flex">
           I agree with the&nbsp;
-          <Link href="#" className="text-blue-400 hover:underline dark:text-cyan-500">
+          <button
+            type="button"
+            className="text-blue-500 hover:underline"
+            onClick={() => setOpenModal(true)}
+          >
             terms and conditions
-          </Link>
+          </button>
         </Label>
+        <Modal show={openModal} onClose={() => setOpenModal(false)}>
+          <ModalHeader>Terms & Conditions</ModalHeader>
+            <ModalBody>
+              <TermsText/>
+          </ModalBody>
+        </Modal>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-7">
         <Link>
-          <Button onClick={handleRegister} size="lg" pill type="submit">Register new account</Button>
+          <Button onClick={handleRegister} size="xl" pill type="submit">Register new account</Button>
         </Link>  
       </div>
     </form>
