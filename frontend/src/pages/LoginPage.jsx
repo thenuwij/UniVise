@@ -1,7 +1,7 @@
 import { Button, Checkbox, Label, TextInput } from "flowbite-react";
-import { LoginForm } from "../components/LoginForm";
 import { Header } from "../components/Header";
 import { Link } from "react-router-dom";
+import { LoginForm } from "../components/LoginForm";
 
 function LoginPage() {
   return (

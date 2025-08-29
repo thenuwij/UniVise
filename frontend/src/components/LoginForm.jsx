@@ -10,6 +10,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState('false');
   const navigate = useNavigate();
+  const [remember, setRemember] = useState(false)
 
   const { signInUser } = UserAuth();
 
@@ -17,7 +18,7 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await signInUser(email,password);
+      const result = await signInUser(email,password, remember);
       if (result.success) {
         console.log("Succusefuly logged in", result)
         navigate("/dashboard")
@@ -61,10 +62,6 @@ export function LoginForm() {
             placeholder="Password"
             sizing="md"
           />
-        </div>
-        <div className="flex items-center gap-2 max-w-sm mb-2">
-          <Checkbox id="remember" />
-          <Label htmlFor="remember">Remember me</Label>
         </div>
         <div className="flex flex-col items-center gap-3">
           <Button onClick={handleLogin} size="lg" pill  className="w-full" type="submit">Sign In</Button>

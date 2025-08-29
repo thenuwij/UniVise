@@ -53,7 +53,7 @@ function RegisterForm() {
     }
 
     return (
-    <form className="flex w-100 flex-col gap-4">
+    <form className="flex w-100 flex-col gap-3">
       <div>
         <div className="mb-2 block">
           <Label htmlFor='firstName'>First Name</Label>
@@ -151,7 +151,7 @@ function RegisterForm() {
         shadow 
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mt-4">
         <Checkbox 
         id="agree"
         checked={agreed}
@@ -164,9 +164,9 @@ function RegisterForm() {
           </Link>
         </Label>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-7">
         <Link>
-          <Button onClick={handleRegister} size="lg" pill type="submit">Register new account</Button>
+          <Button onClick={handleRegister} size="xl" pill type="submit">Register new account</Button>
         </Link>  
       </div>
     </form>
