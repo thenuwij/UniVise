@@ -19,15 +19,15 @@ import { HiOutlineIdentification, HiOutlineDocumentText } from "react-icons/hi2"
 // ---------- UI helpers ----------
 function AuraPanel({ title, icon: Icon, children, hint }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm">
+    <div className="card-glass-spotlight">
       {/* soft spotlight aura */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(640px_240px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_240px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
+      <div />
       <div className="relative p-6 md:p-7">
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-6 w-6 text-slate-700" />}
-          <h2 className="text-2xl font-semibold text-slate-900">{title}</h2>
+          {Icon && <Icon className="h-6 w-6 " />}
+          <h2 className="text-2xl font-semibold ">{title}</h2>
         </div>
-        {hint && <p className="mt-1 text-sm text-slate-500">{hint}</p>}
+        {hint && <p className="mt-1 text-sm">{hint}</p>}
         <div className="mt-4">{children}</div>
       </div>
     </div>
@@ -37,21 +37,21 @@ function AuraPanel({ title, icon: Icon, children, hint }) {
 function KeyValue({ label, value }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-slate-800">{value || "Not specified"}</p>
+      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">{label}</p>
+      <p className="mt-1">{value || "Not specified"}</p>
     </div>
   );
 }
 
 function LoadingCard() {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl shadow-sm animate-pulse">
-      <div className="h-6 w-40 bg-slate-200 rounded" />
+    <div className="rounded-3xl border p-6 backdrop-blur-xl shadow-sm animate-pulse">
+      <div className="h-6 w-40 rounded" />
       <div className="mt-4 grid grid-cols-2 gap-4">
-        <div className="h-10 bg-slate-200 rounded" />
-        <div className="h-10 bg-slate-200 rounded" />
-        <div className="h-10 bg-slate-200 rounded" />
-        <div className="h-10 bg-slate-200 rounded" />
+        <div className="h-10  rounded" />
+        <div className="h-10  rounded" />
+        <div className="h-10 rounded" />
+        <div className="h-10 rounded" />
       </div>
     </div>
   );
@@ -94,7 +94,7 @@ function TagInput({ values, setValues, placeholder }) {
         {values.map((tag, i) => (
           <span
             key={tag + i}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-sm text-slate-700"
+            className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm "
           >
             {tag}
             <button
@@ -285,7 +285,7 @@ function ProfilePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br ">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
@@ -293,12 +293,12 @@ function ProfilePage() {
       <header className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-600">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium ">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500 text-slate-800 dark:text-slate-300" />
               Profile
             </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold text-slate-800">My Account</h1>
-            <p className="mt-1 text-slate-600">
+            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">My Account</h1>
+            <p className="mt-1">
               View and update your details. Changes sync to your recommendations.
             </p>
           </div>
@@ -387,12 +387,12 @@ function ProfilePage() {
                       id="studentType"
                       value={isHS ? "High School" : "University"}
                       disabled
-                      className="w-full bg-slate-50 text-slate-600"
+                      className="w-full"
                     >
                       <option>High School</option>
                       <option>University</option>
                     </Select>
-                    <p className="mt-1 text-xs text-slate-500">This cannot be changed.</p>
+                    <p className="mt-1 text-xs">This cannot be changed.</p>
                   </div>
                   {/* Year */}
                   <div>
@@ -529,7 +529,7 @@ function ProfilePage() {
               <AuraPanel title="Profile Picture" icon={HiOutlineIdentification}>
                 <div className="flex items-center gap-4">
                   <Avatar rounded size="xl" className="py-2" />
-                  <div className="text-sm text-slate-500">Add a picture so Eunice recognises you faster.</div>
+                  <div className="text-sm">Add a picture so Eunice recognises you faster.</div>
                 </div>
               </AuraPanel>
 
@@ -708,7 +708,7 @@ function ProfilePage() {
               <AuraPanel title="Profile Picture" icon={HiOutlineIdentification}>
                 <div className="flex items-center gap-3">
                   <Avatar rounded size="xl" className="py-1" />
-                  <div className="text-sm text-slate-500">Add a picture so Eunice recognises you faster.</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-300">Add a picture so Eunice recognises you faster.</div>
                 </div>
               </AuraPanel>
 

@@ -24,9 +24,11 @@ import { TbMessageChatbotFilled } from "react-icons/tb";
 import { MdDashboard } from "react-icons/md";
 import { FaFingerprint } from "react-icons/fa";
 import { RiGuideFill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 
 export function MenuBar({ isOpen, handleClose }) {
   const [showPathways, setShowPathways] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -44,21 +46,21 @@ export function MenuBar({ isOpen, handleClose }) {
                 </form>
                 <SidebarItems>
                   <SidebarItemGroup>
-                    <SidebarItem href="/chat" icon={TbMessageChatbotFilled}>
+                    <SidebarItem onClick={() => navigate("/chat")} icon={TbMessageChatbotFilled}>
                       Ask Eunice
                     </SidebarItem>
                   </SidebarItemGroup>
                   <SidebarItemGroup>
-                    <SidebarItem href="/dashboard" icon={MdDashboard}>
+                    <SidebarItem onClick={() => navigate("/dashboard")} icon={MdDashboard}>
                       Dashboard
                     </SidebarItem>
-                    <SidebarItem href="/quiz/result" icon={FaFingerprint}>
+                    <SidebarItem onClick={() => navigate("/quiz/result")} icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
-                    <SidebarItem href="/roadmap-entryload" icon={RiGuideFill}>
+                    <SidebarItem onClick={() => navigate("/roadmap-entryload")} icon={RiGuideFill}>
                       My Roadmap
                     </SidebarItem>
-                   <SidebarItem href="/planner" icon={HiBriefcase}>
+                   <SidebarItem onClick={() => navigate("/planner")} icon={HiBriefcase}>
                       My Planner
                     </SidebarItem>
                   </SidebarItemGroup>

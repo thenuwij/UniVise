@@ -41,7 +41,7 @@ function ProgressBar({ value }) {
 // --------------- Aura Shell ---------------
 function AuraBoardShell({ label, children }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm">
+    <div className="card-glass">
       {/* soft spotlight aura */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-5 md:p-7">
@@ -50,10 +50,10 @@ function AuraBoardShell({ label, children }) {
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
             {label}
           </div>
-          <span className="text-xs text-slate-500">Click a card to view details</span>
+          <span className="text-xs text-slate-500 dark:text-slate-300">Click a card to view details</span>
         </div>
         {children}
-        <div className="mt-4 text-[11px] text-slate-500">
+        <div className="mt-4 text-[11px] text-slate-500 dark:text-slate-300 italic">
           Tip: Sorted by suitability (highest first).
         </div>
       </div>
@@ -66,34 +66,34 @@ function HSItemCard({ rec, onOpen }) {
   return (
     <div
       onClick={onOpen}
-      className="group relative rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm transition hover:shadow-md cursor-pointer"
+      className=" card-glass-spotlight rounded-xl p-5 shadow-sm transition hover:shadow-lg cursor-pointer hover:scale-101"
     >
       {/* left accent based on suitability */}
       <div
-        className="absolute left-0 top-0 h-full w-1.5 rounded-l-2xl bg-gradient-to-b from-purple-600 to-blue-500 opacity-80"
+        className="absolute left-0 top-0 h-full w-3 rounded-l-2xl bg-gradient-to-b from-purple-600 to-blue-500 opacity-80"
         aria-hidden
       />
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
         <div className="md:col-span-2">
-          <div className="flex items-center gap-2 text-slate-900 font-semibold text-lg">
-            <HiAcademicCap className="text-slate-700" />
+          <div className="flex items-center gap-2 font-semibold text-lg">
+            <HiAcademicCap className="" />
             <span>{rec.degree_name}</span>
           </div>
-          <div className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+          <div className="mt-1 flex items-center gap-2 text-sm">
             <HiOfficeBuilding />
             <span>{rec.university_name}</span>
           </div>
         </div>
 
         <div className="flex flex-col justify-center">
-          <span className="text-sm text-slate-500 mb-1">ATAR Requirement</span>
+          <span className="text-sm  mb-1">ATAR Requirement</span>
           <Badge color="info" className="w-fit ml-10" size="sm">{rec.atar_requirement}</Badge>
         </div>
 
         <div className="flex flex-col justify-center">
-          <div className="flex items-center justify-between text-sm text-slate-500">
+          <div className="flex items-center justify-between text-sm ">
             <span>Suitability</span>
-            <span className="font-medium text-slate-700">{toPercent(rec.suitability_score)}%</span>
+            <span className="font-medium">{toPercent(rec.suitability_score)}%</span>
           </div>
           <div className="mt-1">
             <ProgressBar value={rec.suitability_score} />
@@ -101,8 +101,8 @@ function HSItemCard({ rec, onOpen }) {
         </div>
 
         <div className="flex flex-col justify-center">
-          <span className="text-xm text-slate-500 mb-1">Avg. Years</span>
-          <div className="inline-flex items-center gap-1 text-slate-800">
+          <span className="text-xm mb-1">Avg. Years</span>
+          <div className="inline-flex items-center gap-1">
             <HiClock />
             <span className="font-medium">{rec.est_completion_years}</span>
           </div>
@@ -126,30 +126,30 @@ function UniItemCard({ rec, onOpen }) {
   return (
     <div
       onClick={onOpen}
-      className="group relative rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm transition hover:shadow-md cursor-pointer"
+      className=" card-glass-spotlight rounded-xl p-5 shadow-sm transition hover:shadow-lg cursor-pointer hover:scale-101"
     >
       <div
-        className="absolute left-0 top-0 h-full w-1.5 rounded-l-2xl bg-gradient-to-b from-purple-600 to-blue-500 opacity-80"
+        className="absolute left-0 top-0 h-full w-3 rounded-l-2xl bg-gradient-to-b from-purple-600 to-blue-500 opacity-80"
         aria-hidden
       />
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
         <div className="md:col-span-2">
-          <div className="flex items-center gap-2 text-slate-900 font-semibold text-lg">
-            <HiTrendingUp className="text-slate-700" />
+          <div className="flex items-center gap-2 font-semibold text-lg">
+            <HiTrendingUp/>
             <span>{rec.career_title}</span>
           </div>
-          <div className="mt-1 text-sm text-slate-600">{rec.industry}</div>
+          <div className="mt-1 text-sm">{rec.industry}</div>
         </div>
 
         <div className="flex flex-col justify-center">
-          <span className="text-xs text-slate-500 mb-1">Education Required</span>
+          <span className="text-xs mb-1">Education Required</span>
           <Badge color="info" className="w-fit">{rec.education_required}</Badge>
         </div>
 
         <div className="flex flex-col justify-center">
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center justify-between text-xs">
             <span>Suitability</span>
-            <span className="font-medium text-slate-700">{toPercent(rec.suitability_score)}%</span>
+            <span className="font-medium">{toPercent(rec.suitability_score)}%</span>
           </div>
           <div className="mt-1">
             <ProgressBar value={rec.suitability_score} />
@@ -157,7 +157,7 @@ function UniItemCard({ rec, onOpen }) {
         </div>
 
         <div className="flex flex-col justify-center">
-          <span className="text-xs text-slate-500 mb-1">Average Salary</span>
+          <span className="text-xs  mb-1">Average Salary</span>
           <div className="inline-flex items-center gap-1 text-slate-800">
             <HiCurrencyDollar />
             <span className="font-medium">{rec.avg_salary_range}</span>

@@ -1,4 +1,5 @@
 // src/components/MyPlannerCard.jsx
+import { Button } from "flowbite-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,7 +7,7 @@ export default function MyPlannerCard() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm max-w-4xl mx-auto">
+    <div className="card-glass-spotlight">
       {/* soft spotlight aura */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_220px_at_85%_-20%,rgba(56,189,248,0.18),transparent),radial-gradient(520px_240px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
 
@@ -19,11 +20,11 @@ export default function MyPlannerCard() {
               Planner & Roadmap
             </div>
 
-            <h3 className="mt-3 text-2xl md:text-3xl font-semibold text-slate-900 tracking-tight">
+            <h3 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
               Map your degree. Plan with confidence.
             </h3>
 
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2">
               Build your study plan in <span className="font-medium">My Planner</span> (powered by
               MindMesh for prerequisite clarity), then explore paths on the{" "}
               <span className="font-medium">Roadmap</span> (with a Switch Major Simulator to test
@@ -32,10 +33,9 @@ export default function MyPlannerCard() {
 
             {/* CTAs (only two) */}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
+              <Button
                 onClick={() => navigate("/roadmap")}
-                className="group inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-black transition"
-                aria-label="Open Roadmap"
+                pill
               >
                 Open Roadmap
                 <svg
@@ -47,12 +47,11 @@ export default function MyPlannerCard() {
                 >
                   <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </button>
+              </Button>
 
-              <button
+              <Button
                 onClick={() => navigate("/planner")}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-50 transition"
-                aria-label="Open My Planner"
+                pill
               >
                 Open My Planner
                 <svg
@@ -64,7 +63,7 @@ export default function MyPlannerCard() {
                 >
                   <path d="M4 6h6a3 3 0 0 1 0 6H8a4 4 0 0 0 0 8h8" />
                 </svg>
-              </button>
+              </Button>
             </div>
           </div>
 
