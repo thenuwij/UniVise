@@ -27,7 +27,7 @@ export default function ChatbotPage() {
     <div className="flex flex-1w-full overflow-hidden">
       {/* Sidebar takes 1/3 */}
       <div className="w-1/5 max-w-140 overflow-auto">
-        <ChatSidebar />
+        <ChatSidebar/>
       </div>
 
       {/* Chat window takes remaining 2/3 */}

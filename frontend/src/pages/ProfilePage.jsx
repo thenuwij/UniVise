@@ -293,7 +293,7 @@ function ProfilePage() {
       <header className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium ">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium ">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500 text-slate-800 dark:text-slate-300" />
               Profile
             </div>
