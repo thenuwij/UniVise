@@ -94,16 +94,16 @@ const PersonalityQuizForm = () => {
 
   return (
     <div className="w-full max-w-6xl px-6 sm:px-10">
-      <div ref={quizRef} className="bg-white rounded-2xl shadow-2xl p-12 sm:p-20 transition-all duration-300">
+      <div ref={quizRef} className="card-glass-spotlight">
         <div className="mb-10">
           <ProgressBar progress={progress} />
         </div>
 
       <div className="text-center mb-10">
-        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+        <h2 className="text-xl sm:text-2xl font-semibold ">
           Please rate the following statements
         </h2>
-        <p className="text-sm text-gray-500">Your honest answers help us personalize your UniVise journey</p>
+        <p className="text-sm text-gray-500 dark:text-gray-300">Your honest answers help us personalize your UniVise journey</p>
       </div>
 
         <div className="space-y-12">
@@ -112,7 +112,7 @@ const PersonalityQuizForm = () => {
             return (
               <div key={question.id}>
                 <div className="text-center mb-6">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-700 max-w-4xl mx-auto">
+                  <h3 className="text-lg sm:text-xl font-semibold max-w-4xl mx-auto">
                     {question.question}
                   </h3>
                 </div>
@@ -132,7 +132,7 @@ const PersonalityQuizForm = () => {
                   return (
                     <div key={score} className="flex flex-col items-center space-y-2">
                       {label && (
-                        <span className="text-xs sm:text-sm text-gray-400 text-center whitespace-nowrap w-28">
+                        <span className="text-xs sm:text-sm text-center whitespace-nowrap w-28">
                           {label}
                         </span>
                       )}
@@ -160,7 +160,7 @@ const PersonalityQuizForm = () => {
           <button
             onClick={handlePrev}
             disabled={currentGroupIndex === 0}
-            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg shadow-sm disabled:opacity-40"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-200 font-medium rounded-lg shadow-sm disabled:opacity-40"
           >
             Back
           </button>
