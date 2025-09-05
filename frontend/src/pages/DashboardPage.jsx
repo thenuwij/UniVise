@@ -33,23 +33,23 @@ function DashboardPage() {
   }).format(new Date());
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       <div className="flex flex-col justify-center h-full mx-20">
         {/* Eyebrow + greeting */}
         <div className="mt-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-600">
+          <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
             Dashboard
           </div>
 
-          <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold text-gray-700">
+          <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
             {greeting} {displayName}!
           </h1>
 
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2">
             {today} • Your recommendations, Planner, and Roadmap in one place.
           </p>
         </div>
@@ -62,7 +62,7 @@ function DashboardPage() {
         
         {/* Recommendations */}
         <div className="mt-8 mb-4">
-          <span className="text-2xl font-semibold text-gray-800">
+          <span className="text-2xl font-semibold">
             Here's what Eunice's recommendations are for you!
           </span>
         </div>

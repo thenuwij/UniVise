@@ -17,7 +17,7 @@ import { HiExternalLink, HiMap, HiCheckCircle } from "react-icons/hi";
 // -------------------- Shared Aura wrapper --------------------
 function AuraCard({ children, className = "" }) {
   return (
-    <div className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm ${className}`}>
+    <div className={`card-glass-spotlight ${className}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(640px_240px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_240px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-6 md:p-7">{children}</div>
     </div>
@@ -61,7 +61,7 @@ function HeaderCard({ title, subtitle, badges = [], summary }) {
           <h1 className="mt-3 text-3xl lg:text-5xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 py-1">
             {title}
           </h1>
-          {subtitle && <p className="mt-2 text-lg text-slate-600">{subtitle}</p>}
+          {subtitle && <p className="mt-2 text-lg">{subtitle}</p>}
         </div>
       </div>
 
@@ -75,7 +75,7 @@ function HeaderCard({ title, subtitle, badges = [], summary }) {
         </div>
       )}
 
-      {summary && <p className="mt-4 text-slate-700 leading-relaxed">{summary}</p>}
+      {summary && <p className="mt-4">{summary}</p>}
     </AuraCard>
   );
 }
@@ -89,14 +89,14 @@ function InsightsCard({ explanation }) {
 
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">Our Insights</h3>
+      <h3 className="text-xl font-semibold ">Our Insights</h3>
       <div className="mt-3 space-y-3">
         {chunks.map((chunk, i) => (
           <div
             key={i}
-            className="rounded-xl bg-white/80 border border-slate-200 px-4 py-3"
+            className="rounded-xl px-4 py-3"
           >
-            <p className="text-slate-700">{chunk}</p>
+            <p className="">{chunk}</p>
           </div>
         ))}
       </div>
@@ -132,8 +132,8 @@ function ScoreCard({ scores = {}, userType }) {
 
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">Score Breakdown</h3>
-      <p className="text-sm text-slate-500">Why this recommendation fits you</p>
+      <h3 className="text-xl font-semibold">Score Breakdown</h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400">Why this recommendation fits you</p>
 
       <div className="mt-4 space-y-4">
         {items.map(({ key, label }) => {
@@ -141,8 +141,8 @@ function ScoreCard({ scores = {}, userType }) {
           return (
             <div key={key}>
               <div className="flex items-center justify-between">
-                <span className="text-slate-700">{label}</span>
-                <span className="text-slate-500 text-sm">{val}%</span>
+                <span >{label}</span>
+                <span className="text-sm">{val}%</span>
               </div>
               <Tooltip content={`${label}: ${val}%`} placement="bottom">
                 <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
@@ -165,7 +165,7 @@ function NextStepsTimeline({ steps = [] }) {
 
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">Next Steps</h3>
+      <h3 className="text-xl font-semibold">Next Steps</h3>
       <ol className="mt-4 relative border-s border-slate-200 pl-6">
         {steps.map((s, i) => (
           <li key={i} className="mb-6 relative">
@@ -173,9 +173,9 @@ function NextStepsTimeline({ steps = [] }) {
               <HiCheckCircle className="h-3.5 w-3.5 text-white" />
             </span>
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-slate-800 ml-4">Step {i + 1}</h4>
+              <h4 className="font-medium  ml-4">Step {i + 1}</h4>
             </div>
-            <p className="mt-1 text-slate-700">{s}</p>
+            <p className="mt-1">{s}</p>
           </li>
         ))}
       </ol>
@@ -198,8 +198,8 @@ function RoadmapCard({ userType, onClick }) {
     <AuraCard>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-xl font-semibold text-slate-800">Roadmap</h3>
-          <p className="mt-1 text-slate-600 text-sm">{blurb}</p>
+          <h3 className="text-xl font-semibold ">Roadmap</h3>
+          <p className="mt-1 text-slate-600 dark:text-slate-300 text-sm">{blurb}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             {chips.map((c, i) => (
@@ -218,7 +218,7 @@ function RoadmapCard({ userType, onClick }) {
         <Button
           pill
           onClick={onClick}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-95 border-0 w-full md:w-auto"
+          className="hover:opacity-95 border-0 w-full md:w-auto"
         >
           <span className="inline-flex items-center">
             <HiMap className="mr-2 h-5 w-5" />
@@ -234,7 +234,7 @@ function ChipGrid({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
+      <h3 className="text-xl font-semibold">{title}</h3>
       <div className="mt-3 flex flex-wrap gap-2">
         {items.map((t, i) => (
           <span
@@ -253,11 +253,11 @@ function SimpleListCard({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
+      <h3 className="text-xl font-semibold">{title}</h3>
       <ul className="mt-3 space-y-2">
         {items.map((it, i) => (
-          <li key={i} className="flex items-start gap-2 text-slate-700">
-            <span className="mt-2 h-2 w-2 rounded-full bg-slate-500" />
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-2 h-2 w-2 rounded-full" />
             <span>{it}</span>
           </li>
         ))}
@@ -284,7 +284,7 @@ function ResourcesCard({ resources = [] }) {
 
   return (
     <AuraCard>
-      <h3 className="text-xl font-semibold text-slate-800">Resources</h3>
+      <h3 className="text-xl font-semibold ">Resources</h3>
       <div className="mt-2">
         <ListGroup>
           {resources.map((r, i) => (
@@ -296,7 +296,7 @@ function ResourcesCard({ resources = [] }) {
                 href={r}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:underline"
+                className="flex items-center gap-1 text-blue-600 dark:text-cyan-500 hover:underline"
               >
                 <HiExternalLink className="shrink-0" />
                 <span>{getDisplayText(r)}</span>
@@ -417,18 +417,20 @@ function RecommendationPage() {
     userType === "high_school" ? "Degree Recommendation" : "Career Recommendation";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       {/* Back link */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <button
+        <Button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mt-4"
+          pill
+          color='alternative'
+          className="mt-6 mb-2"
         >
-          <IoChevronBackCircleSharp className="text-2xl" /> Back
-        </button>
+          <IoChevronBackCircleSharp className="text-2xl mr-2" /> Back
+        </Button>
       </div>
 
       <ErrorBanner message={error?.message} />

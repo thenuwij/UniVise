@@ -17,6 +17,7 @@ import { LuMenu } from "react-icons/lu";
 import { UserAuth } from "../context/AuthContext";
 import { useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { DarkThemeToggle } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 
 export function DashboardNavBar({ onMenuClick }) {
@@ -48,29 +49,34 @@ export function DashboardNavBar({ onMenuClick }) {
   }, []);
 
   return (
-    <Navbar fluid className="bg-white dark: bg-gradient-to-l from-sky-500 to-indigo-600 h-16">
-      <LuMenu className="w-7 h-7 ml-4 mb-4 text-white" onClick={onMenuClick}/>
-      <NavbarBrand>
-        <img src={logo} className="h-14 w-14 mt-1"/>
-        <span className="self-center whitespace-nowrap text-3xl text-white font-semibold mb-2">Univise</span>
-      </NavbarBrand>
-      <Dropdown
-        arrowIcon={false}
-        inline
-        label={
-          <Avatar alt="User settings"  
-        rounded 
-        className="mr-4 mb-3"/>
-        }
-      >
-        <DropdownHeader>
-          <span className="block font-bold text-sm">{displayName}</span>
-          <span className="block truncate text-sm font-medium">{displayEmail}</span>
-        </DropdownHeader>
-        <DropdownDivider />
-        <DropdownItem href="/profile" >My Account</DropdownItem>
-        <DropdownItem onClick={signOut}>Sign out</DropdownItem>
-      </Dropdown>
-    </Navbar>
+    <div id="header">
+      <Navbar fluid className="h-16">
+        <LuMenu className="w-8 h-8 ml-4 mb-4 hover:transform hover:scale-114 transition-transform duration-200" onClick={onMenuClick}/>
+        <NavbarBrand>
+          <img src={logo} className="h-14 w-14 mb-1"/>
+          <span className="self-center whitespace-nowrap text-3xl font-semibold mb-3">Univise</span>
+        </NavbarBrand>
+        <div className="flex items-center gap-4"> 
+          <DarkThemeToggle className="mb-4 mr-4"/>
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={
+              <Avatar alt="User settings"  
+              rounded 
+            className="mr-3 mb-4 hover:ring-3 hover:ring-gray-300 dark:hover:ring-gray-500 rounded-full"/>
+            }
+            >
+            <DropdownHeader>
+              <span className="block font-bold text-sm">{displayName}</span>
+              <span className="block truncate text-sm font-medium">{displayEmail}</span>
+            </DropdownHeader>
+            <DropdownDivider />
+            <DropdownItem onClick={() => navigate("/profile")} >My Account</DropdownItem>
+            <DropdownItem onClick={signOut}>Sign out</DropdownItem>
+          </Dropdown>
+        </div>
+      </Navbar>
+    </div>
   );
 }

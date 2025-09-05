@@ -31,9 +31,9 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-2/5 flex flex-col justify-start items-center mt-6 py-8 bg-white rounded-2xl shadow-2xl">
-      <h1 className="text-4xl font-bold text-sky-950 align-text-top mb-3">Sign In</h1>
-      <h2 className="text-lg text-gray-700">Please login with your email and password</h2>
+    <div className="w-2/5 flex flex-col justify-start items-center mt-6 py-8 card-base">
+      <h1 className="text-4xl font-bold  align-text-top mb-3">Sign In</h1>
+      <h2 className="text-lg">Please login with your email and password</h2>
       <form className="flex w-2/5 flex-col gap-4 mt-3">
         <div>
           <div className="mb-2 block">

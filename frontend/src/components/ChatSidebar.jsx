@@ -66,10 +66,10 @@ function ChatSidebar() {
           </SidebarItemGroup>
           
           <SidebarItemGroup className='overflow-y-auto h-[calc(100vh-200px)]'>
-            <h1 className='text-md ml-2 text-gray-700'>Chats</h1>
+            <h1 className='text-md ml-2 text-slate-800 dark:text-slate-300'>Chats</h1>
             {conversations.length > 0 ? (
               conversations.map((conversation) => (
-                <SidebarItem key={conversation.id} href={`/chat/${conversation.id}`} className="flex items-cente h-14">
+                <SidebarItem key={conversation.id} onClick={() => navigate(`/chat/${conversation.id}`)} className="flex items-center h-14">
                   {conversation.title || 'Untitled Conversation'}
                 </SidebarItem>
               ))

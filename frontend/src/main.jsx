@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthContextProvider>
       <SurveyContextProvider>
-        <ThemeConfig dark={false}/> 
+        <ThemeConfig/> 
         <RouterProvider router={router} />
       </SurveyContextProvider>
     </AuthContextProvider>
