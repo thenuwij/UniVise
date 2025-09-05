@@ -56,7 +56,7 @@ function ChatSidebar() {
         onClose={() => setShowModal(false)}
         onSave={handleCreate}
       />
-      <Sidebar className="w-full rounded-4xl">
+      <Sidebar className="w-full">
         <SidebarItems>
           <SidebarItemGroup>
             <Button size="lg" className="w-full bg-gradient-to-br from-purple-600 to-blue-500 text-white hover:bg-gradient-to-bl" onClick={() => setShowModal(true)}>

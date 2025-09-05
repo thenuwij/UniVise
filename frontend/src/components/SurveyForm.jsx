@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
-import { Button } from "flowbite-react";
+import { Button, TextInput } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import SurveyProgressBar from "../components/SurveyProgressBar";
 import { FileUpload } from '../components/FileUpload'
+import { Select, Label } from "flowbite-react";
+import { MdOutlineCancel } from "react-icons/md";
 
 function SurveyForm() {
   const { session } = UserAuth();
@@ -15,6 +17,102 @@ function SurveyForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [reportPath, setReportPath] = useState(null)
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedHobby, setSelectedHobby] = useState('');
+  const [selectedCareerField, setSelectedCareerField] = useState('');
+  const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
+
+  const subjectOptions = [
+    "None of these",
+    "Aboriginal Languages",
+    "Aboriginal Studies",
+    "Agriculture",
+    "Ancient History",
+    "Biology",
+    "Business Studies",
+    "Ceramics",
+    "Community and Family Studies",
+    "Computing Applications",
+    "Dance",
+    "Design and Technology",
+    "Drama",
+    "Economics",
+    "English",
+    "Exploring Early Childhood",
+    "Food Technology",
+    "Geography",
+    "Health and Movement Science",
+    "History",
+    "Industrial Technology",
+    "Investigating Science",
+    "Legal Studies",
+    "Marine Studies",
+    "Mathematics",
+    "Modern History",
+    "Music",
+    "Photography, Video and Digital Imaging",
+    "Physics",
+    "Science",
+    "Society and Culture",
+    "Software Engineering",
+    "Sport, Lifestyle and Recreation",
+    "Studies of Religion",
+    "Textiles and Design",
+    "Visual Arts",
+    "Visual Design",
+    "VET Courses",
+    "Work Studies"
+  ]
+
+  const careerFieldOptions = [
+    "Technology",
+    "Business",
+    "Health & Medicine",
+    "Engineering",
+    "Education & Training",
+    "Science & Research",
+    "Law & Public Policy",
+    "Arts & Design",
+    "Media & Communication",
+    "Finance & Accounting",
+    "Trades & Construction",
+    "Environment & Sustainability",
+    "Government & Public Service",
+    "Hospitality & Tourism",
+    "Sports & Fitness",
+    "Social Work & Community Services",
+    "Agriculture & Natural Resources",
+    "Manufacturing & Logistics",
+    "Entrepreneurship",
+    "Other / Not Sure Yet"
+  ]
+
+ const degreeInterestOptions = [
+  "Computer Science & Information Technology",
+  "Business, Commerce & Management",
+  "Medicine & Health Sciences",
+  "Engineering & Technology",
+  "Education & Teaching",
+  "Science (Biological, Physical, Chemical, Environmental)",
+  "Law & Legal Studies",
+  "Arts, Humanities & Social Sciences",
+  "Media, Communication & Journalism",
+  "Finance, Accounting & Economics",
+  "Architecture, Design & Creative Arts",
+  "Psychology & Social Work",
+  "Nursing & Allied Health",
+  "Agriculture & Environmental Studies",
+  "Sports Science & Physical Education",
+  "Politics, International Relations & Public Policy",
+  "Hospitality, Tourism & Event Management",
+  "Trades, Vocational & Applied Studies",
+  "Double Degrees / Combined Programs",
+  "Other / Not Sure Yet"
+]
+
+
+
+
   
 
   const handleNext = () => setStep(step + 1);
@@ -136,7 +234,7 @@ function SurveyForm() {
   };
 
   return (
-    <div className="w-full max-w-2xl sm:max-w-xl mx-auto p-6 sm:p-4">
+    <div className="w-full max-w-2xl sm:max-w-xl p-6 sm:p-4 ">
 
    <SurveyProgressBar 
       step={step} 
@@ -145,11 +243,12 @@ function SurveyForm() {
 
     {step === 1 && (
         <div>
-            <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Which describes you best?</h2>
+            <h2 className="text-4xl font-bold mb-6 text-center font-poppins">Which describes you best?</h2>
 
             <div className="flex flex-col gap-4">
             <Button
                 size="xl"
+                pill
                 className="py-6 text-lg"
                 onClick={() => {
                 setUserType("high_school");
@@ -161,6 +260,7 @@ function SurveyForm() {
 
             <Button
                 size="xl"
+                pill
                 className="py-6 text-lg"
                 onClick={() => {
                 setUserType("university");
@@ -176,10 +276,10 @@ function SurveyForm() {
       {/* High School Flow */}
     {userType === "high_school" && step === 2 && (
     <div>
-        <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What year are you currently in?</h2>
+        <h2 className="text-4xl font-bold mb-6 text-center font-poppins">What year are you currently in?</h2>
 
-        <select
-        className="border p-2 w-full mb-4"
+        <Select
+        className="mb-4"
         value={formData.year || ""}
         onChange={(e) => handleChange("year", e.target.value)}
         >
@@ -188,7 +288,7 @@ function SurveyForm() {
         <option value="Year 11">Year 11</option>
         <option value="Year 12">Year 12</option>
         <option value="Other">Other</option>
-        </select>
+        </Select>
 
         {formData.year === "Other" && (
         <input
@@ -219,24 +319,59 @@ function SurveyForm() {
 
 {userType === "high_school" && step === 3 && (
   <div>
-    <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What are your favourite subjects or academic strengths?</h2>
+    <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What are your favourite subjects or academic strengths?</h2>
 
     <div className="flex flex-col gap-3 mb-6">
-      {["Science", "Mathematics", "English / Humanities", "Business / Economics", "Arts / Design", "Health / Biology", "Not sure yet"].map((option) => (
-        <Button
-          key={option}
-          color={formData.subjects?.includes(option) ? "blue" : "gray"}
-          onClick={() => {
-            const updated = formData.subjects?.includes(option)
-              ? formData.subjects.filter((s) => s !== option)
-              : [...(formData.subjects || []), option];
+
+      <Select 
+        value={selectedSubject}
+        onChange={(e) => setSelectedSubject(e.target.value)}
+      >
+        <option value="" disabled>Choose a subject</option>
+        {subjectOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </Select>
+      
+      <Button
+        onClick={() => {
+          if (selectedSubject && !formData.subjects?.includes(selectedSubject)) {
+            const updated = [...(formData.subjects || []), selectedSubject];
             handleChange("subjects", updated);
-          }}
-          className="w-full"
-        >
-          {option}
-        </Button>
-      ))}
+            setSelectedSubject(''); // Reset the select after adding
+          }
+        }}
+        disabled={!selectedSubject || formData.subjects?.includes(selectedSubject)}
+        className="w-full"
+      >
+        Add {selectedSubject || "Subject"}
+      </Button>
+
+      {formData.subjects && formData.subjects.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-2xl font-bold mb-2 text-primary">Selected Subjects:</h3>
+          <div className="flex flex-wrap gap-2">
+            {formData.subjects.map((subject) => (
+              <span key={subject} className="chip inline-flex items-center gap-1">
+                {subject}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = formData.subjects.filter(s => s !== subject);
+                    handleChange("subjects", updated);
+                  }}
+                  className="rounded-full hover:bg-slate-200 dark:hover:bg-slate-600"
+                >
+                  <MdOutlineCancel className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
 
     <div className="flex justify-between">
@@ -254,24 +389,54 @@ function SurveyForm() {
 
   {userType === "high_school" && step === 4 && (
         <div>
-          <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What are your hobbies/personal interests?</h2>
-          <div className="flex flex-col gap-3 mb-6">
-            {["Sports & Fitness", "Creative Arts (music, design, writing)", "Technology & Coding", "Community or Volunteering", "Gaming & Entertainment", "Other", "Not sure yet"].map((option) => (
-              <Button
-                key={option}
-                color={formData.hobbies?.includes(option) ? "blue" : "gray"}
-                onClick={() => {
-                  const updated = formData.hobbies?.includes(option)
-                    ? formData.hobbies.filter((s) => s !== option)
-                    : [...(formData.hobbies || []), option];
-                  handleChange("hobbies", updated);
-                }}
-                className="w-full"
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
+          <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What are your hobbies/personal interests?</h2>
+          <TextInput
+            type="text"
+            placeholder="Add a hobby or interest (e.g., coding)"
+            value={selectedHobby}
+            onChange={(e) => setSelectedHobby(e.target.value)}
+            className="mb-4"
+          />
+
+          <Button
+            className="mb-4 w-full"
+            onClick={() => {
+              if (selectedHobby && !formData.hobbies?.includes(selectedHobby)) {
+                const updated = [...(formData.hobbies || []), selectedHobby];
+                handleChange("hobbies", updated);
+                setSelectedHobby(''); // Reset input after adding
+              }
+            }}
+          >
+            Add Hobby / Interest
+          </Button>
+
+          {
+            formData.hobbies && formData.hobbies.length > 0 && (
+              <div className="mt-4 mb-4">
+                <h3 className="text-2xl font-bold mb-2 text-primary">Selected Hobbies/Interests:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {formData.hobbies.map((hobby) => (
+                    <span key={hobby} className="chip inline-flex items-center gap-1">
+                      {hobby}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = formData.hobbies.filter(h => h !== hobby);
+                          handleChange("hobbies", updated);
+                        }}
+                        className="rounded-full hover:bg-slate-200 dark:hover:bg-slate-600"
+                      >
+                        <MdOutlineCancel className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+
           <div className="flex justify-between">
             <Button onClick={handlePrev}>Back</Button>
             <Button onClick={handleNext} disabled={!formData.hobbies || formData.hobbies.length === 0}>Next</Button>
@@ -281,25 +446,55 @@ function SurveyForm() {
 
     {userType === "high_school" && step === 5 && (
     <div>
-        <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What career field(s) interest you the most?</h2>
-        <div className="flex flex-col gap-3 mb-6">
-        {["Science & Research","Tech & Engineering","Business & Finance","Health & Medicine","Arts & Media","I’m still exploring"
-        ].map((option) => (
-            <Button
-            key={option}
-            color={formData.career_fields?.includes(option) ? "blue" : "gray"}
-            onClick={() => {
-                const updated = formData.career_fields?.includes(option)
-                ? formData.career_fields.filter((s) => s !== option)
-                : [...(formData.career_fields || []), option];
-                handleChange("career_fields", updated);
-            }}
-            className="w-full"
-            >
-            {option}
-            </Button>
-        ))}
-        </div>
+        <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What career field(s) interest you the most?</h2>
+        <Select
+          value={selectedCareerField}
+          onChange={(e) => setSelectedCareerField(e.target.value)}
+        >
+          <option value="" disabled>Choose a career field</option>
+          {careerFieldOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </Select>
+
+        <Button
+          onClick={() => {
+            if (selectedCareerField && !formData.career_fields?.includes(selectedCareerField)) {
+              const updated = [...(formData.career_fields || []), selectedCareerField];
+              handleChange("career_fields", updated);
+              setSelectedCareerField(''); // Reset the select after adding
+            }
+          }}
+          disabled={!selectedCareerField || formData.career_fields?.includes(selectedCareerField)}
+          className="w-full my-4"
+        >
+          Add {selectedCareerField || "Career Field"}
+        </Button>
+
+          {formData.career_fields && formData.career_fields.length > 0 && (
+            <div className="mt-4 mb-4">
+              <h3 className="text-2xl font-bold mb-2 text-primary">Selected Career Fields:</h3>
+              <div className="flex flex-wrap gap-2">
+                {formData.career_fields.map((field) => (
+                  <span key={field} className="chip inline-flex items-center gap-1">
+                    {field}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = formData.career_fields.filter(f => f !== field);
+                        handleChange("career_fields", updated);
+                      }}
+                      className="rounded-full hover:bg-slate-200 dark:hover:bg-slate-600"
+                    >
+                      <MdOutlineCancel className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         <div className="flex justify-between">
         <Button onClick={handlePrev}>Back</Button>
         <Button onClick={handleNext} disabled={!formData.career_fields || formData.career_fields.length === 0}>Next</Button>
@@ -310,7 +505,7 @@ function SurveyForm() {
 
     {userType === "high_school" && step === 6 && (
       <div>
-        <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What’s your ATAR status?</h2>
+        <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What’s your ATAR status?</h2>
          <div className="flex flex-col gap-3 mb-6">
             <Button color={formData.atar_status === "known" ? "blue" : "gray"} onClick={() => handleChange("atar_status", "known")} className="w-full">I already know my ATAR</Button>
             {formData.atar_status === "known" && (
@@ -340,7 +535,7 @@ function SurveyForm() {
 
       {userType === "high_school" && step === 7 && (
         <div>
-          <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">How confident are you about your future study path?</h2>
+          <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">How confident are you about your future study path?</h2>
           <div className="flex flex-col gap-3 mb-6">
             {["Very confident — I know what I want", "Somewhat confident — I have ideas but unsure", "Not confident — I need help figuring it out"].map((option) => (
               <Button
@@ -362,33 +557,57 @@ function SurveyForm() {
 
     {userType === "high_school" && step === 8 && (
   <div>
-    <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+    <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">
         What degree(s) are you most interested in?
     </h2>
-    <div className="flex flex-col gap-3 mb-6">
-      {[
-        "Bachelor of Science",
-        "Bachelor of Commerce",
-        "Bachelor of Arts",
-        "Engineering Degree",
-        "Health/Medical Degree",
-        "Other / Not sure"
-      ].map((option) => (
-        <Button
-          key={option}
-          color={formData.degree_interest?.includes(option) ? "blue" : "gray"}
-          onClick={() => {
-            const updated = formData.degree_interest?.includes(option)
-              ? formData.degree_interest.filter((s) => s !== option)
-              : [...(formData.degree_interest || []), option];
-            handleChange("degree_interest", updated);
-          }}
-          className="w-full"
-        >
+    <Select
+      value={careerFieldOptions}
+      onChange={(e) => setSelectedDegreeInterest(e.target.value)}
+    >
+      <option value="" disabled>Select degree interests</option>
+      {degreeInterestOptions.map((option) => (
+        <option key={option} value={option}>
           {option}
-        </Button>
+        </option>
       ))}
-    </div>
+    </Select>
+    <Button
+      onClick={() => {
+        if (selectedDegreeInterest && !formData.degree_interest?.includes(selectedDegreeInterest)) {
+          const updated = [...(formData.degree_interest || []), selectedDegreeInterest];
+          handleChange("degree_interest", updated);
+          setSelectedDegreeInterest(''); // Reset the select after adding
+        }
+      }}
+      disabled={!selectedDegreeInterest || formData.degree_interest?.includes(selectedDegreeInterest)}
+      className="w-full my-4"
+    >
+      Add {selectedDegreeInterest || "Degree Interest"}
+    </Button>
+
+    {formData.degree_interest && formData.degree_interest.length > 0 && (
+      <div className="mt-4 mb-4">
+        <h3 className="text-2xl font-bold mb-2 text-primary">Selected Degree Interests:</h3>
+        <div className="flex flex-wrap gap-2">
+          {formData.degree_interest.map((degree) => (
+            <span key={degree} className="chip inline-flex items-center gap-1">
+              {degree}
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = formData.degree_interest.filter(d => d !== degree);
+                  handleChange("degree_interest", updated);
+                }}
+                className="rounded-full hover:bg-slate-200 dark:hover:bg-slate-600"
+              >
+                <MdOutlineCancel className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+   
     <div className="flex justify-between">
       <Button onClick={handlePrev}>Back</Button>
       <Button onClick={handleNext} disabled={!formData.degree_interest || formData.degree_interest.length === 0}>Next</Button>
@@ -398,7 +617,7 @@ function SurveyForm() {
 
   { userType == "high_school" && step === 9 && (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+      <h2 className="text-3xl font-bold mb-6 text-center  font-poppins">
         Optional: Upload your most recent school report
       </h2>
       <FileUpload
@@ -427,7 +646,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 2 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What stage of study are you in?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What stage of study are you in?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {["Bachelor's Degree", "Master's Degree", "PhD or Doctoral Program", "Other"].map((option) => (
           <Button
@@ -457,7 +676,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 3 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What academic year of your degree are you in?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What academic year of your degree are you in?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5 or later"].map((option) => (
           <Button
@@ -480,7 +699,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 4 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Which field is your current program in?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Which field is your current program in?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Commerce & Business",
@@ -520,7 +739,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 5 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Do you know your WAM (Weighted Average Mark)?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Do you know your WAM (Weighted Average Mark)?</h2>
       <div className="flex flex-col gap-3 mb-6">
         <Button
           color={formData.wam_status === "yes" ? "blue" : "gray"}
@@ -553,7 +772,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 6 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Are you considering switching your academic pathway?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Are you considering switching your academic pathway?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Yes, I’m thinking of switching my major",
@@ -579,7 +798,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 7 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">How do you feel about your current studies?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">How do you feel about your current studies?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "It aligns with my career goals",
@@ -605,7 +824,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 8 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">Which areas of study and careers interest you the most?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Which areas of study and careers interest you the most?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Business & Finance",
@@ -650,7 +869,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 9 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">What are your hobbies or personal interests?</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What are your hobbies or personal interests?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
           "Sports & Fitness",
@@ -694,7 +913,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 10 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">
         How confident are you about your future career path?
       </h2>
       <div className="flex flex-col gap-3 mb-6">
@@ -727,7 +946,7 @@ function SurveyForm() {
 
   {userType === "university" && step === 11 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center text-slate-800 font-poppins">
+      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">
         Would you like help exploring how your courses, majors, and career options connect?
       </h2>
       <div className="flex flex-col gap-3 mb-6">
@@ -760,7 +979,7 @@ function SurveyForm() {
 
   { userType == "university" && step === 12 && (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center text-slate-800 font-poppins">
+      <h2 className="text-3xl font-bold mb-6 text-center  font-poppins">
         Optional: Upload your most recent academic transcript
       </h2>
       <FileUpload
