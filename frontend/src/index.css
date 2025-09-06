@@ -187,6 +187,21 @@ body {
   @apply border-slate-600 bg-slate-800;
 }
 
+/* New flexible base (no border) */
+.card-flex {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.card-flex:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+
 /* Button Components */
 .button-base {
   display: inline-flex;
@@ -228,6 +243,18 @@ body {
   color: white;
 }
 
+/* Big Page Buttons */
+.page-button {
+  @apply bg-gradient-to-br from-purple-600 to-blue-500 text-white
+         hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300 
+         dark:focus:ring-blue-800 transition-all duration-300;
+}
+
+.page-button-disabled {
+  @apply bg-gradient-to-br from-purple-300 to-blue-300 text-white cursor-not-allowed;
+}
+
+
 /* Form Components */
 .input-base {
   width: 100%;
@@ -250,6 +277,16 @@ body {
   color: var(--text-muted);
 }
 
+/* Search / selector inputs */
+.input-selector {
+  @apply w-full px-4 py-3 border rounded-xl shadow-md
+         text-lg
+         focus:outline-none focus:ring-2 focus:ring-indigo-400;
+}
+
+.input-selector::placeholder {
+  @apply text-gray-400;
+}
 /* Text Utilities */
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
@@ -374,4 +411,23 @@ body {
   background-color: var(--bg-card) !important;
   border: 1px solid var(--border-light) !important;
   box-shadow: var(--shadow-lg) !important;
+}
+
+/* ========================================
+   TYPOGRAPHY UTILITIES
+======================================== */
+
+/* Big page titles */
+.heading-xl {
+  @apply text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight;
+}
+
+/* Section titles (like "Recommended Degrees") */
+.heading-lg {
+  @apply text-2xl sm:text-3xl font-bold;
+}
+
+/* Sub-headings / card titles */
+.heading-md {
+  @apply text-xl font-semibold;
 }

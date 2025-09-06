@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../../supabaseClient";
 
 function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
   const [query, setQuery] = useState("");
@@ -45,7 +45,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <div className="text-center mb-10">
-        <p className="ttext-xl font-medium text-slate-800 lg:text-2xl">
+        <p className="text-xl font-medium text-primary lg:text-2xl">
           Search UNSW degrees and select one to generate a roadmap.
         </p>
       </div>
@@ -56,13 +56,13 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
           placeholder="Start typing to search for degrees"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded-xl px-5 py-3 text-base border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all w-full sm:w-auto"
+          className="input-selector flex-1 w-full sm:w-auto"
         />
 
         {!showFilter && (
           <button
             onClick={() => setShowFilter(true)}
-            className="px-6 py-3 rounded-full bg-white border border-slate-200 font-semibold text-base hover:shadow-md transition-all shadow flex items-center justify-center"
+            className="button-base button-secondary rounded-full px-6 py-3 flex items-center justify-center"
           >
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
               + Add Filter
@@ -73,13 +73,13 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
 
       {showFilter && (
         <div className="mb-6">
-          <label className="block mb-2 text-slate-700 font-medium">
+          <label className="block mb-2 font-medium text-primary">
             Filter by Faculty:
           </label>
           <select
             value={facultyFilter}
             onChange={(e) => setFacultyFilter(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="input-selector w-full"
           >
             <option value="">Select faculty</option>
             {faculties.map((faculty) => (
@@ -102,27 +102,27 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
                   onClick={() => {
                     if (!isSelected) onSelect(deg);
                   }}
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 shadow transition-all duration-200 ${
+                  className={`cursor-pointer card-base transition-transform duration-200 ${
                     isSelected
-                      ? "bg-sky-100 border-sky-600 shadow-md scale-[1.02]"
-                      : "bg-white border-slate-300 hover:shadow hover:scale-[1.01]"
+                      ? "border-2 border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-slate-800 scale-[1.02]"
+                      : "hover:shadow-md hover:scale-[1.01]"
                   }`}
                 >
-                  <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                  <h3 className="heading-md text-primary mb-1">
                     {deg.program_name}
                   </h3>
-                  <p className="text-sm text-slate-500">{deg.faculty}</p>
+                  <p className="text-sm text-secondary">{deg.faculty}</p>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-center text-slate-500 mt-8">
+          <p className="text-center text-secondary mt-8">
             No matching degrees found.
           </p>
         )
       ) : (
-        <p className="text-center text-slate-400 mt-6">
+        <p className="text-center text-muted mt-6">
           Start typing to search for degrees or add a filter.
         </p>
       )}
