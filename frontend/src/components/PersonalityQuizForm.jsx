@@ -103,7 +103,7 @@ const PersonalityQuizForm = () => {
         <h2 className="text-xl sm:text-2xl font-semibold ">
           Please rate the following statements
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-300">Your honest answers help us personalize your UniVise journey</p>
+        <p className="text-sm text-gray-500 dark:text-gray-300">Your honest answers help us personalise your UniVise journey</p>
       </div>
 
         <div className="space-y-12">
@@ -139,10 +139,10 @@ const PersonalityQuizForm = () => {
                       <button
                         onClick={() => handleScore(question.id, question.type, score)}
                         className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-md
-                          ${isSelected ? "ring-4 ring-indigo-400" : ""}
-                          ${score === 3 ? "bg-gray-200 hover:bg-gray-300" : ""}
-                          ${score < 3 ? "bg-red-100 hover:bg-red-200" : ""}
-                          ${score > 3 ? "bg-green-100 hover:bg-green-200" : ""}`}
+                          ${isSelected ? "ring-4 ring-indigo-500" : ""}
+                          ${score === 3 ? "bg-gray-400 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-300" : ""}
+                          ${score < 3 ? "bg-red-300 hover:bg-red-200 dark:bg-red-400 dark:hover:bg-red-500" : ""}
+                          ${score > 3 ? "bg-green-300 hover:bg-green-200 dark:bg-green-400 dark:hover:bg-green-500" : ""}`}
                       >
                         <span className="sr-only">{score}</span>
                       </button>

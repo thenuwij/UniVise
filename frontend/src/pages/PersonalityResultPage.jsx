@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { HiSparkles, HiArrowRight, HiOutlineLightBulb } from "react-icons/hi";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { MenuBar } from "../components/MenuBar";
+import { Button } from "flowbite-react";
+import { Header } from "../components/Header";
 
 const personalityDescriptions = {
   Realistic: {
@@ -27,7 +31,7 @@ const personalityDescriptions = {
   },
   Conventional: {
     name: "Conventional",
-    summary: "Organized, detail-oriented, and structured. You enjoy working with systems, data, and routines.",
+    summary: "Organised, detail-oriented, and structured. You enjoy working with systems, data, and routines.",
   },
 };
 
@@ -47,7 +51,7 @@ const toPercent = (v) => {
 // ---------- UI atoms ----------
 function AuraShell({ children }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm">
+    <div className="relative overflow-hidden rounded-3xl border border-slate-200  backdrop-blur-xl shadow-sm">
       {/* soft spotlight aura */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-6 sm:p-8">{children}</div>
@@ -105,6 +109,10 @@ const PersonalityResultPage = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const openDrawer = () => setIsOpen(true);
+  const closeDrawer = () => setIsOpen(false);
+
   useEffect(() => {
     const fetchResult = async () => {
       const { data, error } = await supabase
@@ -142,8 +150,10 @@ const PersonalityResultPage = () => {
   const { top_types = [], result_summary, trait_scores } = result;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-tr from-sky-100 via-white to-indigo-100 py-10 px-6 sm:px-10">
-      <AuraShell>
+    <div className="w-full flex flex-col max-h-screen">
+      <Header />
+        <div className="flex-1 p-4 sm:p-6">
+        <AuraShell>
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
@@ -151,10 +161,10 @@ const PersonalityResultPage = () => {
             Personality Insights
           </div>
 
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold text-slate-800">
+          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">
             Your Personality Result
           </h1>
-          <p className="mt-2 text-lg text-slate-600">
+          <p className="mt-2 text-lg ">
             You are a{" "}
             <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
               {result_summary}
@@ -196,7 +206,7 @@ const PersonalityResultPage = () => {
         {/* Trait Scores */}
         {trait_scores && (
           <div className="mt-10">
-            <h3 className="text-lg font-semibold text-slate-800 mb-3">Trait Scores</h3>
+            <h3 className="text-lg font-semibold  mb-3">Trait Scores</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(trait_scores).map(([trait, score]) => (
                 <TraitBar key={trait} label={trait} value={score} />
@@ -214,20 +224,22 @@ const PersonalityResultPage = () => {
             Retake Quiz
           </button>
 
-          <button
+          <Button
             onClick={() => navigate("/dashboard")}
-            className="group inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 text-white px-6 py-3 font-medium hover:bg-black transition"
-          >
+            pill
+            size="xl"
+            >
             Continue to Dashboard
             <HiArrowRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition" />
-          </button>
+          </Button>
         </div>
 
         {/* Subtle tip */}
-        <p className="mt-4 text-center text-xs text-slate-500">
+        <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-00">
           Tip: Your recommendations and roadmap will adapt to these traits.
         </p>
       </AuraShell>
+      </div>
     </div>
   );
 };
