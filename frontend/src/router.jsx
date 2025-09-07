@@ -25,6 +25,7 @@ import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
 import MindMeshGraphPage from "./pages/MindMeshGraphPage";
 import PlannerSwitchPage from "./pages/PlannerSwitchPage";
+import TraitsPage from "./pages/TraitsPage";
 
 
 
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
-  { path: "/planner/switch", element: <PrivateRoute><PlannerSwitchPage /></PrivateRoute> }
+  { path: "/planner/switch", element: <PrivateRoute><PlannerSwitchPage /></PrivateRoute> },
+  { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
 
 ]);

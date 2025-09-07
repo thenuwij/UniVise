@@ -54,7 +54,7 @@ export function MenuBar({ isOpen, handleClose }) {
                     <SidebarItem onClick={() => navigate("/dashboard")} icon={MdDashboard}>
                       Dashboard
                     </SidebarItem>
-                    <SidebarItem onClick={() => navigate("/quiz/result")} icon={FaFingerprint}>
+                    <SidebarItem onClick={() => navigate("/traits")} icon={FaFingerprint}>
                       My Traits
                     </SidebarItem>
                     <SidebarItem onClick={() => navigate("/roadmap-entryload")} icon={RiGuideFill}>
