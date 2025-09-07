@@ -14,86 +14,24 @@ import IndustrySection from "../components/roadmap/IndustrySection";
 import CareersSection from "../components/roadmap/CareersSection";
 import SkeletonCard from "../components/roadmap/SkeletonCard";
 
-/* ---------- Tiny inline icons (no deps) ---------- */
-const ArrowLeft = (p) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-    <path d="M12 19l-7-7 7-7"/><path d="M19 12H5"/>
-  </svg>
-);
-const RefreshCw = (p) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-    <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15"/>
-  </svg>
-);
-const Download = (p) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-const FileText = (p) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>
-  </svg>
-);
-const UniIcon = (p) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-    <path d="M22 10L12 2 2 10l10 6 10-6z"/><path d="M6 12v6l6 4 6-4v-6"/>
-  </svg>
-);
+import GradientCard from "../components/GradientCard";
+import SectionTitle from "../components/SectionTitle";
+import Pill from "../components/Pill";
+import Fact from "../components/Fact";
 
-/* ---------- Reusable UI primitives (match School page) ---------- */
-function GradientCard({ children, className = "" }) {
-  return (
-    <div className={`rounded-3xl p-[1px] bg-gradient-to-br from-sky-400/40 via-blue-400/30 to-indigo-400/30 shadow-[0_8px_30px_rgb(0,0,0,0.06)] ${className}`}>
-      <div className="rounded-3xl bg-white/90 backdrop-blur border border-white/60">
-        {children}
-      </div>
-    </div>
-  );
-}
-function SectionTitle({ icon, subtitle, children }) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-        {icon}
-        {subtitle && (
-          <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
-            {subtitle}
-          </span>
-        )}
-      </div>
-      <h1 className="mt-2 text-3xl md:text-5xl font-semibold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-        {children}
-      </h1>
-    </div>
-  );
-}
-function Pill({ children }) {
-  return (
-    <span className="px-3 py-1 rounded-full text-sm bg-gradient-to-br from-sky-50 to-blue-50 text-slate-700 border border-slate-200">
-      {children}
-    </span>
-  );
-}
-function Fact({ label, value }) {
-  return (
-    <div className="flex flex-col rounded-2xl p-3 bg-gradient-to-br from-white/80 to-white/60 border border-slate-200 shadow-sm">
-      <span className="text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-      <span className="mt-1 text-slate-900 font-semibold">{value ?? "—"}</span>
-    </div>
-  );
-}
+import { ArrowLeft, RefreshCw, Download, FileText, UniIcon } from "../components/icons/InlineIcons";
 
-/* ---------- Helpers ---------- */
-const courseToText = (c) =>
-  typeof c === "string"
-    ? c
-    : c && (c.code || c.title)
-      ? [c.code, c.title].filter(Boolean).join(" — ")
-      : "";
+// Helpers
+import { courseToText } from "../utils/formatters";
+
+/** Labels for the step rail (single source of truth). */
+const STEP_LABELS = [
+  "Entry Requirements",
+  "Program Structure",
+  "Capstone & Honours",
+  "Flexibility",
+  "Industry & Careers",
+];
 
 /* =================================================================== */
 
@@ -364,7 +302,7 @@ export default function RoadmapUNSWPage() {
                 <div className="mx-auto max-w-4xl">
                   <div className="flex items-center justify-center gap-2 rounded-2xl p-1
                                   bg-gradient-to-br from-white/80 to-white/60 border border-slate-200 shadow-sm">
-                    {["Entry Requirements", "Program Structure", "Capstone & Honours", "Flexibility", "Industry & Careers"].map((label, i) => (
+                    {STEP_LABELS.map((label, i) => (
                       <button
                         key={label}
                         onClick={() => setActiveIndex(i)}
