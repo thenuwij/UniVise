@@ -7,7 +7,6 @@ import { useRoadmapData } from "../hooks/useRoadmapData";
 import RecommendedDegrees from "../components/roadmap/RecommendedDegrees";
 import DegreeSelectorSection from "../components/roadmap/DegreeSelectorSection";
 import GenerateButton from "../components/roadmap/GenerateButton";
-import { toast } from "react-hot-toast";
 
 function RoadmapPage() {
   const navigate = useNavigate();
@@ -31,7 +30,7 @@ function RoadmapPage() {
    */
   const handleProceed = useCallback(() => {
     if (!selectedDegreeId || !selectedDegreeObject) {
-      toast.error("Please select a degree to proceed.");
+      alert("Please select a degree to proceed.");
       return;
     }
 
@@ -58,7 +57,7 @@ function RoadmapPage() {
           My Roadmap
         </h1>
         <p className="mb-6 text-lg font-normal text-secondary lg:text-xl sm:px-16 xl:px-48">
-          {isHighSchool
+          {userType === "high_school"
             ? "Based on your personality and career interests, UniVise recommends degrees that align with your goals. Select a degree to begin your journey."
             : "Upload your transcript on profile page or select a degree below to generate the roadmap."}
         </p>

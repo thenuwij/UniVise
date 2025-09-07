@@ -14,7 +14,6 @@ createRoot(document.getElementById('root')).render(
       <SurveyContextProvider>
         <ThemeConfig/> 
         <RouterProvider router={router} />
-        <Toaster position="top-right" />
       </SurveyContextProvider>
     </AuthContextProvider>
   </StrictMode>,
