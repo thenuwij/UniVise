@@ -217,12 +217,14 @@ const PersonalityResultPage = () => {
 
         {/* CTA row */}
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
-          <button
+          <Button
             onClick={() => navigate("/quiz")}
-            className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-slate-800 hover:bg-slate-50 transition"
+            pill
+            size="xl"
+            color="alternative"
           >
             Retake Quiz
-          </button>
+          </Button>
 
           <Button
             onClick={() => navigate("/dashboard")}
