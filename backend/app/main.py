@@ -6,6 +6,7 @@ from .routers import auth, chat, recommendation, user, reports, roadmap, smart_r
 from app.routers.final_plan import router as final_plan_router
 from app.routers.ai_advisor import router as smart_summary_router
 from app.routers import mindmesh_ai
+from app.routers import traits
 
 
 app = FastAPI()
@@ -25,7 +26,7 @@ app.include_router(
 )
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
-app.include_router(final_plan_router, prefix="/final-unsw-degrees")   
+app.include_router(final_plan_router, prefix="/final-unsw-degrees")
 app.include_router(final_plan_router, prefix="/final-degree-plan")
 app.include_router(
     smart_summary_router, prefix="/smart-summary", tags=["AI Smart Summaries"]
@@ -33,6 +34,4 @@ app.include_router(
 app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
 app.include_router(mindmesh_ai.router, prefix="/mindmesh", tags=["MindMesh"])
 app.include_router(smart_related.router)
-
-
- 
+app.include_router(traits.router, prefix="/traits", tags=["Traits"])
