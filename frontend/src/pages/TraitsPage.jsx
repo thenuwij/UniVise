@@ -4,7 +4,7 @@ import { MenuBar } from '../components/MenuBar'
 import { DashboardNavBar } from '../components/DashboardNavBar'
 import { supabase } from '../supabaseClient';
 import { UserAuth } from '../context/AuthContext';
-import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
+import { Accordion, AccordionContent, AccordionPanel, AccordionTitle, Button } from "flowbite-react";
 import { TbAugmentedReality } from "react-icons/tb";
 import { LuScanSearch } from "react-icons/lu";
 import { TbPalette } from "react-icons/tb";
@@ -231,11 +231,11 @@ function TraitsPage() {
                 </span>{" "}
                 type ?
               </p>
-              <p className="mt-4 text-gray-700 dark:text-gray-300">
+              <p className="mt-4 ">
                 {personalityResults[result?.result_summary] || "No description available."}
               </p>
 
-              <p className="mt-6 text-xl">
+              <p className="mt-6 mb-2">
                 What does this
                 <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"> mean for you </span>
                 ?
@@ -360,6 +360,15 @@ function TraitsPage() {
                     </AccordionContent>
                   </AccordionPanel>
                 </Accordion>
+                <Button
+                  onClick={() => navigate("/quiz")}
+                  pill
+                  size="xl"
+                  color="gray"
+                  className='mt-4'
+                >
+                  Retake Quiz
+                </Button>
           </div>
         </div>
       </div>
