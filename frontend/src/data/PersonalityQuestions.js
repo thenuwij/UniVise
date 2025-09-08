@@ -1,45 +1,43 @@
-// /data/personalityQuestions.js
-
 export const personalityQuestions = [
   // Realistic (R)
-  { id: 1, question: "I enjoy building or fixing things with my hands.", type: "realistic" },
-  { id: 2, question: "I like working outdoors or with animals.", type: "realistic" },
-  { id: 3, question: "I’m good at operating tools or machinery.", type: "realistic" },
-  { id: 4, question: "I prefer doing physical tasks over desk work.", type: "realistic" },
-  { id: 5, question: "I enjoy activities like hiking, repairing, or constructing.", type: "realistic" },
+  { id: 1,  question: "I’d rather fix or build something than read instructions about it.", type: "realistic" },
+  { id: 2,  question: "I enjoy working outdoors or doing physical activities.", type: "realistic" },
+  { id: 3,  question: "I feel comfortable using tools, machines, or technology to get things done.", type: "realistic" },
+  { id: 4,  question: "I prefer hands-on tasks to sitting at a desk all day.", type: "realistic" },
+  { id: 5,  question: "I like seeing visible, practical results from my work.", type: "realistic" },
 
   // Investigative (I)
-  { id: 6, question: "I enjoy solving puzzles or problems that require deep thinking.", type: "investigative" },
-  { id: 7, question: "I like analyzing data or researching new ideas.", type: "investigative" },
-  { id: 8, question: "I enjoy science, mathematics, or technical subjects.", type: "investigative" },
-  { id: 9, question: "I’m curious about how things work.", type: "investigative" },
-  { id: 10, question: "I prefer thinking through a problem rather than jumping into action.", type: "investigative" },
+  { id: 6,  question: "I enjoy solving challenging puzzles, problems, or equations.", type: "investigative" },
+  { id: 7,  question: "I like asking questions and searching for evidence before making decisions.", type: "investigative" },
+  { id: 8,  question: "I’m curious about how systems, science, or technology actually work.", type: "investigative" },
+  { id: 9,  question: "I would rather analyze information than guess the answer.", type: "investigative" },
+  { id: 10, question: "I get satisfaction from figuring out the ‘why’ behind things.", type: "investigative" },
 
   // Artistic (A)
-  { id: 11, question: "I enjoy expressing myself creatively through writing, music, or art.", type: "artistic" },
-  { id: 12, question: "I prefer open-ended tasks over structured routines.", type: "artistic" },
-  { id: 13, question: "I often come up with original ideas or perspectives.", type: "artistic" },
-  { id: 14, question: "I feel energized by creative challenges or storytelling.", type: "artistic" },
-  { id: 15, question: "I enjoy designing or creating new things.", type: "artistic" },
+  { id: 11, question: "I enjoy expressing myself through writing, art, music, or design.", type: "artistic" },
+  { id: 12, question: "I’d rather work on open-ended projects than follow strict rules.", type: "artistic" },
+  { id: 13, question: "I often come up with original ideas or creative solutions.", type: "artistic" },
+  { id: 14, question: "I feel energized by storytelling, design, or performing.", type: "artistic" },
+  { id: 15, question: "I like experimenting with new ways of doing things.", type: "artistic" },
 
   // Social (S)
-  { id: 16, question: "I enjoy helping others learn or solve problems.", type: "social" },
-  { id: 17, question: "I like working in teams and collaborating with others.", type: "social" },
-  { id: 18, question: "I’m often seen as supportive and empathetic.", type: "social" },
-  { id: 19, question: "I enjoy mentoring, volunteering, or community work.", type: "social" },
-  { id: 20, question: "I feel fulfilled when I make a difference in someone’s life.", type: "social" },
+  { id: 16, question: "I feel fulfilled when I’m helping or teaching others.", type: "social" },
+  { id: 17, question: "I enjoy working in groups more than working alone.", type: "social" },
+  { id: 18, question: "Friends often describe me as empathetic or supportive.", type: "social" },
+  { id: 19, question: "I like mentoring, volunteering, or contributing to my community.", type: "social" },
+  { id: 20, question: "I enjoy roles where I can make a positive difference in people’s lives.", type: "social" },
 
   // Enterprising (E)
-  { id: 21, question: "I enjoy leading projects or persuading others.", type: "enterprising" },
-  { id: 22, question: "I feel comfortable speaking in front of a group.", type: "enterprising" },
-  { id: 23, question: "I like setting goals and taking initiative.", type: "enterprising" },
+  { id: 21, question: "I enjoy leading projects and motivating others.", type: "enterprising" },
+  { id: 22, question: "I feel confident speaking up or presenting in front of groups.", type: "enterprising" },
+  { id: 23, question: "I like setting ambitious goals and taking initiative to reach them.", type: "enterprising" },
   { id: 24, question: "I’m interested in business, politics, or entrepreneurship.", type: "enterprising" },
-  { id: 25, question: "I enjoy negotiating, selling, or pitching ideas.", type: "enterprising" },
+  { id: 25, question: "I enjoy persuading others or pitching my ideas.", type: "enterprising" },
 
   // Conventional (C)
-  { id: 26, question: "I enjoy organizing schedules, plans, or documents.", type: "conventional" },
-  { id: 27, question: "I prefer clear instructions and structure in my work.", type: "conventional" },
-  { id: 28, question: "I’m good at keeping records or managing data.", type: "conventional" },
-  { id: 29, question: "I find satisfaction in following procedures accurately.", type: "conventional" },
-  { id: 30, question: "I like working with numbers, spreadsheets, or administrative tasks.", type: "conventional" }
+  { id: 26, question: "I enjoy organizing schedules, files, or systems to make things efficient.", type: "conventional" },
+  { id: 27, question: "I prefer clear structure, instructions, or step-by-step processes.", type: "conventional" },
+  { id: 28, question: "I’m good at keeping records accurate and up to date.", type: "conventional" },
+  { id: 29, question: "I feel satisfied when I follow procedures correctly.", type: "conventional" },
+  { id: 30, question: "I like working with numbers, spreadsheets, or administrative details.", type: "conventional" }
 ];

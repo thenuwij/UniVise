@@ -84,6 +84,7 @@ function SurveyForm() {
     "Agriculture & Natural Resources",
     "Manufacturing & Logistics",
     "Entrepreneurship",
+    "Arts & Entertainment",
     "Other / Not Sure Yet"
   ]
 
@@ -97,6 +98,7 @@ function SurveyForm() {
   "Law & Legal Studies",
   "Arts, Humanities & Social Sciences",
   "Media, Communication & Journalism",
+  "Music, Performing & Visual Arts",
   "Finance, Accounting & Economics",
   "Architecture, Design & Creative Arts",
   "Psychology & Social Work",

@@ -60,6 +60,9 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.2s ease;
   --transition-slow: 0.3s ease;
+
+  --chart-legend-color: #374151; /* Light mode color */
+
 }
 
 /* Dark Mode Variables */
@@ -82,6 +85,9 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  --chart-legend-color: #f3f4f6;
+
 }
 
 /* ========================================
@@ -375,3 +381,4 @@ body {
   border: 1px solid var(--border-light) !important;
   box-shadow: var(--shadow-lg) !important;
 }
+

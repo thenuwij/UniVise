@@ -69,13 +69,21 @@ function Chip({ children }) {
 }
 
 function TraitBar({ label, value }) {
-  const pct = toPercent(value);
+  // value is the raw sum (0–25)
+  const pct = Math.round((value / 25) * 100);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-700 font-medium capitalize">{label}</span>
+        {/* Label + raw score */}
+        <span className="text-slate-700 font-medium capitalize">
+          {label}
+        </span>
+        {/* Percentage */}
         <span className="text-slate-600 text-sm">{pct}%</span>
       </div>
+
+      {/* Progress bar */}
       <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-purple-600 to-blue-500 rounded-full"
@@ -86,18 +94,19 @@ function TraitBar({ label, value }) {
   );
 }
 
+
 function TypeCard({ typeKey }) {
   const key = cap(typeKey);
   const d = personalityDescriptions[key];
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+    <div className="rounded-2xl p-5 card-glass-spotlight">
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs">
           {key?.[0] || "?"}
         </span>
-        <h3 className="text-lg font-semibold text-slate-900">{d?.name || key}</h3>
+        <h3 className="text-lg font-semibold">{d?.name || key}</h3>
       </div>
-      <p className="text-slate-700">{d?.summary || "Description not available."}</p>
+      <p>{d?.summary || "Description not available."}</p>
     </div>
   );
 }
@@ -112,6 +121,20 @@ const PersonalityResultPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
+  
+  const generateTraitDescription = async () => {
+    const resp = await fetch('http://localhost:8000/traits/results', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${session?.access_token}` },
+    });
+    if (!resp.ok) {
+        throw new Error("Failed to fetch recommendations");
+      }
+
+      const data = await resp.json();
+      console.log("Recommendations:", data);
+      return data;
+  }
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -128,12 +151,14 @@ const PersonalityResultPage = () => {
         navigate("/quiz");
       } else {
         setResult(data);
+        generateTraitDescription();
       }
       setLoading(false);
     };
 
     if (session?.user?.id) fetchResult();
   }, [session, navigate]);
+
 
   if (loading) {
     return (
@@ -192,12 +217,12 @@ const PersonalityResultPage = () => {
         )}
 
         {/* What this means */}
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+        <div className="mt-8 card-glass-spotlight p-4">
           <div className="flex items-center gap-2 mb-1">
             <HiOutlineLightBulb className="h-5 w-5 text-amber-500" />
-            <h3 className="text-lg font-semibold text-slate-900">What this means for you</h3>
+            <h3 className="text-lg font-semibold ">What this means for you</h3>
           </div>
-          <p className="text-slate-700">
+          <p>
             Your profile blends the strengths of your top traits. Use this to guide subject choices,
             projects, and internship hunting. We’ll tailor recommendations to this pattern on your Dashboard.
           </p>

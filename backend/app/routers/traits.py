@@ -7,7 +7,7 @@ from postgrest.exceptions import APIError  # catch DB errors
 router = APIRouter()
 
 
-@router.post("/results")
+@router.get("/results")
 def result_description(user=Depends(get_current_user)):
     try:
         # 1) Fetch existing results for this user
@@ -44,6 +44,11 @@ def result_description(user=Depends(get_current_user)):
     Highlight the student's strengths and suggest suitable career paths and fields of study that align with their personality traits.
     Keep the response under 300 words and use a friendly, encouraging tone.
     Format the response in markdown for easy reading.
+    
+    Example Output:
+    This means you have a blend of Artistic and Investigative traits, making you well-suited for careers that involve creativity and analytical thinking. You likely enjoy exploring new ideas, expressing yourself through various art forms, and solving complex problems.
+    Suitable career paths include graphic design, architecture, writing, research, and roles in the tech industry that require innovative thinking.
+    Consider studying subjects like fine arts, computer science, psychology, or engineering to further develop your skills and interests.
     """
 
     resp_text = ask_openai(prompt)

@@ -6,39 +6,46 @@ import { supabase } from '../supabaseClient';
 import { UserAuth } from '../context/AuthContext';
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
 import { TbAugmentedReality } from "react-icons/tb";
-import { FaMagnifyingGlass } from "react-icons/fa6";
+import { LuScanSearch } from "react-icons/lu";
 import { TbPalette } from "react-icons/tb";
 import { GrGroup } from "react-icons/gr";
 import { TbBriefcase } from "react-icons/tb";
 import { TbClipboardList } from "react-icons/tb";
+import { Doughnut } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
 
-
-
+const isDarkMode = document.documentElement.classList.contains('dark');
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 const personalityDescriptions = {
   Realistic: {
     name: "Realistic",
-    summary: "Hands-on, practical, and mechanical. You enjoy working with tools, machines, or being outdoors.",
+    summary: "• Hands-on, practical, and mechanical. You enjoy working with tools, machines, or being outdoors.",
   },
   Investigative: {
     name: "Investigative",
-    summary: "Analytical, curious, and intellectual. You enjoy solving problems, researching, and understanding how things work.",
+    summary: "• Analytical, curious, and intellectual. You enjoy solving problems, researching, and understanding how things work.",
   },
   Artistic: {
     name: "Artistic",
-    summary: "Creative, expressive, and original. You enjoy design, writing, music, or other artistic pursuits.",
+    summary: "• Creative, expressive, and original. You enjoy design, writing, music, or other artistic pursuits.",
   },
   Social: {
     name: "Social",
-    summary: "Empathetic, helpful, and people-focused. You enjoy teaching, counseling, or supporting others.",
+    summary: "• Empathetic, helpful, and people-focused. You enjoy teaching, counseling, or supporting others.",
   },
   Enterprising: {
     name: "Enterprising",
-    summary: "Persuasive, confident, and ambitious. You enjoy leading, managing, or launching new ideas.",
+    summary: "• Persuasive, confident, and ambitious. You enjoy leading, managing, or launching new ideas.",
   },
   Conventional: {
     name: "Conventional",
-    summary: "Organised, detail-oriented, and structured. You enjoy working with systems, data, and routines.",
+    summary: "• Organised, detail-oriented, and structured. You enjoy working with systems, data, and routines.",
   },
 };
 
@@ -142,7 +149,6 @@ function TraitsPage() {
     );
   }
 
-  // Show error state if no result is found
   if (!result) {
     return (
       <div>
@@ -215,26 +221,88 @@ function TraitsPage() {
             )}
 
           </div>
-          <div className='card-glass-spotlight mt-6 p-6'>
-            {/* Content goes here */}
-            <p className="mt-2 text-xl">
-              What is a {" "}
-              <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-                {result?.result_summary || 'Unknown'}
-              </span>{" "}
-              type?
-            </p>
-            <p className="mt-4 text-gray-700 dark:text-gray-300">
-              {personalityResults[result?.result_summary] || "No description available."}
-            </p>
+          <div className='flex justify-evenly  gap-6 mt-6'>
+            <div className='card-glass-spotlight mt-6 p-6 w-2/3'>
+              {/* Content goes here */}
+              <p className="mt-2 text-xl">
+                What is a {" "}
+                <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                  {result?.result_summary || 'Unknown'}
+                </span>{" "}
+                type ?
+              </p>
+              <p className="mt-4 text-gray-700 dark:text-gray-300">
+                {personalityResults[result?.result_summary] || "No description available."}
+              </p>
 
+              <p className="mt-6 text-xl">
+                What does this
+                <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"> mean for you </span>
+                ?
+              </p>
+
+              <p>
+                {result?.description || "No further details available."}
+              </p>
+            </div>
+
+            <div className='card-glass-spotlight mt-6 p-6 w-1/3'>
+              <p className=" text-3xl font-semibold ">
+                RIASEC Summary
+              </p>
+              <div className="mt-14">
+                <Doughnut 
+                  data={{
+                    labels: Object.keys(result?.trait_scores || {}),
+                    datasets: [{
+                      label: 'Trait Scores (%)',
+                      data: Object.values(result?.trait_scores || {}),
+                      backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                      ],
+                      borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                      ],
+                    }],
+                  }} 
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          padding: 20,
+                          usePointStyle: true,
+                          font: {
+                            size: 12,
+                          },
+                          color: '#6b7280',
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <div className='card-glass-spotlight mt-6 p-6'>
             <p className=" text-2xl font-semibold ">
               Why the RIASEC model?
             </p>
             <p className="mt-2 text-gray-700 dark:text-gray-300 mb-4">
-              The RIASEC model, developed by John Holland, is one of the most widely used frameworks for understanding personality and career interests. It categorizes individuals into six primary types: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. By identifying your top personality traits using this model, we can provide more tailored recommendations for your educational and career paths. This helps ensure that the suggestions align with your natural preferences and strengths, ultimately leading to greater satisfaction and success in your future endeavors.
+              The RIASEC model, developed by John Holland, is one of the most widely used frameworks for understanding personality and career interests. It categorises individuals into six primary types: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. By identifying your top personality traits using this model, we can provide more tailored recommendations for your educational and career paths. This helps ensure that the suggestions align with your natural preferences and strengths, ultimately leading to greater satisfaction and success in your future endeavors.
             </p>
                 <Accordion collapseAll>
                   <AccordionPanel>
@@ -248,7 +316,7 @@ function TraitsPage() {
                   </AccordionPanel>
                   <AccordionPanel>
                     <AccordionTitle>
-                      <FaMagnifyingGlass className="inline mr-2 mb-1 text-xl text-sky-600 w-4 h-4" />
+                      <LuScanSearch className="inline mr-2 mb-1 text-xl text-sky-600 w-6 h-6" />
                       Investigative
                     </AccordionTitle>
                     <AccordionContent>
