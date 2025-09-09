@@ -561,7 +561,7 @@ function SurveyForm() {
         What degree(s) are you most interested in?
     </h2>
     <Select
-      value={careerFieldOptions}
+      value={selectedDegreeInterest}
       onChange={(e) => setSelectedDegreeInterest(e.target.value)}
     >
       <option value="" disabled>Select degree interests</option>
