@@ -9,12 +9,13 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0]
+    const fileName = file.name.replaceAll(' ','_')
     if (!file || !userId) return
 
     setLoading(true)
     try {
       // 1. build a unique path
-      const path = `${reportType}/${file.name}`
+      const path = `${reportType}/${fileName}`
       
       const { data: uploadData, error } = await supabase
         .storage
@@ -36,10 +37,17 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
         console.log(dbErr)
       }
 
+      const uploadTime = new Date().toISOString() // or Date.now() for timestamp
+
       // 5. notify parent with public URL
       const { data: publicUrlData } = await supabase.storage.from(bucket).getPublicUrl(path)
-      onUpload(publicUrlData.publicUrl)
-
+      
+      onUpload({
+        url: publicUrlData.publicUrl,
+        fileName: fileName,
+        uploadTime: uploadTime
+      })
+      
     } catch (err) {
       console.error("Upload failed:", err.message)
       alert("Failed to upload file.")
