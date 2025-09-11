@@ -617,7 +617,7 @@ function SurveyForm() {
 
   { userType == "high_school" && step === 9 && (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center  font-poppins">
+      <h2 className="text-3xl font-bold mb-6 text-center font-poppins">
         Optional: Upload your most recent school report
       </h2>
       <FileUpload
@@ -626,13 +626,36 @@ function SurveyForm() {
         bucket="reports"
         table="student_school_data"
         column="report_path"
-        onUpload={url => setReportPath(url)}
+        onUpload={async (filePath) => {
+          // Get the public URL for the unique path
+          const { data } = await supabase.storage
+            .from('reports')
+            .getPublicUrl(filePath);
+          
+          // Add cache busting parameter
+          const cacheBustedUrl = `${data.publicUrl}?v=${Date.now()}`;
+          
+          console.log('Unique file path:', filePath);
+          console.log('Public URL with cache busting:', cacheBustedUrl);
+          
+          setReportPath(cacheBustedUrl);
+        }}
       />
+      
       {reportPath && (
-        <a href={reportPath} target="_blank" className="mt-2 block underline">
-          View uploaded document
-        </a>
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-800 mb-2">✅ File uploaded successfully!</p>
+          <a 
+            href={reportPath} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View uploaded document
+          </a>
+        </div>
       )}
+      
       <div className="flex justify-between mt-6">
         <Button onClick={handlePrev}>Back</Button>
         <Button onClick={handleSubmit}>
@@ -641,8 +664,7 @@ function SurveyForm() {
       </div>
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
-    
-  )}
+)}
 
   {userType === "university" && step === 2 && (
     <div>

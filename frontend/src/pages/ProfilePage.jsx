@@ -547,7 +547,8 @@ function ProfilePage() {
                     bucket="reports"
                     table="student_school_data"
                     column="report_path"
-                    onUpload={(url) => setReportPath(url)}
+                    onUpload={(url) => 
+                      setReportPath(url)}
                   />
                 ) : (
                   <FileUpload
@@ -737,16 +738,18 @@ function ProfilePage() {
                   />
                 )}
 
-                {reportPath && (
-                  <a
-                    href={reportPath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                  >
-                    <HiExternalLink className="h-4 w-4" />
-                    View uploaded document
-                  </a>
+               {reportPath && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800 mb-2">✅ File uploaded successfully!</p>
+                    <a 
+                      href={reportPath} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline text-sm"
+                    >
+                      View uploaded document
+                    </a>
+                  </div>
                 )}
               </AuraPanel>
             </div>
