@@ -4,21 +4,20 @@ import { supabase } from "../supabaseClient"
 import { UserAuth } from "../context/AuthContext";
 
 export function FileUpload({ userId, reportType, bucket, table, column, onUpload }) {
-  const { session } = UserAuth();
-  const [loading, setLoading] = useState(false)
-  const [url, setUrl] = useState(false)
 
-  const handleFileChange = async (e) => {
+  const [loading, setLoading] = useState(false)
+
+  const handleUpload = async (e) => {
     const file = e.target.files?.[0]
+    const fileName = file.name.replaceAll(' ','_')
     if (!file || !userId) return
 
     setLoading(true)
     try {
       // 1. build a unique path
-      const ext = file.name.split(".").pop()
-      const path = `${reportType}/${userId}.${ext}`
+      const path = `${reportType}/${fileName}`
       
-      const { data, error } = await supabase
+      const { data: uploadData, error } = await supabase
         .storage
         .from(bucket)
         .upload(path, file, { upsert: true })
@@ -38,9 +37,17 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
         console.log(dbErr)
       }
 
-      // 5. notify parent
-      onUpload(path)
+      const uploadTime = new Date().toISOString() // or Date.now() for timestamp
 
+      // 5. notify parent with public URL
+      const { data: publicUrlData } = await supabase.storage.from(bucket).getPublicUrl(path)
+      
+      onUpload({
+        url: publicUrlData.publicUrl,
+        fileName: fileName,
+        uploadTime: uploadTime
+      })
+      
     } catch (err) {
       console.error("Upload failed:", err.message)
       alert("Failed to upload file.")
@@ -50,18 +57,12 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
   }
 
   return (
-
     <div className="flex w-full items-center justify-center">
       <Label
         htmlFor="dropzone-file"
-        className="relative flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg shadow-md bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-300"
+        className="flex h-44 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
       >
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/75 rounded-lg">
-            <Spinner size="lg" />
-          </div>
-        )}
-        <div className={loading ? "opacity-25" : ""}>
+        <div className="flex flex-col items-center justify-center pb-6 pt-5">
           <svg
             className="mb-4 h-8 w-8 text-gray-500 dark:text-gray-400"
             aria-hidden="true"
@@ -80,18 +81,15 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
           <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
             <span className="font-semibold">Click to upload</span> or drag and drop
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            PDF, PNG, JPG or GIF
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">PDF, PNG or JPG (MAX. 800x400px)</p>
         </div>
-        <FileInput
-          id="dropzone-file"
+        <FileInput 
+          id="dropzone-file" 
           className="hidden"
-          onChange={handleFileChange}
-          disabled={loading}
+          onChange={handleUpload}  
         />
       </Label>
     </div>
+  );
   
-  )
 }

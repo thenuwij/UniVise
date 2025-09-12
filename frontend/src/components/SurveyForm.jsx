@@ -21,6 +21,8 @@ function SurveyForm() {
   const [selectedHobby, setSelectedHobby] = useState('');
   const [selectedCareerField, setSelectedCareerField] = useState('');
   const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
+  const [fileName, setFileName] = useState('')
+  const [uploadTime, setUploadTime] = useState('')
 
   const subjectOptions = [
     "None of these",
@@ -563,7 +565,7 @@ function SurveyForm() {
         What degree(s) are you most interested in?
     </h2>
     <Select
-      value={careerFieldOptions}
+      value={selectedDegreeInterest}
       onChange={(e) => setSelectedDegreeInterest(e.target.value)}
     >
       <option value="" disabled>Select degree interests</option>
@@ -619,7 +621,7 @@ function SurveyForm() {
 
   { userType == "high_school" && step === 9 && (
     <div>
-      <h2 className="text-3xl font-bold mb-6 text-center  font-poppins">
+      <h2 className="text-3xl font-bold mb-6 text-center font-poppins">
         Optional: Upload your most recent school report
       </h2>
       <FileUpload
@@ -628,13 +630,29 @@ function SurveyForm() {
         bucket="reports"
         table="student_school_data"
         column="report_path"
-        onUpload={url => setReportPath(url)}
+        onUpload={(data) => {
+          setReportPath(data.url)
+          setFileName(data.fileName)
+          setUploadTime(data.uploadTime)  
+        }}
       />
+      
       {reportPath && (
-        <a href={reportPath} target="_blank" className="mt-2 block underline">
-          View uploaded document
-        </a>
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-800 mb-2">File uploaded successfully!</p>
+          <p className="text-sm text-green-800 mb-2">File Name: {fileName}</p>
+          <p className="text-sm text-green-800 mb-2">Uploaded Time: {uploadTime}</p>
+          <a 
+            href={reportPath} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View uploaded document
+          </a>
+        </div>
       )}
+      
       <div className="flex justify-between mt-6">
         <Button onClick={handlePrev}>Back</Button>
         <Button onClick={handleSubmit}>
@@ -643,8 +661,7 @@ function SurveyForm() {
       </div>
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
-    
-  )}
+)}
 
   {userType === "university" && step === 2 && (
     <div>
@@ -990,13 +1007,27 @@ function SurveyForm() {
         bucket="reports"
         table="student_uni_data"
         column="report_path"
-        onUpload={url => setReportPath(url)}
+        onUpload={(data) => {
+          setReportPath(data.url)
+          setFileName(data.fileName)
+          setUploadTime(data.uploadTime)
+        }}
 
       />
       {reportPath && (
-        <a href={reportPath} target="_blank" className="mt-2 block underline">
-          View uploaded document
-        </a>
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-800 mb-2">File uploaded successfully!</p>
+          <p className="text-sm text-green-800 mb-2">File Name: {fileName}</p>
+          <p className="text-sm text-green-800 mb-2">Uploaded Time: {uploadTime}</p>
+          <a 
+            href={reportPath} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View uploaded document
+          </a>
+        </div>
       )}
       <div className="flex justify-between mt-6">
         <Button onClick={handlePrev}>Back</Button>
