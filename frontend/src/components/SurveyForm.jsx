@@ -637,7 +637,9 @@ function SurveyForm() {
       
       {reportPath && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-800 mb-2">✅ File uploaded successfully!</p>
+          <p className="text-sm text-green-800 mb-2">File uploaded successfully!</p>
+          <p className="text-sm text-green-800 mb-2">File Name: {fileName}</p>
+          <p className="text-sm text-green-800 mb-2">Uploaded Time: {uploadTime}</p>
           <a 
             href={reportPath} 
             target="_blank" 
@@ -1011,9 +1013,19 @@ function SurveyForm() {
 
       />
       {reportPath && (
-        <a href={reportPath} target="_blank" className="mt-2 block underline">
-          View uploaded document
-        </a>
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-800 mb-2">File uploaded successfully!</p>
+          <p className="text-sm text-green-800 mb-2">File Name: {fileName}</p>
+          <p className="text-sm text-green-800 mb-2">Uploaded Time: {uploadTime}</p>
+          <a 
+            href={reportPath} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            View uploaded document
+          </a>
+        </div>
       )}
       <div className="flex justify-between mt-6">
         <Button onClick={handlePrev}>Back</Button>

@@ -137,7 +137,6 @@ function ProfilePage() {
   const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
   const [fileName, setFileName] = useState('')
-  const [uploadTime ,setUploadTime] = useState('')
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
@@ -228,7 +227,6 @@ function ProfilePage() {
 
           setAtar(data?.atar ?? "Not Specified");
           setYear(data?.year ?? "Not Specified");
-          setReportPath(data?.report_path ?? null);
 
           const arrStrengths = Array.isArray(data?.academic_strengths)
             ? data.academic_strengths
@@ -257,6 +255,10 @@ function ProfilePage() {
             ? data.hobbies.split(",").map((h) => h.trim()).filter(Boolean)
             : [];
           setHobbies(arrHobbies);
+          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
+          console.log(publicUrlData.publicUrl)
+          setReportPath(publicUrlData.publicUrl)
+          setFileName(data?.report_path.split('/').pop())
 
           setConfidence(data?.confidence ?? "Not Specified");
           setStudentType("High School");
@@ -275,7 +277,13 @@ function ProfilePage() {
           setHobbies(data?.hobbies ?? []);
           setConfidence(data?.confidence ?? "Not Specified");
           setYear(data?.academic_year ?? "Not Specified");
-          setReportPath(data?.report_path ?? null);
+          
+          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
+          console.log(publicUrlData.publicUrl)
+          setReportPath(publicUrlData.publicUrl)
+          setFileName(data?.report_path.split('/').pop())
+
+
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -552,7 +560,6 @@ function ProfilePage() {
                         onUpload={(data) => {
                           setReportPath(data.url)
                           setFileName(data.fileName)
-                          setUploadTime(data.uploadTime)
                         }}
                       />
                     ) : (
@@ -565,15 +572,14 @@ function ProfilePage() {
                         onUpload={(data) => {
                           setReportPath(data.url)
                           setFileName(data.fileName)
-                          setUploadTime(data.uploadTime)
                         }}
                       />
                     )
                 }
+                
                 {reportPath && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
-                    <p className="text-sm text-green-800 mb-2">Uploaded: {uploadTime}</p>
                     <a 
                       href={reportPath} 
                       target="_blank" 
@@ -741,7 +747,6 @@ function ProfilePage() {
                         onUpload={(data) => {
                           setReportPath(data.url)
                           setFileName(data.fileName)
-                          setUploadTime(data.uploadTime)
                         }}
                       />
                     ) : (
@@ -754,14 +759,12 @@ function ProfilePage() {
                         onUpload={(data) => {
                           setReportPath(data.url)
                           setFileName(data.fileName)
-                          setUploadTime(data.uploadTime)
                         }}
                       />
                     )
                   ) : (
                     <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
-                      <p className="text-sm text-green-800 mb-2">Uploaded: {uploadTime}</p>
                       <a 
                         href={reportPath} 
                         target="_blank" 
