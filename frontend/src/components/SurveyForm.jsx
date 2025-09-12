@@ -21,6 +21,8 @@ function SurveyForm() {
   const [selectedHobby, setSelectedHobby] = useState('');
   const [selectedCareerField, setSelectedCareerField] = useState('');
   const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
+  const [fileName, setFileName] = useState('')
+  const [uploadTime, setUploadTime] = useState('')
 
   const subjectOptions = [
     "None of these",
@@ -626,19 +628,10 @@ function SurveyForm() {
         bucket="reports"
         table="student_school_data"
         column="report_path"
-        onUpload={async (filePath) => {
-          // Get the public URL for the unique path
-          const { data } = await supabase.storage
-            .from('reports')
-            .getPublicUrl(filePath);
-          
-          // Add cache busting parameter
-          const cacheBustedUrl = `${data.publicUrl}?v=${Date.now()}`;
-          
-          console.log('Unique file path:', filePath);
-          console.log('Public URL with cache busting:', cacheBustedUrl);
-          
-          setReportPath(cacheBustedUrl);
+        onUpload={(data) => {
+          setReportPath(data.url)
+          setFileName(data.fileName)
+          setUploadTime(data.uploadTime)  
         }}
       />
       
@@ -1010,7 +1003,11 @@ function SurveyForm() {
         bucket="reports"
         table="student_uni_data"
         column="report_path"
-        onUpload={url => setReportPath(url)}
+        onUpload={(data) => {
+          setReportPath(data.url)
+          setFileName(data.fileName)
+          setUploadTime(data.uploadTime)
+        }}
 
       />
       {reportPath && (
