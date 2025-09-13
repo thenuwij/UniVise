@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems, SidebarLogo } from 'flowbite-react';
-import { TbMessageChatbotFilled, TbChevronLeft, TbChevronRight } from 'react-icons/tb';
+import { TbMessageChatbotFilled, TbChevronLeft, TbChevronRight, TbTrash } from 'react-icons/tb';
 import { Button } from 'flowbite-react';
 import { UserAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -12,7 +12,9 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
   const { session } = UserAuth();
   const [showModal, setShowModal] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [hoveredConversation, setHoveredConversation] = useState(null);
   const navigate = useNavigate();
+
 
   const handleCreate = async ({ title, conversationId }) => {
 
@@ -31,6 +33,44 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
     setShowModal(false);
     setConversations([...conversations, data[0]]);
     navigate(`/chat/${conversationId}`);
+  };
+
+  const deleteConversation = async (conversationId, e) => {
+    e.stopPropagation(); // Prevent navigation when clicking delete
+    
+    if (!confirm('Are you sure you want to delete this conversation?')) {
+      return;
+    }
+
+    try {
+      // Delete all messages in the conversation first
+      await supabase
+        .from("conversation_messages")
+        .delete()
+        .eq("conversation_id", conversationId);
+
+      // Then delete the conversation
+      const { error } = await supabase
+        .from("conversations")
+        .delete()
+        .eq("id", conversationId);
+
+      if (error) {
+        console.error("Error deleting conversation:", error);
+        return;
+      }
+
+      // Remove from local state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      // Navigate away if currently viewing deleted conversation
+      const currentPath = window.location.pathname;
+      if (currentPath.includes(conversationId)) {
+        navigate('/chat');
+      }
+    } catch (err) {
+      console.error("Error deleting conversation:", err);
+    }
   };
 
   useEffect(() => {
@@ -59,14 +99,15 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
       <Sidebar className="w-full h-screen">
         <SidebarItems className="h-full flex flex-col">
           {/* Toggle button */}
-          <div className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className=" border-gray-200 dark:border-gray-700 flex-shrink-0">
             <Button
               size="sm"
+              pill
               color="gray"
               onClick={() => onToggleCollapse?.(!isCollapsed)}
-              className="w-full"
+              className="w-full justify-center"
             >
-              {isCollapsed ? <TbChevronRight className="h-5 w-5" /> : <TbChevronLeft className="h-5 w-5" />}
+              {isCollapsed ? <TbChevronRight className="h-6 w-6" /> : <TbChevronLeft className="h-6 w-6" />}
             </Button>
           </div>
 
@@ -74,7 +115,8 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
           <SidebarItemGroup className="flex-shrink-0">
             {isCollapsed ? (
               <Button 
-                size="sm" 
+                size="sm"
+                pill
                 className="w-full"
                 onClick={() => setShowModal(true)}
                 title="New chat"
@@ -83,39 +125,58 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
               </Button>
             ) : (
               <Button 
-                size="lg" 
+                size="md" 
                 className="w-full" 
                 onClick={() => setShowModal(true)}
               >
-                <TbMessageChatbotFilled className="mr-3 h-8 w-8" />
+                <TbMessageChatbotFilled className="mr-3 h-6 w-6" />
                 New chat
               </Button>
             )}
           </SidebarItemGroup>
           
           {/* Scrollable chats section */}
-          <SidebarItemGroup className='flex-1 overflow-y-auto'>
+          <SidebarItemGroup className='flex-1 overflow-y-auto scrollbar-hide'>
             {!isCollapsed && (
               <h1 className='text-md ml-2 text-slate-800 dark:text-slate-300 mb-2'>Chats</h1>
             )}
             {conversations.length > 0 ? (
               conversations.map((conversation) => (
-                <SidebarItem 
-                  key={conversation.id} 
-                  onClick={() => navigate(`/chat/${conversation.id}`)} 
-                  className={`flex items-center ${isCollapsed ? 'h-12 justify-center' : 'h-14'}`}
-                  title={isCollapsed ? (conversation.title || 'Untitled Conversation') : ''}
+                <div 
+                  key={conversation.id}
+                  className="relative"
+                  onMouseEnter={() => setHoveredConversation(conversation.id)}
+                  onMouseLeave={() => setHoveredConversation(null)}
                 >
-                  {isCollapsed ? (
-                    <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {(conversation.title || 'U').charAt(0).toUpperCase()}
-                    </div>
-                  ) : (
-                    <span className="truncate">
-                      {conversation.title || 'Untitled Conversation'}
-                    </span>
-                  )}
-                </SidebarItem>
+                  <SidebarItem 
+                    onClick={() => navigate(`/chat/${conversation.id}`)} 
+                    className={`flex items-center ${isCollapsed ? 'h-12 justify-center' : 'h-14'} group cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                    title={isCollapsed ? (conversation.title || 'Untitled Conversation') : ''}
+                  >
+                    {isCollapsed ? (
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        {(conversation.title || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between w-full">
+                        <span className="truncate flex-1">
+                          {conversation.title || 'Untitled Conversation'}
+                        </span>
+                        {hoveredConversation === conversation.id && (
+                          <Button
+                            size="sm"
+                            color="failure"
+                            className="ml-2 p-1 w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => deleteConversation(conversation.id, e)}
+                            title="Delete conversation"
+                          >
+                            <TbTrash className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </SidebarItem>
+                </div>
               ))
             ) : (
               !isCollapsed && (
