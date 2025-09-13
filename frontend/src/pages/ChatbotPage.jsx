@@ -10,13 +10,14 @@ import { TbRobot } from "react-icons/tb";
 export default function ChatbotPage() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { conversationId } = useParams();
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
  return (
-  <div className="flex flex-col h-screen">
+  <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
     {/* ─── Top navbars ───────────────────────────────────────── */}
     <div>
       <DashboardNavBar onMenuClick={openDrawer} />
@@ -24,13 +25,16 @@ export default function ChatbotPage() {
     </div>
 
     {/* ─── Two-column chat layout ───────────────────────────────── */}
-    <div className="flex flex-1w-full overflow-hidden">
-      {/* Sidebar takes 1/3 */}
-      <div className="w-1/5 max-w-140 overflow-auto">
-        <ChatSidebar/>
+    <div className="flex overflow-hidden flex-1">
+      {/* Dynamic Sidebar - changes width based on collapse state */}
+      <div className={`${sidebarCollapsed ? 'w-24' : 'w-64'} flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
+        <ChatSidebar 
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={setSidebarCollapsed}
+        />
       </div>
 
-      {/* Chat window takes remaining 2/3 */}
+      {/* Chat window takes remaining space */}
       <div className="flex-1 overflow-hidden">
           {conversationId
             ? <ChatWindow convId={conversationId} />

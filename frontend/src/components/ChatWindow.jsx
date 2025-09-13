@@ -81,7 +81,7 @@ export default function ChatWindow({ convId }) {
       throw new Error(await res.text());
     }
 
-    // 1. Create a new “bot” entry with empty text
+    // 1. Create a new "bot" entry with empty text
     setMessages(ms => [
       ...ms,
       { sender: "bot", text: "", created_at: new Date().toISOString() }
@@ -122,11 +122,11 @@ export default function ChatWindow({ convId }) {
       >
         <div
           className={`
-            max-w-[60ch] p-3 text-lg break-words
+            max-w-[60ch] p-4 text-base break-words transition-all duration-200
             ${
               isUser
-                ? "bg-indigo-600 text-white rounded-bl-2xl rounded-tl-2xl rounded-tr-2xl"
-                : "bg-gray-400 text-white rounded-br-2xl rounded-tr-2xl rounded-tl-2xl"
+                ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ml-12"
+                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md mr-12 border border-gray-200 dark:border-gray-700 shadow-sm"
             }
           `}
         >
@@ -175,16 +175,15 @@ export default function ChatWindow({ convId }) {
     );
   }
 
-
 return (
-    <div className="flex flex-col h-full">
-      {/* ─── Scrollable Messages ───────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl p-4 space-y-3 h-full mt-5">
+    <div className="flex flex-col h-full relative">
+      {/* ─── Scrollable Messages (Full Height) ───────────────────────────────────────────────── */}
+      <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
+        <div className="mx-auto max-w-4xl p-4 space-y-3 mt-5 pb-32">
           {
             messages.length === 0 ? (
               <div className="text-center text-gray-500 mt-5">
-                <p className="text-lg">Hi {firstName}! What would you like to ask me?</p>
+                <p className="text-md">Hi {firstName}! What would you like to ask me?</p>
               </div>
             ) : (
               messages.map((msg, i) => (
@@ -208,42 +207,48 @@ return (
         </div>
       </div>
 
-      {/* ─── Input Bar Pinned to Bottom ─────────────────────────────────────────── */}
-      <div className="mt-auto">
-        <div className="mx-auto max-w-6xl p-4 flex gap-4 items-center">
-          <Textarea
-            ref={textAreaRef}
-            rows={1}
-            placeholder="Ask me anything..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onInput={e => {
-              e.target.style.height = "auto";
-              e.target.style.height = `${e.target.scrollHeight}px`;
-            }}
-            onKeyDown={e => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                if (loading || input.trim() === "") return;
-                sendMessage();
-              }
-            }}
-            className="
-              flex-1 resize-none overflow-y-auto max-h-48
-              text-lg p-4 rounded-2xl focus:ring-2 focus:ring-blue-300
-            "
-          />
-          <Button
-            size="lg" pill
-            className="
-              w-24 bg-gradient-to-br from-purple-600 to-blue-500
-              text-white hover:bg-gradient-to-bl rounded-2xl
-            "
-            disabled={loading || input.trim() === ""}
-            onClick={sendMessage}
-          >
-            <IoSend className="w-6 h-6" />
-          </Button>
+      {/* ─── Floating Input Bar ─────────────────────────────────────────── */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-100 via-gray-100 to-transparent dark:from-gray-900 dark:via-gray-900 dark:to-transparent pt-8 pb-4">
+        <div className="mx-auto max-w-3xl px-4">
+          <div className="relative flex items-end bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-500 shadow-xl backdrop-blur-sm">
+            <Textarea
+              ref={textAreaRef}
+              rows={1}
+              placeholder="Ask me anything..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onInput={e => {
+                e.target.style.height = "auto";
+                e.target.style.height = `${e.target.scrollHeight}px`;
+              }}
+              onKeyDown={e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (loading || input.trim() === "") return;
+                  sendMessage();
+                }
+              }}
+              className="
+                flex-1 resize-none overflow-y-auto max-h-40 min-h-[80px]
+                text-md p-6 pr-16 rounded-2xl border-0 focus:ring-0 focus:outline-none
+                bg-transparent placeholder-gray-500 scrollbar-hide
+              "
+            />
+            <Button
+              size="lg"
+              className="
+                absolute right-3 bottom-3 w-12 h-12 p-0 
+                bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
+                rounded-xl border-0 shadow-md hover:shadow-lg transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center
+              "
+              disabled={loading || input.trim() === ""}
+              onClick={sendMessage}
+            >
+              <IoSend className="w-5 h-5 text-white" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

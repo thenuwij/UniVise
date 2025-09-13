@@ -16,14 +16,14 @@
 
   
   /* Background Gradients */
-  --bg-light: #ffffff;
+  --bg-light: #f0f0f0;
   --bg-dark: #111827;
 
   /* Background Colors */
-  --bg-primary: #ffffff;
+  --bg-primary: #f0f0f0;
   --bg-secondary: #f8fafc;        /* gray-50 */
   --bg-accent: #f1f5f9;           /* gray-100 */
-  --bg-card: #ffffff;
+  --bg-card: #f0f0f0;
   
   /* Text Colors */
   --text-primary: #1f2937;        /* gray-800 */
@@ -96,7 +96,7 @@
 
 /* Global Application Background */
 body {
-  background: var(--bg);
+  background: var(--bg-light);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
