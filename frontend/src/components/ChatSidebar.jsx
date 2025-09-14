@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems, SidebarLogo } from 'flowbite-react';
-import { TbMessageChatbotFilled, TbChevronLeft, TbChevronRight, TbTrash } from 'react-icons/tb';
-import { Button } from 'flowbite-react';
+import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react';
+import { TbMessageChatbotFilled, TbTrash, TbChevronLeft} from 'react-icons/tb';
+import { Button, Modal } from 'flowbite-react';
 import { UserAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import Conversation from './Conversation';
+import { FiSidebar } from "react-icons/fi";
 
 function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
 
@@ -99,25 +100,31 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
       <Sidebar className="w-full h-screen">
         <SidebarItems className="h-full flex flex-col">
           {/* Toggle button */}
-          <div className=" border-gray-200 dark:border-gray-700 flex-shrink-0">
+          
+          <div className={`flex-shrink-0 flex ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
             <Button
               size="sm"
-              pill
-              color="gray"
+              color="alternative"
               onClick={() => onToggleCollapse?.(!isCollapsed)}
-              className="w-full justify-center"
+              className='justify-center bg-transparent border-0'
             >
-              {isCollapsed ? <TbChevronRight className="h-6 w-6" /> : <TbChevronLeft className="h-6 w-6" />}
+            { isCollapsed ? (
+              <FiSidebar className='h-6 w-6'/>
+            ) : (
+              <TbChevronLeft className='h-6 w-6'/>
+            )
+            }
+            
             </Button>
           </div>
 
           {/* New chat button section */}
-          <SidebarItemGroup className="flex-shrink-0">
+          <SidebarItemGroup className="flex-shrink-0 flex justify-center">
             {isCollapsed ? (
               <Button 
                 size="sm"
                 pill
-                className="w-full"
+                className="button-primary"
                 onClick={() => setShowModal(true)}
                 title="New chat"
               >
@@ -126,11 +133,11 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
             ) : (
               <Button 
                 size="md" 
-                className="w-full" 
+                className="w-full button-primary" 
                 onClick={() => setShowModal(true)}
               >
                 <TbMessageChatbotFilled className="mr-3 h-6 w-6" />
-                New chat
+                New Chat
               </Button>
             )}
           </SidebarItemGroup>

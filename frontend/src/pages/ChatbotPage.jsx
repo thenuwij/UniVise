@@ -38,8 +38,8 @@ export default function ChatbotPage() {
       <div className="flex-1 overflow-hidden">
           {conversationId
             ? <ChatWindow convId={conversationId} />
-            : <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                <TbRobot className="inline-block mb-2 w-20 h-20 text-gray-400 animate-bounce"/>
+            : <div className="h-full flex flex-col items-center justify-center text-gray-500 text-md">
+                <TbRobot className="inline-block mb-2 w-12 h-12 text-gray-400 animate-bounce"/>
                 Select or create a new chat to begin.
               </div>
           }
