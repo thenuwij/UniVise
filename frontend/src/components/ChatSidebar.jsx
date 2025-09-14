@@ -138,7 +138,7 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
           {/* Scrollable chats section */}
           <SidebarItemGroup className='flex-1 overflow-y-auto scrollbar-hide'>
             {!isCollapsed && (
-              <h1 className='text-md ml-2 text-slate-800 dark:text-slate-300 mb-2'>Chats</h1>
+              <h1 className='text-sm ml-2 text-slate-800 dark:text-slate-300 mb-2'>Chats</h1>
             )}
             {conversations.length > 0 ? (
               conversations.map((conversation) => (
@@ -154,12 +154,12 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
                     title={isCollapsed ? (conversation.title || 'Untitled Conversation') : ''}
                   >
                     {isCollapsed ? (
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-semibold text-md mr-2">
                         {(conversation.title || 'U').charAt(0).toUpperCase()}
                       </div>
                     ) : (
                       <div className="flex items-center justify-between w-full">
-                        <span className="truncate flex-1">
+                        <span className="truncate flex-1 text-sm">
                           {conversation.title || 'Untitled Conversation'}
                         </span>
                         {hoveredConversation === conversation.id && (
