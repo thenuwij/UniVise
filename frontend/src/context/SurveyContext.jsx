@@ -22,7 +22,7 @@ export const SurveyContextProvider = ({ children }) => {
           .eq("user_id", userId)
           .single();
 
-        console.log("High school data lookup result:", data);
+        // console.log("High school data lookup result:", data);
 
         if (data) setHasCompletedSurvey(true);
       }
@@ -36,7 +36,7 @@ export const SurveyContextProvider = ({ children }) => {
           .eq("user_id", userId)
           .single();
 
-        console.log("University data lookup result:", data);
+        // console.log("University data lookup result:", data);
 
         if (data) setHasCompletedSurvey(true);
       }

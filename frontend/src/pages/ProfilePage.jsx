@@ -136,6 +136,7 @@ function ProfilePage() {
   const [reportPath, setReportPath] = useState(null);
   const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
+  const [fileName, setFileName] = useState('')
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
@@ -226,7 +227,6 @@ function ProfilePage() {
 
           setAtar(data?.atar ?? "Not Specified");
           setYear(data?.year ?? "Not Specified");
-          setReportPath(data?.report_path ?? null);
 
           const arrStrengths = Array.isArray(data?.academic_strengths)
             ? data.academic_strengths
@@ -255,6 +255,10 @@ function ProfilePage() {
             ? data.hobbies.split(",").map((h) => h.trim()).filter(Boolean)
             : [];
           setHobbies(arrHobbies);
+          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
+          console.log(publicUrlData.publicUrl)
+          setReportPath(publicUrlData.publicUrl)
+          setFileName(data?.report_path.split('/').pop())
 
           setConfidence(data?.confidence ?? "Not Specified");
           setStudentType("High School");
@@ -273,7 +277,13 @@ function ProfilePage() {
           setHobbies(data?.hobbies ?? []);
           setConfidence(data?.confidence ?? "Not Specified");
           setYear(data?.academic_year ?? "Not Specified");
-          setReportPath(data?.report_path ?? null);
+          
+          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
+          console.log(publicUrlData.publicUrl)
+          setReportPath(publicUrlData.publicUrl)
+          setFileName(data?.report_path.split('/').pop())
+
+
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -541,35 +551,44 @@ function ProfilePage() {
                 {/* Keep your existing FileUpload wiring here */}
                 {/* Example (unchanged): */}
                 {isHS ? (
-                  <FileUpload
-                    userId={userId}
-                    reportType={"highschool_reports"}
-                    bucket="reports"
-                    table="student_school_data"
-                    column="report_path"
-                    onUpload={(url) => setReportPath(url)}
-                  />
-                ) : (
-                  <FileUpload
-                    userId={userId}
-                    reportType={"uni_transcripts"}
-                    bucket="reports"
-                    table="student_uni_data"
-                    column="report_path"
-                    onUpload={(url) => setReportPath(url)}
-                  />
-                )}
-
+                      <FileUpload
+                        userId={userId}
+                        reportType={"highschool_reports"}
+                        bucket="reports"
+                        table="student_school_data"
+                        column="report_path"
+                        onUpload={(data) => {
+                          setReportPath(data.url)
+                          setFileName(data.fileName)
+                        }}
+                      />
+                    ) : (
+                      <FileUpload
+                        userId={userId}
+                        reportType={"uni_transcripts"}
+                        bucket="reports"
+                        table="student_uni_data"
+                        column="report_path"
+                        onUpload={(data) => {
+                          setReportPath(data.url)
+                          setFileName(data.fileName)
+                        }}
+                      />
+                    )
+                }
+                
                 {reportPath && (
-                  <a
-                    href={reportPath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                  >
-                    <HiExternalLink className="h-4 w-4" />
-                    View uploaded document
-                  </a>
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
+                    <a 
+                      href={reportPath} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline text-sm"
+                    >
+                      View uploaded document
+                    </a>
+                  </div>
                 )}
               </AuraPanel>
             </div>
@@ -717,37 +736,45 @@ function ProfilePage() {
                 icon={HiOutlineDocumentText}
                 hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
               >
-                {isHS ? (
-                  <FileUpload
-                    userId={userId}
-                    reportType={"highschool_reports"}
-                    bucket="reports"
-                    table="student_school_data"
-                    column="report_path"
-                    onUpload={(url) => setReportPath(url)}
-                  />
-                ) : (
-                  <FileUpload
-                    userId={userId}
-                    reportType={"uni_transcripts"}
-                    bucket="reports"
-                    table="student_uni_data"
-                    column="report_path"
-                    onUpload={(url) => setReportPath(url)}
-                  />
-                )}
-
-                {reportPath && (
-                  <a
-                    href={reportPath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                  >
-                    <HiExternalLink className="h-4 w-4" />
-                    View uploaded document
-                  </a>
-                )}
+                {!reportPath ? (
+                    isHS ? (
+                      <FileUpload
+                        userId={userId}
+                        reportType={"highschool_reports"}
+                        bucket="reports"
+                        table="student_school_data"
+                        column="report_path"
+                        onUpload={(data) => {
+                          setReportPath(data.url)
+                          setFileName(data.fileName)
+                        }}
+                      />
+                    ) : (
+                      <FileUpload
+                        userId={userId}
+                        reportType={"uni_transcripts"}
+                        bucket="reports"
+                        table="student_uni_data"
+                        column="report_path"
+                        onUpload={(data) => {
+                          setReportPath(data.url)
+                          setFileName(data.fileName)
+                        }}
+                      />
+                    )
+                  ) : (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
+                      <a 
+                        href={reportPath} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline text-sm"
+                      >
+                        View uploaded document
+                      </a>
+                    </div>
+                  )}
               </AuraPanel>
             </div>
           </div>
