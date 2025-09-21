@@ -7,7 +7,13 @@
  */
 export default function Pill({ children }) {
   return (
-    <span className="px-3 py-1 rounded-full text-sm bg-gradient-to-br from-sky-50 to-blue-50 text-slate-700 border border-slate-200">
+    <span
+      className="
+        px-3 py-1 rounded-full text-sm
+        bg-accent text-secondary border border-border-light
+        dark:bg-slate-800 dark:text-primary dark:border-border-medium
+      "
+    >
       {children}
     </span>
   );

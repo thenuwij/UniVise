@@ -437,3 +437,50 @@ body {
 .heading-md {
   @apply text-xl font-semibold;
 }
+
+/* ========================================
+   ROADMAP PAGE STYLES
+======================================== */
+
+.roadmap-page {
+  @apply relative min-h-screen;
+  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+}
+
+.dark .roadmap-page {
+  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+}
+
+/* Ambient glow blobs */
+.roadmap-glow-top {
+  @apply absolute -top-24 -left-24 rounded-full blur-3xl pointer-events-none;
+  width: 18rem;
+  height: 18rem;
+  background: linear-gradient(to bottom right, rgba(56,189,248,0.2), rgba(59,130,246,0.2));
+}
+.dark .roadmap-glow-top {
+  background: linear-gradient(to bottom right, rgba(59,130,246,0.15), rgba(99,102,241,0.15));
+}
+
+.roadmap-glow-bottom {
+  @apply absolute bottom-0 right-0 rounded-full blur-3xl pointer-events-none;
+  width: 24rem;
+  height: 24rem;
+  background: linear-gradient(to bottom right, rgba(191,219,254,0.25), rgba(199,210,254,0.25));
+}
+.dark .roadmap-glow-bottom {
+  background: linear-gradient(to bottom right, rgba(59,130,246,0.15), rgba(99,102,241,0.15));
+}
+
+/* Callout box */
+.roadmap-callout {
+  @apply rounded-3xl p-6 text-sm;
+  background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-accent));
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+.dark .roadmap-callout {
+  background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-primary));
+  border: 1px solid var(--border-medium);
+  color: var(--text-muted);
+}

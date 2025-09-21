@@ -36,8 +36,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
       query.length === 0 ||
       deg.program_name.toLowerCase().includes(query.toLowerCase());
 
-    const matchesFaculty =
-      !facultyFilter || deg.faculty === facultyFilter;
+    const matchesFaculty = !facultyFilter || deg.faculty === facultyFilter;
 
     return matchesQuery && matchesFaculty;
   });
@@ -104,7 +103,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
                   }}
                   className={`cursor-pointer card-base transition-transform duration-200 ${
                     isSelected
-                      ? "border-2 border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-slate-800 scale-[1.02]"
+                      ? "border-2 border-[var(--color-primary)] bg-accent dark:bg-secondary scale-[1.02]"
                       : "hover:shadow-md hover:scale-[1.01]"
                   }`}
                 >

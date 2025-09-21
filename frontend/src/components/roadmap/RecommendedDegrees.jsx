@@ -70,7 +70,7 @@ function RecommendedDegrees({
                 : "hover:shadow-md hover:scale-[1.01]"
             }`}
           >
-            <h3 className="heading-md mb-2 text-sky-700 dark:text-sky-400">
+            <h3 className="heading-md mb-2 text-brand">
               {degree_name}
             </h3>
             {userType === "high_school" && (
