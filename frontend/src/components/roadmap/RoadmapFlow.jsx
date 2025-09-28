@@ -1,27 +1,19 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * RoadmapFlow
- * Props:
- *  - steps: [{ key: 'entry', title: 'Entry Requirements', render: () => JSX }]
- *  - activeIndex: number
- *  - onChange: (index:number) => void
- *  - verticalOnMobile: boolean (default true)
- */
 export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, verticalOnMobile = true }) {
   const containerRef = useRef(null);
 
-  // Keyboard nav (←/→) and (↑/↓)
+  // Keyboard nav
   useEffect(() => {
     const handler = (e) => {
       if (!steps.length) return;
       if (["ArrowRight","ArrowDown"].includes(e.key)) {
         e.preventDefault();
-        onChange && onChange(Math.min(activeIndex + 1, steps.length - 1));
+        onChange?.(Math.min(activeIndex + 1, steps.length - 1));
       } else if (["ArrowLeft","ArrowUp"].includes(e.key)) {
         e.preventDefault();
-        onChange && onChange(Math.max(activeIndex - 1, 0));
+        onChange?.(Math.max(activeIndex - 1, 0));
       }
     };
     window.addEventListener("keydown", handler);
@@ -33,12 +25,21 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
       {/* PATH + NODES */}
       <div className={`${verticalOnMobile ? "flex-col gap-6" : ""} flex md:flex-col`}>
         <div className="relative">
-          {/* SVG path (horizontal on desktop, stacked on mobile using grid) */}
+          {/* SVG path (desktop) */}
           <div className="hidden md:block">
             <svg className="w-full h-16" viewBox="0 0 100 16" preserveAspectRatio="none">
-              <path d="M2,8 L98,8" stroke="#e5e7eb" strokeWidth="0.8" fill="none" />
-              {/* active progress */}
-              <path d={`M2,8 L${2 + (96 * (activeIndex/(Math.max(steps.length-1,1))))},8`} stroke="#0f172a" strokeWidth="1.2" fill="none" />
+              <path
+                d="M2,8 L98,8"
+                stroke="var(--border-light)"
+                strokeWidth="0.8"
+                fill="none"
+              />
+              <path
+                d={`M2,8 L${2 + (96 * (activeIndex / (Math.max(steps.length - 1, 1))))},8`}
+                stroke="var(--text-primary)"
+                strokeWidth="1.2"
+                fill="none"
+              />
             </svg>
           </div>
 
@@ -50,19 +51,24 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
               return (
                 <button
                   key={s.key}
-                  onClick={() => onChange && onChange(i)}
+                  onClick={() => onChange?.(i)}
                   className="group flex flex-col items-center focus:outline-none"
                   aria-current={active ? "step" : undefined}
                 >
                   <div
                     className={[
                       "h-5 w-5 rounded-full border transition-all",
-                      active ? "bg-slate-900 border-slate-900 scale-110" :
-                      completed ? "bg-slate-700 border-slate-700" : "bg-white border-slate-300"
+                      active
+                        ? "bg-primary border-primary scale-110"
+                        : completed
+                        ? "bg-secondary border-secondary"
+                        : "bg-card border-border-light dark:border-border-medium"
                     ].join(" ")}
                     title={s.title}
                   />
-                  <div className="mt-2 text-xs text-slate-600 group-hover:text-slate-900">{s.title}</div>
+                  <div className="mt-2 text-xs text-secondary group-hover:text-primary transition-colors">
+                    {s.title}
+                  </div>
                 </button>
               );
             })}
@@ -76,15 +82,22 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
               return (
                 <button
                   key={s.key}
-                  onClick={() => onChange && onChange(i)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border hover:bg-slate-50 transition"
+                  onClick={() => onChange?.(i)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-border-light dark:border-border-medium hover:bg-accent dark:hover:bg-secondary transition"
                 >
-                  <span className={[
-                    "h-3 w-3 rounded-full border",
-                    active ? "bg-slate-900 border-slate-900" :
-                    completed ? "bg-slate-700 border-slate-700" : "bg-white border-slate-300"
-                  ].join(" ")} />
-                  <span className={`text-sm ${active ? "font-medium text-slate-900" : "text-slate-600"}`}>{s.title}</span>
+                  <span
+                    className={[
+                      "h-3 w-3 rounded-full border",
+                      active
+                        ? "bg-primary border-primary"
+                        : completed
+                        ? "bg-secondary border-secondary"
+                        : "bg-card border-border-light dark:border-border-medium"
+                    ].join(" ")}
+                  />
+                  <span className={`text-sm ${active ? "font-medium text-primary" : "text-secondary"}`}>
+                    {s.title}
+                  </span>
                 </button>
               );
             })}
@@ -109,16 +122,16 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
         {/* Prev/Next */}
         <div className="mt-6 flex justify-between">
           <button
-            onClick={() => onChange && onChange(Math.max(activeIndex - 1, 0))}
+            onClick={() => onChange?.(Math.max(activeIndex - 1, 0))}
             disabled={activeIndex === 0}
-            className="px-4 py-2 rounded-xl border disabled:opacity-50"
+            className="button-base button-secondary disabled:opacity-50"
           >
             Prev
           </button>
           <button
-            onClick={() => onChange && onChange(Math.min(activeIndex + 1, steps.length - 1))}
+            onClick={() => onChange?.(Math.min(activeIndex + 1, steps.length - 1))}
             disabled={activeIndex === steps.length - 1}
-            className="px-4 py-2 rounded-xl border disabled:opacity-50"
+            className="button-base button-secondary disabled:opacity-50"
           >
             Next
           </button>

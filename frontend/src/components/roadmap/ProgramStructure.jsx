@@ -10,10 +10,10 @@ function SumUoC(list = []) {
 function TermColumn({ term }) {
   const total = SumUoC(term?.courses || []);
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/60 p-4">
+    <div className="rounded-2xl border border-border-light dark:border-border-medium bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold">{term.term}</div>
-        <div className="text-xs rounded-full border border-slate-200 px-2 py-0.5">
+        <div className="text-sm font-semibold text-primary">{term.term}</div>
+        <div className="text-xs rounded-full border border-border-light dark:border-border-medium px-2 py-0.5 text-secondary">
           {total} UoC
         </div>
       </div>
@@ -29,7 +29,7 @@ function TermColumn({ term }) {
           />
         ))}
         {(!term.courses || term.courses.length === 0) && (
-          <li className="text-sm text-slate-500">No courses listed.</li>
+          <li className="text-sm text-secondary">No courses listed.</li>
         )}
       </ul>
     </div>
@@ -43,10 +43,10 @@ function YearUNSW({ y }) {
   const yearUoC = terms.reduce((s, t) => s + SumUoC(t?.courses || []), 0);
 
   return (
-    <div className="rounded-2xl border border-slate-200 p-4">
+    <div className="rounded-2xl border border-border-light dark:border-border-medium bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="font-medium">Year {y?.year ?? "—"}</div>
-        <div className="text-xs rounded-full border border-slate-200 px-2 py-0.5">
+        <div className="font-medium text-primary">Year {y?.year ?? "—"}</div>
+        <div className="text-xs rounded-full border border-border-light dark:border-border-medium px-2 py-0.5 text-secondary">
           Year total {yearUoC} UoC
         </div>
       </div>
@@ -60,22 +60,29 @@ function YearUNSW({ y }) {
 function YearSchool({ y }) {
   // Backward-compatible: original flat list rendering for “school” mode
   return (
-    <div className="p-4 rounded-2xl border border-slate-200">
+    <div className="p-4 rounded-2xl border border-border-light dark:border-border-medium bg-card">
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-2 w-2 rounded-full bg-slate-300" />
-        <div className="font-medium">Year {y?.year ?? "—"}</div>
+        <div className="h-2 w-2 rounded-full bg-accent dark:bg-secondary" />
+        <div className="font-medium text-primary">Year {y?.year ?? "—"}</div>
       </div>
 
-      {y?.overview && <p className="text-slate-700 mb-3">{y.overview}</p>}
+      {y?.overview && <p className="text-primary mb-3">{y.overview}</p>}
 
       {Array.isArray(y?.courses) && y.courses.length > 0 ? (
         <ul className="space-y-2">
           {y.courses.map((c, j) => (
-            <CourseChip key={j} code={c.code} title={c.title} term={c.term} uoc={c.uoc} type={c.type} />
+            <CourseChip
+              key={j}
+              code={c.code}
+              title={c.title}
+              term={c.term}
+              uoc={c.uoc}
+              type={c.type}
+            />
           ))}
         </ul>
       ) : (
-        <div className="text-sm text-slate-500">No courses listed.</div>
+        <div className="text-sm text-secondary">No courses listed.</div>
       )}
     </div>
   );
@@ -97,7 +104,7 @@ export default function ProgramStructure({ years = [], unsw = false }) {
               {years.map((y, i) => <YearUNSW key={i} y={y} />)}
             </div>
           ) : (
-            <div className="text-sm text-slate-500">No years found.</div>
+            <div className="text-sm text-secondary">No years found.</div>
           )
         ) : (
           // School layout fallback (original behavior)
