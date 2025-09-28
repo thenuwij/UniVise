@@ -194,6 +194,36 @@ body {
   @apply border-slate-600 bg-slate-800;
 }
 
+
+/* New flexible base (no border) */
+.card-flex {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.card-flex:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+
+/* Button Components */
+.button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+}
+
 .button-primary {
   background-color: #426fe9;
   color: #FFFF; /* Fixed missing semicolon */
@@ -202,6 +232,18 @@ body {
 .button-primary:hover {
   background-color: #2748b8; /* Darker blue */
 }
+
+/* Big Page Buttons */
+.page-button {
+  @apply bg-gradient-to-br from-purple-600 to-blue-500 text-white
+         hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300 
+         dark:focus:ring-blue-800 transition-all duration-300;
+}
+
+.page-button-disabled {
+  @apply bg-gradient-to-br from-purple-300 to-blue-300 text-white cursor-not-allowed;
+}
+
 
 /* Form Components */
 .input-base {
@@ -225,6 +267,16 @@ body {
   color: var(--text-muted);
 }
 
+/* Search / selector inputs */
+.input-selector {
+  @apply w-full px-4 py-3 border rounded-xl shadow-md
+         text-lg
+         focus:outline-none focus:ring-2 focus:ring-indigo-400;
+}
+
+.input-selector::placeholder {
+  @apply text-gray-400;
+}
 /* Text Utilities */
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
@@ -351,3 +403,68 @@ body {
   box-shadow: var(--shadow-lg) !important;
 }
 
+/* ========================================
+   TYPOGRAPHY UTILITIES
+======================================== */
+
+/* Big page titles */
+.heading-xl {
+  @apply text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight;
+}
+
+/* Section titles (like "Recommended Degrees") */
+.heading-lg {
+  @apply text-2xl sm:text-3xl font-bold;
+}
+
+/* Sub-headings / card titles */
+.heading-md {
+  @apply text-xl font-semibold;
+}
+
+/* ========================================
+   ROADMAP PAGE STYLES
+======================================== */
+
+.roadmap-page {
+  @apply relative min-h-screen;
+  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+}
+
+.dark .roadmap-page {
+  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+}
+
+/* Ambient glow blobs */
+.roadmap-glow-top {
+  @apply absolute -top-24 -left-24 rounded-full blur-3xl pointer-events-none;
+  width: 18rem;
+  height: 18rem;
+  background: linear-gradient(to bottom right, rgba(56,189,248,0.2), rgba(59,130,246,0.2));
+}
+.dark .roadmap-glow-top {
+  background: linear-gradient(to bottom right, rgba(59,130,246,0.15), rgba(99,102,241,0.15));
+}
+
+.roadmap-glow-bottom {
+  @apply absolute bottom-0 right-0 rounded-full blur-3xl pointer-events-none;
+  width: 24rem;
+  height: 24rem;
+  background: linear-gradient(to bottom right, rgba(191,219,254,0.25), rgba(199,210,254,0.25));
+}
+.dark .roadmap-glow-bottom {
+  background: linear-gradient(to bottom right, rgba(59,130,246,0.15), rgba(99,102,241,0.15));
+}
+
+/* Callout box */
+.roadmap-callout {
+  @apply rounded-3xl p-6 text-sm;
+  background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-accent));
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+.dark .roadmap-callout {
+  background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-primary));
+  border: 1px solid var(--border-medium);
+  color: var(--text-muted);
+}
