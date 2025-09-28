@@ -35,6 +35,7 @@ export default function MyPlannerCard() {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
                 onClick={() => navigate("/roadmap")}
+                className="button-primary"
                 pill
               >
                 Open Roadmap
@@ -52,6 +53,7 @@ export default function MyPlannerCard() {
               <Button
                 onClick={() => navigate("/planner")}
                 pill
+              className="button-primary"
               >
                 Open My Planner
                 <svg

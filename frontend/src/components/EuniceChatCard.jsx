@@ -57,6 +57,7 @@ export default function EuniceChatCard({ userType }) {
           <Button
             onClick={() => navigate("/chat")} // change route if needed
             pill
+            className="button-primary"
           >
             <span className="relative inline-flex items-center">
               <HiSparkles className="mr-2 h-4 w-4 opacity-90 group-hover:scale-110 transition" />

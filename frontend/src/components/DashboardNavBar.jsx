@@ -50,14 +50,17 @@ export function DashboardNavBar({ onMenuClick }) {
 
   return (
     <div id="header">
-      <Navbar fluid className="h-16">
+      <Navbar fluid className="h-16 border-2">
         <LuMenu className="w-8 h-8 ml-4 mb-4 hover:transform hover:scale-114 transition-transform duration-200" onClick={onMenuClick}/>
-        <NavbarBrand>
+        <NavbarBrand
+          className="cursor-pointer"
+          onClick={() => {navigate('/dashboard')}}
+        >
           <img src={logo} className="h-14 w-14 mb-1"/>
-          <span className="self-center whitespace-nowrap text-3xl font-semibold mb-3">Univise</span>
+          <span className="self-center whitespace-nowrap text-3xl mb-3">Univise</span>
         </NavbarBrand>
         <div className="flex items-center gap-4"> 
-          <DarkThemeToggle className="mb-4 mr-4"/>
+          <DarkThemeToggle className="mb-4 mr-4 transition-all duration-300 ease-in-out hover:scale-105"/>
           <Dropdown
             arrowIcon={false}
             inline

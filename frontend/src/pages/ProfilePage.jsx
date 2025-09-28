@@ -15,6 +15,8 @@ import {
 } from "flowbite-react";
 import { HiX, HiOutlineAcademicCap, HiOutlineUserCircle, HiExternalLink } from "react-icons/hi";
 import { HiOutlineIdentification, HiOutlineDocumentText } from "react-icons/hi2";
+import { FaRegEdit } from "react-icons/fa";
+
 
 // ---------- UI helpers ----------
 function AuraPanel({ title, icon: Icon, children, hint }) {
@@ -325,8 +327,11 @@ function ProfilePage() {
                 </Button>
               </div>
             ) : (
-              <Button pill onClick={() => setIsEditing(true)}>
-                Edit
+              <Button 
+                size='sm'
+                className='border-0 button-primary'
+                onClick={() => setIsEditing(true)}>
+                <FaRegEdit className='w-5 h-5'/>
               </Button>
             )}
           </div>

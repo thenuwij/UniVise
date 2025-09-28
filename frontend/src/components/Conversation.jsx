@@ -27,7 +27,7 @@ export default function Conversation({ show, onClose, onSave }) {
   return (
     <Modal show={show} size="md" onClose={onClose} popup>
       <ModalHeader>
-        <p className="text-lg font-medium p-4">Chat Name</p>
+        <p className="text-lg font-medium p-4">Topic to discuss</p>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
@@ -37,7 +37,7 @@ export default function Conversation({ show, onClose, onSave }) {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. My recommendations"
+              placeholder="e.g. How does ATAR Scaling work?"
             />
           </div>
           <div className="flex justify-end gap-2">
