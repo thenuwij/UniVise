@@ -4,7 +4,7 @@ import { MenuBar } from '../components/MenuBar'
 import { DashboardNavBar } from '../components/DashboardNavBar'
 import { supabase } from '../supabaseClient';
 import { UserAuth } from '../context/AuthContext';
-import { Accordion, AccordionContent, AccordionPanel, AccordionTitle, Button } from "flowbite-react";
+import { Accordion, AccordionContent, AccordionPanel, AccordionTitle, Button, TextInput } from "flowbite-react";
 import { TbAugmentedReality } from "react-icons/tb";
 import { LuScanSearch } from "react-icons/lu";
 import { TbPalette } from "react-icons/tb";
@@ -18,6 +18,9 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+
+import { TraitsMatcher } from '../components/TraitsMatcher'
+
 
 const isDarkMode = document.documentElement.classList.contains('dark');
 ChartJS.register(ArcElement, Tooltip, Legend)
@@ -94,9 +97,10 @@ function TraitsPage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
   const navigate = useNavigate();
-  const { session } = UserAuth();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { session } = UserAuth();
+  const userType = session?.user?.user_metadata?.student_type;
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -246,7 +250,9 @@ function TraitsPage() {
               </p>
             </div>
 
+
             <div className='card-glass-spotlight mt-6 p-6 w-1/3'>
+            
               <p className=" text-3xl font-semibold ">
                 RIASEC Summary
               </p>
@@ -296,6 +302,14 @@ function TraitsPage() {
                 />
               </div>
             </div>
+          </div>
+          <div className='card-glass-spotlight mt-6 p-6'>
+            <p>Match your Trait with your career!</p>
+            <TraitsMatcher
+              RIASEC={result?.result_summary}
+              userType={userType}
+              traitScore={result?.trait_scores}
+            />
           </div>
           <div className='card-glass-spotlight mt-6 p-6'>
             <p className=" text-2xl font-semibold ">
