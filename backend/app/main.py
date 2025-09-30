@@ -8,7 +8,7 @@ from app.routers.final_plan import router as final_plan_router
 from app.routers.ai_advisor import router as smart_summary_router
 from app.routers import mindmesh_ai
 from app.routers import traits
-
+from app.routers import health
 
 app = FastAPI()
 
@@ -39,3 +39,4 @@ app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
 app.include_router(mindmesh_ai.router, prefix="/mindmesh", tags=["MindMesh"])
 app.include_router(smart_related.router)
 app.include_router(traits.router, prefix="/traits", tags=["Traits"])
+app.include_router(health.router, prefix="/health", tags=["Health"])
