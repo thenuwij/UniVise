@@ -9,7 +9,7 @@ import { Select, Label } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
 
 function SurveyForm() {
-  const api_url = import.meta.env.API_URL
+  const api_url = import.meta.env.VITE_API_URL
 
   const { session } = UserAuth();
   const navigate = useNavigate();

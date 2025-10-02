@@ -8,6 +8,8 @@ import { MenuBar } from "../components/MenuBar";
 import { Button } from "flowbite-react";
 import { Header } from "../components/Header";
 
+  const api_url = import.meta.env.VITE_API_URL
+
 const personalityDescriptions = {
   Realistic: {
     name: "Realistic",
@@ -123,7 +125,7 @@ const PersonalityResultPage = () => {
   const closeDrawer = () => setIsOpen(false);
   
   const generateTraitDescription = async () => {
-    const resp = await fetch('http://localhost:8000/traits/results', {
+    const resp = await fetch(`${api_url}/traits/results`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${session?.access_token}` },
     });
