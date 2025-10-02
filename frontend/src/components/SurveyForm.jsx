@@ -130,7 +130,7 @@ function SurveyForm() {
 
   const analyseFile = async () => {
     try {
-      const resp = await fetch(`${api_url}}/reports/analyse`, {
+      const resp = await fetch(`${api_url}/reports/analyse`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,

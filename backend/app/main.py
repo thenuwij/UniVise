@@ -12,12 +12,13 @@ from app.routers import health
 
 app = FastAPI()
 
-raw = os.getenv("FRONTEND_ORIGINS", "")
-ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in raw.split(",") if o.strip()]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # e.g. ["http://localhost:5173","https://uni-vise-delta.vercel.app"]
+    allow_origins=[
+        "https://uni-vise-3gs7zw1wj-univise.vercel.app",  # Your Vercel domain
+        "http://localhost:3000",  # For local testing
+        "http://localhost:5173",  # If using Vite
+    ],
     allow_credentials=True,  # set False if you don’t need cookies/auth’ed xhr
     allow_methods=["*"],
     allow_headers=["*"],
