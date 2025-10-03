@@ -12,16 +12,24 @@ from app.routers import health
 
 app = FastAPI()
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://uni-vise-3gs7zw1wj-univise.vercel.app",  # Your Vercel domain
-        "http://localhost:3000",  # For local testing
-        "http://localhost:5173",  # If using Vite
+        "https://uni-vise-delta.vercel.app",  # your frontend
+        "http://localhost:3000",  # local dev
+        "http://localhost:5173",  # if using Vite
+        "https://*.ngrok-free.dev",  # any ngrok-free subdomain
+        "https://*.vercel.app",  # any vercel subdomain
     ],
-    allow_credentials=True,  # set False if you don’t need cookies/auth’ed xhr
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origin_regex=r"https://.*\.ngrok-free\.(dev|app)$",  # any ngrok-free subdomain
+    allow_credentials=True,  # only if you use cookies/auth sessions
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "*"
+    ],  # or list specific ones you send (Authorization, Content-Type, etc.)
+    expose_headers=["*"],  # optional: expose any custom response headers
+    max_age=3600,  # optional: cache preflight for 1h
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
