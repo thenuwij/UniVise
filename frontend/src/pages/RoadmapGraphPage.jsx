@@ -1,26 +1,15 @@
 // src/pages/RoadmapGraphPage.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ForceGraph2D from "react-force-graph-2d";
 import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import AutoLayoutControls from "../components/mindmesh/AutoLayoutControls";
 
-
 export default function RoadmapGraphPage() {
+  const { degreeCode } = useParams(); // from /roadmap-graph/:degreeCode
   const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-
-  const DEFAULT_DEGREE_CODE = "3778"; // TODO: Replace with user selection
-  const degreeCode =
-    searchParams.get("degree") ??
-    location?.state?.degreeCode ??
-    location?.state?.degree_code ??
-    location?.state?.degree?.code ??
-    location?.state?.degree?.degree_code ??
-    DEFAULT_DEGREE_CODE;
 
   const [isOpen, setIsOpen] = useState(false);
   const [graph, setGraph] = useState({ nodes: [], links: [] });
@@ -31,15 +20,14 @@ export default function RoadmapGraphPage() {
   const containerRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ w: 1200, h: 700 });
 
-
-  // Resize canvas to the container width + viewport height minus top bars
+  // Resize canvas to container
   useEffect(() => {
     if (!containerRef.current) return;
 
     const computeSize = () => {
       const rect = containerRef.current.getBoundingClientRect();
       const viewportH = window.innerHeight;
-      const reserved = 140; // approx space used by nav + top bar
+      const reserved = 140;
       const h = Math.max(420, viewportH - reserved);
       setCanvasSize({ w: Math.floor(rect.width), h });
     };
@@ -57,100 +45,52 @@ export default function RoadmapGraphPage() {
 
   // Fetch graph (nodes + edges)
   const fetchGraph = useCallback(async () => {
-    if (!degreeCode) {
-      setGraph({ nodes: [], links: [] });
-      return;
-    }
+    if (!degreeCode) return;
 
     try {
-      const { data: degreeRows, error: degreeErr } = await supabase
-        .from("degree_courses")
-        .select("course_id")
+      // 1. Get edges for this degree
+      const { data: edges, error: eErr } = await supabase
+        .from("course_edges")
+        .select("from_course, to_course, edge_type")
         .eq("degree_code", degreeCode);
 
-      if (degreeErr) throw degreeErr;
-
-      const courseIds = (degreeRows ?? [])
-        .map((row) => row.course_id ?? row.courseId ?? row.course_uuid ?? row.course_code ?? row.course)
-        .filter(Boolean);
-
-      if (courseIds.length === 0) {
+      if (eErr) throw eErr;
+      if (!edges || edges.length === 0) {
         setGraph({ nodes: [], links: [] });
         return;
       }
 
-      const { data: courseRows, error: courseErr } = await supabase
+      // 2. Collect all course codes
+      const courseCodes = [
+        ...new Set(edges.flatMap(e => [e.from_course, e.to_course]))
+      ];
+
+      // 3. Fetch course metadata
+      const { data: courses, error: cErr } = await supabase
         .from("unsw_courses")
-        .select("id, code, title, name, uoc, offering_terms, level, faculty, school")
-        .in("id", courseIds);
+        .select("id, code, title, uoc")
+        .in("code", courseCodes);
 
-      if (courseErr) throw courseErr;
+      if (cErr) throw cErr;
 
-      const nodes = (courseRows ?? []).map((course) => {
-        const nodeId = course.id;
-        return {
-          id: nodeId,
-          label: course.title || course.name || course.code || nodeId,
-          type: "course",
-          tags: [course.level].filter(Boolean),
-          metadata: {
-            code: course.code || nodeId,
-            uoc: course.uoc,
-            term: course.offering_terms,
-            faculty: course.faculty,
-            school: course.school,
-          },
-          sourceTable: "unsw_courses",
-          sourceId: nodeId,
-        };
-      });
+      // 4. Build nodes
+      const nodes = (courses ?? []).map(c => ({
+        id: c.code,
+        label: c.title || c.code,
+        type: "course",
+        metadata: { code: c.code, uoc: c.uoc }
+      }));
 
-      const nodeIds = new Set(nodes.map((n) => n.id));
-      const codeToId = new Map();
-      nodes.forEach((node) => {
-        const code = node.metadata?.code;
-        if (code && !codeToId.has(code)) codeToId.set(code, node.id);
-      });
-
-      const { data: edgeRows, error: edgeErr } = await supabase
-        .from("course_edges")
-        .select("source_course_id,target_course_id,edge_type")
-        .in("source_course_id", courseIds)
-        .in("target_course_id", courseIds);
-
-      if (edgeErr) throw edgeErr;
-
-      const links = (edgeRows ?? [])
-        .map((edge) => {
-          const rawSource =
-            edge.source_course_id ??
-            edge.from_course_id ??
-            edge.source_id ??
-            edge.prereq_course_id ??
-            edge.prerequisite_course_id ??
-            edge.from_id;
-          const rawTarget =
-            edge.target_course_id ??
-            edge.to_course_id ??
-            edge.target_id ??
-            edge.dependent_course_id ??
-            edge.to_id;
-
-          const source = nodeIds.has(rawSource) ? rawSource : codeToId.get(rawSource) ?? null;
-          const target = nodeIds.has(rawTarget) ? rawTarget : codeToId.get(rawTarget) ?? null;
-          if (!source || !target) return null;
-
-          return {
-            source,
-            target,
-            type: edge.edge_type || "prereq",
-          };
-        })
-        .filter(Boolean);
+      // 5. Build links
+      const links = (edges ?? []).map(e => ({
+        source: e.from_course,
+        target: e.to_course,
+        type: e.edge_type
+      }));
 
       setGraph({ nodes, links });
     } catch (err) {
-      console.error(`[RoadmapGraph] Failed to load graph for degree ${degreeCode}`, err);
+      console.error("[RoadmapGraph] fetchGraph error:", err.message);
     }
   }, [degreeCode]);
 
@@ -158,37 +98,28 @@ export default function RoadmapGraphPage() {
 
   const hasNodes = graph.nodes.length > 0;
 
-  // Colors per type
+  // --- Styling ---
   const colorFor = (type) =>
     type === "degree" ? "#2563eb" : type === "specialisation" ? "#7c3aed" : "#0ea5e9";
 
   const idOf = n => (typeof n === "object" ? n.id : n);
 
-// Link styling
-const linkColor = (l) => {
-  if (hoverLink === l) return "rgba(255,255,255,0.95)";     
-  if (l.type === "ai_inferred") return "rgba(148,163,184,0.45)";
-  if (l.type === "theme") return "rgba(148,163,184,0.6)";
-  return "rgba(203,213,225,0.9)"; // prereq / belongs_to / co_req default
-};
+  const linkColor = (l) => {
+    if (hoverLink === l) return "rgba(255,255,255,0.95)";
+    if (l.type === "co_req") return "rgba(148,163,184,0.6)";
+    return "rgba(203,213,225,0.9)"; // prereq default
+  };
 
-const linkWidth = (l) => {
-  const base =
-    l.type === "ai_inferred" ? 0.6 :
-    l.type === "co_req"      ? 1.2 :
-    l.type === "belongs_to"  ? 1   :
-    l.type === "theme"       ? 0.8 :
-                               1.6; // prereq
-  return hoverLink === l ? base + 1.2 : base;
-};
+  const linkWidth = (l) => {
+    const base = l.type === "co_req" ? 1.2 : 1.6; // prereq thicker
+    return hoverLink === l ? base + 1.2 : base;
+  };
 
-
-  // SAFE: only draw dashed overlay when coords exist (source/target may be IDs initially)
   const linkCanvasObject = (link, ctx) => {
     if (link.type !== "co_req") return;
     const src = typeof link.source === "object" ? link.source : null;
     const trg = typeof link.target === "object" ? link.target : null;
-    if (!src || !trg || src.x == null || src.y == null || trg.x == null || trg.y == null) return;
+    if (!src || !trg || src.x == null || trg.x == null) return;
 
     ctx.save();
     ctx.setLineDash([6, 6]);
@@ -201,38 +132,16 @@ const linkWidth = (l) => {
     ctx.restore();
   };
 
-  // Tooltip content with metadata
   const nodeLabel = useCallback((n) => {
     const lines = [n.label || n.id, `Type: ${n.type}`];
-    if (n.type === "course") {
-      const code = n.metadata?.code || n.id;
-      const uoc = n.metadata?.uoc;
-      if (code) lines.push(`Code: ${code}`);
-      if (uoc != null) lines.push(`UOC: ${uoc}`);
-      if (n.metadata?.term) lines.push(`Term: ${n.metadata.term}`);
-    } else if (n.type === "degree") {
-      if (n.metadata?.uac_code) lines.push(`UAC: ${n.metadata.uac_code}`);
-      if (n.metadata?.total_uoc != null) lines.push(`Total UOC: ${n.metadata.total_uoc}`);
-    }
+    if (n.metadata?.code) lines.push(`Code: ${n.metadata.code}`);
+    if (n.metadata?.uoc != null) lines.push(`UOC: ${n.metadata.uoc}`);
     return lines.join("\n");
   }, []);
 
-  // Node renderer: larger "cards" with subline + glow
   const nodeCanvasObject = useCallback((node, ctx) => {
     const title = node.label || node.id;
-    const sub =
-      node.type === "course"
-        ? [node.metadata?.code || node.id, node.metadata?.uoc != null ? `${node.metadata.uoc} UOC` : null]
-            .filter(Boolean)
-            .join(" · ")
-        : node.type === "degree"
-        ? [
-            node.metadata?.uac_code ? `UAC ${node.metadata.uac_code}` : null,
-            node.metadata?.total_uoc != null ? `${node.metadata.total_uoc} UOC` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")
-        : "";
+    const sub = node.metadata?.uoc ? `${node.metadata.uoc} UOC` : "";
 
     const titleSize = 14;
     const subSize = sub ? 12 : 0;
@@ -255,7 +164,6 @@ const linkWidth = (l) => {
     roundRect(ctx, node.x - w / 2, node.y - h / 2, w, h, radius);
     ctx.fill();
 
-    ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.stroke();
 
@@ -279,22 +187,9 @@ const linkWidth = (l) => {
     ctx.restore();
   }, []);
 
-  // Expand pointer hit area to match card size
   const nodePointerAreaPaint = useCallback((node, color, ctx) => {
     const title = node.label || node.id;
-    const sub =
-      node.type === "course"
-        ? [node.metadata?.code || node.id, node.metadata?.uoc != null ? `${node.metadata.uoc} UOC` : null]
-            .filter(Boolean)
-            .join(" · ")
-        : node.type === "degree"
-        ? [
-            node.metadata?.uac_code ? `UAC ${node.metadata.uac_code}` : null,
-            node.metadata?.total_uoc != null ? `${node.metadata.total_uoc} UOC` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")
-        : "";
+    const sub = node.metadata?.uoc ? `${node.metadata.uoc} UOC` : "";
 
     const titleSize = 14;
     const subSize = sub ? 12 : 0;
@@ -314,15 +209,6 @@ const linkWidth = (l) => {
     ctx.fill();
   }, []);
 
-  // Click → navigate to details
-  const onNodeClick = useCallback((n) => {
-    if (!n?.sourceTable || !n?.sourceId) return;
-    if (n.sourceTable === "unsw_degrees") navigate(`/degrees/${n.sourceId}`);
-    else if (n.sourceTable === "unsw_courses") navigate(`/course/${n.sourceId}`); // NOTE: singular
-    else if (n.sourceTable === "unsw_specialisations") navigate(`/specialisations/${n.sourceId}`);
-  }, [navigate]);
-
-  // Toolbar
   const fitView = () => {
     if (!graphRef.current) return;
     graphRef.current.zoomToFit(400, 40);
@@ -334,11 +220,12 @@ const linkWidth = (l) => {
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      {/* Top bar with title + toolbar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800">
         <div>
-          <h1 className="text-2xl font-semibold">Degree Roadmap</h1>
-          <p className="text-sm text-slate-300/80">Interactive graph of your degree’s prerequisite structure.</p>
+          <h1 className="text-2xl font-semibold">Course Pathway</h1>
+          <p className="text-sm text-slate-300/80">
+            Visualised course structure for {degreeCode}.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={fitView} className="px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm">
@@ -359,31 +246,11 @@ const linkWidth = (l) => {
             graphRef={graphRef}
             setFrozen={setFrozen}
           />
-          
         </div>
       </div>
 
-      {/* Graph area with comfortable max width */}
       <div className="flex-grow flex justify-center px-4">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
-          {/* Legend overlaid inside the graph container */}
-          <div className="absolute top-4 left-4 z-10 bg-slate-800/70 rounded-lg px-3 py-2 text-xs text-slate-300 backdrop-blur">
-            <div className="flex flex-wrap gap-3">
-              <LegendDot color="#2563eb" label="Degree" />
-              <LegendDot color="#7c3aed" label="Specialisation" />
-              <LegendDot color="#0ea5e9" label="Course" />
-              <LegendLine style="solid" label="Prereq" />
-              <LegendLine style="dashed" label="Co‑req" />
-              <LegendLine style="faint" label="AI / Theme" />
-            </div>
-
-            <div className="mt-2 text-[11px] leading-snug text-slate-400">
-              <span className="text-slate-300 font-medium">Direction:</span> A → B means
-              <span className="text-slate-200"> A is required for B</span>. Dashed = co-requisite.
-            </div>
-          </div>
-
-          {/* Graph sized to the container */}
           {hasNodes ? (
             <ForceGraph2D
               ref={graphRef}
@@ -395,7 +262,7 @@ const linkWidth = (l) => {
               nodeRelSize={7}
               cooldownTicks={frozen ? 0 : 120}
               onEngineStop={() => {
-                if (!frozen) setFrozen(true); // auto-freeze when settled
+                if (!frozen) setFrozen(true);
               }}
               linkColor={linkColor}
               linkWidth={linkWidth}
@@ -408,20 +275,19 @@ const linkWidth = (l) => {
               linkCanvasObjectMode={() => 'after'}
               linkLabel={l =>
                 l.type === "prereq"
-                    ? `${idOf(l.source)} is a prerequisite of ${idOf(l.target)}`
-                    : l.type === "co_req"
-                    ? `${idOf(l.source)} must be taken with ${idOf(l.target)}`
-                    : `${idOf(l.source)} → ${idOf(l.target)} (${l.type})`
+                  ? `${idOf(l.source)} is a prerequisite of ${idOf(l.target)}`
+                  : l.type === "co_req"
+                  ? `${idOf(l.source)} must be taken with ${idOf(l.target)}`
+                  : `${idOf(l.source)} → ${idOf(l.target)} (${l.type})`
               }
               nodeLabel={nodeLabel}
               nodeCanvasObject={nodeCanvasObject}
               nodePointerAreaPaint={nodePointerAreaPaint}
-              onNodeClick={onNodeClick}
               onLinkHover={setHoverLink}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-slate-300 text-sm">
-              No roadmap data found for this degree.
+              No course edges found for this program.
             </div>
           )}
         </div>
@@ -439,23 +305,4 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, rr);
   ctx.arcTo(x, y, x + w, y, rr);
   ctx.closePath();
-}
-
-function LegendDot({ color, label }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className="inline-block w-3.5 h-3.5 rounded-full" style={{ backgroundColor: color }} />
-      <span>{label}</span>
-    </span>
-  );
-}
-
-function LegendLine({ style, label }) {
-  const cls = style === "dashed" ? "border-dashed opacity-80" : style === "faint" ? "opacity-60" : "";
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className={`inline-block w-6 border-t ${cls} border-slate-300`} />
-      <span>{label}</span>
-    </span>
-  );
 }

@@ -24,6 +24,7 @@ import RoadmapTranscriptPage from "./pages/RoadmapTranscriptPage";
 import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
 import MindMeshGraphPage from "./pages/MindMeshGraphPage";
+import RoadmapGraphPage from "./pages/RoadmapGraphPage";
 import PlannerSwitchPage from "./pages/PlannerSwitchPage";
 import TraitsPage from "./pages/TraitsPage";
 
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
   { path: "/roadmap/school", element: <PrivateRoute><RoadmapSchoolPage /></PrivateRoute> },
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
   { path: "/roadmap/transcript", element: <PrivateRoute><RoadmapTranscriptPage /></PrivateRoute> },
+  { path: "/roadmap-graph/:degreeCode", element: <PrivateRoute><RoadmapGraphPage /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
@@ -59,3 +61,4 @@ export const router = createBrowserRouter([
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
 
 ]);
+
