@@ -12,11 +12,6 @@ from app.routers import health
 
 app = FastAPI()
 
-ALLOWED_ORIGIN_REGEX = (
-    r"^https://uni-vise(?:-[a-z0-9-]+)?-univise\.vercel\.app$|"
-    r"^https://.*\.ngrok-free\.(dev|app)$"
-)
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,11 +21,8 @@ app.add_middleware(
         "https://uni-vise-h2nhqfr5y-univise.vercel.app",
         "http://localhost:3000",  # local dev
         "http://localhost:5173",  # if using Vite
-        "https://*.ngrok-free.dev",  # any ngrok-free subdomain
-        "https://*.vercel.app",  # any vercel subdomain
+        "https://localhost:5173",  # if using Vite
     ],
-    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
-    allow_credentials=True,  # only if you use cookies/auth sessions
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=[
         "*"

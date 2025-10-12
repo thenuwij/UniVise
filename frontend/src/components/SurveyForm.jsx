@@ -9,7 +9,6 @@ import { Select, Label } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
 
 function SurveyForm() {
-  const api_url = import.meta.env.VITE_API_URL
 
   const { session } = UserAuth();
   const navigate = useNavigate();
@@ -130,7 +129,7 @@ function SurveyForm() {
 
   const analyseFile = async () => {
     try {
-      const resp = await fetch(`${api_url}/reports/analyse`, {
+      const resp = await fetch(`http://localhost:8000/reports/analyse`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,
@@ -150,7 +149,7 @@ function SurveyForm() {
 
   const generateRecommendations = async () => {
     try {
-      const resp = await fetch(`${api_url}/recommendation/prompt`, {
+      const resp = await fetch(`http://localhost:8000/recommendation/prompt`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,
