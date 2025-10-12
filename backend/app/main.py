@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-import os
 
 from .routers import auth, chat, recommendation, user, reports, roadmap, smart_related
 from app.routers.final_plan import router as final_plan_router
@@ -10,27 +9,17 @@ from app.routers import mindmesh_ai
 from app.routers import traits
 from app.routers import health
 
-app = FastAPI()
 
+app = FastAPI()
+load_dotenv()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://uni-vise-delta.vercel.app",
-        "https://uni-vise-git-main-univise.vercel.app",
-        "https://uni-vise-h2nhqfr5y-univise.vercel.app",
-        "http://localhost:3000",  # local dev
-        "http://localhost:5173",  # if using Vite
-        "https://localhost:5173",  # if using Vite
-    ],
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "*"
-    ],  # or list specific ones you send (Authorization, Content-Type, etc.)
-    expose_headers=["*"],  # optional: expose any custom response headers
-    max_age=3600,  # optional: cache preflight for 1h
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
 )
-
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(
