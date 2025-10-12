@@ -115,11 +115,6 @@ function SurveyForm() {
   "Other / Not Sure Yet"
 ]
 
-
-
-
-  
-
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
 
@@ -127,13 +122,15 @@ function SurveyForm() {
     setFormData({ ...formData, [field]: value });
   };
 
-  const analyseFile = async () => {
+  const analyseFile = async (filePath) => {  // Accept path parameter
     try {
-      const resp = await fetch(`http://localhost:8000/reports/analyse`, {
+      const resp = await fetch("http://localhost:8000/reports/analyse", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",  // ADD THIS
         },
+        body: JSON.stringify({ file_path: filePath })  // SEND THE PATH
       });
 
       if (!resp.ok) {
@@ -142,8 +139,10 @@ function SurveyForm() {
 
       const data = await resp.json();
       console.log("analysis:", data);
+      return data;
     } catch (error) {
       console.error("Error analysing file:", error);
+      throw error;
     }
   }
 
@@ -189,15 +188,19 @@ function SurveyForm() {
             setMessage("Error submitting survey.");
             setLoading(false);
         } else {
-                await supabase.auth.updateUser({
-                    data: { student_type: "high_school" }
-                });
-                setMessage("Survey submitted successfully!");
-                const analysis = await analyseFile();
-                console.log("Report analysis:", analysis);
-                generateRecommendations().catch(console.error);
-                navigate("/quiz/loading");
-                
+            await supabase.auth.updateUser({
+                data: { student_type: "high_school" }
+            });
+            setMessage("Survey submitted successfully!");
+            
+            // Only analyze if a file was uploaded
+            if (reportPath) {
+                const pathFromStorage = reportPath.split('/reports/')[1]; // Extract path from URL
+                await analyseFile(pathFromStorage);
+            }
+            
+            generateRecommendations().catch(console.error);
+            navigate("/quiz/loading");
         }
       }
 

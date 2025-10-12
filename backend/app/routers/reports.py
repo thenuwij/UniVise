@@ -3,6 +3,7 @@ from dependencies import get_current_user
 from app.utils.database import supabase
 from .user import get_user_info, get_student_type
 from app.utils.openai_client import ask_openai, ask_gemini
+from pydantic import BaseModel
 
 
 from PyPDF2 import PdfReader
@@ -52,8 +53,12 @@ def extract_text_from_file(data: bytes, filename: str) -> str:
         )
 
 
+class AnalyseReportRequest(BaseModel):
+    file_path: str
+
+
 @router.post("/analyse")
-async def analyse_report(user=Depends(get_current_user)):
+async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current_user)):
     student_type = await get_student_type(user)
     user_info = await get_user_info(user, student_type)
 
@@ -64,18 +69,11 @@ async def analyse_report(user=Depends(get_current_user)):
         table = "student_uni_data"
         report_table = "transcript_analysis"
 
-    report_path = (
-        supabase.table(table)
-        .select("report_path")
-        .eq("user_id", user.id)
-        .single()
-        .execute()
-    )
+    # Use the path from the request instead of querying
+    path = request.file_path
 
-    if not report_path:
-        raise HTTPException(status_code=404, detail="Report Does Not Exist")
-
-    path = report_path.data["report_path"]
+    if not path:
+        raise HTTPException(status_code=400, detail="File path is required")
 
     download = supabase.storage.from_("reports").download(path)
 

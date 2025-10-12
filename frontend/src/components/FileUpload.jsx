@@ -45,7 +45,8 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
       onUpload({
         url: publicUrlData.publicUrl,
         fileName: fileName,
-        uploadTime: uploadTime
+        uploadTime: uploadTime,
+        path: path
       })
       
     } catch (err) {
