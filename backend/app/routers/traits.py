@@ -43,7 +43,7 @@ def result_description(user=Depends(get_current_user)):
     Based on these results, provide a concise and clear explanation of what the result_summary (e.g artistic-investigate, realistic-social) means for the student's career and study choices.
     Highlight the student's strengths and suggest suitable career paths and fields of study that align with their personality traits.
     Keep the response under 300 words and use a friendly, encouraging tone.
-    Format the response in normal text for easy reading.
+    Format the response in a string without markdown or code blocks.
     
     Example Output:
     This means you have a blend of Artistic and Investigative traits, making you well-suited for careers that involve creativity and analytical thinking. You likely enjoy exploring new ideas, expressing yourself through various art forms, and solving complex problems.

@@ -303,14 +303,14 @@ function TraitsPage() {
               </div>
             </div>
           </div>
-          <div className='card-glass-spotlight mt-6 p-6'>
+          {/* <div className='card-glass-spotlight mt-6 p-6'>
             <p>Match your Trait with your career!</p>
             <TraitsMatcher
               RIASEC={result?.result_summary}
               userType={userType}
               traitScore={result?.trait_scores}
             />
-          </div>
+          </div> */}
           <div className='card-glass-spotlight mt-6 p-6'>
             <p className=" text-2xl font-semibold ">
               Why the RIASEC model?

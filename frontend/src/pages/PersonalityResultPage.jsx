@@ -125,7 +125,7 @@ const PersonalityResultPage = () => {
   const closeDrawer = () => setIsOpen(false);
   
   const generateTraitDescription = async () => {
-    const resp = await fetch(`${api_url}/traits/results`, {
+    const resp = await fetch(`http://localhost:8000/traits/results`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${session?.access_token}` },
     });
