@@ -233,8 +233,14 @@ function SurveyForm() {
             data: { student_type: "university" }
           });
           setMessage("Survey submitted successfully!");
-          const analysis = await analyseFile();
-          console.log("Report analysis:", analysis);
+
+          // Only if report uploaded
+          if (reportPath) {
+            const pathFromStorage = reportPath.split("/reports/")[1];
+            await analyseFile(pathFromStorage);
+          }
+
+          // Generate career recommendations for uni
           generateRecommendations().catch(console.error);
           navigate("/quiz/loading");
       }
