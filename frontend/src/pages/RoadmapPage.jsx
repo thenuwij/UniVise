@@ -15,7 +15,6 @@ function RoadmapPage() {
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
   const { 
     userType, 
-    hasTranscript, 
     recommendations, 
     loading: isLoadingRecommendations, 
     error: recommendationsError 
@@ -59,7 +58,7 @@ function RoadmapPage() {
         <p className="mb-6 text-lg font-normal text-secondary lg:text-xl sm:px-16 xl:px-48">
           {userType === "high_school"
             ? "Based on your personality and career interests, UniVise recommends degrees that align with your goals. Select a degree to begin your journey."
-            : "Upload your transcript on profile page or select a degree below to generate the roadmap."}
+            : "Select a degree below to generate the roadmap."}
         </p>
         {recommendationsError && (
           <div className="mb-6 text-red-600">
@@ -70,14 +69,7 @@ function RoadmapPage() {
 
       <div className="flex flex-col items-center px-6 max-w-7xl mx-auto w-full text-center">
         {isUniversity && (
-          <div className="flex flex-col sm:flex-row items-center justify-center mb-10 gap-4">
-            <GenerateButton
-              onClick={() => hasTranscript && navigate("/roadmap/transcript")}
-              disabled={!hasTranscript}
-            >
-              Generate Roadmap Using Transcript
-            </GenerateButton>
-
+          <div className="flex flex-col items-center justify-center mb-10 gap-4">
             <GenerateButton
               onClick={handleProceed}
               disabled={!selectedDegreeId}
@@ -86,6 +78,7 @@ function RoadmapPage() {
             </GenerateButton>
           </div>
         )}
+
 
         {isHighSchool && (
           <div className="mb-10">
