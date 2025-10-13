@@ -20,7 +20,6 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import LoadingRoadmapPage from "./pages/LoadingRoadmapPage";
 import RoadmapSchoolPage from "./pages/RoadmapSchoolPage";
 import RoadmapUNSWPage from "./pages/RoadmapUNSWPage";
-import RoadmapTranscriptPage from "./pages/RoadmapTranscriptPage";
 import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
 import MindMeshGraphPage from "./pages/MindMeshGraphPage";
@@ -51,7 +50,6 @@ export const router = createBrowserRouter([
   { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
   { path: "/roadmap/school", element: <PrivateRoute><RoadmapSchoolPage /></PrivateRoute> },
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
-  { path: "/roadmap/transcript", element: <PrivateRoute><RoadmapTranscriptPage /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
