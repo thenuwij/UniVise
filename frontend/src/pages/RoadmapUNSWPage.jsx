@@ -6,7 +6,7 @@ import { MenuBar } from "../components/MenuBar";
 import RoadmapFlow from "../components/roadmap/RoadmapFlow";
 import EntryRequirementsCard from "../components/roadmap/EntryRequirementsCard";
 import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
-import HonoursRequirements from "../components/roadmap/HonoursRequirements";
+import CapstoneHonours from "../components/roadmap/CapstoneHonours";
 import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
 import IndustrySection from "../components/roadmap/IndustrySection";
 import CareersSection from "../components/roadmap/CareersSection";
@@ -129,46 +129,6 @@ const useStepNavigation = (searchParams, stepsLength, hasData) => {
   return { activeIndex, setActiveIndex };
 };
 
-// --- Section Components ---
-const CapstoneHonoursSection = ({ data }) => {
-  const capstoneCourses = (data?.capstone?.courses || [])
-    .map(courseToText)
-    .filter(Boolean)
-    .join(", ") || "—";
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <GradientCard>
-        <div className="p-6">
-          <h2 className="heading-md text-primary">Capstone</h2>
-          <div className="mt-3 text-secondary">
-            <div className="mb-1">
-              <span className="font-medium">Courses:</span> {capstoneCourses}
-            </div>
-            <div>
-              <span className="font-medium">Highlights:</span>{" "}
-              {data?.capstone?.highlights || "—"}
-            </div>
-          </div>
-        </div>
-      </GradientCard>
-
-      <GradientCard>
-        <div className="p-6">
-          <h2 className="heading-md text-primary">Honours Requirements</h2>
-          <div className="mt-3">
-            <HonoursRequirements
-              classes={data?.honours?.classes || []}
-              requirements={data?.honours?.requirements}
-              wamRestrictions={data?.honours?.wamRestrictions}
-            />
-          </div>
-        </div>
-      </GradientCard>
-    </div>
-  );
-};
-
 const IndustryCareersSection = ({ data }) => {
   return (
     <div className="space-y-6">
@@ -179,59 +139,6 @@ const IndustryCareersSection = ({ data }) => {
       />
       <CareersSection rolesHint={data?.industry?.rolesHint} />
     </div>
-  );
-};
-
-const HeroSection = ({ programName, uacCode, data, sources }) => {
-  return (
-    <GradientCard className="mt-6">
-      <div className="relative">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-500 rounded-t-3xl" />
-        <div className="p-6 md:p-8 lg:p-10">
-          <SectionTitle
-            icon={<UniIcon className="h-4 w-4 text-sky-600 dark:text-blue-400" />}
-            subtitle="UNSW Mode"
-          >
-            {programName}
-          </SectionTitle>
-
-          {data && (
-            <div className="mt-8">
-              <h2 className="heading-md text-primary">Summary</h2>
-              <p className="mt-2 text-primary leading-relaxed">
-                {data?.summary || "—"}
-              </p>
-              
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Pill>
-                  Degree: <span className="font-medium ml-1">{programName}</span>
-                </Pill>
-                <Pill>
-                  Mode: <span className="font-medium ml-1">UNSW</span>
-                </Pill>
-                <Pill>
-                  UAC: <span className="font-medium ml-1">{uacCode}</span>
-                </Pill>
-                <Pill>
-                  Source: <span className="font-medium ml-1">{data?.source || "—"}</span>
-                </Pill>
-              </div>
-
-              {sources.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-base font-semibold text-primary">Sources</h3>
-                  <ul className="mt-2 list-disc ml-5 text-sm text-secondary space-y-1">
-                    {sources.map((source, index) => (
-                      <li key={index}>{source}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </GradientCard>
   );
 };
 
@@ -351,7 +258,7 @@ export default function RoadmapUNSWPage() {
       {
         key: "capstone",
         title: "Capstone & Honours",
-        render: () => <CapstoneHonoursSection data={data} />,
+        render: () => <CapstoneHonours data={data} />,
       },
       {
         key: "flex",
