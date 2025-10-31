@@ -1,8 +1,8 @@
-// src/components/mindmesh/MindMeshSummary.jsx  (your file)
+// src/components/MindMeshSummary.jsx  (your file)
 import { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
-import { UserAuth } from "../../context/AuthContext";
-import ManageMeshItems from "./ManageMeshItems";
+import { supabase } from "../supabaseClient";
+import { UserAuth } from "../context/AuthContext";
+import ManageMeshItems from "../mindmesh/components/ManageMeshItems";
 
 export default function MindMeshSummary() {
   const { session } = UserAuth();

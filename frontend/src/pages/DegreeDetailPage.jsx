@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import AddToMeshButton from "../components/mindmesh/AddToMeshButton";
+import AddToMeshButton from "../components/AddToMeshButton";
 
 function DegreeDetailPage() {
   const { session } = UserAuth();

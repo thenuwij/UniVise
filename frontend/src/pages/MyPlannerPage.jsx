@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import MindMeshSummary from "../components/mindmesh/MindMeshSummary";
+import MindMeshSummary from "../components/MindMeshSummary";
 
 import {
   HiCollection,

@@ -22,7 +22,7 @@ import RoadmapSchoolPage from "./pages/RoadmapSchoolPage";
 import RoadmapUNSWPage from "./pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
-import MindMeshGraphPage from "./pages/MindMeshGraphPage";
+import MindMeshGraphPage from "./mindmesh/MindMeshGraphPage";
 import PlannerSwitchPage from "./pages/PlannerSwitchPage";
 import TraitsPage from "./pages/TraitsPage";
 

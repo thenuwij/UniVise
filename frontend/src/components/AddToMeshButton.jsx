@@ -1,7 +1,7 @@
-// src/components/mindmesh/AddToMeshButton.jsx
+// src/components/AddToMeshButton.jsx
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../../supabaseClient";
-import { UserAuth } from "../../context/AuthContext";
+import { supabase } from "../supabaseClient";
+import { UserAuth } from "../context/AuthContext";
 
 export default function AddToMeshButton({
   itemType,         // 'degree' | 'specialisation' | 'course'
