@@ -84,47 +84,44 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     }
 
 
-async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
+async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Generate roadmap payload using AI with gathered context.
-
-    Uses context to generate comprehensive program information including
-    capstone courses identified from the actual core curriculum.
+    Stage 1: Generate general program information (everything except honours).
+    
+    This is a lighter prompt focused on program overview, entry requirements,
+    capstone, flexibility, and industry connections.
     """
     # Extract context values
     program_name = context.get("program_name")
     uac_code = context.get("uac_code")
     lowest_sel_rank = context.get("lowest_selection_rank")
     lowest_atar = context.get("lowest_atar")
-    honours_context = context.get("honours_context", "")
     core_courses_text = context.get("core_courses_formatted", "")
     majors_count = len(context.get("majors", []))
     minors_count = len(context.get("minors", []))
     core_courses_count = len(context.get("core_courses", []))
 
-    # Build AI prompt
-    prompt = f"""You are a UNSW academic advisor. Using official UNSW sources (Handbook, progression plans, etc.), provide comprehensive information for {program_name} ({uac_code}).
+    # Token monitoring
+    prompt_est_tokens = len(core_courses_text) // 4
+    print(f"Stage 1 prompt size: ~{prompt_est_tokens} tokens")
 
-=== HONOURS CONTEXT FOR THIS PROGRAM ===
-{honours_context}
+    # Build AI prompt for general info
+    prompt = f"""You are a UNSW academic advisor. Using official UNSW sources (Handbook, progression plans, etc.), provide comprehensive information for {program_name} ({uac_code}).
 
 {core_courses_text}
 
 === INSTRUCTIONS ===
-1. Provide detailed information for ALL sections below, not just honours.
-2. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
-3. For capstone:
+1. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
+2. For capstone:
    - You MUST ONLY choose courses that appear in the core courses list provided above.
    - Use their descriptions to identify which ones are final-year or integrative (those mentioning 'project', 'thesis', 'capstone', 'design', 'research').
    - Choose 1–2 courses that most clearly represent the final-year culminating experience.
    - If no final-year capstone-like course exists in that list, state: "No dedicated capstone course identified in the core structure."
    - Include course codes and names exactly as they appear in the provided list.
    - Describe what students do in those courses, based on their names and overviews (thesis, industry project, etc.).
-4. For honours: Use the honours context above to populate all fields accurately and include as many details from context as possible.
-5. For flexibility: List majors, minors, electives, exchange opportunities, or dual degree options.
-6. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
-7. Return ONLY valid JSON with NO trailing commas.
-
+3. For flexibility: List majors, minors, electives, exchange opportunities, or dual degree options.
+4. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
+5. Return ONLY valid JSON with NO trailing commas.
 
 === CONTEXT DATA ===
 - Program: {program_name}
@@ -149,17 +146,6 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     "courses": ["List specific final-year capstone course codes and names FROM THE CORE COURSES LIST, e.g., COMP4920 Professional Issues and Ethics, SENG4920 Thesis A"],
     "highlights": "Describe what students do in their capstone based on the actual courses identified - thesis, industry project, research, design challenge, etc. Be specific about the structure if multiple courses are involved (e.g., Thesis A and B over two terms)."
   }},
-  "honours": {{
-    "classes": ["List each Honours class with mark range from the context above"],
-    "entryCriteria": "Extract precise eligibility requirements from the honours context",
-    "structure": "Extract program structure details from the honours context",
-    "calculation": "Extract WAM calculation methodology from the honours context",
-    "requirements": "Extract completion requirements from the honours context",
-    "wamRestrictions": "Extract WAM restrictions from the honours context",
-    "progressionRules": "Extract progression policies from the honours context",
-    "awards": "Extract award information from the honours context",
-    "careerOutcomes": "Extract career outcomes from the honours context"
-  }},
   "flexibility": {{
     "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]
   }},
@@ -171,33 +157,30 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
   "source": "Provide the official UNSW Handbook URL for this program"
 }}
 
-CRITICAL: Every section must contain meaningful, specific information. Do not leave any section empty or with placeholder text.
 CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify actual capstone/thesis courses from this program. Only list courses that appear in the core courses section above.
 """
 
-    # Generate AI response
+    print("Stage 1: Generating general program information...")
     raw = ask_openai(prompt)
     draft = parse_json_or_500(raw)
 
     # Validate structure
     assert_keys(
         draft,
-        ["summary", "entry_requirements", "capstone", "honours", "flexibility", "industry", "source"],
-        "unsw",
+        ["summary", "entry_requirements", "capstone", "flexibility", "industry", "source"],
+        "unsw_general",
     )
 
-    # Validate capstone courses against core courses (extra safety check)
+    # Validate capstone courses against core courses
     core_codes = {c["code"] for c in context.get("core_courses", []) if c.get("code")}
     capstone_courses = draft.get("capstone", {}).get("courses", [])
 
     if capstone_courses and core_codes:
-        # Filter to only include courses that appear in core courses
         validated_capstone = []
         for course_str in capstone_courses:
             if any(code in course_str for code in core_codes):
                 validated_capstone.append(course_str)
 
-        # Update or clear capstone based on validation
         if not validated_capstone:
             draft["capstone"]["courses"] = []
             draft["capstone"]["highlights"] = (
@@ -208,17 +191,168 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
             draft["capstone"]["courses"] = validated_capstone
             print(f"Capstone validation: {len(validated_capstone)} courses validated against core curriculum")
 
-    # Build final payload
+    print("Stage 1: General program information generated successfully")
+    return draft
+
+
+async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Stage 2: Generate detailed honours information with OPTIMIZED prompt.
+    
+    Compressed instructions while maintaining extraction quality.
+    """
+    program_name = context.get("program_name")
+    uac_code = context.get("uac_code")
+    honours_context = context.get("honours_context", "")
+
+    # Token monitoring
+    honours_tokens = len(honours_context) // 4
+    print(f"Stage 2 honours context size: ~{honours_tokens} tokens")
+    
+    if honours_tokens > 2000:
+        print("Large honours context - may need compression in future")
+
+    # OPTIMIZED: Compressed prompt while keeping extraction quality
+    prompt = f"""Extract detailed honours information for {program_name} ({uac_code}). Preserve ALL specific numbers, thresholds, and requirements from the context below.
+
+HONOURS CONTEXT:
+{honours_context}
+
+EXTRACTION RULES:
+- Include EVERY specific number (WAM thresholds, UOC, percentages, mark ranges)
+- Preserve technical terms (Faculty WAM, Honours WAM, etc.)
+- Keep all policies and procedures
+- Write comprehensive paragraphs (not bullet points)
+
+OUTPUT (all fields are paragraph strings except "classes" which is an array):
+{{
+  "honours": {{
+    "classes": ["List each class with exact mark criteria, e.g. 'Class 1 – Mark ≥85 and thesis ≥65'"],
+    "entryCriteria": "Extract ALL entry requirements: exact WAM thresholds (overall and major-specific), prerequisites, supervisor approval requirements, competitive selection details, specialization differences, capacity limits",
+    "structure": "Extract ALL structural details: embedded/separate year, duration, total UOC, coursework component (percentage, UOC, levels), thesis component (percentage, UOC, terms), industrial training, discipline variations",
+    "calculation": "Extract COMPLETE methodology: WAM type used, exact weighting formula (e.g. Level 1 ×1, Level 2 ×2...), percentage splits, included/excluded courses, classification thresholds, decimal precision, rounding rules",
+    "requirements": "Extract ALL completion requirements: specific course requirements, thesis standards, minimum UOC, industrial training details, performance minimums, milestones, deadlines",
+    "wamRestrictions": "Extract ALL WAM rules: fail grade treatment, Academic Withdrawal handling, repeat attempts, external courses, substitution policies with exact thresholds, dual degree differences, exclusions",
+    "progressionRules": "Extract ALL policies: UOC milestones with exact numbers, failure thresholds and limits, show cause triggers, transfer procedures and target degrees, appeals processes with committee names, review timelines",
+    "awards": "Extract ALL awards: University Medal with exact criteria (WAM, thesis, no fails), Dean's awards, prizes, recognitions with specific requirements",
+    "careerOutcomes": "Extract ALL benefits: specific postgraduate pathways, professional accreditation bodies by name, career roles and industries, research opportunities, academic positions, employment advantages"
+  }}
+}}
+
+CRITICAL: Return ONLY the JSON object above. No explanatory text before or after. Start with {{ and end with }}. Ensure all JSON is valid with proper closing braces.
+"""
+
+    print("Stage 2: Generating honours information...")
+    
+    try:
+        raw = ask_openai(prompt)
+        print(f"Stage 2: Raw AI response length: {len(raw)} characters")
+        
+        # Clean the response - remove any text before first { and after last }
+        raw_stripped = raw.strip()
+        
+        # Find first { and last }
+        first_brace = raw_stripped.find('{')
+        last_brace = raw_stripped.rfind('}')
+        
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            json_only = raw_stripped[first_brace:last_brace+1]
+            print(f"Stage 2: Extracted JSON from position {first_brace} to {last_brace+1}")
+        else:
+            json_only = raw_stripped
+            print(f"Stage 2: No JSON extraction needed")
+        
+        # Try to parse the cleaned response
+        draft = parse_json_or_500(json_only)
+        print(f"Stage 2: JSON parsed successfully")
+        
+        # Validate structure
+        assert_keys(draft, ["honours"], "unsw_honours")
+        print(f"Stage 2: Structure validated successfully")
+        
+    except json.JSONDecodeError as e:
+        print(f"Stage 2 JSON parsing failed: {e}")
+        print(f"Raw response preview: {raw[:500]}...")
+        # Return minimal honours structure to prevent total failure
+        return {
+            "honours": {
+                "classes": [],
+                "entryCriteria": "Honours information temporarily unavailable.",
+                "structure": "Honours information temporarily unavailable.",
+                "calculation": "Honours information temporarily unavailable.",
+                "requirements": "Honours information temporarily unavailable.",
+                "wamRestrictions": "Honours information temporarily unavailable.",
+                "progressionRules": "Honours information temporarily unavailable.",
+                "awards": "Honours information temporarily unavailable.",
+                "careerOutcomes": "Honours information temporarily unavailable."
+            }
+        }
+    except Exception as e:
+        print(f"Stage 2 unexpected error: {type(e).__name__}: {e}")
+        # Return minimal honours structure
+        return {
+            "honours": {
+                "classes": [],
+                "entryCriteria": "Honours information temporarily unavailable.",
+                "structure": "Honours information temporarily unavailable.",
+                "calculation": "Honours information temporarily unavailable.",
+                "requirements": "Honours information temporarily unavailable.",
+                "wamRestrictions": "Honours information temporarily unavailable.",
+                "progressionRules": "Honours information temporarily unavailable.",
+                "awards": "Honours information temporarily unavailable.",
+                "careerOutcomes": "Honours information temporarily unavailable."
+            }
+        }
+
+    print("Stage 2: Honours information generated successfully")
+    return draft
+
+
+async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate complete roadmap payload using optimized two-stage AI generation.
+    
+    Stage 1: General program information (lighter, faster)
+    Stage 2: Detailed honours information (compressed prompt, better stability)
+    
+    This approach balances detail with reliability.
+    """
+    print("Starting two-stage AI generation (optimized)...")
+    
+    # Stage 1: Generate general info
+    general_info = await ai_generate_general_info(context)
+    
+    # Stage 2: Generate honours info with compressed prompt (with fallback)
+    try:
+        honours_info = await ai_generate_honours_info(context)
+    except Exception as e:
+        print(f"Stage 2 failed, using fallback honours structure: {e}")
+        honours_info = {
+            "honours": {
+                "classes": [],
+                "entryCriteria": "Honours information could not be generated at this time.",
+                "structure": "Honours information could not be generated at this time.",
+                "calculation": "Honours information could not be generated at this time.",
+                "requirements": "Honours information could not be generated at this time.",
+                "wamRestrictions": "Honours information could not be generated at this time.",
+                "progressionRules": "Honours information could not be generated at this time.",
+                "awards": "Honours information could not be generated at this time.",
+                "careerOutcomes": "Honours information could not be generated at this time."
+            }
+        }
+    
+    # Combine both stages
     payload = {
-        "summary": draft.get("summary"),
-        "entry_requirements": draft.get("entry_requirements"),
-        "capstone": draft.get("capstone"),
-        "honours": draft.get("honours"),
-        "flexibility": draft.get("flexibility"),
-        "industry": draft.get("industry"),
-        "source": draft.get("source"),
-        "program_name": program_name,
-        "uac_code": uac_code,
+        "summary": general_info.get("summary"),
+        "entry_requirements": general_info.get("entry_requirements"),
+        "capstone": general_info.get("capstone"),
+        "honours": honours_info.get("honours"),
+        "flexibility": general_info.get("flexibility"),
+        "industry": general_info.get("industry"),
+        "source": general_info.get("source"),
+        "program_name": context.get("program_name"),
+        "uac_code": context.get("uac_code"),
     }
 
+    print("Two-stage generation complete!")
     return payload
