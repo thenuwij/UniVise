@@ -8,7 +8,6 @@ from .roadmap_common import (
 )
 from .roadmap_school import gather_school_context, ai_generate_school_payload
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
-from .roadmap_transcript import gather_transcript_context, ai_generate_transcript_payload
 
 router = APIRouter(tags=["roadmap"])
 
@@ -44,21 +43,6 @@ async def create_unsw(body: UNSWReq, user=Depends(get_current_user)):
                 "mode": "unsw",
                 "payload": payload,
             })
-            .execute()
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
-    rec = ins.data[0]
-    return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
-
-@router.post("/transcript", response_model=RoadmapResp)
-async def create_transcript(body: TranscriptReq, user=Depends(get_current_user)):
-    ctx = await gather_transcript_context(user.id, body)
-    payload = await ai_generate_transcript_payload(ctx)
-    try:
-        ins = (
-            supabase.table("transcript_roadmap")
-            .insert({"user_id": user.id, "mode": "transcript", "payload": payload})
             .execute()
         )
     except Exception as e:

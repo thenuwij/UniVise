@@ -1,205 +1,76 @@
-from typing import Any, Dict, List
-from app.utils.database import supabase
+from typing import Any, Dict
+import json
+
 from app.utils.openai_client import ask_openai
-from .roadmap_common import (
-    TERMS, COURSES_TABLE, _uoc_to_int, _parse_offerings, _year_term_grid,
-    _place_verified_course, _count_year_courses, _first_or_none,
-    parse_json_or_500, assert_keys
+from .roadmap_common import parse_json_or_500, assert_keys
+from .roadmap_unsw_helpers import (
+    fetch_degree_by_identifier,
+    fetch_degree_related_info,
+    fetch_program_core_courses,
+    format_core_courses_for_prompt,
+    get_honours_context_for_faculty,
 )
-import re, json
 
-# ---------- Shared fetchers ----------
-async def _fetch_courses_for_faculty_raw(faculty: str | None, limit: int = 2000) -> List[Dict[str, Any]]:
-    """Fetch raw course rows for a faculty (or all faculties)."""
-    q = supabase.from_(COURSES_TABLE).select(
-        "code,title,uoc,offering_terms,school,faculty,overview,conditions_for_enrolment"
-    )
-    if faculty:
-        q = q.eq("faculty", faculty)
-    res = q.limit(limit).execute()
-    return res.data or []
-
-async def _fetch_courses_for_schools(schools: List[str], limit: int = 2000) -> List[Dict[str, Any]]:
-    """Fetch raw course rows filtered by one or more schools."""
-    if not schools:
-        return []
-    schools_clean = list({(s or "").strip() for s in schools if (s or "").strip()})
-    if not schools_clean:
-        return []
-    q = (supabase.from_(COURSES_TABLE)
-         .select("code,title,uoc,offering_terms,school,faculty,overview,conditions_for_enrolment")
-         .in_("school", schools_clean))
-    res = q.limit(limit).execute()
-    return res.data or []
-
-# ---------- Course indexers ----------
-async def _index_courses_by_code(codes: List[str]) -> Dict[str, Dict[str, Any]]:
-    if not codes:
-        return {}
-    codes = list(set([c.strip().upper() for c in codes if c]))
-    if not codes:
-        return {}
-    res = (
-        supabase.from_(COURSES_TABLE)
-        .select("code,title,uoc,offering_terms,school,faculty,overview,conditions_for_enrolment")
-        .in_("code", codes).execute()
-    )
-    idx: Dict[str, Dict[str, Any]] = {}
-    if res and getattr(res, "data", None):
-        for r in res.data:
-            c = r.get("code")
-            if not c:
-                continue
-            offers = _parse_offerings(r.get("offering_terms")) or list(TERMS)
-            idx[c] = {
-                "code": c,
-                "title": r.get("title"),
-                "uoc": _uoc_to_int(r.get("uoc")) or 6,
-                "offerings": offers,
-                "school": r.get("school"),
-                "faculty": r.get("faculty"),
-                "overview": r.get("overview"),
-                "prereqs_text": r.get("conditions_for_enrolment"),
-            }
-    return idx
-
-async def _index_all_courses_for_faculty(faculty: str | None) -> Dict[str, Dict[str, Any]]:
-    rows = await _fetch_courses_for_faculty_raw(faculty, limit=2000)
-    idx: Dict[str, Dict[str, Any]] = {}
-    for r in rows:
-        c = r.get("code")
-        if not c:
-            continue
-        offers = _parse_offerings(r.get("offering_terms")) or list(TERMS)
-        idx[c] = {
-            "code": c,
-            "title": r.get("title"),
-            "uoc": _uoc_to_int(r.get("uoc")) or 6,
-            "offerings": offers,
-            "school": r.get("school"),
-            "faculty": r.get("faculty"),
-            "overview": r.get("overview"),
-            "prereqs_text": r.get("conditions_for_enrolment"),
-        }
-    return idx
-
-# ---------- Context gathering ----------
+# ========== MAIN FUNCTIONS ==========
 async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
-    print("GATHER CALLED", req)
-    # 1) Degree lookup
-    degree = None
-    if req.degree_id:
-        degree = _first_or_none(
-            supabase.from_("unsw_degrees").select("*").eq("id", req.degree_id).limit(1).execute()
-        )
-    if degree is None and req.uac_code:
-        degree = _first_or_none(
-            supabase.from_("unsw_degrees").select("*").eq("uac_code", req.uac_code).limit(1).execute()
-        )
-    if degree is None and req.program_name:
-        degree = _first_or_none(
-            supabase.from_("unsw_degrees").select("*").ilike("program_name", f"%{req.program_name}%").limit(1).execute()
-        )
+    """
+    Gathers complete context for UNSW degree roadmap generation.
 
-    if degree is None:
-        degree = {  # minimal stub
-            "id": req.degree_id,
-            "program_name": req.program_name,
-            "uac_code": req.uac_code,
-            "faculty": None,
-            "duration_years": None,
-            "lowest_selection_rank": None,
-            "lowest_atar": None,
-            "portfolio_available": None,
-            "description": None,
-            "career_outcomes": None,
-            "assumed_knowledge": None,
-            "handbook_url": None,
-            "school": None,
-            "other_school": None,
-        }
+    Includes:
+    - Degree information
+    - Related info (majors, minors, double degrees)
+    - Core courses with enriched details
+    - Honours context
+    """
+    print(f"Gathering UNSW context for request: {req}")
+
+    # 1) Fetch degree information
+    degree = fetch_degree_by_identifier(
+        degree_id=req.degree_id,
+        uac_code=req.uac_code,
+        program_name=req.program_name,
+    )
 
     degree_id = degree.get("id")
+    degree_code = degree.get("code")
+
+    # 2) Fetch related information
+    majors, minors, doubles = fetch_degree_related_info(degree_id)
+
+    # 3) Fetch and enrich core courses
+    core_courses = []
+    core_courses_formatted = ""
+
+    if degree_code:
+        core_courses = fetch_program_core_courses(degree_code)
+        if core_courses:
+            core_courses_formatted = format_core_courses_for_prompt(core_courses)
+
+            # Debug logging
+            print(f"\n{'='*50}")
+            print(f"CORE COURSES FOR AI CONTEXT ({len(core_courses)} courses)")
+            print(f"{'='*50}")
+            for c in core_courses[:5]:  # Show first 5
+                overview_preview = (c.get('overview') or '')[:100]
+                print(f"  {c['code']}: {c.get('name')} | {c.get('section')} | {overview_preview}...")
+            if len(core_courses) > 5:
+                print(f"  ... and {len(core_courses) - 5} more courses")
+            print(f"{'='*50}\n")
+
+    # 4) Get honours context
     faculty = degree.get("faculty")
+    honours_context = get_honours_context_for_faculty(faculty)
 
-    majors: List[str] = []
-    minors: List[str] = []
-    doubles: List[str] = []
-    if degree_id:
-        res_maj = supabase.from_("degree_majors").select("major_name").eq("degree_id", degree_id).execute()
-        if res_maj and getattr(res_maj, "data", None):
-            majors = [r["major_name"] for r in res_maj.data if r.get("major_name")]
-
-        try:
-            res_min = supabase.from_("degree_minors").select("minor_name").eq("degree_id", degree_id).execute()
-            if res_min and getattr(res_min, "data", None):
-                minors = [r["minor_name"] for r in res_min.data if r.get("minor_name")]
-        except Exception:
-            minors = []
-
-        try:
-            res_dbl = supabase.from_("degree_double_degrees").select("program_name").eq("degree_id", degree_id).execute()
-            if res_dbl and getattr(res_dbl, "data", None):
-                doubles = [r["program_name"] for r in res_dbl.data if r.get("program_name")]
-        except Exception:
-            doubles = []
-
-    # 2) bounded course catalogue (prefer school(s) → then faculty → then global)
-    catalogue: List[Dict[str, Any]] = []
-    school = (degree.get("school") or "").strip() if isinstance(degree, dict) else None
-    other_school = (degree.get("other_school") or "").strip() if isinstance(degree, dict) else None
-    schools_filter = [s for s in [school, other_school] if s]
-
-    try:
-        if schools_filter:
-            raw = await _fetch_courses_for_schools(schools_filter, limit=600)
-        elif faculty:
-            raw = await _fetch_courses_for_faculty_raw(faculty, limit=600)
-        else:
-            raw = await _fetch_courses_for_faculty_raw(None, limit=600)
-
-        def tag_level(row: Dict[str, Any]) -> str:
-            t = (row.get("title") or "").lower()
-            o = (row.get("overview") or "").lower()
-            text = f"{t} {o}"
-            if any(k in text for k in ["capstone", "thesis", "project"]) or re.search(r"\b(400|level\s*4)\b", text):
-                return "advanced"
-            if any(k in text for k in ["fundamentals", "introduction", "intro"]) or re.search(r"\b(100|level\s*1|1a|1b)\b", text):
-                return "foundation"
-            return "intermediate"
-
-        buckets = {"foundation": [], "intermediate": [], "advanced": []}
-        for row in raw:
-            buckets[tag_level(row)].append(row)
-
-        def normalize_row(r: Dict[str, Any]) -> Dict[str, Any]:
-            return {
-                "code": r.get("code"),
-                "title": r.get("title"),
-                "uoc": _uoc_to_int(r.get("uoc")) or 6,
-                "offering_terms": r.get("offering_terms"),
-                "school": r.get("school"),
-                "faculty": r.get("faculty"),
-            }
-
-        for key in ["foundation", "intermediate", "advanced"]:
-            catalogue.extend([normalize_row(r) for r in buckets[key][:25]])
-    except Exception:
-        catalogue = []
-
+    # 5) Return complete context
     return {
         "user_id": user_id,
         "degree_id": degree_id,
-        "uac_code": degree.get("uac_code"),
+        "degree_code": degree_code,
         "program_name": degree.get("program_name") or req.program_name,
-        "specialisation": req.specialisation,
+        "uac_code": degree.get("uac_code"),
         "faculty": faculty,
-        "school": school or None,
-        "other_school": other_school or None,
-        "duration_years": degree.get("duration_years"),
         "lowest_selection_rank": degree.get("lowest_selection_rank"),
         "lowest_atar": degree.get("lowest_atar"),
-        "portfolio_available": degree.get("portfolio_available"),
         "description": degree.get("description"),
         "career_outcomes": degree.get("career_outcomes"),
         "assumed_knowledge": degree.get("assumed_knowledge"),
@@ -207,230 +78,140 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "majors": majors,
         "minors": minors,
         "double_degrees": doubles,
-        "course_catalogue": catalogue,
+        "core_courses": core_courses,
+        "core_courses_formatted": core_courses_formatted,
+        "honours_context": honours_context,
     }
 
-# ---------- AI synthesis ----------
+
 async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate roadmap payload using AI with gathered context.
+
+    Uses context to generate comprehensive program information including
+    capstone courses identified from the actual core curriculum.
+    """
+    # Extract context values
     program_name = context.get("program_name")
     uac_code = context.get("uac_code")
-    faculty = context.get("faculty")
-    duration_years = context.get("duration_years") or 3
     lowest_sel_rank = context.get("lowest_selection_rank")
     lowest_atar = context.get("lowest_atar")
-    majors = context.get("majors") or []
+    honours_context = context.get("honours_context", "")
+    core_courses_text = context.get("core_courses_formatted", "")
+    majors_count = len(context.get("majors", []))
+    minors_count = len(context.get("minors", []))
+    core_courses_count = len(context.get("core_courses", []))
 
-    school = (context.get("school") or "").strip() or None
-    other_school = (context.get("other_school") or "").strip() or None
-    schools_filter = [s for s in [school, other_school] if s]
+    # Build AI prompt
+    prompt = f"""You are a UNSW academic advisor. Using official UNSW sources (Handbook, progression plans, etc.), provide comprehensive information for {program_name} ({uac_code}).
 
-    prompt = f"""
-You are a UNSW academic advisor. Using ONLY official sources like the UNSW Handbook,
-faculty progression plans, and course outlines, propose a term-by-term plan for {program_name} ({uac_code}).
-UNSW runs three terms per year (T1/T2/T3). Prefer compulsory/core courses and realistic terming.
+=== HONOURS CONTEXT FOR THIS PROGRAM ===
+{honours_context}
 
-Return STRICT JSON only:
+{core_courses_text}
 
+=== INSTRUCTIONS ===
+1. Provide detailed information for ALL sections below, not just honours.
+2. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
+3. For capstone:
+   - You MUST ONLY choose courses that appear in the core courses list provided above.
+   - Use their descriptions to identify which ones are final-year or integrative (those mentioning 'project', 'thesis', 'capstone', 'design', 'research').
+   - Choose 1–2 courses that most clearly represent the final-year culminating experience.
+   - If no final-year capstone-like course exists in that list, state: "No dedicated capstone course identified in the core structure."
+   - Include course codes and names exactly as they appear in the provided list.
+   - Describe what students do in those courses, based on their names and overviews (thesis, industry project, etc.).
+4. For honours: Use the honours context above to populate all fields accurately and include as many details from context as possible.
+5. For flexibility: List majors, minors, electives, exchange opportunities, or dual degree options.
+6. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
+7. Return ONLY valid JSON with NO trailing commas.
+
+
+=== CONTEXT DATA ===
+- Program: {program_name}
+- UAC Code: {uac_code}
+- ATAR: {json.dumps(lowest_atar) if lowest_atar is not None else "null"}
+- Selection Rank: {json.dumps(lowest_sel_rank) if lowest_sel_rank is not None else "null"}
+- Faculty: {context.get("faculty", "Not specified")}
+- Majors available: {majors_count}
+- Minors available: {minors_count}
+- Core courses provided: {core_courses_count}
+
+=== REQUIRED JSON OUTPUT ===
 {{
-  "summary": "2–3 sentences…",
+  "summary": "Write 2-3 engaging sentences describing what this program offers, key focus areas, and career preparation",
   "entry_requirements": {{
     "atar": {json.dumps(lowest_atar) if lowest_atar is not None else "null"},
     "selectionRank": {json.dumps(lowest_sel_rank) if lowest_sel_rank is not None else "null"},
-    "subjects": ["List assumed/recommended prep subjects"],
-    "notes": "Adjustment factors, portfolio (if any), and practical tips."
+    "subjects": ["List 2-3 of assumed knowledge or recommended HSC subjects"],
+    "notes": "Mention any adjustment factors, portfolio requirements, interviews, or special entry pathways"
   }},
-  "program_structure_raw": [
-    {{
-      "year": 1,
-      "terms": [
-        {{"term":"T1","courses":[{{"code":"COMP1511","title":"Programming Fundamentals"}}]}},
-        {{"term":"T2","courses":[{{}}]}},
-        {{"term":"T3","courses":[{{}}]}}
-      ]
-    }}
-    // Repeat up to year {duration_years}
-  ],
-  "capstone": {{"courses": [], "highlights": ""}},
-  "honours": {{"classes": [], "requirements": "", "wamRestrictions": ""}},
-  "flexibility": {{"options": []}},
-  "industry": {{"trainingInfo": "", "societies": [], "rolesHint": ""}},
-  "source": "Primary Handbook/progression-plan URL you used"
+  "capstone": {{
+    "courses": ["List specific final-year capstone course codes and names FROM THE CORE COURSES LIST, e.g., COMP4920 Professional Issues and Ethics, SENG4920 Thesis A"],
+    "highlights": "Describe what students do in their capstone based on the actual courses identified - thesis, industry project, research, design challenge, etc. Be specific about the structure if multiple courses are involved (e.g., Thesis A and B over two terms)."
+  }},
+  "honours": {{
+    "classes": ["List each Honours class with mark range from the context above"],
+    "entryCriteria": "Extract precise eligibility requirements from the honours context",
+    "structure": "Extract program structure details from the honours context",
+    "calculation": "Extract WAM calculation methodology from the honours context",
+    "requirements": "Extract completion requirements from the honours context",
+    "wamRestrictions": "Extract WAM restrictions from the honours context",
+    "progressionRules": "Extract progression policies from the honours context",
+    "awards": "Extract award information from the honours context",
+    "careerOutcomes": "Extract career outcomes from the honours context"
+  }},
+  "flexibility": {{
+    "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]
+  }},
+  "industry": {{
+    "trainingInfo": "Describe any mandatory or optional work placements, internships, industrial training, or practicum requirements",
+    "societies": ["List 3-5 relevant student societies (e.g., UNSW Business Society, Engineering Society, etc.)"],
+    "rolesHint": "List 5-8 specific graduate job titles or career paths for this degree"
+  }},
+  "source": "Provide the official UNSW Handbook URL for this program"
 }}
+
+CRITICAL: Every section must contain meaningful, specific information. Do not leave any section empty or with placeholder text.
+CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify actual capstone/thesis courses from this program. Only list courses that appear in the core courses section above.
 """
+
+    # Generate AI response
     raw = ask_openai(prompt)
     draft = parse_json_or_500(raw)
+
+    # Validate structure
     assert_keys(
         draft,
-        ["summary", "entry_requirements", "program_structure_raw", "capstone", "honours", "flexibility", "industry", "source"],
+        ["summary", "entry_requirements", "capstone", "honours", "flexibility", "industry", "source"],
         "unsw",
     )
 
-    # ---- VERIFY & RESHAPE (DB-trusted) ----
-    # Collect proposed codes from the model
-    proposed_codes: List[str] = []
-    for yr in (draft.get("program_structure_raw") or []):
-        for term in (yr.get("terms") or []):
-            for c in (term.get("courses") or []):
-                if isinstance(c, dict) and c.get("code"):
-                    proposed_codes.append(c["code"].strip().upper())
-                elif isinstance(c, str):
-                    m = re.match(r"[A-Z]{4}\d{4}", c.strip().upper())
-                    if m:
-                        proposed_codes.append(m.group(0))
+    # Validate capstone courses against core courses (extra safety check)
+    core_codes = {c["code"] for c in context.get("core_courses", []) if c.get("code")}
+    capstone_courses = draft.get("capstone", {}).get("courses", [])
 
-    proposed_idx = await _index_courses_by_code(proposed_codes)
+    if capstone_courses and core_codes:
+        # Filter to only include courses that appear in core courses
+        validated_capstone = []
+        for course_str in capstone_courses:
+            if any(code in course_str for code in core_codes):
+                validated_capstone.append(course_str)
 
-    # Build the allowed course pool: schools → faculty → global
-    if schools_filter:
-        pool_rows = await _fetch_courses_for_schools(schools_filter, limit=1200)
-    elif faculty:
-        pool_rows = await _fetch_courses_for_faculty_raw(faculty, limit=1200)
-    else:
-        pool_rows = await _fetch_courses_for_faculty_raw(None, limit=1200)
+        # Update or clear capstone based on validation
+        if not validated_capstone:
+            draft["capstone"]["courses"] = []
+            draft["capstone"]["highlights"] = (
+                "No dedicated capstone or thesis course was identified among the program's core courses."
+            )
+            print("Capstone validation: No valid capstone courses found in core courses list")
+        else:
+            draft["capstone"]["courses"] = validated_capstone
+            print(f"Capstone validation: {len(validated_capstone)} courses validated against core curriculum")
 
-    # Index the pool
-    pool_idx: Dict[str, Dict[str, Any]] = {}
-    for r in (pool_rows or []):
-        code = (r.get("code") or "").strip().upper()
-        if not code:
-            continue
-        offers = _parse_offerings(r.get("offering_terms")) or list(TERMS)
-        pool_idx[code] = {
-            "code": code,
-            "title": r.get("title"),
-            "uoc": _uoc_to_int(r.get("uoc")) or 6,
-            "offerings": offers,
-            "school": r.get("school"),
-            "faculty": r.get("faculty"),
-            "overview": r.get("overview"),
-            "prereqs_text": r.get("conditions_for_enrolment"),
-        }
-
-    grid = _year_term_grid(duration_years)
-
-    # Pass 1: place proposed courses that exist in DB and are in the allowed pool (if pool present)
-    for yr in (draft.get("program_structure_raw") or []):
-        y = int(yr.get("year") or 0)
-        if y < 1 or y > len(grid):
-            continue
-        yidx = y - 1
-        for term in (yr.get("terms") or []):
-            tname = str(term.get("term") or "").upper()
-            if tname not in TERMS:
-                continue
-            for c in (term.get("courses") or []):
-                code = (c.get("code") if isinstance(c, dict) else None) or ""
-                code = code.strip().upper()
-                if not code or code not in proposed_idx:
-                    continue
-                # must be in pool if pool is non-empty
-                if pool_idx and code not in pool_idx:
-                    continue
-                row = proposed_idx[code] if code in proposed_idx else pool_idx.get(code)
-                if not row:
-                    continue
-                course_obj = {
-                    "code": row["code"],
-                    "title": row["title"],
-                    "uoc": row["uoc"],
-                    "offerings": row["offerings"],
-                    "verified": True,
-                    "type": "Core/Elective",
-                }
-                if tname in row["offerings"]:
-                    _place_verified_course(grid, yidx, tname, course_obj)
-                else:
-                    for alt in row["offerings"]:
-                        if _place_verified_course(grid, yidx, alt, course_obj):
-                            break
-
-    # Optional: enforce a known capstone for CSE programs
-    is_cse = (school or "").lower() == "school of computer science and engineering".lower() \
-             or (other_school or "").lower() == "school of computer science and engineering".lower()
-    if is_cse:
-        # If capstone not provided or wrong, force COMP3900 into the last available term it runs
-        comp3900 = pool_idx.get("COMP3900")
-        if comp3900:
-            last_yidx = len(grid) - 1
-            placed = any(c["code"] == "COMP3900" for t in grid[last_yidx]["terms"] for c in t["courses"])
-            if not placed:
-                cap_obj = {
-                    "code": comp3900["code"],
-                    "title": comp3900["title"],
-                    "uoc": comp3900["uoc"],
-                    "offerings": comp3900["offerings"],
-                    "verified": True,
-                    "type": "Core/Elective",
-                }
-                # try to place in an offered term in final year
-                placed_cap = False
-                for term_name in comp3900["offerings"]:
-                    if term_name in TERMS:
-                        placed_cap = _place_verified_course(grid, last_yidx, term_name, cap_obj) or placed_cap
-                        if placed_cap:
-                            break
-                # if still not placed, try any final-year term
-                if not placed_cap:
-                    for t in TERMS:
-                        if _place_verified_course(grid, last_yidx, t, cap_obj):
-                            break
-
-        # also nudge the outgoing capstone field if model left it empty
-        cap = draft.get("capstone") or {}
-        cap_courses = cap.get("courses") or []
-        if not any((isinstance(x, dict) and (x.get("code") or "").upper() == "COMP3900") or (isinstance(x, str) and x.upper().startswith("COMP3900")) for x in cap_courses):
-            cap.setdefault("courses", []).append({"code": "COMP3900", "title": comp3900["title"] if comp3900 else "Computer Science Project"})
-            cap["highlights"] = cap.get("highlights") or "Team-based real-world software project (CSE capstone)."
-            draft["capstone"] = cap
-
-    # Pass 2: fill to min 2 per term, then up to 3 per term (~9/year) from the allowed pool
-    for yidx in range(len(grid)):
-        used = {c["code"] for t in grid[yidx]["terms"] for c in t["courses"]}
-        # ensure min 2 per term
-        for t in grid[yidx]["terms"]:
-            while len(t["courses"]) < 2:
-                pick = next(
-                    (row for code, row in pool_idx.items() if code not in used and t["term"] in row["offerings"]),
-                    None,
-                )
-                if not pick:
-                    break
-                t["courses"].append(
-                    {
-                        "code": pick["code"],
-                        "title": pick["title"],
-                        "uoc": pick["uoc"],
-                        "offerings": pick["offerings"],
-                        "verified": True,
-                        "type": "Elective",
-                    }
-                )
-                used.add(pick["code"])
-        # then top-up with year cap
-        for t in grid[yidx]["terms"]:
-            while len(t["courses"]) < 3 and _count_year_courses(grid, yidx) < 9:
-                pick = next(
-                    (row for code, row in pool_idx.items() if code not in used and t["term"] in row["offerings"]),
-                    None,
-                )
-                if not pick:
-                    break
-                t["courses"].append(
-                    {
-                        "code": pick["code"],
-                        "title": pick["title"],
-                        "uoc": pick["uoc"],
-                        "offerings": pick["offerings"],
-                        "verified": True,
-                        "type": "Elective",
-                    }
-                )
-                used.add(pick["code"])
-
+    # Build final payload
     payload = {
         "summary": draft.get("summary"),
         "entry_requirements": draft.get("entry_requirements"),
-        "program_structure": {"years": grid, "suggested_specialisations": majors[:6]},
         "capstone": draft.get("capstone"),
         "honours": draft.get("honours"),
         "flexibility": draft.get("flexibility"),
@@ -439,9 +220,5 @@ Return STRICT JSON only:
         "program_name": program_name,
         "uac_code": uac_code,
     }
-    assert_keys(
-        payload,
-        ["summary", "entry_requirements", "program_structure", "capstone", "honours", "flexibility", "industry", "source"],
-        "unsw",
-    )
-    return payload 
+
+    return payload
