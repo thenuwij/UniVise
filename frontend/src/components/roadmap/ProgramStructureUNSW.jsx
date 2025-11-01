@@ -140,7 +140,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     return Array.from(new Set(codes));
   }, [sections]);
 
-  // 🧭 Handle "Visualise Program Structure"
+  // Handle "Visualise Program Structure"
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
     console.log("🧩 Visualising MindMesh for:", degreeCode, allCourses);

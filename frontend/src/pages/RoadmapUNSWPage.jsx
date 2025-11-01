@@ -295,9 +295,11 @@ export default function RoadmapUNSWPage() {
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 
-                    dark:from-slate-950 dark:to-slate-900 
-                    text-primary transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200
+                dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
+                text-primary transition-colors duration-500">
+
+
       {/* background glow */}
       <div aria-hidden>
         <div className="roadmap-glow-top" />
