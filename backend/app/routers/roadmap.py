@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from app.utils.database import supabase
 from dependencies import get_current_user
 
@@ -8,6 +8,7 @@ from .roadmap_common import (
 )
 from .roadmap_school import gather_school_context, ai_generate_school_payload
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
+from .roadmap_unsw_flexibility import generate_and_update_flexibility
 
 router = APIRouter(tags=["roadmap"])
 
@@ -28,10 +29,19 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 @router.post("/unsw", response_model=RoadmapResp)
-async def create_unsw(body: UNSWReq, user=Depends(get_current_user)):
-    ensure(any([body.degree_id, body.uac_code, body.program_name]), "Provide degree_id or uac_code or program_name.")
+async def create_unsw(
+    body: UNSWReq,
+    background_tasks: BackgroundTasks,  
+    user=Depends(get_current_user)
+):
+    ensure(any([body.degree_id, body.uac_code, body.program_name]),
+           "Provide degree_id or uac_code or program_name.")
+
+    # --- Stage 1: build roadmap context & payload ---
     ctx = await gather_unsw_context(user.id, body)
     payload = await ai_generate_unsw_payload(ctx)
+
+    # --- Stage 2: save roadmap in DB ---
     try:
         ins = (
             supabase.table("unsw_roadmap")
@@ -47,8 +57,67 @@ async def create_unsw(body: UNSWReq, user=Depends(get_current_user)):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+
     rec = ins.data[0]
+
+    # --- Stage 3: trigger flexibility generation in background ---
+    try:
+        print(f"[Flex] Scheduling flexibility generation for roadmap: {rec['id']}")
+        background_tasks.add_task(generate_and_update_flexibility, rec["id"], rec)
+    except Exception as e:
+        print(f"[Flex] Failed to schedule flexibility: {e}")
+
+    # --- Stage 4: return immediate response to frontend ---
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
+
+
+@router.post("/unsw/{roadmap_id}/flexibility")
+async def generate_flexibility(
+    roadmap_id: str,
+    background_tasks: BackgroundTasks,
+    user=Depends(get_current_user)
+):
+    """
+    Generate flexibility/degree switching recommendations for an existing UNSW roadmap.
+    
+    This runs as a background task, so the endpoint returns immediately.
+    The flexibility data is added to the roadmap payload once generation completes.
+    """
+    
+    # Verify roadmap exists and belongs to user
+    try:
+        roadmap_response = supabase.table("unsw_roadmap")\
+            .select("*")\
+            .eq("id", roadmap_id)\
+            .eq("user_id", user.id)\
+            .single()\
+            .execute()
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+    
+    if not roadmap_response.data:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+    
+    roadmap_data = roadmap_response.data
+    
+    # Check if flexibility already exists
+    if roadmap_data.get("payload", {}).get("flexibility_detailed"):
+        return {
+            "status": "already_exists",
+            "message": "Flexibility recommendations already exist for this roadmap"
+        }
+    
+    # Schedule background task to generate flexibility
+    background_tasks.add_task(
+        generate_and_update_flexibility,
+        roadmap_id,
+        roadmap_data
+    )
+    
+    return {
+        "status": "generating",
+        "message": "Flexibility recommendations are being generated in the background"
+    }
 
 @router.get("/{mode}", response_model=RoadmapResp)
 async def get_latest(mode: str, user=Depends(get_current_user)):

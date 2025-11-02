@@ -230,3 +230,142 @@ def fetch_degree_related_info(degree_id: str):
     except Exception as e:
         print(f"Error fetching related degree info: {e}")
     return majors, minors, doubles
+
+
+# ========== HELPER FUNCTIONS FOR FLEXIBILITY SECTION ==========
+def extract_all_course_codes(sections: list) -> List[str]:
+    """
+    Extract all course codes from sections JSON structure.
+    
+    Args:
+        sections: Parsed JSON sections array from degree_versions_structure
+        
+    Returns:
+        List of course codes (e.g., ["ACTL1101", "COMM1170", "MATH1151"])
+    
+    Example sections structure:
+        [
+            {
+                "title": "Level 1 Core Courses",
+                "courses": [
+                    {"code": "ACTL1101", "name": "...", "uoc": 6},
+                    {"code": "COMM1170", "name": "...", "uoc": 6}
+                ]
+            }
+        ]
+    """
+    course_codes = []
+    
+    for section in sections:
+        # Skip sections without courses (like Free Electives, General Education)
+        if 'courses' in section and section['courses']:
+            for course in section['courses']:
+                if 'code' in course and course['code']:
+                    course_codes.append(course['code'])
+    
+    return course_codes
+
+
+def extract_keywords(program_name: str) -> List[str]:
+    """
+    Extract meaningful keywords from degree name for matching.
+    
+    Args:
+        program_name: Full degree name (e.g., "Bachelor of Computer Science (Honours)")
+        
+    Returns:
+        List of keywords (e.g., ["computer", "science"])
+    
+    Filters out common stopwords like "bachelor", "of", "honours", etc.
+    """
+    stopwords = {
+        'bachelor', 'of', 'honours', 'advanced', 'master', 
+        'diploma', 'certificate', 'and', 'the', 'in', 'with'
+    }
+    
+    # Replace slashes with spaces and split
+    words = program_name.lower().replace('/', ' ').replace('(', ' ').replace(')', ' ').split()
+    
+    # Filter out stopwords and short words
+    keywords = [w for w in words if w not in stopwords and len(w) > 3]
+    
+    return keywords
+
+
+def are_related_faculties(faculty1: str, faculty2: str) -> bool:
+    """
+    Check if two faculties are related for transfer purposes.
+    
+    Related faculties typically have easier credit transfer policies
+    and similar administrative processes.
+    
+    Args:
+        faculty1: First faculty name
+        faculty2: Second faculty name
+        
+    Returns:
+        True if faculties are in the same related group
+    """
+    # Normalize faculty names (lowercase for comparison)
+    f1 = faculty1.lower() if faculty1 else ""
+    f2 = faculty2.lower() if faculty2 else ""
+    
+    # Define related faculty groups
+    related_groups = [
+        # Business/Commerce/Economics group
+        ['business', 'commerce', 'economics'],
+        
+        # Engineering/IT/Computer Science group
+        ['engineering', 'computer', 'information technology', 'it'],
+        
+        # Science/Mathematics group
+        ['science', 'mathematics', 'statistics'],
+        
+        # Arts/Humanities/Social Sciences group
+        ['arts', 'humanities', 'social sciences', 'design', 'architecture'],
+        
+        # Health/Medical group
+        ['medicine', 'health', 'nursing', 'medical'],
+        
+        # Law group
+        ['law', 'legal']
+    ]
+    
+    # Check if both faculties are in the same group
+    for group in related_groups:
+        in_group_1 = any(keyword in f1 for keyword in group)
+        in_group_2 = any(keyword in f2 for keyword in group)
+        
+        if in_group_1 and in_group_2:
+            return True
+    
+    return False
+
+
+def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
+    """
+    Format candidate degrees for AI prompt with all relevant details.
+    
+    Args:
+        candidates: List of candidate degrees with overlap data
+        
+    Returns:
+        Formatted string for AI prompt
+    """
+    formatted = ""
+    
+    for i, candidate in enumerate(candidates, 1):
+        shared_courses_str = ", ".join(candidate.get('shared_courses', [])[:8])  # Show first 8
+        if len(candidate.get('shared_courses', [])) > 8:
+            shared_courses_str += f" (and {len(candidate['shared_courses']) - 8} more)"
+        
+        formatted += f"""
+{i}. {candidate['program_name']}
+   Faculty: {candidate['faculty']}
+   Course Overlap: {candidate['overlap_percentage']:.1f}% ({candidate['overlap_count']}/{candidate['total_current_courses']} courses)
+   Shared Courses: {shared_courses_str}
+   Total Courses in Target: {candidate['total_target_courses']}
+"""
+    
+    return formatted
+

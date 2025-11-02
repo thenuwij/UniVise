@@ -90,6 +90,50 @@ const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
     fetchByIdIfNeeded();
   }, [preloadedRoadmapId, data]);
 
+
+  // --- Flexibility polling effect (debug-ready) ---
+  useEffect(() => {
+    if (!preloadedRoadmapId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        // Fetch roadmap row
+        const { data: row, error } = await supabase
+          .from("unsw_roadmap")
+          .select("payload")
+          .eq("id", preloadedRoadmapId)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        // console.log("[Flex Poll] fetched payload:", row?.payload);
+
+        // Check if the new payload has flexibility_detailed data
+        const newFlex = row?.payload?.flexibility_detailed;
+        const existingFlex = data?.payload?.flexibility_detailed;
+
+        // Log current vs new
+        // console.log("existingFlex:", existingFlex);
+        // console.log("newFlex:", newFlex);
+
+        // Update only when new data appears
+        if (newFlex && !existingFlex) {
+          // console.log("[Flexibility] New data detected! Updating roadmap payload...");
+          setData((prev) => ({
+            ...prev,
+            payload: { ...prev?.payload, ...row.payload },
+          }));
+        }
+      } catch (err) {
+        console.warn("[Flexibility] Polling error:", err.message);
+      }
+    }, 5000); // check every 5s
+
+    return () => clearInterval(interval);
+  }, [preloadedRoadmapId, data]);
+
+
+
   const updateHeader = useCallback((degree) => {
     setHeader({
       program_name: degree?.degree_name || degree?.program_name || null,
@@ -215,10 +259,7 @@ const QuickFactsSidebar = ({ entryRequirements, structure, data, headerUac }) =>
 };
 
 // --- Main Component ---
-// --- everything above unchanged (imports, hooks, helper functions, etc.) ---
-
 export default function RoadmapUNSWPage() {
-  // your same logic and hooks
   const { state, search } = useLocation();
   const navigate = useNavigate();
   const degree = state?.degree || null;
@@ -265,7 +306,8 @@ export default function RoadmapUNSWPage() {
         title: "Flexibility",
         render: () => (
           <ProgramFlexibility
-            switchOptions={data?.flexibility?.options || []}
+            flexibility={data?.payload?.flexibility_detailed}
+            switchOptions={data?.payload?.flexibility?.options || []}
             simulatorLink="/switching"
           />
         ),
@@ -298,7 +340,6 @@ export default function RoadmapUNSWPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200
                 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
                 text-primary transition-colors duration-500">
-
 
       {/* background glow */}
       <div aria-hidden>
