@@ -220,6 +220,12 @@ async def ai_generate_flexibility_info(context: Dict[str, Any]) -> Dict[str, Any
 
     Uses pre-filtered similar degrees and AI to provide intelligent
     recommendations with explanations.
+    
+    NOW USES TWO-STAGE APPROACH:
+    - Stage 3a: AI ranks and selects top 5 degrees (lightweight JSON output)
+    - Stage 3b: AI generates detailed recommendations for only those 5
+    
+    This reduces output size and prevents JSON truncation issues.
     """
 
     degree_id = context.get("degree_id")
@@ -229,7 +235,7 @@ async def ai_generate_flexibility_info(context: Dict[str, Any]) -> Dict[str, Any
     if not degree_id:
         raise Exception("degree_id required in context for flexibility generation")
 
-    print("Starting Stage 3: Flexibility generation")
+    print("Starting Stage 3: Flexibility generation (TWO-STAGE APPROACH)")
 
     # Pre-filter to get top similar degrees
     try:
@@ -259,20 +265,88 @@ async def ai_generate_flexibility_info(context: Dict[str, Any]) -> Dict[str, Any
     prompt_tokens = (len(program_name) + len(candidates_text)) // 4
     print(f"Flexibility prompt size: ~{prompt_tokens} tokens")
 
-   
-    prompt = f"""You are a UNSW academic advisor helping a student currently enrolled in {program_name} (Faculty: {faculty}) explore degree switching options.
+    # ============================================================
+    # STAGE 3a: RANKING ONLY (Lightweight Selection)
+    # ============================================================
+    print("Stage 3a: Getting AI to rank and select top 5 degrees...")
+    
+    ranking_prompt = f"""You are a UNSW academic advisor. A student is in {program_name} (Faculty: {faculty}).
 
-Below are 15 similar degrees ranked by course overlap — meaning how many courses the student has already completed or is planning to take will count towards the new degree.
+Below are 15 similar degrees ranked by course overlap:
 
-TOP 15 SIMILAR DEGREES:
 {candidates_text}
+
+TASK: Select the TOP 5 EASIEST degrees to switch to based on:
+- Highest course overlap
+- Career/academic alignment with current degree
+- Practical switching feasibility
+
+Return ONLY the program names as a JSON array. No other text.
+
+REQUIRED FORMAT:
+{{
+  "top_5_programs": [
+    "Exact program name 1",
+    "Exact program name 2",
+    "Exact program name 3",
+    "Exact program name 4",
+    "Exact program name 5"
+  ]
+}}"""
+
+    try:
+        # Stage 3a: Get rankings
+        ranking_raw = ask_openai(ranking_prompt)
+        print(f"Stage 3a response received: {len(ranking_raw)} characters")
+
+        # Clean and parse ranking response
+        ranking_stripped = ranking_raw.strip()
+        first_brace = ranking_stripped.find('{')
+        last_brace = ranking_stripped.rfind('}')
+
+        if first_brace != -1 and last_brace != -1:
+            ranking_json = ranking_stripped[first_brace:last_brace + 1]
+        else:
+            ranking_json = ranking_stripped
+
+        ranking_result = parse_json_or_500(ranking_json)
+        assert_keys(ranking_result, ["top_5_programs"], "ranking")
+
+        top_5_names = ranking_result["top_5_programs"]
+        print(f"Stage 3a complete: Top 5 selected: {top_5_names}")
+
+        # Filter top_degrees to only include the selected 5
+        selected_degrees = [d for d in top_degrees if d['program_name'] in top_5_names]
+        
+        if not selected_degrees:
+            print("WARNING: No degrees matched AI selection")
+            return {
+                "flexibility_detailed": {
+                    "easy_switches": [],
+                    "message": "Unable to match recommended degrees."
+                }
+            }
+
+        # ============================================================
+        # STAGE 3b: DETAILED RECOMMENDATIONS (Only for selected 5)
+        # ============================================================
+        print(f"Stage 3b: Generating detailed recommendations for {len(selected_degrees)} degrees...")
+        
+        # Format only the selected 5 degrees
+        selected_text = format_candidates_for_ai(selected_degrees)
+        
+        detail_prompt = f"""You are a UNSW academic advisor helping a student currently enrolled in {program_name} (Faculty: {faculty}) explore degree switching options.
+
+Below are the TOP 5 EASIEST degrees to switch to (already ranked):
+
+{selected_text}
 
 The current program ({program_name}) is typically focused on its core disciplines and skill areas within the Faculty of {faculty}.
 Use this as a baseline when comparing how each new program differs or expands the student's career and academic trajectory.
 
 TASK:
-Recommend the TOP 5 EASIEST degrees to switch to. For each degree, provide:
-1. A clear, practical explanation of why it’s a good switch — focus on course overlap, how existing courses map to the new program, and how it builds on the student’s current academic strengths.
+For each of these 5 degrees, provide:
+1. A clear, practical explanation of why it's a good switch — focus on course overlap, how existing courses map to the new program, and how it builds on the student's current academic strengths.
 2. Highlight what *new career paths, industries, or opportunities* this degree could open up compared to the current one.
 3. List specific key benefits of switching (e.g., expanded majors, industry links, accreditations, or broader skill development).
 4. Mention any important considerations or requirements (e.g., prerequisite changes, competitive entry, or WAM thresholds).
@@ -299,22 +373,20 @@ REQUIRED JSON FORMAT:
 Keep the tone professional and student-focused. Avoid generic phrasing — be specific about overlap, alignment, and new career opportunities.
 """
 
-    print("Sending to AI for ranking...")
-
-    try:
-        raw = ask_openai(prompt)
-        print(f"AI response received: {len(raw)} characters")
+        # Stage 3b: Get detailed recommendations
+        detail_raw = ask_openai(detail_prompt)
+        print(f"Stage 3b response received: {len(detail_raw)} characters")
 
         # Clean response - extract JSON
-        raw_stripped = raw.strip()
-        first_brace = raw_stripped.find('{')
-        last_brace = raw_stripped.rfind('}')
+        detail_stripped = detail_raw.strip()
+        first_brace = detail_stripped.find('{')
+        last_brace = detail_stripped.rfind('}')
 
         if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
-            json_only = raw_stripped[first_brace:last_brace + 1]
+            json_only = detail_stripped[first_brace:last_brace + 1]
             print(f"Extracted JSON from position {first_brace} to {last_brace + 1}")
         else:
-            json_only = raw_stripped
+            json_only = detail_stripped
             print("No JSON extraction needed")
 
         # Parse and validate JSON
@@ -330,7 +402,7 @@ Keep the tone professional and student-focused. Avoid generic phrasing — be sp
                 }
             }
 
-        print(f"Stage 3 complete: {len(draft['easy_switches'])} recommendations generated")
+        print(f"Stage 3b complete: {len(draft['easy_switches'])} detailed recommendations generated")
 
         return {
             "flexibility_detailed": draft

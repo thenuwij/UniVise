@@ -114,12 +114,12 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
 1. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
 2. For capstone:
    - You MUST ONLY choose courses that appear in the core courses list provided above.
-   - Use their descriptions to identify which ones are final-year or integrative (those mentioning 'project', 'thesis', 'capstone', 'design', 'research').
-   - Choose 1–2 courses that most clearly represent the final-year culminating experience.
-   - If no final-year capstone-like course exists in that list, state: "No dedicated capstone course identified in the core structure."
+   - FIRST, look for final-year or integrative courses (those mentioning 'project', 'thesis', 'capstone', 'design', 'research').
+   - If clear capstone courses exist, choose 1–2 that best represent the culminating experience.
+   - If NO clear capstone courses exist, you MUST select the 1-2 highest-level courses (level 3 or 4) from the core courses list that represent the most advanced/important coursework in the program.
+   - NEVER return an empty courses array - always select at least one course.
    - Include course codes and names exactly as they appear in the provided list.
-   - Describe what students do in those courses, based on their names and overviews (thesis, industry project, etc.).
-3. For flexibility: List majors, minors, electives, exchange opportunities, or dual degree options.
+   - Describe what students do in those courses, based on their names and overviews.
 4. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
 5. Return ONLY valid JSON with NO trailing commas.
 
