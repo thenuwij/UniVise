@@ -2,9 +2,18 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { ChevronDown, ChevronUp, Layers } from "lucide-react";
+import { ChevronDown, ChevronUp, Layers, BookOpen, Sparkles } from "lucide-react";
 
-// --- Helpers ---
+/**
+ * Premium Program Structure Component
+ *
+ * Matches design style of CareerPathways / ProgramFlexibility / CapstoneHonours.
+ * - Outer white/surface card container
+ * - Inner gradient-tinted section cards
+ * - Smooth expand/collapse transitions
+ * - Polished buttons & typography
+ */
+
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
@@ -16,14 +25,14 @@ function getSectionStyle(title = "") {
     return {
       color: "blue",
       class:
-        "bg-gradient-to-br from-sky-50 via-blue-50 to-blue-100 dark:from-sky-950 dark:via-blue-950 dark:to-indigo-900 border-sky-300/50 dark:border-sky-800",
+        "bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 dark:from-sky-950 dark:via-blue-950 dark:to-indigo-900 border-sky-300/50 dark:border-sky-800",
     };
 
   if (t.includes("free elective") || t.includes("general education"))
     return {
       color: "amber",
       class:
-        "bg-gradient-to-br from-amber-50 via-orange-50 to-orange-100 dark:from-amber-950 dark:via-orange-950 dark:to-amber-900 border-amber-300/50 dark:border-amber-800",
+        "bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-100 dark:from-amber-950 dark:via-orange-950 dark:to-amber-900 border-amber-300/50 dark:border-amber-800",
     };
 
   return {
@@ -33,7 +42,7 @@ function getSectionStyle(title = "") {
   };
 }
 
-// ---------- Section Component ----------
+// ---------- Section Card ----------
 function Section({ section, isOpen, onToggle, onCourseClick }) {
   const total = section.uoc ?? sumUoC(section.courses);
   const hasCourses = Array.isArray(section.courses) && section.courses.length > 0;
@@ -41,20 +50,28 @@ function Section({ section, isOpen, onToggle, onCourseClick }) {
 
   return (
     <div
-      className={`rounded-2xl border ${colorClass} shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all duration-300 flex flex-col`}
+      className={`rounded-2xl border ${colorClass} shadow-sm hover:shadow-lg hover:-translate-y-[2px] transition-all duration-300 backdrop-blur-sm`}
     >
       {/* Section Header */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-5 py-4 rounded-2xl hover:bg-white/60 dark:hover:bg-white/10 transition-colors duration-300"
+        className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-colors duration-300 bg-gradient-to-r from-white/70 to-white/30 dark:from-white/5 dark:to-white/10"
       >
-        <div className="flex items-center gap-2 text-left">
-          <Layers className="h-4 w-4 text-slate-700 dark:text-slate-300" />
+        <div className="flex items-center gap-3 text-left">
+          <div
+            className={`p-2 rounded-lg ${
+              color === "amber"
+                ? "bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30"
+                : "bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30"
+            }`}
+          >
+            <BookOpen className="h-4 w-4 text-slate-700 dark:text-slate-300" />
+          </div>
           <div>
-            <h3 className="font-semibold text-slate-900 dark:text-white text-sm md:text-base">
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
               {section.title}
             </h3>
-            {(color === "blue" || color === "amber") && section.description && (
+            {section.description && (
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-1">
                 {section.description}
               </p>
@@ -62,9 +79,9 @@ function Section({ section, isOpen, onToggle, onCourseClick }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {total ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300 border border-white/40 dark:border-slate-700/40">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border border-white/40 dark:border-slate-700/40 font-semibold">
               {total} UOC
             </span>
           ) : null}
@@ -82,21 +99,17 @@ function Section({ section, isOpen, onToggle, onCourseClick }) {
           isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="px-5 pb-5 text-sm text-slate-800 dark:text-slate-300 space-y-3 border-t border-white/50 dark:border-white/10">
-          {color === "neutral" && section.description && (
-            <div className="mt-2 text-slate-700 dark:text-slate-400 leading-relaxed">{section.description}</div>
-          )}
-
+        <div className="px-6 pb-5 pt-3 text-sm text-slate-800 dark:text-slate-300 space-y-3 border-t border-white/50 dark:border-white/10">
           {hasCourses ? (
-            <div className="grid sm:grid-cols-2 gap-2 mt-3">
+            <div className="grid sm:grid-cols-2 gap-2 mt-2">
               {section.courses.map((c, i) => (
                 <div
                   key={c.code || i}
                   onClick={() => onCourseClick?.(c)}
-                  className="group flex items-center justify-between border border-slate-200/70 dark:border-slate-700/60 rounded-lg px-3 py-2 cursor-pointer bg-white/90 dark:bg-white/5 hover:-translate-y-[1px] hover:shadow-md hover:bg-sky-50/70 dark:hover:bg-sky-900/30 transition-all duration-200"
+                  className="group flex items-center justify-between border border-slate-200/70 dark:border-slate-700/60 rounded-lg px-3 py-2 cursor-pointer bg-white/80 dark:bg-white/5 hover:-translate-y-[1px] hover:shadow-md hover:bg-sky-50/80 dark:hover:bg-sky-900/40 transition-all duration-200"
                 >
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-sky-700 dark:group-hover:text-sky-300">
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-700 dark:group-hover:text-sky-300">
                       {c.code}
                     </span>
                     <span className="text-xs text-slate-700 dark:text-slate-400 group-hover:text-sky-700 dark:group-hover:text-sky-300">
@@ -104,20 +117,21 @@ function Section({ section, isOpen, onToggle, onCourseClick }) {
                     </span>
                   </div>
                   {c.uoc ? (
-                    <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">{c.uoc} UOC</span>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                      {c.uoc} UOC
+                    </span>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : (
-            !section.description && (
-              <div className="italic text-slate-600 dark:text-slate-400">No courses listed.</div>
-            )
+            <p className="italic text-slate-600 dark:text-slate-400">No courses listed.</p>
           )}
 
           {section.notes && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-2">
-              <span className="font-medium text-slate-800 dark:text-white/80">Note:</span> {section.notes}
+              <span className="font-medium text-slate-800 dark:text-white/80">Note:</span>{" "}
+              {section.notes}
             </p>
           )}
         </div>
@@ -134,21 +148,18 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // 🧠 Collect unique course codes for MindMesh preloading
   const allCourses = useMemo(() => {
     const codes = sections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
     return Array.from(new Set(codes));
   }, [sections]);
 
-  // Handle "Visualise Program Structure"
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
-    console.log("🧩 Visualising MindMesh for:", degreeCode, allCourses);
     localStorage.setItem("programCourses", JSON.stringify(allCourses));
     navigate(`/planner/mindmesh?program=${degreeCode}`);
   };
 
-  // --- Fetch program structure from Supabase ---
+  // --- Fetch program structure ---
   useEffect(() => {
     const fetchStructure = async () => {
       if (propSections?.length > 0) {
@@ -230,111 +241,89 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <h2 className="text-4xl font-normal tracking-tight text-slate-900 dark:bg-gradient-to-r dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400 dark:bg-clip-text dark:text-transparent">
-            Program Structure
-          </h2>
-          <button
-            onClick={handleVisualise}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-white bg-gradient-to-br from-blue-600 to-sky-500 hover:bg-gradient-to-bl shadow-lg hover:shadow-xl transition-all duration-300 focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-700"
-          >
-            <Layers className="w-5 h-5 text-white/90" />
-            Visualise Program Structure
-          </button>
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
+                    dark:border-slate-700/60 p-8 shadow-xl space-y-8">
+      {/* ========== HEADER ========== */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30 shadow-sm">
+            <Layers className="h-6 w-6 text-sky-700 dark:text-sky-400" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Program Structure
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Explore each course and structural component of your degree
+            </p>
+          </div>
         </div>
 
-        {/* Expand / Collapse */}
-        <div className="flex gap-2 mt-1 sm:mt-0">
-          <button
-            onClick={expandAll}
-            className="text-xs px-3 py-1.5 rounded-md border border-sky-300/60 bg-sky-50 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-800/60 transition-colors duration-200"
-          >
-            Expand All
-          </button>
-          <button
-            onClick={collapseAll}
-            className="text-xs px-3 py-1.5 rounded-md border border-slate-300/60 bg-slate-50 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors duration-200"
-          >
-            Collapse All
-          </button>
-        </div>
+        <button
+          onClick={handleVisualise}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white 
+                     bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
+                     hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
+                     shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Layers className="w-5 h-5" />
+          Visualise in MindMesh
+        </button>
       </div>
 
-      <p className="mt-2 text-base text-slate-700 dark:text-slate-400">
-        Explore the courses and components that make up your degree and click on the courses to explore them in more detail.
+      {/* Controls */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={expandAll}
+          className="text-xs px-3 py-1.5 rounded-lg border border-sky-300/60 bg-sky-50 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-800/60 transition-colors duration-200"
+        >
+          Expand All
+        </button>
+        <button
+          onClick={collapseAll}
+          className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/60 bg-slate-50 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors duration-200"
+        >
+          Collapse All
+        </button>
+      </div>
+
+      <p className="text-base text-slate-700 dark:text-slate-400 leading-relaxed">
+        Browse through your degree structure and click on any course to view details or explore it in MindMesh.
       </p>
 
-      {/* Sections */}
-      {loading ? (
-        <div className="text-sm text-slate-600 italic">Loading program structure…</div>
-      ) : err ? (
-        <div className="text-sm text-red-500 italic">Failed to load structure: {err}</div>
-      ) : sections.length > 0 ? (
-        (() => {
-          const interactiveSections = sections.filter((s) =>
-            ["blue", "amber"].includes(getSectionStyle(s.title).color)
-          );
-          const neutralSections = sections.filter(
-            (s) => getSectionStyle(s.title).color === "neutral"
-          );
-
-          return (
-            <>
-              <div className="flex flex-wrap gap-5">
-                {interactiveSections.map((sec, i) => {
-                  const key = `${sec.title}-${i}`;
-                  return (
-                    <div key={key} className="w-full md:w-[calc(50%-0.625rem)]">
-                      <Section
-                        section={sec}
-                        isOpen={!!openMap[key]}
-                        onToggle={() => toggleSection(key)}
-                        onCourseClick={handleCourseClick}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-
-              {neutralSections.length > 0 && (
-                <div className="mt-12 space-y-8">
-                  <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    Additional Program Information
-                  </h3>
-                  {neutralSections.map((s, i) => (
-                    <div
-                      key={`${s.title}-${i}`}
-                      className="w-full rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-gradient-to-br from-white/90 to-slate-50/70 dark:from-slate-950/70 dark:to-slate-900/60 backdrop-blur-sm shadow-md hover:shadow-lg hover:-translate-y-[1px] transition-all duration-300 px-8 py-6"
-                    >
-                      <h4 className="font-semibold text-slate-900 dark:text-white text-lg mb-3 tracking-tight">
-                        {s.title}
-                      </h4>
-                      {s.description ? (
-                        <p className="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 max-w-5xl">
-                          {s.description}
-                        </p>
-                      ) : (
-                        <p className="italic text-sm text-slate-500 dark:text-slate-500">No details available.</p>
-                      )}
-                      {s.notes && (
-                        <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
-                          <span className="font-medium text-slate-800 dark:text-white/80">Note:</span> {s.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          );
-        })()
-      ) : (
-        <div className="text-sm text-slate-600 italic">No structure data available for this program.</div>
-      )}
+      {/* ========== PROGRAM SECTIONS ========== */}
+      <div className="pt-2 space-y-6">
+        {loading ? (
+          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 mt-4 p-4 
+                          bg-gradient-to-r from-blue-50/50 to-indigo-50/50 
+                          dark:from-blue-900/10 dark:to-indigo-900/10 
+                          rounded-xl border border-blue-200/40 dark:border-blue-800/40 animate-pulse">
+            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium">Loading program structure...</span>
+          </div>
+        ) : err ? (
+          <div className="text-sm text-red-500 italic">Failed to load structure: {err}</div>
+        ) : sections.length > 0 ? (
+          <div className="space-y-6">
+            {sections.map((sec, i) => {
+              const key = `${sec.title}-${i}`;
+              return (
+                <Section
+                  key={key}
+                  section={sec}
+                  isOpen={!!openMap[key]}
+                  onToggle={() => toggleSection(key)}
+                  onCourseClick={handleCourseClick}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-sm text-slate-600 italic">
+            No structure data available for this program.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,375 @@
+import { useState } from "react";
+import { 
+  TrendingUp, 
+  Award, 
+  Building2, 
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Target,
+  BarChart3,
+  Sparkles,
+  Zap,
+  Crown
+} from "lucide-react";
+
+/**
+ * Premium Career Pathways Component
+ * 
+ * Sophisticated design with:
+ * - Elegant color palette (slate, gold, indigo)
+ * - Refined typography and spacing
+ * - Subtle shadows and borders
+ * - Professional, luxury aesthetic
+ */
+
+export default function CareerPathways({ careerPathways }) {
+  const [activeTab, setActiveTab] = useState('entry');
+  const [showAllCerts, setShowAllCerts] = useState(false);
+  
+  const entryLevel = careerPathways?.entry_level;
+  const midCareer = careerPathways?.mid_career;
+  const senior = careerPathways?.senior;
+  const certifications = careerPathways?.certifications || [];
+  const marketInsights = careerPathways?.market_insights;
+  const topEmployers = careerPathways?.top_employers?.by_sector || {};
+  const employmentStats = careerPathways?.employment_stats;
+
+  if (!entryLevel && !midCareer && !senior) return null;
+
+  const tabs = [
+    { id: 'entry', label: 'Entry Level', data: entryLevel, icon: Sparkles },
+    { id: 'mid', label: 'Mid-Career', data: midCareer, icon: Zap },
+    { id: 'senior', label: 'Senior Leadership', data: senior, icon: Crown },
+  ];
+
+  const activeData = tabs.find(t => t.id === activeTab)?.data;
+  const displayedCerts = showAllCerts ? certifications : certifications.slice(0, 3);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
+      
+      {/* ========== HEADER ========== */}
+      <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl shadow-sm">
+          <TrendingUp className="h-6 w-6 text-slate-700 dark:text-slate-300" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Career Pathways & Outcomes
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Chart your professional journey from graduate to executive roles
+          </p>
+        </div>
+      </div>
+
+      {/* ========== EMPLOYMENT STATISTICS ========== */}
+      {employmentStats && (
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {employmentStats.employment_rate && employmentStats.employment_rate !== 'Data not available' && (
+            <div className="group p-5 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 
+                          dark:from-slate-800/50 dark:to-slate-800/30 
+                          border border-slate-200/60 dark:border-slate-700/60 
+                          shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Employment Rate
+                </p>
+              </div>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                {employmentStats.employment_rate}
+              </p>
+            </div>
+          )}
+          {employmentStats.median_starting_salary && employmentStats.median_starting_salary !== 'Data not available' && (
+            <div className="group p-5 rounded-xl bg-gradient-to-br from-blue-50/50 to-sky-50/30 
+                          dark:from-blue-900/10 dark:to-sky-900/10 
+                          border border-blue-200/40 dark:border-blue-800/40 
+                          shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-500" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Starting Salary
+                </p>
+              </div>
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-400">
+                {employmentStats.median_starting_salary}
+              </p>
+            </div>
+          )}
+          {employmentStats.source && employmentStats.source !== 'Information temporarily unavailable' && (
+            <div className="group p-5 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 
+                          dark:from-slate-800/50 dark:to-slate-800/30 
+                          border border-slate-200/60 dark:border-slate-700/60 
+                          shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2 mb-2">
+                <BarChart3 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Data Source
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 leading-snug">
+                {employmentStats.source}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========== CAREER LEVEL TABS ========== */}
+      <div className="mb-8">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`group px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-2.5 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 text-white dark:text-slate-900 shadow-lg scale-105'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-sm'
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${isActive ? 'animate-pulse' : ''}`} />
+                <span>{tab.label}</span>
+                {tab.data?.years_experience && (
+                  <span className="text-xs opacity-75 font-normal">
+                    ({tab.data.years_experience})
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========== ROLE CARDS ========== */}
+      {activeData?.roles && activeData.roles.length > 0 && (
+        <div className="space-y-5 mb-8">
+          {activeData.roles.map((role, idx) => (
+            <div 
+              key={idx}
+              className="group p-6 rounded-xl border border-slate-200/60 dark:border-slate-700/60
+                       bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
+                       shadow-md hover:shadow-xl transition-all duration-300"
+            >
+              {/* Role Header */}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+                    {role.title}
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {role.description}
+                  </p>
+                </div>
+                {role.salary_range && (
+                  <div className="px-4 py-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 
+                                dark:from-blue-900/20 dark:to-indigo-900/20 
+                                border border-blue-200/60 dark:border-blue-800/60 shadow-sm">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      <span>Salary</span>
+                    </div>
+                    <div className="text-base font-bold text-blue-900 dark:text-blue-400 text-center whitespace-nowrap">
+                      {role.salary_range}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Requirements */}
+              {role.requirements && (
+                <div className="mb-4 p-4 bg-slate-50/80 dark:bg-slate-800/50 rounded-lg border border-slate-200/40 dark:border-slate-700/40">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="h-4 w-4 text-slate-500 dark:text-slate-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                        Requirements
+                      </p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                        {role.requirements}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Hiring Companies */}
+              {role.hiring_companies && role.hiring_companies.length > 0 && (
+                <div className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100/50 
+                              dark:from-slate-800/30 dark:to-slate-800/50 
+                              border border-slate-200/60 dark:border-slate-700/60">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                      Companies Hiring
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {role.hiring_companies.map((company, cIdx) => (
+                      <span 
+                        key={cIdx}
+                        className="px-4 py-2 rounded-lg text-sm font-semibold
+                                 bg-white dark:bg-slate-900 
+                                 border-2 border-slate-200 dark:border-slate-700
+                                 text-slate-800 dark:text-slate-200
+                                 shadow-sm hover:shadow-md hover:-translate-y-0.5
+                                 hover:border-slate-900 dark:hover:border-slate-100
+                                 transition-all duration-200"
+                      >
+                        {company}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ========== PROFESSIONAL CERTIFICATIONS ========== */}
+      {certifications.length > 0 && (
+        <div className="mb-8">
+          <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2.5">
+            <Award className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+            Professional Certifications
+          </h4>
+          <div className="space-y-3">
+            {displayedCerts.map((cert, idx) => (
+              <div 
+                key={idx}
+                className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60
+                         bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
+                         hover:shadow-lg transition-all duration-300"
+              >
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <h5 className="font-bold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                    {cert.name}
+                  </h5>
+                  <span className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap ${
+                    cert.importance === 'Required' 
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                      : cert.importance === 'Highly Recommended'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                  }`}>
+                    {cert.importance}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-medium">{cert.provider}</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span>{cert.timeline}</span>
+                </div>
+                {cert.notes && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 leading-relaxed">
+                    {cert.notes}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {certifications.length > 3 && (
+            <button
+              onClick={() => setShowAllCerts(!showAllCerts)}
+              className="mt-4 w-full py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 
+                       hover:text-slate-900 dark:hover:text-slate-200 
+                       transition-colors flex items-center justify-center gap-2 
+                       rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800
+                       border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+            >
+              {showAllCerts ? (
+                <>Show Less <ChevronUp className="h-4 w-4" /></>
+              ) : (
+                <>Show {certifications.length - 3} More <ChevronDown className="h-4 w-4" /></>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ========== MARKET INSIGHTS ========== */}
+      {marketInsights && (marketInsights.demand_level || marketInsights.trends || marketInsights.geographic_notes) && (
+        <div className="mb-8 p-6 rounded-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 
+                      dark:from-blue-900/10 dark:to-indigo-900/10 
+                      border border-blue-200/60 dark:border-blue-700/60 shadow-sm">
+          <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2.5">
+            <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            Market Insights
+          </h4>
+          
+          {marketInsights.demand_level && marketInsights.demand_level !== 'Data unavailable' && (
+            <div className="mb-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Market Demand:{" "}
+              </span>
+              <span className={`text-sm font-bold ${
+                marketInsights.demand_level === 'High' || marketInsights.demand_level === 'Growing'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-700 dark:text-slate-300'
+              }`}>
+                {marketInsights.demand_level}
+              </span>
+            </div>
+          )}
+          
+          {marketInsights.trends && marketInsights.trends !== 'Information temporarily unavailable' && (
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+              {marketInsights.trends}
+            </p>
+          )}
+          
+          {marketInsights.geographic_notes && marketInsights.geographic_notes !== 'Information temporarily unavailable' && (
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <span className="font-semibold">Location:</span> {marketInsights.geographic_notes}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ========== TOP EMPLOYERS BY SECTOR ========== */}
+      {Object.keys(topEmployers).length > 0 && (
+        <div className="p-6 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 
+                      dark:from-indigo-900/10 dark:to-purple-900/10 
+                      border border-indigo-200/60 dark:border-indigo-700/60 shadow-sm">
+          <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2.5">
+            <Building2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            Top Employers by Sector
+          </h4>
+          <div className="space-y-5">
+            {Object.entries(topEmployers).map(([sector, companies], idx) => (
+              <div key={idx}>
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-3">
+                  {sector}
+                </p>
+                <div className="flex flex-wrap gap-2.5">
+                  {companies.map((company, cIdx) => (
+                    <span 
+                      key={cIdx}
+                      className="px-4 py-2 rounded-lg text-sm font-semibold
+                               bg-white dark:bg-slate-900 
+                               border border-slate-200 dark:border-slate-700
+                               text-slate-700 dark:text-slate-300
+                               shadow-sm hover:shadow-md hover:-translate-y-0.5
+                               transition-all duration-200"
+                    >
+                      {company}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

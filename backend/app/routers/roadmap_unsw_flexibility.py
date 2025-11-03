@@ -337,41 +337,43 @@ REQUIRED FORMAT:
         
         detail_prompt = f"""You are a UNSW academic advisor helping a student currently enrolled in {program_name} (Faculty: {faculty}) explore degree switching options.
 
-Below are the TOP 5 EASIEST degrees to switch to (already ranked):
+        Below are the TOP 5 EASIEST degrees to switch to (already ranked):
 
-{selected_text}
+        {selected_text}
 
-The current program ({program_name}) is typically focused on its core disciplines and skill areas within the Faculty of {faculty}.
-Use this as a baseline when comparing how each new program differs or expands the student's career and academic trajectory.
+        The current program ({program_name}) is typically focused on its core disciplines and skill areas within the Faculty of {faculty}.
+        Use this as a baseline when comparing how each new program differs or expands the student's career and academic trajectory.
 
-TASK:
-For each of these 5 degrees, provide:
-1. A clear, practical explanation of why it's a good switch — focus on course overlap, how existing courses map to the new program, and how it builds on the student's current academic strengths.
-2. Highlight what *new career paths, industries, or opportunities* this degree could open up compared to the current one.
-3. List specific key benefits of switching (e.g., expanded majors, industry links, accreditations, or broader skill development).
-4. Mention any important considerations or requirements (e.g., prerequisite changes, competitive entry, or WAM thresholds).
+        TASK:
+        For each of these 5 degrees, provide CONCISE information:
+        1. A clear, practical explanation of why it's a good switch (2-3 sentences max) — focus on course overlap and new career opportunities.
+        2. Highlight what *new career paths, industries, or opportunities* this degree opens up.
+        3. List 3-4 SHORT key benefits (2-4 words each).
+        4. Mention any important considerations if relevant.
 
-CRITICAL: Return ONLY valid JSON. No explanatory text before or after. Start with {{ and end with }}.
+        CRITICAL: Return ONLY valid JSON. No explanatory text before or after. Start with {{ and end with }}.
 
-REQUIRED JSON FORMAT:
-{{
-  "easy_switches": [
-    {{
-      "program_name": "Exact degree name from list above",
-      "faculty": "Faculty name",
-      "overlap_percentage": number (from list above),
-      "shared_courses": ["list", "of", "course", "codes"],
-      "reason": "Explain why this is a good switch — focus on overlap, transferable skills, and what new career directions or industries this degree opens up compared to the current one.",
-      "key_benefits": [
-            "Short standalone phrases, not a sentence. Each item should describe one clear benefit.",
-            "For example: 'Broader major choices', 'Accredited program', 'High industry demand'."
+        REQUIRED JSON FORMAT:
+        {{
+        "easy_switches": [
+            {{
+            "program_name": "Exact degree name from list above",
+            "faculty": "Faculty name",
+            "overlap_percentage": number (from list above),
+            "shared_courses": ["list", "of", "course", "codes"],
+            "reason": "2-3 sentences max explaining why this is a good switch, focusing on overlap and new career opportunities.",
+            "key_benefits": [
+                "Short phrase 1",
+                "Short phrase 2",
+                "Short phrase 3",
+                "Short phrase 4"
+            ]
+            }}
         ]
-    }}
-  ]
-}}
+        }}
 
-Keep the tone professional and student-focused. Avoid generic phrasing — be specific about overlap, alignment, and new career opportunities.
-"""
+        Keep responses CONCISE. Avoid long explanations — be specific but brief about overlap and opportunities.
+        """
 
         # Stage 3b: Get detailed recommendations
         detail_raw = ask_openai(detail_prompt)
@@ -389,9 +391,46 @@ Keep the tone professional and student-focused. Avoid generic phrasing — be sp
             json_only = detail_stripped
             print("No JSON extraction needed")
 
-        # Parse and validate JSON
-        draft = parse_json_or_500(json_only)
+        ## ---------- Robust multi-stage JSON parse ----------
+        try:
+            draft = parse_json_or_500(json_only)
+        except Exception as e:
+            print(f"[Flexibility JSON Parse] Primary parse failed: {e}")
+            import re, json
+
+            # Step 1: basic cleanup
+            cleaned = re.sub(r",(\s*[}\]])", r"\1", json_only)   # remove trailing commas
+            cleaned = cleaned.replace("None", "null")            # pythonic nulls
+
+            # Step 2: autoclose any missing braces/brackets (for truncated outputs)
+            open_braces = cleaned.count("{");  close_braces = cleaned.count("}")
+            open_brackets = cleaned.count("["); close_brackets = cleaned.count("]")
+            while close_braces < open_braces:
+                cleaned += "}"
+                close_braces += 1
+            while close_brackets < open_brackets:
+                cleaned += "]"
+                close_brackets += 1
+
+            # Step 3: try parsing again
+            try:
+                draft = json.loads(cleaned)
+                print("[Flexibility JSON Parse] ✓ Fallback parse succeeded after auto-repair")
+            except Exception as e2:
+                print(f"[Flexibility JSON Parse] ✗ Fallback failed: {e2}")
+                draft = {"easy_switches": [], "error": "Malformed or truncated JSON"}
+
+        # Guarantee schema key exists
+        if "easy_switches" not in draft:
+            draft["easy_switches"] = []
         assert_keys(draft, ["easy_switches"], "flexibility")
+
+
+        # --- Continue with schema validation ---
+        if "easy_switches" not in draft:
+            draft["easy_switches"] = []
+        assert_keys(draft, ["easy_switches"], "flexibility")
+
 
         if not draft.get("easy_switches"):
             print("WARNING: AI returned empty recommendations")
@@ -418,28 +457,34 @@ Keep the tone professional and student-focused. Avoid generic phrasing — be sp
         }
 
 # ========== BACKGROUND TASK FUNCTION ==========
+import asyncio
+
 async def generate_and_update_flexibility(roadmap_id: str, roadmap_data: dict):
     """
-    Background task to generate flexibility recommendations and update roadmap.
-    
-    This function runs asynchronously after the initial roadmap is returned to the user.
-    
-    Args:
-        roadmap_id: ID of the roadmap to update
-        roadmap_data: Existing roadmap data from database
+    Async wrapper — schedules the real blocking work in a background thread.
+    This prevents blocking FastAPI’s main event loop.
     """
-    
-    print(f"Background task started for roadmap: {roadmap_id}")
-    
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _generate_and_update_flexibility_sync, roadmap_id, roadmap_data)
+
+
+def _generate_and_update_flexibility_sync(roadmap_id: str, roadmap_data: dict):
+    """
+    Real implementation (runs in thread executor).
+    Performs pre-filtering, AI generation, and Supabase update.
+    """
+    import time
+    start = time.time()
+    print(f"[Flexibility Thread] Started for roadmap: {roadmap_id}")
+
     try:
-        # Build context from existing roadmap data
+        # Build context
         context = {
             "degree_id": roadmap_data.get("degree_id"),
             "program_name": roadmap_data.get("program_name"),
             "faculty": roadmap_data.get("payload", {}).get("faculty"),
         }
 
-        # --- NEW fallback in case faculty is missing ---
         if not context["faculty"] and context["degree_id"]:
             print("Faculty not found in payload — fetching from unsw_degrees table...")
             degree_row = (
@@ -454,31 +499,28 @@ async def generate_and_update_flexibility(roadmap_id: str, roadmap_data: dict):
 
         print(f"[Flexibility] Context built: {json.dumps(context, indent=2)}")
 
-        # Generate flexibility recommendations
-        flexibility = await ai_generate_flexibility_info(context)
+        # ---- Generate flexibility recommendations ----
+        # Note: this call is async, so we must run it in a temporary event loop
+        flexibility = asyncio.run(ai_generate_flexibility_info(context))
 
-        # === DEBUG LOG: full AI response structure ===
-        print("\n========== DEBUG: FINAL FLEXIBILITY OUTPUT ==========")
-        print(json.dumps(flexibility, indent=2))
-        print("=====================================================\n")
-
-        # Update roadmap payload
+        # Merge into existing payload
         payload = roadmap_data.get("payload", {})
         payload.update(flexibility)
 
-        # Save updated payload to database
-        update_response = supabase.table("unsw_roadmap") \
-            .update({"payload": payload}) \
-            .eq("id", roadmap_id) \
+        # Save back to database
+        update_response = (
+            supabase.table("unsw_roadmap")
+            .update({"payload": payload})
+            .eq("id", roadmap_id)
             .execute()
+        )
 
-        # Log Supabase response
+        print(f"[Flexibility Thread] Update complete for {roadmap_id} "
+              f"({time.time() - start:.1f}s elapsed)")
         if update_response.data:
-            print(f"Flexibility updated successfully for roadmap: {roadmap_id}")
-            print(f"Supabase update response: {json.dumps(update_response.data, indent=2)}")
+            print(json.dumps(update_response.data, indent=2))
         else:
-            print(f"WARNING: Update response empty for roadmap: {roadmap_id}")
+            print("WARNING: Empty update response")
 
     except Exception as e:
-        print(f"ERROR: Background task failed for roadmap {roadmap_id}: {type(e).__name__}: {e}")
-        # Keep running, don't crash entire background worker
+        print(f"[Flexibility Thread] ERROR for roadmap {roadmap_id}: {e}")

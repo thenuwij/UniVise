@@ -9,6 +9,7 @@ from .roadmap_common import (
 from .roadmap_school import gather_school_context, ai_generate_school_payload
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
 from .roadmap_unsw_flexibility import generate_and_update_flexibility
+from .roadmap_industry import generate_and_update_industry_careers
 
 router = APIRouter(tags=["roadmap"])
 
@@ -60,14 +61,21 @@ async def create_unsw(
 
     rec = ins.data[0]
 
-    # --- Stage 3: trigger flexibility generation in background ---
+    # --- Stage 3 & 4: trigger BOTH background tasks in parallel ---
     try:
-        print(f"[Flex] Scheduling flexibility generation for roadmap: {rec['id']}")
-        background_tasks.add_task(generate_and_update_flexibility, rec["id"], rec)
+        import asyncio
+        
+        print(f"[Background] Launching flexibility + industry/careers in parallel for roadmap: {rec['id']}")
+        
+        # Create both tasks immediately (they'll run concurrently)
+        asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
+        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
+        
     except Exception as e:
-        print(f"[Flex] Failed to schedule flexibility: {e}")
+        print(f"[Background] Failed to schedule tasks: {e}")
 
-    # --- Stage 4: return immediate response to frontend ---
+
+    # --- Stage 5: return immediate response to frontend ---
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 

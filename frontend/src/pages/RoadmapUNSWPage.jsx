@@ -4,12 +4,9 @@ import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import RoadmapFlow from "../components/roadmap/RoadmapFlow";
-import EntryRequirementsCard from "../components/roadmap/EntryRequirementsCard";
 import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
 import CapstoneHonours from "../components/roadmap/CapstoneHonours";
 import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
-import IndustrySection from "../components/roadmap/IndustrySection";
-import CareersSection from "../components/roadmap/CareersSection";
 import SkeletonCard from "../components/roadmap/SkeletonCard";
 import GradientCard from "../components/GradientCard";
 import SectionTitle from "../components/SectionTitle";
@@ -17,6 +14,11 @@ import Pill from "../components/Pill";
 import Fact from "../components/Fact";
 import { ArrowLeft, UniIcon } from "../components/icons/InlineIcons";
 import { courseToText } from "../utils/formatters";
+import CareerPathways from "../components/roadmap/CareerPathways";
+import GeneratingMessage from "../components/roadmap/GeneratingMessage";
+import SocietiesCommunity from "../components/roadmap/SocietiesCommunity";
+import IndustryExperience from "../components/roadmap/IndustryExperience";
+import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
 
 // --- Constants ---
 const DEFAULT_PROGRAM_NAME = "Selected degree";
@@ -109,16 +111,44 @@ const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
         // console.log("[Flex Poll] fetched payload:", row?.payload);
 
         // Check if the new payload has flexibility_detailed data
+        // Check if the new payload has flexibility_detailed OR industry_careers_enhanced data
         const newFlex = row?.payload?.flexibility_detailed;
         const existingFlex = data?.payload?.flexibility_detailed;
+        const newSocieties = row?.payload?.industry_societies;
+        const newExperience = row?.payload?.industry_experience;
+        const newCareers = row?.payload?.career_pathways;
 
-        // Log current vs new
-        // console.log("existingFlex:", existingFlex);
-        // console.log("newFlex:", newFlex);
+        const existingSocieties = data?.payload?.industry_societies;
+        const existingExperience = data?.payload?.industry_experience;
+        const existingCareers = data?.payload?.career_pathways;
 
-        // Update only when new data appears
+        if (
+          (newSocieties && !existingSocieties) ||
+          (newExperience && !existingExperience) ||
+          (newCareers && !existingCareers)
+        ) {
+          console.log("[Industry Sections] New enhanced data detected! Updating...");
+          setData((prev) => ({
+            ...prev,
+            payload: { ...prev?.payload, ...row.payload },
+          }));
+        }
+
+
+        // Update when new flexibility data appears
         if (newFlex && !existingFlex) {
-          // console.log("[Flexibility] New data detected! Updating roadmap payload...");
+          console.log("[Flexibility] New data detected! Updating...");
+          setData((prev) => ({
+            ...prev,
+            payload: { ...prev?.payload, ...row.payload },
+          }));
+        }
+
+        // Update when new industry/careers data appears
+        const newIndustryCareers = row?.payload?.industry_careers_enhanced;
+        const existingIndustryCareers = data?.payload?.industry_careers_enhanced;
+        if (newIndustryCareers && !existingIndustryCareers) {
+          console.log("[Industry/Careers] Enhanced data detected! Updating...");
           setData((prev) => ({
             ...prev,
             payload: { ...prev?.payload, ...row.payload },
@@ -171,19 +201,6 @@ const useStepNavigation = (searchParams, stepsLength, hasData) => {
   }, [hasData, stepsLength]);
 
   return { activeIndex, setActiveIndex };
-};
-
-const IndustryCareersSection = ({ data }) => {
-  return (
-    <div className="space-y-6">
-      <IndustrySection
-        trainingInfo={data?.industry?.trainingInfo}
-        societies={data?.industry?.societies || []}
-        careersHint={data?.industry?.rolesHint}
-      />
-      <CareersSection rolesHint={data?.industry?.rolesHint} />
-    </div>
-  );
 };
 
 const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange }) => {
@@ -283,7 +300,7 @@ export default function RoadmapUNSWPage() {
         key: "entry",
         title: "Entry Requirements",
         render: () => (
-          <EntryRequirementsCard
+          <EntryRequirementsCardUnsw 
             atar={data?.entry_requirements?.atar}
             selectionRank={getSelectionRank(data?.entry_requirements)}
             subjects={data?.entry_requirements?.subjects || []}
@@ -307,15 +324,57 @@ export default function RoadmapUNSWPage() {
         render: () => (
           <ProgramFlexibility
             flexibility={data?.payload?.flexibility_detailed}
-            switchOptions={data?.payload?.flexibility?.options || []}
             simulatorLink="/switching"
           />
         ),
       },
       {
-        key: "industry",
-        title: "Industry & Careers",
-        render: () => <IndustryCareersSection data={data} />,
+        key: "societies",
+        title: "Societies & Community",
+        render: () => {
+          const societies = data?.payload?.industry_societies;
+          if (!societies || Object.keys(societies).length === 0) {
+            return (
+              <GeneratingMessage
+                title="Generating Societies & Community..."
+                message="Finding UNSW societies and community events for your program."
+              />
+            );
+          }
+          return <SocietiesCommunity societies={societies} />;
+        },
+      },
+      {
+        key: "industry_experience",
+        title: "Industry Experience & Training",
+        render: () => {
+          const experience = data?.payload?.industry_experience;
+          if (!experience || Object.keys(experience).length === 0) {
+            return (
+              <GeneratingMessage
+                title="Generating Industry Experience..."
+                message="Collecting internship programs, recruiting companies, and WIL opportunities."
+              />
+            );
+          }
+          return <IndustryExperience industryExperience={experience} />;
+        },
+      },
+      {
+        key: "career_pathways",
+        title: "Career Pathways & Outcomes",
+        render: () => {
+          const careers = data?.payload?.career_pathways;
+          if (!careers || Object.keys(careers).length === 0) {
+            return (
+              <GeneratingMessage
+                title="Generating Career Pathways..."
+                message="Mapping entry-level, mid-career, and senior roles for your field."
+              />
+            );
+          }
+          return <CareerPathways careerPathways={careers} />;
+        },
       },
     ];
   }, [data, degree]);
