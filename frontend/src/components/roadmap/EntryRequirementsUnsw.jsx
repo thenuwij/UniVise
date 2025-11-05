@@ -16,7 +16,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
             Key Entry Requirements
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Check the latest UNSW Handbook or UAC website for exact thresholds.
+            Check the latest UNSW Handbook or UAC website for other thresholds.
           </p>
         </div>
       </div>

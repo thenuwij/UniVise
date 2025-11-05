@@ -121,6 +121,9 @@ export default function CareerPathways({ careerPathways }) {
 
       {/* ========== CAREER LEVEL TABS ========== */}
       <div className="mb-8">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+          Select Career Stage:
+        </p>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -129,18 +132,21 @@ export default function CareerPathways({ careerPathways }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`group px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-2.5 ${
+                className={`group relative px-6 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2.5 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 text-white dark:text-slate-900 shadow-lg scale-105'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-sm'
+                    ? 'bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-105 ring-2 ring-blue-400 dark:ring-blue-500'
+                    : 'bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-300 hover:from-slate-200 hover:to-slate-300 dark:hover:from-slate-700 dark:hover:to-slate-600 hover:shadow-md hover:scale-102'
                 }`}
               >
                 <Icon className={`h-4 w-4 ${isActive ? 'animate-pulse' : ''}`} />
                 <span>{tab.label}</span>
                 {tab.data?.years_experience && (
-                  <span className="text-xs opacity-75 font-normal">
+                  <span className={`text-xs font-normal ${isActive ? 'opacity-90' : 'opacity-75'}`}>
                     ({tab.data.years_experience})
                   </span>
+                )}
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 rotate-45 bg-gradient-to-br from-blue-600 to-indigo-600" />
                 )}
               </button>
             );
@@ -159,9 +165,12 @@ export default function CareerPathways({ careerPathways }) {
                        shadow-md hover:shadow-xl transition-all duration-300"
             >
               {/* Role Header */}
-              <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
                 <div className="flex-1">
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+                  <h4 className="text-xl font-bold mb-2
+                               bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 
+                               dark:from-blue-400 dark:via-sky-400 dark:to-indigo-400
+                               bg-clip-text text-transparent">
                     {role.title}
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -204,7 +213,7 @@ export default function CareerPathways({ careerPathways }) {
               {role.hiring_companies && role.hiring_companies.length > 0 && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100/50 
                               dark:from-slate-800/30 dark:to-slate-800/50 
-                              border border-slate-200/60 dark:border-slate-700/60">
+                              border border-slate-200/60 dark:border-slate-700/60 mb-3">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
@@ -227,6 +236,14 @@ export default function CareerPathways({ careerPathways }) {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Data Source */}
+              {role.source && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 italic">
+                  <BarChart3 className="h-3 w-3" />
+                  <span>Source: {role.source}</span>
                 </div>
               )}
             </div>

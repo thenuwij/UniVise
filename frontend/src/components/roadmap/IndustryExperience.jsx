@@ -107,14 +107,22 @@ export default function IndustryExperience({ industryExperience }) {
                            shadow-md hover:shadow-xl transition-all duration-300"
               >
                 {/* Program Header */}
-                <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
                   <div className="flex-1">
-                    <h5 className="font-bold text-base text-slate-900 dark:text-slate-100 mb-2">
-                      {program.program_name}
-                    </h5>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
-                      {program.company}
-                    </p>
+                    <div className="inline-block mb-2">
+                      <h5 className="font-bold text-lg 
+                                   bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 
+                                   dark:from-blue-400 dark:via-sky-400 dark:to-indigo-400
+                                   bg-clip-text text-transparent">
+                        {program.program_name}
+                      </h5>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      <p className="text-sm text-slate-700 dark:text-slate-300 font-bold">
+                        {program.company}
+                      </p>
+                    </div>
                   </div>
                   {program.paid && (
                     <span className="px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-green-50 

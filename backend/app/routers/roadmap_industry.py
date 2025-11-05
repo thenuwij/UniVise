@@ -11,8 +11,100 @@ Background task approach with fallback to basic data.
 
 from typing import Any, Dict, List
 import json
+import re
 from app.utils.openai_client import ask_openai
 from .roadmap_common import parse_json_or_500, assert_keys
+
+# ========== ROBUST JSON SANITIZATION ==========
+def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
+    """
+    Robust JSON parser with multiple fallback strategies.
+    
+    Fixes common AI-generated JSON errors:
+    1. Missing quotes around property names
+    2. Single quotes instead of double quotes
+    3. Trailing commas
+    4. Comments in JSON
+    5. Unescaped characters
+    
+    Returns parsed dict or raises exception with details.
+    """
+    
+    # Strategy 1: Try parsing as-is
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError as e:
+        print(f"[JSON] Initial parse failed: {e}")
+    
+    # Strategy 2: Fix common issues
+    try:
+        cleaned = raw_text
+        
+        # Remove comments (// and /* */)
+        cleaned = re.sub(r'//.*?$', '', cleaned, flags=re.MULTILINE)
+        cleaned = re.sub(r'/\*.*?\*/', '', cleaned, flags=re.DOTALL)
+        
+        # Fix trailing commas
+        cleaned = re.sub(r',(\s*[}\]])', r'\1', cleaned)
+        
+        # Replace single quotes with double quotes (carefully)
+        cleaned = re.sub(r"'([^']*?)'(\s*:)", r'"\1"\2', cleaned)  # Property names
+        cleaned = re.sub(r":\s*'([^']*?)'", r': "\1"', cleaned)    # String values
+        
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        print(f"[JSON] Cleanup parse failed: {e}")
+    
+    # Strategy 3: Fix unquoted property names
+    try:
+        def quote_property_names(match):
+            prop_name = match.group(1)
+            return f'"{prop_name}":'
+        
+        fixed = re.sub(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', quote_property_names, cleaned)
+        return json.loads(fixed)
+    except json.JSONDecodeError as e:
+        print(f"[JSON] Property name fixing failed: {e}")
+    
+    # Strategy 4: Extract JSON object more carefully
+    try:
+        start = cleaned.find('{')
+        end = cleaned.rfind('}')
+        
+        if start != -1 and end != -1:
+            json_only = cleaned[start:end + 1]
+            json_only = re.sub(r',(\s*[}\]])', r'\1', json_only)
+            json_only = re.sub(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'"\1":', json_only)
+            return json.loads(json_only)
+    except json.JSONDecodeError as e:
+        print(f"[JSON] Extraction strategy failed: {e}")
+    
+    # Strategy 5: Last resort - fix specific known patterns
+    try:
+        patterns = [
+            (r'\bname\s*:', '"name":'),
+            (r'\bprovider\s*:', '"provider":'),
+            (r'\btitle\s*:', '"title":'),
+            (r'\bsource\s*:', '"source":'),
+            (r'\bimportance\s*:', '"importance":'),
+            (r'\btimeline\s*:', '"timeline":'),
+            (r'\bnotes\s*:', '"notes":'),
+            (r'\bdescription\s*:', '"description":'),
+            (r'\brequirements\s*:', '"requirements":'),
+        ]
+        
+        fixed_text = cleaned
+        for pattern, replacement in patterns:
+            fixed_text = re.sub(pattern, replacement, fixed_text)
+        
+        return json.loads(fixed_text)
+    except json.JSONDecodeError as e:
+        print(f"[JSON] Pattern fixing failed: {e}")
+    
+    # All strategies failed
+    print(f"[JSON] ALL PARSING STRATEGIES FAILED")
+    print(f"[JSON] Raw text (first 500 chars):\n{raw_text[:500]}")
+    raise ValueError(f"Could not parse JSON after multiple attempts. Last error: {e}")
 
 
 # ========== HELPER: WEB SEARCH INTEGRATION ==========
@@ -146,7 +238,7 @@ Return ONLY valid JSON. Start with {{ and end with }}.
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
-        result = parse_json_or_500(json_only)
+        result = sanitize_and_parse_json(json_only)
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
         events_count = len(result.get('societies', {}).get('major_events', []))
         print(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies, {events_count} events")
@@ -239,7 +331,7 @@ Use REAL company and program names. Return ONLY valid JSON. Start with {{ and en
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
-        result = parse_json_or_500(json_only)
+        result = sanitize_and_parse_json(json_only)
         print(f"[Stage 2: Industry] ✓ Generated {len(result.get('industry_experience', {}).get('internship_programs', []))} internship programs")
         return result
         
@@ -260,91 +352,144 @@ Use REAL company and program names. Return ONLY valid JSON. Start with {{ and en
 
 
 # ========== STAGE 3: CAREER PATHWAYS (PARALLEL) ==========
-# ========== STAGE 3: CAREER PATHWAYS (PARALLEL) ==========
 async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate career pathways information.
     Ultra-optimized: Reduced output size to prevent truncation.
     """
-    
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
     
     prompt = f"""You are a UNSW career advisor. Provide career info for {program_name} ({faculty}) graduates.
 
 A. ENTRY ROLES (3 roles, 0-2yrs)
-   - Title, salary AUD, 1-sentence description, requirements, 2-3 hiring companies
+   - Title, salary AUD, 1-2 sentence description, requirements, 2-3 hiring companies, data source
 
 B. MID ROLES (2 roles, 3-7yrs)
-   - Title, salary, description, requirements, 2-3 hiring companies
+   - Title, salary, 1-2 sentence description, requirements, 2-3 hiring companies, data source
 
 C. SENIOR ROLES (2 roles, 8+yrs)
-   - Title, salary, description, requirements, 2-3 hiring companies
+   - Title, salary, 1-2 sentence description, requirements, 2-3 hiring companies, data source
 
 D. CERTIFICATIONS (2-3 certs)
-   - Name, provider, importance, timeline
+   - Name, provider, importance, timeline, notes (optional)
 
 E. MARKET
-   - Demand level, trends (1 sentence), location notes
+   - Demand level, trends (1-2 sentences), location notes
 
 F. TOP EMPLOYERS (6-8 companies in 2-3 sectors)
 
 G. STATS
    - Employment rate, starting salary, 3 common roles, source
 
-JSON:
+CRITICAL: ALL property names MUST have double quotes. Example:
+CORRECT: {{"name": "..."}}
+WRONG: {{name: "..."}}
+
+JSON STRUCTURE:
 {{
   "career_pathways": {{
     "entry_level": {{
-      "roles": [{{"title": "...", "salary_range": "...", "description": "...", "requirements": "...", "hiring_companies": ["..."]}}],
+      "roles": [
+        {{
+          "title": "...",
+          "salary_range": "...",
+          "description": "1-2 sentence description of the role and responsibilities",
+          "requirements": "...",
+          "hiring_companies": ["...", "...", "..."],
+          "source": "Seek/LinkedIn/GradConnection/Indeed/Company Website"
+        }}
+      ],
       "years_experience": "0-2 years"
     }},
     "mid_career": {{
-      "roles": [{{"title": "...", "salary_range": "...", "description": "...", "requirements": "...", "hiring_companies": ["..."]}}],
+      "roles": [
+        {{
+          "title": "...",
+          "salary_range": "...",
+          "description": "1-2 sentence description of the role and responsibilities",
+          "requirements": "...",
+          "hiring_companies": ["...", "...", "..."],
+          "source": "Seek/LinkedIn/Glassdoor/Company Website"
+        }}
+      ],
       "years_experience": "3-7 years"
     }},
     "senior": {{
-      "roles": [{{"title": "...", "salary_range": "...", "description": "...", "requirements": "...", "hiring_companies": ["..."]}}],
+      "roles": [
+        {{
+          "title": "...",
+          "salary_range": "...",
+          "description": "1-2 sentence description of the role and responsibilities",
+          "requirements": "...",
+          "hiring_companies": ["...", "...", "..."],
+          "source": "LinkedIn/Executive Networks/Company Website"
+        }}
+      ],
       "years_experience": "8+ years"
     }},
-    "certifications": [{{"name": "...", "provider": "...", "importance": "Required/Highly Recommended/Optional", "timeline": "..."}}],
+    "certifications": [
+      {{
+        "name": "...",
+        "provider": "...",
+        "importance": "Required/Highly Recommended/Optional",
+        "timeline": "...",
+        "notes": "Optional brief note about benefits or requirements"
+      }}
+    ],
     "market_insights": {{
       "demand_level": "High/Medium/Growing/Stable",
-      "trends": "1 sentence",
+      "trends": "1-2 sentences about industry trends and outlook",
       "geographic_notes": "Location info"
     }},
     "top_employers": {{
-      "by_sector": {{"Sector1": ["..."], "Sector2": ["..."]}}
+      "by_sector": {{
+        "Sector1": ["...", "..."],
+        "Sector2": ["...", "..."]
+      }}
     }},
     "employment_stats": {{
       "employment_rate": "X%",
       "median_starting_salary": "$X",
       "common_first_roles": ["...", "...", "..."],
-      "source": "Source name"
+      "source": "Graduate Careers Australia/QILT/Industry Report"
     }}
   }}
 }}
 
+VALIDATION CHECKLIST:
+✓ All keys in double quotes: "name", "provider", "title", "source"
+✓ No unquoted property names
+✓ Valid JSON syntax throughout
+✓ Proper comma placement
+✓ Job descriptions are 1-2 sentences
+✓ Each role has a "source" field
+
 Return ONLY valid JSON. Start with {{ and end with }}.
 """
-    
+
     print("[Stage 3: Career Pathways] Generating...")
     
     try:
         raw = ask_openai(prompt)
-        
         raw_stripped = raw.strip()
+        
+        # Extract JSON
         first_brace = raw_stripped.find('{')
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
-        result = parse_json_or_500(json_only)
+        # Parse JSON
+        result = sanitize_and_parse_json(json_only)
+        
         entry_roles = len(result.get('career_pathways', {}).get('entry_level', {}).get('roles', []))
         print(f"[Stage 3: Careers] ✓ Generated {entry_roles} entry-level roles + full pathway")
         return result
         
     except Exception as e:
         print(f"[Stage 3: Careers] ✗ Error: {e}")
+        print(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
+        
         return {
             "career_pathways": {
                 "entry_level": {"roles": [], "years_experience": "0-2 years"},
@@ -365,7 +510,6 @@ Return ONLY valid JSON. Start with {{ and end with }}.
                 }
             }
         }
-
 
 # ========== MAIN COORDINATOR (RUNS ALL 3 IN PARALLEL) ==========
 async def ai_enhance_industry_careers(context: Dict[str, Any]) -> Dict[str, Any]:
