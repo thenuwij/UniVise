@@ -7,7 +7,7 @@ export default function AddToMeshButton({
   itemType,         // 'degree' | 'specialisation' | 'course'
   itemKey,          // unique code, e.g. '425800' or 'COMP2511'
   title,            // display name
-  sourceTable,      // e.g. 'unsw_degrees'
+  sourceTable,      // e.g. 'unsw_degrees_final'
   sourceId,         // e.g. row id
   tags = [],        // ['cs','hardware']
   metadata = {},    // {uoc:6, level:2}

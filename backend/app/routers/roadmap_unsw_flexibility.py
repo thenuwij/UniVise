@@ -40,7 +40,7 @@ async def pre_filter_similar_degrees(
     print(f"Pre-filtering similar degrees for: {degree_id}")
     
     # 1. Get current degree information
-    current_degree_response = supabase.from_("unsw_degrees")\
+    current_degree_response = supabase.from_("unsw_degrees_final")\
         .select("*")\
         .eq("id", degree_id)\
         .single()\
@@ -50,7 +50,7 @@ async def pre_filter_similar_degrees(
         raise Exception(f"Degree not found: {degree_id}")
     
     current_degree = current_degree_response.data
-    current_code = current_degree['code']
+    current_code = current_degree['degree_code']
     current_faculty = current_degree.get('faculty', '')
     current_program_name = current_degree['program_name']
     
@@ -77,7 +77,7 @@ async def pre_filter_similar_degrees(
     print(f"Current degree has {len(current_courses)} courses")
     
     # 3. Get total degree count and determine adaptive limits
-    total_response = supabase.from_("unsw_degrees")\
+    total_response = supabase.from_("unsw_degrees_final")\
         .select("id", count="exact")\
         .execute()
     
@@ -97,8 +97,8 @@ async def pre_filter_similar_degrees(
     print(f"Database size: {total_count} degrees | Analyzing: {initial_candidates} | Returning: {final_limit}")
     
     # 4. Quick filter: Get all degrees (just basic info, no courses yet)
-    all_degrees_response = supabase.from_("unsw_degrees")\
-        .select("id, code, program_name, faculty")\
+    all_degrees_response = supabase.from_("unsw_degrees_final")\
+        .select("id, degree_code, program_name, faculty")\
         .neq("id", degree_id)\
         .execute()
     
@@ -146,7 +146,7 @@ async def pre_filter_similar_degrees(
         return []
     
     # 6. Fetch course structures for top candidates only
-    candidate_codes = [c['code'] for c in top_candidates]
+    candidate_codes = [c['degree_code'] for c in top_candidates]
     
     structures_response = supabase.from_("degree_versions_structure")\
         .select("degree_code, sections")\
@@ -180,14 +180,14 @@ async def pre_filter_similar_degrees(
             
             # Find matching degree info
             degree_info = next(
-                (c for c in top_candidates if c['code'] == structure['degree_code']), 
+                (c for c in top_candidates if c['degree_code'] == structure['degree_code']), 
                 None
             )
             
             if degree_info and overlap_count > 0:  # Only include if there's some overlap
                 final_candidates.append({
                     'id': degree_info['id'],
-                    'code': degree_info['code'],
+                    'degree_code': degree_info['degree_code'],
                     'program_name': degree_info['program_name'],
                     'faculty': degree_info.get('faculty', 'Not specified'),
                     'shared_courses': sorted(list(shared)),
@@ -486,9 +486,9 @@ def _generate_and_update_flexibility_sync(roadmap_id: str, roadmap_data: dict):
         }
 
         if not context["faculty"] and context["degree_id"]:
-            print("Faculty not found in payload — fetching from unsw_degrees table...")
+            print("Faculty not found in payload — fetching from unsw_degrees_final table...")
             degree_row = (
-                supabase.from_("unsw_degrees")
+                supabase.from_("unsw_degrees_final")
                 .select("faculty")
                 .eq("id", context["degree_id"])
                 .maybe_single()

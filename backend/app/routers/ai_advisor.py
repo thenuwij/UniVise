@@ -8,6 +8,7 @@ from dependencies import get_current_user
 
 router = APIRouter()
 
+
 @router.post("/degree")
 async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     body = await request.json()
@@ -16,11 +17,11 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     if not degree_id:
         raise HTTPException(status_code=400, detail="Missing degree_id")
 
-    # Fetch degree data
+    # 🔁 Fetch degree data from the final table
     degree_response = (
         supabase
-        .from_("unsw_degrees")
-        .select("program_name, description, career_outcomes")
+        .from_("unsw_degrees_final")
+        .select("program_name, overview_description, career_outcomes")
         .eq("id", degree_id)
         .single()
         .execute()
@@ -39,18 +40,16 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
         else []
     )
 
-
     # Fetch student profile data
     context = await get_user_context(user.id)
 
     # Build OpenAI prompt
-        # Build OpenAI prompt
     prompt = f"""
     You are UniVise's Smart Advisor.
     Your job is to give the student a clear, concise, and personal recommendation for the degree below, based on their profile.
 
     Degree: {degree['program_name']}
-    Description: {degree['description']}
+    Description: {degree.get('overview_description') or 'N/A'}
     Career Outcomes: {', '.join(career_outcomes_list) or 'N/A'}
 
     Student Profile:
@@ -72,12 +71,11 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     You may also like:
     [1–2 related degrees or majors if relevant, otherwise omit]
 
-    Tone: Friendly, encouraging, and direct. Avoid long paragraphs. 
-    No markdown formatting like **bold**. 
+    Tone: Friendly, encouraging, and direct.
+    Avoid long paragraphs.
+    No markdown formatting like **bold**.
     Keep it scannable and easy to understand at a glance.
     """
-
-
 
     try:
         summary = ask_openai(prompt).strip()

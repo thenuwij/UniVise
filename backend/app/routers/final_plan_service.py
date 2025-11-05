@@ -45,7 +45,7 @@ async def generate_final_plan(user_id: str):
     # Get UNSW degrees
     degrees_response = (
         supabase
-        .from_("unsw_degrees")
+        .from_("unsw_degrees_final")
         .select("program_name")
         .execute()
     )

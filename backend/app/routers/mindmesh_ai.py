@@ -136,7 +136,8 @@ async def enrich_items_with_catalogue(items: List[Item]) -> List[Dict[str, Any]]
         return []
 
     course_ids = [it.source_id for it in items if it.source_table == "unsw_courses" and it.source_id]
-    degree_ids = [it.source_id for it in items if it.source_table == "unsw_degrees" and it.source_id]
+    degree_ids = [it.source_id for it in items if it.source_table in ("unsw_degrees", "unsw_degrees_final") and it.source_id]
+
 
     courses_by_id: Dict[str, Dict[str, Any]] = {}
     degrees_by_id: Dict[str, Dict[str, Any]] = {}
@@ -168,7 +169,7 @@ async def enrich_items_with_catalogue(items: List[Item]) -> List[Dict[str, Any]]
 
     if degree_ids:
         dr = (
-            supabase.table("unsw_degrees")
+            supabase.table("unsw_degrees_final")
             .select("*")
             .in_("id", degree_ids)
             .execute()
@@ -197,7 +198,7 @@ async def enrich_items_with_catalogue(items: List[Item]) -> List[Dict[str, Any]]
         }
         if it.source_table == "unsw_courses" and it.source_id and it.source_id in courses_by_id:
             rec.update(courses_by_id[it.source_id])
-        elif it.source_table == "unsw_degrees" and it.source_id and it.source_id in degrees_by_id:
+        elif it.source_table in ("unsw_degrees", "unsw_degrees_final") and it.source_id and it.source_id in degrees_by_id:
             rec.update(degrees_by_id[it.source_id])
         enriched.append(rec)
     return enriched

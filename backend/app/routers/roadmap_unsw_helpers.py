@@ -184,13 +184,13 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
     degree = None
     try:
         if degree_id:
-            result = supabase.from_("unsw_degrees").select("*").eq("id", degree_id).limit(1).execute()
+            result = supabase.from_("unsw_degrees_final").select("*").eq("id", degree_id).limit(1).execute()
             degree = result.data[0] if result.data else None
         if not degree and uac_code:
-            result = supabase.from_("unsw_degrees").select("*").eq("uac_code", uac_code).limit(1).execute()
+            result = supabase.from_("unsw_degrees_final").select("*").eq("uac_code", uac_code).limit(1).execute()
             degree = result.data[0] if result.data else None
         if not degree and program_name:
-            result = supabase.from_("unsw_degrees").select("*").ilike("program_name", f"%{program_name}%").limit(1).execute()
+            result = supabase.from_("unsw_degrees_final").select("*").ilike("program_name", f"%{program_name}%").limit(1).execute()
             degree = result.data[0] if result.data else None
     except Exception as e:
         print(f"Error fetching degree: {e}")
@@ -200,15 +200,18 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
             "id": degree_id,
             "program_name": program_name,
             "uac_code": uac_code,
-            "code": None,  # use "code" now
+            "degree_code": None, 
             "faculty": None,
             "lowest_selection_rank": None,
             "lowest_atar": None,
-            "description": None,
+            "overview_description": None,
             "career_outcomes": None,
             "assumed_knowledge": None,
-            "handbook_url": None,
+            "source_url": None,
             "school": None,
+            "duration": None,
+            "level": None,
+            "cricos_code": None,
         }
 
     # Include the corrected degree_code in the returned dict

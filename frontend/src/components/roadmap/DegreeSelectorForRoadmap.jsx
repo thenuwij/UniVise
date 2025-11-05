@@ -12,7 +12,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
   useEffect(() => {
     const fetchDegrees = async () => {
       const { data, error } = await supabase
-        .from("unsw_degrees")
+        .from("unsw_degrees_final")
         .select("*")
         .range(0, 2999); // Up to 3000 results
 

@@ -56,7 +56,7 @@ function DegreeDetailPage() {
       setLoadErr(null);
       // degree
       const { data: deg, error: dErr } = await supabase
-        .from("unsw_degrees")
+        .from("unsw_degrees_final")
         .select("*")
         .eq("id", degreeId)
         .single();
@@ -187,7 +187,7 @@ function DegreeDetailPage() {
                     itemType="degree"
                     itemKey={degreeKey}
                     title={degree?.program_name || degree?.name || degree?.title || degreeKey}
-                    sourceTable="unsw_degrees"
+                    sourceTable="unsw_degrees_final"
                     sourceId={degree?.id}
                     tags={degreeTags}
                     metadata={{
@@ -233,7 +233,8 @@ function DegreeDetailPage() {
               {/* Overview */}
               <section>
                 <h2 className="text-3xl font-semibold text-gray-800 mb-4">Overview</h2>
-                <p className="text-base text-gray-700 leading-relaxed">{degree.description}</p>
+                <p className="text-base text-gray-700 leading-relaxed">{degree.overview_description}</p>
+
               </section>
 
               {/* Majors */}

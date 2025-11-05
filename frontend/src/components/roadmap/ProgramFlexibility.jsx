@@ -34,10 +34,11 @@ export default function ProgramFlexibility({
         if (!opt.program_name) continue;
 
         const { data, error } = await supabase
-          .from("unsw_degrees")
+          .from("unsw_degrees_final")
           .select("id")
           .ilike("program_name", `%${opt.program_name}%`)
           .maybeSingle();
+
 
         if (data?.id) {
           mapping[opt.program_name] = data.id;

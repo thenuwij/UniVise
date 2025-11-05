@@ -76,12 +76,13 @@ async def _fetch_course_catalog(keys_or_ids: List[Tuple[Optional[str], Optional[
 
 async def _fetch_degree_faculty(deg: ItemLike) -> Optional[str]:
     """
-    Get faculty for a degree using source_id if available, otherwise by uac_code or program_name.
+    Get faculty for a degree using source_id if available,
+    otherwise by uac_code or program_name — from unsw_degrees_final.
     """
     # Try by id
     if deg.source_id:
         dr = (
-            supabase.table("unsw_degrees")
+            supabase.table("unsw_degrees_final")
             .select("id,faculty")
             .eq("id", deg.source_id)
             .limit(1)
@@ -94,7 +95,7 @@ async def _fetch_degree_faculty(deg: ItemLike) -> Optional[str]:
     # Fallback by uac_code
     if deg.item_key and re.fullmatch(r"\d{6}", str(deg.item_key)):
         dr2 = (
-            supabase.table("unsw_degrees")
+            supabase.table("unsw_degrees_final")
             .select("uac_code,faculty")
             .eq("uac_code", str(deg.item_key))
             .limit(1)
@@ -107,7 +108,7 @@ async def _fetch_degree_faculty(deg: ItemLike) -> Optional[str]:
     # Fallback by program_name
     if deg.title:
         dr3 = (
-            supabase.table("unsw_degrees")
+            supabase.table("unsw_degrees_final")
             .select("program_name,faculty")
             .eq("program_name", deg.title)
             .limit(1)
@@ -118,6 +119,7 @@ async def _fetch_degree_faculty(deg: ItemLike) -> Optional[str]:
             return row.get("faculty")
 
     return None
+
 
 async def _existing_item_keys(user_id: str, mesh_id: str) -> set:
     q = (

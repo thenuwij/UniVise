@@ -46,9 +46,10 @@ function DegreeSearch() {
   useEffect(() => {
     const fetchFaculties = async () => {
       const { data } = await supabase
-        .from("unsw_degrees")
+        .from("unsw_degrees_final")
         .select("faculty")
         .neq("faculty", "");
+
 
       if (data) {
         const unique = [...new Set(data.map((d) => d.faculty))];
@@ -62,12 +63,12 @@ function DegreeSearch() {
   useEffect(() => {
     const fetchDegrees = async () => {
       if (query.length < 2 && facultyFilter === "") {
-        const { data } = await supabase.from("unsw_degrees").select("*");
+        const { data } = await supabase.from("unsw_degrees_final").select("*");
         setResults(data || []);
         return;
       }
 
-      let builder = supabase.from("unsw_degrees").select("*");
+      let builder = supabase.from("unsw_degrees_final").select("*");
 
       if (query.length >= 2) {
         builder = builder.ilike("program_name", `%${query}%`);
