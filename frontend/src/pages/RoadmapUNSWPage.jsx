@@ -444,25 +444,60 @@ export default function RoadmapUNSWPage() {
 
             {data && (
               <div className="mt-6 space-y-4 text-slate-700 dark:text-slate-300">
-                <p className="text-base leading-relaxed">{data?.summary || "—"}</p>
+                <p className="text-base leading-relaxed">
+                  {degree?.overview_description || data?.summary || "—"}
+                </p>
 
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <Pill>Degree: <span className="ml-1 font-medium">{headerProgramName}</span></Pill>
-                  <Pill>Mode: <span className="ml-1 font-medium">UNSW</span></Pill>
-                  <Pill>UAC: <span className="ml-1 font-medium">{headerUac}</span></Pill>
-                  <Pill>Source: <span className="ml-1 font-medium">{data?.source || "—"}</span></Pill>
+                  {/* Mode always first */}
+                  <Pill>
+                    Mode: <span className="ml-1 font-medium">UNSW</span>
+                  </Pill>
+
+                  {/* Faculty */}
+                  {degree?.faculty && (
+                    <Pill>
+                      Faculty:{" "}
+                      <span className="ml-1 font-medium">
+                        {degree.faculty.replace(/^Faculty of\s+/i, "")}
+                      </span>
+                    </Pill>
+                  )}
+
+                  {/* UAC code */}
+                  {degree?.uac_code && (
+                    <Pill>
+                      UAC: <span className="ml-1 font-medium">{degree.uac_code}</span>
+                    </Pill>
+                  )}
+
+                  {/* CRICOS */}
+                  {degree?.cricos_code && (
+                    <Pill>
+                      CRICOS: <span className="ml-1 font-medium">{degree.cricos_code}</span>
+                    </Pill>
+                  )}
+
+                  {/* Duration */}
+                  {degree?.duration && (
+                    <Pill>
+                      Duration:{" "}
+                      <span className="ml-1 font-medium">
+                        {degree.duration.toString().includes("year")
+                          ? degree.duration
+                          : `${degree.duration} years`}
+                      </span>
+                    </Pill>
+                  )}
+
+                  {/* Degree Code (optional) */}
+                  {degree?.degree_code && (
+                    <Pill>
+                      Code: <span className="ml-1 font-medium">{degree.degree_code}</span>
+                    </Pill>
+                  )}
                 </div>
 
-                {sources.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
-                      Sources
-                    </h3>
-                    <ul className="mt-2 list-disc ml-6 text-sm space-y-1 text-slate-600 dark:text-slate-400">
-                      {sources.map((src, i) => <li key={i}>{src}</li>)}
-                    </ul>
-                  </div>
-                )}
               </div>
             )}
           </div>

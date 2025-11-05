@@ -349,7 +349,7 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "honours": honours_info.get("honours"),
         "flexibility": general_info.get("flexibility"),
         "industry": general_info.get("industry"),
-        "source": general_info.get("source"),
+        #"source": general_info.get("source"),
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),
     }

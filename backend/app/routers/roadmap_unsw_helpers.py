@@ -79,7 +79,17 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
         print("Missing degree_code in fetch_program_core_courses.")
         return []
     try:
-        result = supabase.from_("degree_versions_structure").select("sections").eq("degree_code", degree_code).limit(1).execute()
+        result = (
+            supabase.from_("unsw_degrees_final")
+            .select("sections")
+            .eq("degree_code", degree_code)
+            .limit(1)
+            .execute()
+        )
+        if not result.data or not result.data[0].get("sections"):
+            print(f"No sections found for degree_code {degree_code}")
+            return []
+
         if not result.data:
             return []
         sections_data = result.data[0].get("sections")
@@ -241,8 +251,8 @@ def extract_all_course_codes(sections: list) -> List[str]:
     Extract all course codes from sections JSON structure.
     
     Args:
-        sections: Parsed JSON sections array from degree_versions_structure
-        
+        sections: Parsed JSON "sections" array from unsw_degrees_final
+
     Returns:
         List of course codes (e.g., ["ACTL1101", "COMM1170", "MATH1151"])
     
@@ -274,7 +284,7 @@ def extract_keywords(program_name: str) -> List[str]:
     Extract meaningful keywords from degree name for matching.
     
     Args:
-        program_name: Full degree name (e.g., "Bachelor of Computer Science (Honours)")
+        program_name: Full degree name (e.g., "Bachelor of Commerce (Finance)", "Bachelor of Engineering (Hons)")
         
     Returns:
         List of keywords (e.g., ["computer", "science"])

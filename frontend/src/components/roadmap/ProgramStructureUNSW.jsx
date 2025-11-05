@@ -147,6 +147,12 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [openMap, setOpenMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [structureDescription, setStructureDescription] = useState("");
+  const [minimumUoc, setMinimumUoc] = useState(null);
+  const [specialNotes, setSpecialNotes] = useState("");
+
+
+
 
   const allCourses = useMemo(() => {
     const codes = sections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
@@ -172,14 +178,18 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
       try {
         setLoading(true);
+
+        // Fetch both sections + program_structure directly from unsw_degrees_final
         const { data, error } = await supabase
-          .from("degree_versions_structure")
-          .select("sections")
+          .from("unsw_degrees_final")
+          .select("sections, program_structure, minimum_uoc, special_notes")
           .eq("degree_code", degreeCode)
           .maybeSingle();
 
+
         if (error) throw error;
 
+        // Parse sections safely
         let parsed = [];
         try {
           parsed = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections;
@@ -188,6 +198,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           parsed = [];
         }
 
+        // Filter and order sections
         const ordered = parsed
           .filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))
           .sort((a, b) => {
@@ -206,7 +217,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           });
 
         setSections(ordered);
+        setStructureDescription(data?.program_structure || "");
+        setMinimumUoc(data?.minimum_uoc || null);
+        setSpecialNotes(data?.special_notes || "");
         setOpenMap({});
+
       } catch (e) {
         console.error(e);
         setErr(e.message);
@@ -239,6 +254,48 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       .maybeSingle();
     if (match?.id) navigate(`/course/${match.id}`);
   };
+
+  function formatStructureText(text = "") {
+    if (!text) return "";
+
+    // Clean and normalize whitespace
+    let cleaned = text.trim().replace(/\s+/g, " ");
+
+    // --- STEP 1: Insert artificial line breaks before numbered points (1., 2., etc.)
+    // Example: "These are: 1. Level 1 ... 2. Level 2 ..." → split nicely
+    cleaned = cleaned.replace(/(\d+[\.\)]\s*)/g, "\n$1");
+
+    // --- STEP 2: Split into lines
+    const lines = cleaned
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    // --- STEP 3: Build formatted HTML
+    let html = "";
+    let inList = false;
+
+    for (const line of lines) {
+      if (/^\d+[\.\)]\s*/.test(line)) {
+        if (!inList) {
+          html += '<ul class="list-disc pl-6 space-y-1">';
+          inList = true;
+        }
+        html += `<li>${line.replace(/^\d+[\.\)]\s*/, "")}</li>`;
+      } else {
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        html += `<p>${line}</p>`;
+      }
+    }
+
+    if (inList) html += "</ul>"; // close list if still open
+    return html;
+  }
+
+
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
@@ -287,9 +344,32 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         </button>
       </div>
 
+      {minimumUoc && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 border border-sky-300/50 dark:border-sky-700/50">
+            {minimumUoc} UOC Required
+          </span>
+        </div>
+      )}
+
+
       <p className="text-base text-slate-700 dark:text-slate-400 leading-relaxed">
         Browse through your degree structure and click on any course to view details or explore it in MindMesh.
       </p>
+
+      {structureDescription && (
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 
+                        dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-sky-900/20 
+                        border border-blue-200/40 dark:border-blue-800/40">
+          <div
+            className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 space-y-1"
+            dangerouslySetInnerHTML={{ __html: formatStructureText(structureDescription) }}
+          />
+
+
+        </div>
+      )}
+
 
       {/* ========== PROGRAM SECTIONS ========== */}
       <div className="pt-2 space-y-6">
@@ -323,6 +403,20 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             No structure data available for this program.
           </div>
         )}
+
+        {specialNotes && (
+          <div className="mt-8 p-4 rounded-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 
+                          dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 
+                          border border-amber-200/40 dark:border-amber-800/40">
+            <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
+              Additional Information
+            </h4>
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+              {specialNotes}
+            </p>
+          </div>
+        )}
+
       </div>
     </div>
   );

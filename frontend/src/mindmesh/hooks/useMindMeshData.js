@@ -12,12 +12,12 @@ export default function useMindMeshData({ isProgramView, session, programCode })
   const fetchGraph = useCallback(async () => {
     // -------- PROGRAM VIEW --------
     if (isProgramView) {
-      // ✅ Fetch program metadata
+      // Fetch program metadata
       if (programCode) {
         try {
           const { data: progData, error: progError } = await supabase
-            .from("degree_versions_structure")
-            .select("degree_code, program_name, faculty")
+            .from("unsw_degrees_final")
+            .select("degree_code, program_name, faculty, uac_code, cricos_code, duration, source_url")
             .eq("degree_code", programCode)
             .maybeSingle();
 

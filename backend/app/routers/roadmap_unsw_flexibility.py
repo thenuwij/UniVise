@@ -55,17 +55,25 @@ async def pre_filter_similar_degrees(
     current_program_name = current_degree['program_name']
     
     # 2. Get course structure for current degree
-    current_structure_response = supabase.from_("degree_versions_structure")\
-        .select("sections")\
-        .eq("degree_code", current_code)\
-        .single()\
+    current_structure_response = (
+        supabase.from_("unsw_degrees_final")
+        .select("sections")
+        .eq("degree_code", current_code)
+        .single()
         .execute()
+    )
+
     
     if not current_structure_response.data:
         print(f"WARNING: No course structure found for degree code: {current_code}")
         return []
     
     # Parse current courses
+    if not current_structure_response.data or not current_structure_response.data.get("sections"):
+        print(f"WARNING: No sections data for degree {current_code}")
+        return []
+
+
     raw_sections = current_structure_response.data['sections']
     sections = json.loads(raw_sections) if isinstance(raw_sections, str) else raw_sections
     current_courses = extract_all_course_codes(sections)
@@ -148,10 +156,14 @@ async def pre_filter_similar_degrees(
     # 6. Fetch course structures for top candidates only
     candidate_codes = [c['degree_code'] for c in top_candidates]
     
-    structures_response = supabase.from_("degree_versions_structure")\
-        .select("degree_code, sections")\
-        .in_("degree_code", candidate_codes)\
+    # 6. Fetch course structures for top candidates only (from unsw_degrees_final)
+    structures_response = (
+        supabase.from_("unsw_degrees_final")
+        .select("degree_code, sections")
+        .in_("degree_code", candidate_codes)
         .execute()
+    )
+
     
     if not structures_response.data:
         print(f"WARNING: No course structures found for candidates")
@@ -509,7 +521,7 @@ def _generate_and_update_flexibility_sync(roadmap_id: str, roadmap_data: dict):
 
         # Save back to database
         update_response = (
-            supabase.table("unsw_roadmap")
+            supabase.from_("unsw_roadmap")
             .update({"payload": payload})
             .eq("id", roadmap_id)
             .execute()
