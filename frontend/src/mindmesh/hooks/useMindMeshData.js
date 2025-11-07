@@ -29,7 +29,7 @@ export default function useMindMeshData({ isProgramView, session, programCode })
         }
       }
 
-      // ✅ Load course codes
+      // Load course codes
       const stored = localStorage.getItem("programCourses");
       if (!stored) return;
       const programCoursesCodes = JSON.parse(stored)?.filter(Boolean) || [];
