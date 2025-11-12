@@ -144,24 +144,24 @@ const useRoadmapData = (
     return () => clearInterval(interval);
   }, [preloadedRoadmapId, data]);
 
-  // --- Polling effect for REGENERATION ---
   useEffect(() => {
     if (!preloadedRoadmapId || !isRegenerating) return;
 
-    let baseline = null;
+    let updateCount = 0;
+    let lastTimestamp = null;
     let intervalId = null;
 
     const startPolling = async () => {
       try {
-        const { data: initial, error: initError } = await supabase
+        // get initial timestamp baseline
+        const { data: initial } = await supabase
           .from("unsw_roadmap")
           .select("updated_at")
           .eq("id", preloadedRoadmapId)
           .single();
-        
-        if (initError) throw initError;
-        baseline = initial?.updated_at;
-        console.log("Regeneration polling started, baseline:", baseline);
+
+        lastTimestamp = initial?.updated_at;
+        console.log("Regeneration polling started. Baseline:", lastTimestamp);
 
         intervalId = setInterval(async () => {
           try {
@@ -170,29 +170,37 @@ const useRoadmapData = (
               .select("payload, updated_at")
               .eq("id", preloadedRoadmapId)
               .single();
-            
+
             if (error) throw error;
 
-            if (baseline && row?.updated_at && row.updated_at !== baseline) {
-              console.log("Regeneration complete! Updating...");
+            if (row?.updated_at && row.updated_at !== lastTimestamp) {
+              updateCount++;
+              lastTimestamp = row.updated_at;
+              console.log(`[Polling] Detected update #${updateCount} at ${lastTimestamp}`);
+
+              // Merge latest payload each time a new bump is detected
               setData((prev) => ({
-                ...prev,
+                ...(prev || {}),
                 payload: { ...prev?.payload, ...row.payload },
               }));
+            }
+
+            // Stop after 3 bumps (all threads done)
+            if (updateCount >= 3) {
+              console.log("[Polling] All threads finished, stopping polling.");
               setIsRegenerating(false);
               clearInterval(intervalId);
             }
           } catch (err) {
-            console.warn("[Regeneration Polling] Error:", err.message);
+            console.warn("[Polling Error]:", err.message);
           }
         }, 3000);
       } catch (err) {
-        console.warn("[Regeneration Init] Error:", err.message);
+        console.warn("[Polling Init Error]:", err.message);
       }
     };
 
     startPolling();
-
     return () => {
       if (intervalId) clearInterval(intervalId);
     };

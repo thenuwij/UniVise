@@ -72,17 +72,25 @@ export default function ProgramFlexibility({
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
     {/* ---------- HEADER ---------- */}
-    <div className="flex items-center gap-4 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-      <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl shadow-sm">
-        <RefreshCw className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-      </div>
-      <div className="flex-1">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-          Program Flexibility
-        </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Easiest degree switch options and related programs to consider
-        </p>
+    <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
+                    px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
+                    rounded-t-2xl">
+      
+      {/* Very subtle gradient accent */}
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
+      
+      <div className="flex items-center gap-4">
+        <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+          <RefreshCw className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Program Flexibility
+          </h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            Easiest degree switch options and related programs to consider
+          </p>
+        </div>
       </div>
     </div>
 

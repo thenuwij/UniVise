@@ -84,18 +84,26 @@ export default function CapstoneHonours({ data }) {
         {/* Top Accent Bar */}
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 rounded-t-2xl" />
         
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-          <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl shadow-sm">
-            <BookOpen className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              Capstone Experience
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Key courses featuring applied, project-based learning
-            </p>
+      {/* Header */}
+        <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
+                        px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
+                        rounded-t-2xl">
+          
+          {/* Very subtle gradient accent */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
+          
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <BookOpen className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                Capstone Experience
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Key courses featuring applied, project-based learning
+              </p>
+            </div>
           </div>
         </div>
 
@@ -128,11 +136,12 @@ export default function CapstoneHonours({ data }) {
                   <div
                     key={i}
                     onClick={() => handleCourseClick(course)}
-                    className="group relative p-5 rounded-xl border border-blue-200/70 dark:border-blue-700/70
-                              bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-100
-                              dark:from-blue-950/30 dark:via-sky-950/20 dark:to-indigo-950/30
-                              hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500
-                              hover:bg-gradient-to-br hover:from-blue-50 hover:via-sky-50 hover:to-indigo-50
+                    className="group relative p-5 rounded-xl border border-slate-200/70 dark:border-slate-700/70
+                              bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100
+                              dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
+                              hover:shadow-lg hover:border-slate-400 dark:hover:border-slate-500
+                              hover:bg-gradient-to-br hover:from-white hover:via-blue-50/30 hover:to-slate-50
+                              dark:hover:bg-gradient-to-br dark:hover:from-slate-800/60 dark:hover:via-slate-800/50 dark:hover:to-slate-900/60
                               hover:-translate-y-1 transition-all duration-300 cursor-pointer"
 
                   >
@@ -177,17 +186,25 @@ export default function CapstoneHonours({ data }) {
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-sky-500 rounded-t-2xl shadow-[0_0_10px_rgba(79,70,229,0.4)]" />
         
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-          <div className="p-3 bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-xl shadow-sm">
-            <Award className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              Honours Program
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Entry requirements, structure, and grading details for the Honours year.
-            </p>
+        <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
+                        px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
+                        rounded-t-2xl">
+          
+          {/* Very subtle gradient accent */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
+          
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <Award className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                Honours Program
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Entry requirements, structure, and grading details for the Honours year.
+              </p>
+            </div>
           </div>
         </div>
 

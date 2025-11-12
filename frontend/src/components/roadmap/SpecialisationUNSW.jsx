@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import GeneratingMessage from "./GeneratingMessage";
-import { Award, BookOpen, GraduationCap, X, RefreshCw, ChevronDown, Check } from "lucide-react";
+import { Info, Award, BookOpen, GraduationCap, X, RefreshCw, ChevronDown, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) {
@@ -183,9 +183,9 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
           className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md
           ${
             selected
-              ? "border-sky-500 bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/40 dark:to-indigo-900/40"
+              ? "border-emerald-500 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40"
               : isOpen
-              ? "border-sky-400 bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-900/30 dark:to-indigo-900/30"
+              ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30"
               : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
           }`}
         >
@@ -205,15 +205,15 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
           <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
-        {isOpen && (
+       {isOpen && (
           <div className="absolute z-20 mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg max-h-64 overflow-y-auto">
             {options.map((spec) => (
               <button
                 key={spec.id}
                 onClick={() => handleSelectionChange(type.toLowerCase(), spec)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors
-                           hover:bg-sky-50 dark:hover:bg-sky-900/20
-                           ${selected?.id === spec.id ? "bg-sky-50 dark:bg-sky-900/20 font-semibold text-sky-700 dark:text-sky-300" : "text-slate-700 dark:text-slate-300"}`}
+                          hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                          ${selected?.id === spec.id ? "bg-emerald-50 dark:bg-emerald-900/30 font-semibold text-emerald-700 dark:text-emerald-300" : "text-slate-800 dark:text-slate-200 font-medium"}`}
               >
                 <span className="line-clamp-1">{spec.major_name}</span>
                 {selected?.id === spec.id && <Check className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
@@ -429,62 +429,70 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
       {/* Top Accent Bar */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-t-2xl pointer-events-none" />
       
-      {/* Header with Customise Button */}
-      <div className="flex items-center justify-between pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30 rounded-xl shadow-sm">
-            <GraduationCap className="h-6 w-6 text-sky-700 dark:text-sky-400" />
+     {/* Header with Customise Button */}
+      <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
+                      px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
+                      rounded-t-2xl">
+        
+        {/* Very subtle gradient accent */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <GraduationCap className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                Specialisations
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Customise your degree with majors, minors, or honours streams
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              Specialisations
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Customise your degree with majors, minors, or honours streams
-            </p>
-          </div>
-        </div>
 
-        {/* Customise Button */}
-        <button
-          disabled={!selectedHonours && !selectedMajor && !selectedMinor}
-          onClick={async () => {
-            if (!userId || !degreeCode) return;
-            try {
-              if (onRegenerationStart) onRegenerationStart();
+          {/* Customise Button */}
+          <button
+            disabled={!selectedHonours && !selectedMajor && !selectedMinor}
+            onClick={async () => {
+              if (!userId || !degreeCode) return;
+              try {
+                if (onRegenerationStart) onRegenerationStart();
 
-              const { data: { session } } = await supabase.auth.getSession();
-              const token = session?.access_token;
-              const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/refresh_sections`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ user_id: userId, degree_code: degreeCode }),
-              });
-              if (!res.ok) throw new Error(await res.text());
-              console.log("Custom roadmap regeneration triggered");
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+                const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/refresh_sections`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ user_id: userId, degree_code: degreeCode }),
+                });
+                if (!res.ok) throw new Error(await res.text());
+                console.log("Custom roadmap regeneration triggered");
 
-              // Temporary visual feedback
-              const btn = document.getElementById("customise-btn");
-              if (btn) {
-                btn.classList.add("scale-95", "opacity-80");
-                setTimeout(() => btn.classList.remove("scale-95", "opacity-80"), 200);
+                // Temporary visual feedback
+                const btn = document.getElementById("customise-btn");
+                if (btn) {
+                  btn.classList.add("scale-95", "opacity-80");
+                  setTimeout(() => btn.classList.remove("scale-95", "opacity-80"), 200);
+                }
+              } catch (err) {
+                console.error("Regeneration error:", err.message);
               }
-            } catch (err) {
-              console.error("Regeneration error:", err.message);
-            }
-          }}
-          id="customise-btn"
-          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200
-            ${selectedHonours || selectedMajor || selectedMinor
-              ? "bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 hover:-translate-y-0.5"
-              : "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-70"}`}
-        >
-          <RefreshCw className="h-4 w-4" />
-          Customise Roadmap to Specialisation
-        </button>
+            }}
+            id="customise-btn"
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200
+              ${selectedHonours || selectedMajor || selectedMinor
+                ? "bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 hover:-translate-y-0.5"
+                : "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-70"}`}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Customise Roadmap to Specialisation
+          </button>
+        </div>
       </div>
 
 
@@ -501,15 +509,22 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
         {renderTypeSelector("Minor", groupedByType.Minor, selectedMinor)}
       </div>
 
-      {/* Info Section */}
-      <div className="p-5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-200/50 dark:border-blue-800/50">
-        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-          Expand each specialisation below to explore its full structure and click on individual courses for more details. 
-          Use the <span className="font-semibold text-sky-700 dark:text-sky-400">Customise Roadmap to Specialisation</span> button above to tailor the 
-          <span className="font-medium text-sky-700 dark:text-sky-400"> Societies</span>, 
-          <span className="font-medium text-sky-700 dark:text-sky-400"> Industry</span>, and 
-          <span className="font-medium text-sky-700 dark:text-sky-400"> Careers</span> sections to your chosen specialisations.
-        </p>
+        {/* Info Section */}
+        <div className="p-5 rounded-xl bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 
+                        dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 
+                        border border-slate-300/60 dark:border-slate-600/60 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 p-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">
+              <Info className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            </div>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+              Expand each specialisation below to explore its full structure and click on individual courses for more details. 
+              Use the <span className="font-semibold text-slate-900 dark:text-slate-100">Customise Roadmap to Specialisation</span> button above to tailor the 
+              <span className="font-semibold text-slate-900 dark:text-slate-100"> Societies</span>, 
+              <span className="font-semibold text-slate-900 dark:text-slate-100"> Industry</span>, and 
+              <span className="font-semibold text-slate-900 dark:text-slate-100"> Careers</span> sections to your chosen specialisations.
+            </p>
+          </div>
       </div>
 
 

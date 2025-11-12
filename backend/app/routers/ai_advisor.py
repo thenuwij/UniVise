@@ -17,7 +17,7 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     if not degree_id:
         raise HTTPException(status_code=400, detail="Missing degree_id")
 
-    # 🔁 Fetch degree data from the final table
+    # Fetch degree data from the final table
     degree_response = (
         supabase
         .from_("unsw_degrees_final")
