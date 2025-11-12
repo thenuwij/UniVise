@@ -3,7 +3,7 @@ import RoadmapCard from "./RoadmapCard";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { RefreshCw, TrendingUp, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { Info, RefreshCw, TrendingUp, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 
 /**
  * Premium Program Flexibility Component
@@ -71,20 +71,41 @@ export default function ProgramFlexibility({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
-      {/* ========== HEADER ========== */}
-      <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-        <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl shadow-sm">
-          <RefreshCw className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Program Flexibility
-          </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Easiest degree switch options and related programs to consider
-          </p>
-        </div>
+    {/* ---------- HEADER ---------- */}
+    <div className="flex items-center gap-4 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
+      <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl shadow-sm">
+        <RefreshCw className="h-6 w-6 text-slate-700 dark:text-slate-300" />
       </div>
+      <div className="flex-1">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          Program Flexibility
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Easiest degree switch options and related programs to consider
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-6 mb-8 p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-indigo-50/40 
+                    dark:from-blue-900/20 dark:to-indigo-900/20 
+                    border border-blue-200/60 dark:border-blue-800/60 flex items-start gap-3">
+      {/* Info icon with circular background */}
+      <div className="flex items-center justify-center w-6 h-6 rounded-full 
+                  bg-blue-100 dark:bg-blue-900/40 shrink-0 mt-0.5">
+          <Info className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+      </div>
+
+
+      {/* Info text */}
+      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        The programs listed below show the most compatible or easiest degrees to switch into, 
+        based on how many courses overlap with your current program’s core structure. 
+        This comparison excludes specialisations such as majors, minors, or honours streams. 
+        For a deeper analysis that includes these specialisations, visit the 
+        <span className="font-semibold text-blue-700 dark:text-blue-400"> My Planner </span> 
+        section of the website.
+      </p>
+    </div>
 
       {/* ========== DEGREE OPTIONS ========== */}
       {hasNewData && (
@@ -100,11 +121,11 @@ export default function ProgramFlexibility({
             return (
               <div
                 key={i}
-                className="group p-6 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
-                           bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/20 
-                           dark:from-slate-900 dark:via-blue-900/10 dark:to-indigo-900/10
-                           hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 
-                           transition-all duration-300"
+                className="relative p-6 rounded-2xl border border-slate-300 dark:border-slate-600
+                          bg-gradient-to-br from-white via-slate-50/70 to-gray-100/70
+                          dark:from-slate-900 dark:via-slate-850 dark:to-slate-800
+                          shadow-[0_4px_16px_rgba(0,0,0,0.05)]
+                          transition-all duration-200"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
@@ -181,12 +202,11 @@ export default function ProgramFlexibility({
                             <span
                               key={j}
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold
-                                       bg-gradient-to-r from-indigo-50 to-blue-50 
-                                       dark:from-indigo-900/30 dark:to-blue-900/30
-                                       border border-indigo-200 dark:border-indigo-700
-                                       text-indigo-700 dark:text-indigo-300
-                                       shadow-sm hover:shadow-md hover:-translate-y-0.5
-                                       transition-all duration-200"
+                                        bg-gradient-to-r from-indigo-50 to-blue-50 
+                                        dark:from-indigo-900/30 dark:to-blue-900/30
+                                        border border-indigo-200 dark:border-indigo-700
+                                        text-indigo-700 dark:text-indigo-300
+                                        shadow-sm"
                             >
                               {b}
                             </span>
@@ -253,39 +273,6 @@ export default function ProgramFlexibility({
           <LoadingShimmer />
         </div>
       )}
-
-      {/* ========== SIMULATOR LINK ========== */}
-      <div className="pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-        <div className="p-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 
-                      dark:from-indigo-900/10 dark:to-purple-900/10 
-                      rounded-xl border border-indigo-200/60 dark:border-indigo-700/60">
-          <div className="flex items-start gap-4">
-            <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-2">
-                Explore More Options
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                Use our interactive simulator to compare majors, calculate credit transfers, and plan your optimal switching pathway.
-              </p>
-              <Link
-                to={simulatorLink}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl 
-                         text-sm font-bold text-white
-                         bg-gradient-to-r from-indigo-500 via-purple-500 to-violet-500
-                         hover:from-indigo-600 hover:via-purple-600 hover:to-violet-600
-                         shadow-lg hover:shadow-xl hover:-translate-y-0.5
-                         transition-all duration-200"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Open Switching Simulator
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

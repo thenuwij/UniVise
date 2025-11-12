@@ -27,7 +27,7 @@ function RoadmapPage() {
   /**
    * Handles roadmap generation based on user type and degree selection
    */
-  const handleProceed = useCallback(() => {
+  const handleProceed = () => {
     if (!selectedDegreeId || !selectedDegreeObject) {
       alert("Please select a degree to proceed.");
       return;
@@ -39,11 +39,16 @@ function RoadmapPage() {
         : "school"
       : "unsw";
 
+    console.log(" handleProceed triggered");
+    console.log("   selectedDegreeId:", selectedDegreeId);
+    console.log("   selectedDegreeObject:", selectedDegreeObject);
+
+
     navigate("/roadmap-loading", {
       state: { type, degree: selectedDegreeObject },
       replace: true,
     });
-  }, [isHighSchool, selectedDegreeId, selectedDegreeObject, navigate]);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-100 dark:from-gray-900 dark:via-slate-800 dark:to-slate-900">

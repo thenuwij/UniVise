@@ -2,73 +2,75 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { ChevronDown, ChevronUp, Layers, BookOpen, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, Layers, BookOpen, Sparkles, Info, AlertCircle } from "lucide-react";
 
 /**
- * Premium Program Structure Component
- *
- * Matches design style of CareerPathways / ProgramFlexibility / CapstoneHonours.
- * - Outer white/surface card container
- * - Inner gradient-tinted section cards
- * - Smooth expand/collapse transitions
- * - Polished buttons & typography
+ * Redesigned Premium Program Structure Component
+ * 
+ * Key improvements:
+ * - Unified color scheme (blue/indigo gradient)
+ * - Smart section rendering (cards for info-only, expandable for courses)
+ * - Better text formatting with proper list parsing
+ * - Cleaner visual hierarchy
  */
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
 
-function getSectionStyle(title = "") {
-  const t = title.toLowerCase();
-
-  if (t.includes("core") || t.includes("level 1") || t.includes("level 2") || t.includes("level 3"))
-    return {
-      color: "blue",
-      class:
-        "bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 dark:from-sky-950 dark:via-blue-950 dark:to-indigo-900 border-sky-300/50 dark:border-sky-800",
-    };
-
-  if (t.includes("free elective") || t.includes("general education"))
-    return {
-      color: "amber",
-      class:
-        "bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-100 dark:from-amber-950 dark:via-orange-950 dark:to-amber-900 border-amber-300/50 dark:border-amber-800",
-    };
-
-  return {
-    color: "neutral",
-    class:
-      "bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 border-slate-300/50 dark:border-zinc-700",
-  };
+// ---------- Info-Only Section Card (no courses) ----------
+function InfoSection({ section }) {
+  return (
+    <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+                    bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
+                    p-5 shadow-sm hover:shadow-md transition-all duration-200">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-sky-100 to-indigo-100 
+                      dark:from-sky-900/30 dark:to-indigo-900/30 flex-shrink-0">
+          <Info className="h-4 w-4 text-sky-700 dark:text-sky-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-2">
+            {section.title}
+          </h3>
+          {section.description && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              {section.description}
+            </p>
+          )}
+          {section.notes && (
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2 pt-2 
+                        border-t border-slate-200/50 dark:border-slate-700/50">
+              {section.notes}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ---------- Section Card ----------
-function Section({ section, isOpen, onToggle, onCourseClick }) {
+// ---------- Expandable Section Card (with courses) ----------
+function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
   const total = section.uoc ?? sumUoC(section.courses);
-  const hasCourses = Array.isArray(section.courses) && section.courses.length > 0;
-  const { color, class: colorClass } = getSectionStyle(section.title);
 
   return (
-    <div
-      className={`rounded-2xl border ${colorClass} shadow-sm hover:shadow-lg hover:-translate-y-[2px] transition-all duration-300 backdrop-blur-sm`}
-    >
+    <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+                    bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
+                    shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Section Header */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-colors duration-300 bg-gradient-to-r from-white/70 to-white/30 dark:from-white/5 dark:to-white/10"
+        className="w-full flex items-center justify-between px-5 py-4 
+                   hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
       >
-        <div className="flex items-center gap-3 text-left">
-          <div
-            className={`p-2 rounded-lg ${
-              color === "amber"
-                ? "bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30"
-                : "bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30"
-            }`}
-          >
-            <BookOpen className="h-4 w-4 text-slate-700 dark:text-slate-300" />
+        <div className="flex items-center gap-3 text-left flex-1">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-sky-100 to-indigo-100 
+                        dark:from-sky-900/30 dark:to-indigo-900/30 flex-shrink-0">
+            <BookOpen className="h-4 w-4 text-sky-700 dark:text-sky-400" />
           </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
               {section.title}
             </h3>
             {section.description && (
@@ -79,58 +81,69 @@ function Section({ section, isOpen, onToggle, onCourseClick }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {total ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border border-white/40 dark:border-slate-700/40 font-semibold">
-              {total} UOC
-            </span>
-          ) : null}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <span className="text-xs px-2.5 py-1 rounded-full 
+                         bg-sky-50 dark:bg-sky-900/30 
+                         text-sky-700 dark:text-sky-300 
+                         border border-sky-200/50 dark:border-sky-700/50 font-semibold">
+            {section.courses?.length || 0} courses • {total} UOC
+          </span>
           {isOpen ? (
-            <ChevronUp className="h-4 w-4 text-slate-600 dark:text-slate-300 transition-transform" />
+            <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-300 transition-transform" />
+            <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           )}
         </div>
       </button>
 
       {/* Section Body */}
       <div
-        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
           isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="px-6 pb-5 pt-3 text-sm text-slate-800 dark:text-slate-300 space-y-3 border-t border-white/50 dark:border-white/10">
-          {hasCourses ? (
-            <div className="grid sm:grid-cols-2 gap-2 mt-2">
-              {section.courses.map((c, i) => (
-                <div
-                  key={c.code || i}
-                  onClick={() => onCourseClick?.(c)}
-                  className="group flex items-center justify-between border border-slate-200/70 dark:border-slate-700/60 rounded-lg px-3 py-2 cursor-pointer bg-white/80 dark:bg-white/5 hover:-translate-y-[1px] hover:shadow-md hover:bg-sky-50/80 dark:hover:bg-sky-900/40 transition-all duration-200"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-700 dark:group-hover:text-sky-300">
-                      {c.code}
-                    </span>
-                    <span className="text-xs text-slate-700 dark:text-slate-400 group-hover:text-sky-700 dark:group-hover:text-sky-300">
-                      {c.name}
-                    </span>
-                  </div>
-                  {c.uoc ? (
-                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-                      {c.uoc} UOC
-                    </span>
-                  ) : null}
+        <div className="px-5 pb-5 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+          <div className="grid sm:grid-cols-2 gap-2.5 mt-3">
+            {section.courses?.map((c, i) => (
+              <div
+                key={c.code || i}
+                onClick={() => onCourseClick?.(c)}
+                className="group flex items-center justify-between 
+                          rounded-xl px-3.5 py-3 cursor-pointer
+                          bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 
+                          dark:from-sky-900/20 dark:via-blue-900/20 dark:to-indigo-900/20
+                          border border-sky-100/60 dark:border-sky-800/60
+                          hover:border-sky-400 dark:hover:border-sky-500
+                          hover:shadow-md hover:-translate-y-0.5
+                          transition-all duration-200"
+              >
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-sm font-bold text-sky-800 dark:text-sky-300 
+                                  group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                    {c.code}
+                  </span>
+                  <span className="text-xs text-slate-700 dark:text-slate-300 
+                                  line-clamp-1 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                    {c.name}
+                  </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="italic text-slate-600 dark:text-slate-400">No courses listed.</p>
-          )}
+                {c.uoc && (
+                  <span className="text-xs font-semibold text-sky-700 dark:text-sky-300 
+                                  bg-sky-100/70 dark:bg-sky-900/40 
+                                  border border-sky-200/60 dark:border-sky-700/60
+                                  rounded-full px-2.5 py-1 ml-3 flex-shrink-0">
+                    {c.uoc} UOC
+                  </span>
+                )}
+              </div>
+
+            ))}
+          </div>
 
           {section.notes && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 border-t border-slate-200/40 dark:border-slate-700/40 pt-2">
-              <span className="font-medium text-slate-800 dark:text-white/80">Note:</span>{" "}
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-4 pt-3 
+                        border-t border-slate-200/40 dark:border-slate-700/40 leading-relaxed">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Note: </span>
               {section.notes}
             </p>
           )}
@@ -151,9 +164,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [minimumUoc, setMinimumUoc] = useState(null);
   const [specialNotes, setSpecialNotes] = useState("");
 
-
-
-
   const allCourses = useMemo(() => {
     const codes = sections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
     return Array.from(new Set(codes));
@@ -169,51 +179,42 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   useEffect(() => {
     const fetchStructure = async () => {
       if (propSections?.length > 0) {
-        const filtered = propSections.filter((s) => !s?.title?.toLowerCase()?.includes("overview"));
+        const filtered = propSections.filter(
+          (s) => !s?.title?.toLowerCase()?.includes("overview")
+        );
         setSections(filtered);
         setOpenMap({});
         return;
       }
+
       if (!degreeCode) return;
 
       try {
         setLoading(true);
 
-        // Fetch both sections + program_structure directly from unsw_degrees_final
         const { data, error } = await supabase
           .from("unsw_degrees_final")
           .select("sections, program_structure, minimum_uoc, special_notes")
           .eq("degree_code", degreeCode)
           .maybeSingle();
 
-
         if (error) throw error;
 
-        // Parse sections safely
         let parsed = [];
         try {
           parsed = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections;
           if (typeof parsed === "string") parsed = JSON.parse(parsed);
-        } catch {
+        } catch (err) {
+          console.warn("JSON parse error for sections:", err);
           parsed = [];
         }
 
-        // Filter and order sections
         const ordered = parsed
           .filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))
           .sort((a, b) => {
             const getLevel = (t) =>
               /level\s*(\d+)/i.test(t) ? parseInt(t.match(/level\s*(\d+)/i)[1]) : 99;
             return getLevel(a.title) - getLevel(b.title);
-          })
-          .sort((a, b) => {
-            const getColorRank = (t) => {
-              const tt = t.toLowerCase();
-              if (tt.includes("core") || tt.includes("level")) return 0;
-              if (tt.includes("elective") || tt.includes("general")) return 1;
-              return 2;
-            };
-            return getColorRank(a.title) - getColorRank(b.title);
           });
 
         setSections(ordered);
@@ -221,9 +222,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         setMinimumUoc(data?.minimum_uoc || null);
         setSpecialNotes(data?.special_notes || "");
         setOpenMap({});
-
       } catch (e) {
-        console.error(e);
+        console.error("Error during fetchStructure:", e);
         setErr(e.message);
       } finally {
         setLoading(false);
@@ -234,16 +234,18 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   }, [degreeCode, propSections]);
 
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
+  
   const expandAll = () => {
     const newMap = {};
-    sections.forEach((s, i) => (newMap[`${s.title}-${i}`] = true));
+    sections.forEach((s, i) => {
+      if (s.courses?.length > 0) {
+        newMap[`${s.title}-${i}`] = true;
+      }
+    });
     setOpenMap(newMap);
   };
-  const collapseAll = () => {
-    const newMap = {};
-    sections.forEach((s, i) => (newMap[`${s.title}-${i}`] = false));
-    setOpenMap(newMap);
-  };
+  
+  const collapseAll = () => setOpenMap({});
 
   const handleCourseClick = async (course) => {
     if (!course?.code) return;
@@ -258,52 +260,80 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   function formatStructureText(text = "") {
     if (!text) return "";
 
-    // Clean and normalize whitespace
-    let cleaned = text.trim().replace(/\s+/g, " ");
+    let cleaned = text
+      .replace(/\r?\n+/g, "\n")
+      .replace(/\u2022/g, "•") // normalise bullet char
+      .trim();
 
-    // --- STEP 1: Insert artificial line breaks before numbered points (1., 2., etc.)
-    // Example: "These are: 1. Level 1 ... 2. Level 2 ..." → split nicely
-    cleaned = cleaned.replace(/(\d+[\.\)]\s*)/g, "\n$1");
-
-    // --- STEP 2: Split into lines
     const lines = cleaned
-      .split(/\n+/)
-      .map((l) => l.trim())
+      .split(/\n|(?=\b\d+\.\s)|(?=•)/g)
+      .map(l => l.trim())
       .filter(Boolean);
 
-    // --- STEP 3: Build formatted HTML
-    let html = "";
-    let inList = false;
+    let html = '<div class="space-y-1.5">';
 
     for (const line of lines) {
-      if (/^\d+[\.\)]\s*/.test(line)) {
-        if (!inList) {
-          html += '<ul class="list-disc pl-6 space-y-1">';
-          inList = true;
-        }
-        html += `<li>${line.replace(/^\d+[\.\)]\s*/, "")}</li>`;
-      } else {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += `<p>${line}</p>`;
+      // Numbered items (keep numbers, no bullets)
+      if (/^\d+\.\s*/.test(line)) {
+        html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+          ${line}
+        </p>`;
+        continue;
       }
+
+      // Bullets (•)
+      if (line.startsWith("•")) {
+        html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex gap-2">
+          <span class="text-sky-600 dark:text-sky-400 flex-shrink-0">•</span>
+          <span>${line.replace(/^•\s*/, "")}</span>
+        </p>`;
+        continue;
+      }
+
+      // Dashes (–)
+      if (/^[-–]\s*/.test(line)) {
+        html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex gap-2 pl-4">
+          <span class="text-slate-500 dark:text-slate-500 flex-shrink-0">-</span>
+          <span>${line.replace(/^[-–]\s*/, "")}</span>
+        </p>`;
+        continue;
+      }
+
+      // Regular text
+      html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">${line}</p>`;
     }
 
-    if (inList) html += "</ul>"; // close list if still open
+    html += "</div>";
     return html;
   }
 
 
+  // Format special notes with better structure
+  function formatSpecialNotes(text = "") {
+    if (!text) return "";
+
+    const sentences = text
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    return sentences
+      .map(s => `<p class="text-sm leading-relaxed">${s}</p>`)
+      .join('');
+  }
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
-                    dark:border-slate-700/60 p-8 shadow-xl space-y-8">
+                    dark:border-slate-700/60 p-8 shadow-xl space-y-6">
+      {/* Accent bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-t-2xl" />
+
       {/* ========== HEADER ========== */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 
+                    border-b border-slate-200/50 dark:border-slate-700/50">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30 shadow-sm">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 
+                        dark:from-sky-900/30 dark:to-indigo-900/30 shadow-sm">
             <Layers className="h-6 w-6 text-sky-700 dark:text-sky-400" />
           </div>
           <div>
@@ -311,113 +341,152 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
               Program Structure
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Explore each course and structural component of your degree
+              Complete course breakdown and degree requirements
             </p>
           </div>
         </div>
 
         <button
           onClick={handleVisualise}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white 
+          disabled={!allCourses.length}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white 
                      bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
                      hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
-                     shadow-lg hover:shadow-xl transition-all duration-300"
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     shadow-md hover:shadow-lg transition-all duration-200"
         >
-          <Layers className="w-5 h-5" />
+          <Layers className="w-4 h-4" />
           Visualise in MindMesh
         </button>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={expandAll}
-          className="text-xs px-3 py-1.5 rounded-lg border border-sky-300/60 bg-sky-50 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-800/60 transition-colors duration-200"
-        >
-          Expand All
-        </button>
-        <button
-          onClick={collapseAll}
-          className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/60 bg-slate-50 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors duration-200"
-        >
-          Collapse All
-        </button>
+      {/* Controls & Info */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {minimumUoc && (
+            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold
+                           bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300
+                           border border-sky-200/50 dark:border-sky-700/50">
+              {minimumUoc} UOC Required
+            </span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={expandAll}
+            className="text-xs px-3 py-1.5 rounded-lg 
+                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300
+                     hover:bg-slate-200 dark:hover:bg-slate-700
+                     border border-slate-200 dark:border-slate-700
+                     transition-colors"
+          >
+            Expand All
+          </button>
+          <button
+            onClick={collapseAll}
+            className="text-xs px-3 py-1.5 rounded-lg
+                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300
+                     hover:bg-slate-200 dark:hover:bg-slate-700
+                     border border-slate-200 dark:border-slate-700
+                     transition-colors"
+          >
+            Collapse All
+          </button>
+        </div>
       </div>
 
-      {minimumUoc && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 border border-sky-300/50 dark:border-sky-700/50">
-            {minimumUoc} UOC Required
-          </span>
-        </div>
-      )}
-
-
-      <p className="text-base text-slate-700 dark:text-slate-400 leading-relaxed">
-        Browse through your degree structure and click on any course to view details or explore it in MindMesh.
-      </p>
-
+      {/* Structure Description */}
       {structureDescription && (
-        <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 
-                        dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-sky-900/20 
-                        border border-blue-200/40 dark:border-blue-800/40">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-sky-50/50 via-blue-50/50 to-indigo-50/50
+                      dark:from-sky-900/10 dark:via-blue-900/10 dark:to-indigo-900/10
+                      border border-sky-200/40 dark:border-sky-800/40">
+          <div className="flex items-start gap-2 mb-2">
+            <Info className="h-4 w-4 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Program Overview
+            </h3>
+          </div>
           <div
-            className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 space-y-1"
+            className="text-slate-700 dark:text-slate-300 pl-6"
             dangerouslySetInnerHTML={{ __html: formatStructureText(structureDescription) }}
           />
-
-
         </div>
       )}
+
+      {/* User Guidance Note */}
+      <div className="flex items-start gap-2 text-sm text-slate-500 dark:text-slate-400 
+                      italic px-1">
+        <Info className="h-4 w-4 text-sky-500 dark:text-sky-400 flex-shrink-0 mt-0.5" />
+        <p>
+          Expand sections to explore their courses, and click any course to view detailed
+          information. You can also use <span className="font-semibold text-sky-600 dark:text-sky-400">
+          Visualise in Mesh</span> above to see how courses connect across the degree.
+          This page shows the overall program structure — Honours and specialisation options
+          can be selected in the next section.
+        </p>
+      </div>
+
 
 
       {/* ========== PROGRAM SECTIONS ========== */}
-      <div className="pt-2 space-y-6">
+      <div className="space-y-3">
         {loading ? (
-          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 mt-4 p-4 
-                          bg-gradient-to-r from-blue-50/50 to-indigo-50/50 
-                          dark:from-blue-900/10 dark:to-indigo-900/10 
-                          rounded-xl border border-blue-200/40 dark:border-blue-800/40 animate-pulse">
-            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-medium">Loading program structure...</span>
+          <div className="flex items-center gap-3 p-5 rounded-xl
+                        bg-slate-50 dark:bg-slate-800/50
+                        border border-slate-200 dark:border-slate-700">
+            <Sparkles className="h-5 w-5 text-sky-600 dark:text-sky-400 animate-pulse" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Loading program structure...
+            </span>
           </div>
         ) : err ? (
-          <div className="text-sm text-red-500 italic">Failed to load structure: {err}</div>
+          <div className="p-5 rounded-xl bg-red-50 dark:bg-red-900/20 
+                        border border-red-200 dark:border-red-800">
+            <p className="text-sm text-red-700 dark:text-red-300">{err}</p>
+          </div>
         ) : sections.length > 0 ? (
-          <div className="space-y-6">
+          <>
             {sections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
-              return (
-                <Section
+              const hasCourses = sec.courses && sec.courses.length > 0;
+
+              return hasCourses ? (
+                <CourseSection
                   key={key}
                   section={sec}
                   isOpen={!!openMap[key]}
                   onToggle={() => toggleSection(key)}
                   onCourseClick={handleCourseClick}
                 />
+              ) : (
+                <InfoSection key={key} section={sec} />
               );
             })}
-          </div>
+          </>
         ) : (
-          <div className="text-sm text-slate-600 italic">
+          <div className="text-center py-10 text-slate-500 dark:text-slate-400 italic">
             No structure data available for this program.
           </div>
         )}
-
-        {specialNotes && (
-          <div className="mt-8 p-4 rounded-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 
-                          dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 
-                          border border-amber-200/40 dark:border-amber-800/40">
-            <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
-              Additional Information
-            </h4>
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              {specialNotes}
-            </p>
-          </div>
-        )}
-
       </div>
+
+      {/* Special Notes */}
+      {specialNotes && (
+        <div className="p-5 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/50
+                      dark:from-amber-900/10 dark:to-orange-900/10
+                      border border-amber-200/40 dark:border-amber-800/40">
+          <div className="flex items-start gap-3 mb-3">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Important Information
+            </h4>
+          </div>
+          <div
+            className="text-slate-700 dark:text-slate-300 pl-7 space-y-2"
+            dangerouslySetInnerHTML={{ __html: formatSpecialNotes(specialNotes) }}
+          />
+        </div>
+      )}
     </div>
   );
 }

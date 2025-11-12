@@ -19,6 +19,7 @@ import GeneratingMessage from "../components/roadmap/GeneratingMessage";
 import SocietiesCommunity from "../components/roadmap/SocietiesCommunity";
 import IndustryExperience from "../components/roadmap/IndustryExperience";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
+import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
 
 // --- Constants ---
 const DEFAULT_PROGRAM_NAME = "Selected degree";
@@ -54,7 +55,12 @@ const getSelectionRank = (entryRequirements) => {
 };
 
 // --- Custom Hooks ---
-const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
+const useRoadmapData = (
+  preloadedPayload,
+  preloadedRoadmapId,
+  isRegenerating,
+  setIsRegenerating
+) => {
   const [data, setData] = useState(preloadedPayload);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -93,13 +99,13 @@ const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
   }, [preloadedRoadmapId, data]);
 
 
-  // --- Flexibility polling effect (debug-ready) ---
+
+  // --- Polling effect for INITIAL generation (always runs) ---
   useEffect(() => {
     if (!preloadedRoadmapId) return;
 
     const interval = setInterval(async () => {
       try {
-        // Fetch roadmap row
         const { data: row, error } = await supabase
           .from("unsw_roadmap")
           .select("payload")
@@ -108,10 +114,6 @@ const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
 
         if (error) throw error;
 
-        // console.log("[Flex Poll] fetched payload:", row?.payload);
-
-        // Check if the new payload has flexibility_detailed data
-        // Check if the new payload has flexibility_detailed OR industry_careers_enhanced data
         const newFlex = row?.payload?.flexibility_detailed;
         const existingFlex = data?.payload?.flexibility_detailed;
         const newSocieties = row?.payload?.industry_societies;
@@ -125,42 +127,76 @@ const useRoadmapData = (preloadedPayload, preloadedRoadmapId) => {
         if (
           (newSocieties && !existingSocieties) ||
           (newExperience && !existingExperience) ||
-          (newCareers && !existingCareers)
+          (newCareers && !existingCareers) ||
+          (newFlex && !existingFlex)
         ) {
-          console.log("[Industry Sections] New enhanced data detected! Updating...");
-          setData((prev) => ({
-            ...prev,
-            payload: { ...prev?.payload, ...row.payload },
-          }));
-        }
-
-
-        // Update when new flexibility data appears
-        if (newFlex && !existingFlex) {
-          console.log("[Flexibility] New data detected! Updating...");
-          setData((prev) => ({
-            ...prev,
-            payload: { ...prev?.payload, ...row.payload },
-          }));
-        }
-
-        // Update when new industry/careers data appears
-        const newIndustryCareers = row?.payload?.industry_careers_enhanced;
-        const existingIndustryCareers = data?.payload?.industry_careers_enhanced;
-        if (newIndustryCareers && !existingIndustryCareers) {
-          console.log("[Industry/Careers] Enhanced data detected! Updating...");
+          console.log("[Polling] New data detected! Updating...");
           setData((prev) => ({
             ...prev,
             payload: { ...prev?.payload, ...row.payload },
           }));
         }
       } catch (err) {
-        console.warn("[Flexibility] Polling error:", err.message);
+        console.warn("[Polling] Error:", err.message);
       }
-    }, 5000); // check every 5s
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [preloadedRoadmapId, data]);
+
+  // --- Polling effect for REGENERATION ---
+  useEffect(() => {
+    if (!preloadedRoadmapId || !isRegenerating) return;
+
+    let baseline = null;
+    let intervalId = null;
+
+    const startPolling = async () => {
+      try {
+        const { data: initial, error: initError } = await supabase
+          .from("unsw_roadmap")
+          .select("updated_at")
+          .eq("id", preloadedRoadmapId)
+          .single();
+        
+        if (initError) throw initError;
+        baseline = initial?.updated_at;
+        console.log("Regeneration polling started, baseline:", baseline);
+
+        intervalId = setInterval(async () => {
+          try {
+            const { data: row, error } = await supabase
+              .from("unsw_roadmap")
+              .select("payload, updated_at")
+              .eq("id", preloadedRoadmapId)
+              .single();
+            
+            if (error) throw error;
+
+            if (baseline && row?.updated_at && row.updated_at !== baseline) {
+              console.log("Regeneration complete! Updating...");
+              setData((prev) => ({
+                ...prev,
+                payload: { ...prev?.payload, ...row.payload },
+              }));
+              setIsRegenerating(false);
+              clearInterval(intervalId);
+            }
+          } catch (err) {
+            console.warn("[Regeneration Polling] Error:", err.message);
+          }
+        }, 3000);
+      } catch (err) {
+        console.warn("[Regeneration Init] Error:", err.message);
+      }
+    };
+
+    startPolling();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [preloadedRoadmapId, isRegenerating, setIsRegenerating]);
 
 
 
@@ -243,50 +279,22 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
   return null;
 };
 
-const QuickFactsSidebar = ({ entryRequirements, structure, data, headerUac }) => {
-  const specialisations = (
-    structure?.suggested_specialisations || 
-    data?.specialisations || 
-    []
-  ).slice(0, 1).join(", ") || "—";
-
-  const capstoneValue = courseToText((data?.capstone?.courses || [])[0]) || "—";
-
-  return (
-    <GradientCard>
-      <div className="p-6">
-        <h3 className="text-base font-semibold text-primary">Quick facts</h3>
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <Fact label="ATAR" value={entryRequirements?.atar} />
-          <Fact 
-            label="Sel. Rank" 
-            value={getSelectionRank(entryRequirements)} 
-          />
-          <Fact label="UAC" value={headerUac} />
-          <Fact label="Spec" value={specialisations} />
-          <Fact 
-            label="Honours" 
-            value={data?.honours?.requirements ? "Available" : "—"} 
-          />
-          <Fact label="Capstone" value={capstoneValue} />
-        </div>
-      </div>
-    </GradientCard>
-  );
-};
-
 // --- Main Component ---
 export default function RoadmapUNSWPage() {
+
   const { state, search } = useLocation();
   const navigate = useNavigate();
   const degree = state?.degree || null;
   const preloadedPayload = state?.payload || null;
   const preloadedRoadmapId = state?.roadmap_id || null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const { data, loading, error, header, updateHeader } = useRoadmapData(
     preloadedPayload,
-    preloadedRoadmapId
+    preloadedRoadmapId,
+    isRegenerating,
+    setIsRegenerating
   );
 
   useEffect(() => {
@@ -314,6 +322,17 @@ export default function RoadmapUNSWPage() {
         render: () => <ProgramStructureUNSW degreeCode={extractDegreeCode(degree)} />,
       },
       {
+        key: "specialisation",
+        title: "Specialisations",
+        render: () => (
+          <SpecialisationUNSW 
+            degreeCode={extractDegreeCode(degree)}
+            roadmapId={preloadedRoadmapId}
+            onRegenerationStart={() => setIsRegenerating(true)}
+          />
+        ),
+      },
+      {
         key: "capstone",
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
@@ -332,6 +351,16 @@ export default function RoadmapUNSWPage() {
         key: "societies",
         title: "Societies & Community",
         render: () => {
+
+          if (isRegenerating) {
+            return (
+              <GeneratingMessage
+                title="Updating with Your Specialisation..."
+                message="Personalising societies and community recommendations based on your selected major, minor, or honours."
+              />
+            );
+          }
+
           const societies = data?.payload?.industry_societies;
           if (!societies || Object.keys(societies).length === 0) {
             return (
@@ -348,6 +377,15 @@ export default function RoadmapUNSWPage() {
         key: "industry_experience",
         title: "Industry Experience & Training",
         render: () => {
+
+          if (isRegenerating) {
+            return (
+              <GeneratingMessage
+                title="Updating with Your Specialisation..."
+                message="Personalising internship, training, and WIL opportunities based on your selected specialisation."
+              />
+            );
+          }
           const experience = data?.payload?.industry_experience;
           if (!experience || Object.keys(experience).length === 0) {
             return (
@@ -364,6 +402,15 @@ export default function RoadmapUNSWPage() {
         key: "career_pathways",
         title: "Career Pathways & Outcomes",
         render: () => {
+          if (isRegenerating) {
+            return (
+              <GeneratingMessage
+                title="Updating with Your Specialisation..."
+                message="Re-mapping personalised career outcomes and graduate pathways for your selected major or honours."
+              />
+            );
+          } 
+
           const careers = data?.payload?.career_pathways;
           if (!careers || Object.keys(careers).length === 0) {
             return (
@@ -399,7 +446,7 @@ export default function RoadmapUNSWPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200
                 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
                 text-primary transition-colors duration-500">
-
+ 
       {/* background glow */}
       <div aria-hidden>
         <div className="roadmap-glow-top" />
@@ -423,15 +470,17 @@ export default function RoadmapUNSWPage() {
         </button>
 
         {/* Hero section */}
-        <GradientCard className="mt-6 shadow-lg hover:shadow-2xl 
-                                 transition-all duration-300 
+        <GradientCard className="mt-6 shadow-lg 
                                  bg-white/80 dark:bg-slate-900/70 
                                  border border-slate-200/70 dark:border-slate-700/60 
                                  backdrop-blur-md">
+                                  
           <div className="relative p-8">
-            <div className="absolute inset-x-0 top-0 h-[3px] 
-                            bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
-                            rounded-t-3xl" />
+            <div className="absolute inset-x-0 top-0 h-[3px]
+                bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600
+                dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400
+                rounded-t-3xl" />
+
             <SectionTitle
               icon={<UniIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
               subtitle="UNSW Mode"
@@ -503,37 +552,24 @@ export default function RoadmapUNSWPage() {
           </div>
         </GradientCard>
 
-        {/* Content grid */}
-        <div className="grid lg:grid-cols-[1fr,360px] gap-6 mt-8">
-          {/* Left column */}
-          <div className="space-y-6">
-            <GradientCard className="shadow-lg hover:shadow-xl 
-                                     hover:scale-[1.01] transition-all duration-300 
-                                     bg-white/70 dark:bg-slate-900/60 
-                                     border border-slate-200/60 dark:border-slate-700/60 
-                                     backdrop-blur-sm">
-              <div className="p-6">
-                <ContentSection
-                  data={data}
-                  loading={loading}
-                  error={error}
-                  steps={steps}
-                  activeIndex={activeIndex}
-                  onIndexChange={setActiveIndex}
-                />
-              </div>
-            </GradientCard>
-          </div>
+        {/* Content */}
+        <div className="mt-8">
+          <GradientCard className="shadow-lg 
+                                  bg-white/70 dark:bg-slate-900/60 
+                                  border border-slate-200/60 dark:border-slate-700/60 
+                                  backdrop-blur-sm">
 
-          {/* Right column */}
-          <div className="space-y-6 lg:sticky lg:top-6 h-max">
-            <QuickFactsSidebar
-              entryRequirements={entryRequirements}
-              structure={programStructure}
-              data={data}
-              headerUac={headerUac}
-            />
-          </div>
+            <div className="p-6">
+              <ContentSection
+                data={data}
+                loading={loading}
+                error={error}
+                steps={steps}
+                activeIndex={activeIndex}
+                onIndexChange={setActiveIndex}
+              />
+            </div>
+          </GradientCard>
         </div>
 
         {/* Footer callout */}

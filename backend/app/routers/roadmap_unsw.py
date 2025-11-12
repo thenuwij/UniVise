@@ -32,7 +32,7 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     )
 
     degree_id = degree.get("id")
-    degree_code = degree.get("code")
+    degree_code = degree.get("degree_code")
 
     # 2) Fetch related information
     majors, minors, doubles = fetch_degree_related_info(degree_id)
@@ -40,6 +40,13 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     # 3) Fetch and enrich core courses
     core_courses = []
     core_courses_formatted = ""
+
+    print(f"\n--- DEBUG: Degree identifiers ---")
+    print(f"Degree ID: {degree_id}")
+    print(f"Degree Code: {degree_code}")
+    print(f"Program Name: {degree.get('program_name')}")
+    print(f"Faculty: {degree.get('faculty')}")
+    print(f"---------------------------------\n")
 
     if degree_code:
         core_courses = fetch_program_core_courses(degree_code)
@@ -71,10 +78,10 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "faculty": faculty,
         "lowest_selection_rank": degree.get("lowest_selection_rank"),
         "lowest_atar": degree.get("lowest_atar"),
-        "description": degree.get("description"),
+        "description": degree.get("overview_description"),
         "career_outcomes": degree.get("career_outcomes"),
         "assumed_knowledge": degree.get("assumed_knowledge"),
-        "handbook_url": degree.get("handbook_url"),
+        "handbook_url": degree.get("source_url"),
         "majors": majors,
         "minors": minors,
         "double_degrees": doubles,
@@ -318,6 +325,15 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     This approach balances detail with reliability.
     """
     print("Starting two-stage AI generation (optimized)...")
+
+    print("\n=== DEBUG: AI CONTEXT SUMMARY ===")
+    print(f"Program: {context.get('program_name')}")
+    print(f"Degree code: {context.get('degree_code')}")
+    print(f"Core courses in context: {len(context.get('core_courses', []))}")
+    for c in context.get('core_courses', [])[:5]:
+        print(f"  {c['code']}: {c['name']}")
+    print("==================================\n")
+
     
     # Stage 1: Generate general info
     general_info = await ai_generate_general_info(context)

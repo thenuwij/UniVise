@@ -27,7 +27,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
                         bg-gradient-to-br from-blue-50/70 via-sky-50/70 to-indigo-50/70 
                         dark:from-blue-900/20 dark:via-sky-900/20 dark:to-indigo-900/20
-                        hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        shadow-sm transition-colors duration-200">
           <div className="flex items-center gap-2 mb-2">
             <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
@@ -43,7 +43,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
                         bg-gradient-to-br from-indigo-50/70 via-blue-50/70 to-sky-50/70 
                         dark:from-indigo-900/20 dark:via-blue-900/20 dark:to-sky-900/20
-                        hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        shadow-sm transition-colors duration-200">
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
@@ -59,7 +59,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
                         bg-gradient-to-br from-sky-50/70 via-blue-50/70 to-indigo-50/70 
                         dark:from-sky-900/20 dark:via-blue-900/20 dark:to-indigo-900/20
-                        hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        shadow-sm transition-colors duration-200">
           <div className="flex items-center gap-2 mb-2">
             <GraduationCap className="h-4 w-4 text-sky-600 dark:text-sky-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">

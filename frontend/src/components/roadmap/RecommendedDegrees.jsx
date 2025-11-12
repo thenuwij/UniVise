@@ -9,6 +9,9 @@ function RecommendedDegrees({
   setSelectedDegreeId,
   setSelectedDegreeObject,
 }) {
+
+  console.log("Recommendations received:", recommendations);
+
   if (loading) {
     return (
       <p className="italic text-secondary">Generating recommendations...</p>
@@ -31,54 +34,52 @@ function RecommendedDegrees({
             : "sm:grid-cols-2 lg:grid-cols-3"
         } gap-8`}
       >
-        {recommendations.map(({ id, degree_name, university_name, reason }) => (
+        {recommendations.map((rec) => (
           <div
-            key={id}
+            key={rec.id}
             role="button"
             tabIndex={0}
             onClick={() => {
-              setSelectedDegreeId(id);
-              setSelectedDegreeObject({
+              setSelectedDegreeId(rec.id);
+              const degreeObj = {
                 source:
                   userType === "high_school"
                     ? "hs_recommendation"
                     : "uni_recommendation",
-                id,
-                degree_name,
-                university_name,
-                reason,
-              });
+                ...rec,
+              };
+              console.log("🎯 Setting selectedDegreeObject to:", degreeObj);
+              console.log("🔑 Keys in degreeObj:", Object.keys(degreeObj));
+              setSelectedDegreeObject(degreeObj);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
-                setSelectedDegreeId(id);
+                setSelectedDegreeId(rec.id);
                 setSelectedDegreeObject({
                   source:
                     userType === "high_school"
                       ? "hs_recommendation"
                       : "uni_recommendation",
-                  id,
-                  degree_name,
-                  university_name,
-                  reason,
+                  ...rec,
                 });
               }
             }}
             className={`cursor-pointer card-flex transition-transform duration-300 ${
-              selectedDegreeId === id
+              selectedDegreeId === rec.id
                 ? "border-2 border-sky-600 dark:border-sky-400 bg-sky-50 dark:bg-slate-800 scale-[1.02]"
                 : "hover:shadow-md hover:scale-[1.01]"
             }`}
           >
-            <h3 className="heading-md mb-2 text-brand">
-              {degree_name}
-            </h3>
-            {userType === "high_school" && (
-              <p className="text-sm italic text-secondary">{university_name}</p>
+            <h3 className="heading-md mb-2 text-brand">{rec.program_name || rec.degree_name}</h3>
+
+            {userType === "high_school" && rec.university_name && (
+              <p className="text-sm italic text-secondary">{rec.university_name}</p>
             )}
-            <p className="text-sm text-primary">{reason}</p>
+
+            {rec.reason && <p className="text-sm text-primary">{rec.reason}</p>}
           </div>
         ))}
+
       </div>
     </section>
   );

@@ -81,23 +81,70 @@ async def generate_final_plan(user_id: str):
     ]
     """
 
-    result = clean_openai_response(ask_openai(prompt))
+    # --- Call OpenAI and clean the response ---
+    result_raw = ask_openai(prompt)         
+    result = clean_openai_response(result_raw)
+
+    # --- Debug: print what the AI actually said ---
+    print("=== RAW AI RESULT START ===")
+    print(result)
+    print("=== RAW AI RESULT END ===")
+
     try:
         degrees = json.loads(result)
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 
+    # --- Debug: show parsed degrees clearly ---
+    print("=== PARSED AI RECOMMENDATIONS ===")
+    for d in degrees:
+        print("-", d.get("degreeName"))
+    print("=== END PARSED ===")
+
+
     # Insert into Supabase final_recommendations table (University students only)
-    rows = [
-        {
+    rows = []
+
+    for degree in degrees:
+        degree_name = degree.get("degreeName")
+        reason = degree.get("reason")
+
+        try:
+            match = (
+                supabase
+                .from_("unsw_degrees_final")
+                .select("degree_code, program_name")
+                .eq("program_name", degree_name)
+                .limit(1)
+                .execute()
+            )
+            degree_code = None
+            if match and match.data and len(match.data) > 0:
+                degree_code = match.data[0].get("degree_code")
+                print(f"Exact match: {degree_name} → {degree_code}")
+            else:
+                degree_code = None
+                print(f"No exact match found for: '{degree_name}'")
+
+        except Exception as e:
+            print(f"Query failed for '{degree_name}': {e}")
+            degree_code = None
+    
+        rows.append({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
-            "degree_name": degree.get("degreeName"),
-            "reason": degree.get("reason"),
+            "degree_name": degree_name,
+            "reason": reason,
+            "degree_code": degree_code, 
             "created_at": datetime.utcnow().isoformat()
-        }
-        for degree in degrees
-]
+        })
+
+    # --- DEBUG: Show what will be inserted ---
+    print("\n=== FINAL DEGREE RECOMMENDATIONS TO INSERT ===")
+    for r in rows:
+        print(f"- {r['degree_name']} → degree_code={r['degree_code']} | reason={r['reason'][:80]}...")
+    print("=============================================\n")
+
 
     insert_response = supabase.table("final_degree_recommendations").insert(rows).execute()
 

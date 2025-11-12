@@ -191,21 +191,59 @@ def format_core_courses_for_prompt(courses: List[Dict[str, Any]]) -> str:
 
 #------------- General Roadmap UNSW ----------------
 def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None) -> Dict[str, Any]:
+    """
+    Fetch a specific UNSW degree entry from Supabase using the most reliable identifier.
+    Uses exact program_name match before fallback to ilike partial match.
+    """
     degree = None
     try:
         if degree_id:
-            result = supabase.from_("unsw_degrees_final").select("*").eq("id", degree_id).limit(1).execute()
-            degree = result.data[0] if result.data else None
+            result = (
+                supabase.from_("unsw_degrees_final")
+                .select("*")
+                .eq("id", degree_id)
+                .maybe_single()
+                .execute()
+            )
+            degree = getattr(result, "data", None)
+
         if not degree and uac_code:
-            result = supabase.from_("unsw_degrees_final").select("*").eq("uac_code", uac_code).limit(1).execute()
-            degree = result.data[0] if result.data else None
+            result = (
+                supabase.from_("unsw_degrees_final")
+                .select("*")
+                .eq("uac_code", uac_code)
+                .maybe_single()
+                .execute()
+            )
+            degree = getattr(result, "data", None)
+
         if not degree and program_name:
-            result = supabase.from_("unsw_degrees_final").select("*").ilike("program_name", f"%{program_name}%").limit(1).execute()
-            degree = result.data[0] if result.data else None
+            # Step 1: try exact match
+            result = (
+                supabase.from_("unsw_degrees_final")
+                .select("*")
+                .eq("program_name", program_name.strip())
+                .maybe_single()
+                .execute()
+            )
+            degree = getattr(result, "data", None)
+
+            # Step 2: fallback to partial case-insensitive match if nothing found
+            if not degree:
+                result = (
+                    supabase.from_("unsw_degrees_final")
+                    .select("*")
+                    .ilike("program_name", f"%{program_name.strip()}%")
+                    .maybe_single()
+                    .execute()
+                )
+                degree = getattr(result, "data", None)
+
     except Exception as e:
         print(f"Error fetching degree: {e}")
 
     if not degree:
+        print(f"[WARN] No degree found for id={degree_id}, uac={uac_code}, name={program_name}")
         return {
             "id": degree_id,
             "program_name": program_name,
@@ -224,8 +262,8 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
             "cricos_code": None,
         }
 
-    # Include the corrected degree_code in the returned dict
     return degree
+
 
 
 
@@ -382,3 +420,64 @@ def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
     
     return formatted
 
+# Fecth specialisation context for user 
+def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[str, Any]:
+    """
+    Fetches the user's selected major, minor, and honours specialisations.
+    """
+    if not user_id or not degree_code:
+        return {
+            "selected_major_name": None,
+            "selected_minor_name": None,
+            "selected_honours_name": None,
+        }
+
+    try:
+        response = (
+            supabase.from_("user_specialisation_selections")
+            .select("major_id, minor_id, honours_id")
+            .eq("user_id", user_id)
+            .eq("degree_code", degree_code)
+            .maybe_single()
+            .execute()
+        )
+
+        data = getattr(response, "data", None)
+        if not data:
+            return {
+                "selected_major_name": None,
+                "selected_minor_name": None,
+                "selected_honours_name": None,
+            }
+
+        # Fetch the actual specialisation names by ID
+        result = {
+            "selected_major_name": None,
+            "selected_minor_name": None,
+            "selected_honours_name": None,
+        }
+
+        if data.get("major_id"):
+            major_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["major_id"]).maybe_single().execute()
+            if major_resp.data:
+                result["selected_major_name"] = major_resp.data.get("major_name")
+
+        if data.get("minor_id"):
+            minor_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["minor_id"]).maybe_single().execute()
+            if minor_resp.data:
+                result["selected_minor_name"] = minor_resp.data.get("major_name")
+
+        if data.get("honours_id"):
+            honours_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["honours_id"]).maybe_single().execute()
+            if honours_resp.data:
+                result["selected_honours_name"] = honours_resp.data.get("major_name")
+
+        return result
+
+    except Exception as e:
+        print(f"[fetch_user_specialisation_context] Error: {e}")
+        return {
+            "selected_major_name": None,
+            "selected_minor_name": None,
+            "selected_honours_name": None,
+        }

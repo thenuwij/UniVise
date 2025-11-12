@@ -78,6 +78,52 @@ async def create_unsw(
     # --- Stage 5: return immediate response to frontend ---
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
+@router.post("/refresh_sections")
+async def refresh_sections(
+    body: dict,
+    user=Depends(get_current_user)
+):
+    """
+    Refresh industry sections when specialisation changes.
+    """
+    degree_code = body.get("degree_code")
+    if not degree_code:
+        raise HTTPException(status_code=400, detail="degree_code is required")
+    
+    # Find user's most recent roadmap
+    try:
+        roadmap_response = supabase.table("unsw_roadmap")\
+            .select("*")\
+            .eq("user_id", user.id)\
+            .order("created_at", desc=True)\
+            .limit(1)\
+            .execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch roadmap: {e}")
+    
+    if not roadmap_response.data:
+        raise HTTPException(status_code=404, detail="No roadmap found")
+    
+    roadmap_data = roadmap_response.data[0]
+    roadmap_id = roadmap_data["id"]
+    
+    # Add context for specialisation
+    roadmap_data["degree_code"] = degree_code
+    roadmap_data["user_id"] = user.id
+    
+    # Trigger regeneration
+    try:
+        import asyncio
+        print(f"[Refresh] Regenerating industry sections for roadmap {roadmap_id}")
+        asyncio.create_task(generate_and_update_industry_careers(roadmap_id, roadmap_data))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")
+    
+    return {
+        "status": "regenerating",
+        "message": "Industry sections are being regenerated",
+        "roadmap_id": roadmap_id
+    }
 
 @router.post("/unsw/{roadmap_id}/flexibility")
 async def generate_flexibility(
@@ -126,6 +172,8 @@ async def generate_flexibility(
         "status": "generating",
         "message": "Flexibility recommendations are being generated in the background"
     }
+
+
 
 @router.get("/{mode}", response_model=RoadmapResp)
 async def get_latest(mode: str, user=Depends(get_current_user)):

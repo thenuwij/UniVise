@@ -94,7 +94,7 @@ export default function CapstoneHonours({ data }) {
               Capstone Experience
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Integrate your knowledge through hands-on projects
+              Key courses featuring applied, project-based learning
             </p>
           </div>
         </div>
@@ -128,12 +128,13 @@ export default function CapstoneHonours({ data }) {
                   <div
                     key={i}
                     onClick={() => handleCourseClick(course)}
-                    className="group relative p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60
-                               bg-gradient-to-br from-blue-50/50 via-sky-50/50 to-indigo-50/50
-                               dark:from-blue-900/10 dark:via-sky-900/10 dark:to-indigo-900/10
-                               hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600
-                               hover:-translate-y-1
-                               transition-all duration-300 cursor-pointer"
+                    className="group relative p-5 rounded-xl border border-blue-200/70 dark:border-blue-700/70
+                              bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-100
+                              dark:from-blue-950/30 dark:via-sky-950/20 dark:to-indigo-950/30
+                              hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500
+                              hover:bg-gradient-to-br hover:from-blue-50 hover:via-sky-50 hover:to-indigo-50
+                              hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+
                   >
                     <div className="mb-3">
                       <p className="text-lg font-bold text-blue-700 dark:text-blue-400 tracking-tight">
@@ -144,7 +145,7 @@ export default function CapstoneHonours({ data }) {
                       </p>
                     </div>
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="opacity-70 group-hover:opacity-100 transition-opacity duration-150">
                       <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
                         View Details
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -173,7 +174,7 @@ export default function CapstoneHonours({ data }) {
       {/* ========== HONOURS SECTION ========== */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
         {/* Top Accent Bar */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-sky-500 rounded-t-2xl" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-sky-500 rounded-t-2xl shadow-[0_0_10px_rgba(79,70,229,0.4)]" />
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
@@ -185,7 +186,7 @@ export default function CapstoneHonours({ data }) {
               Honours Program
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Advanced study pathway for high-achieving students
+              Entry requirements, structure, and grading details for the Honours year.
             </p>
           </div>
         </div>
@@ -198,9 +199,10 @@ export default function CapstoneHonours({ data }) {
               return (
                 <div
                   key={i}
-                  className="group p-6 rounded-xl border border-slate-200/60 dark:border-slate-700/60
-                             bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
-                             hover:shadow-md transition-all duration-200"
+                  className="p-6 rounded-xl border border-slate-200 dark:border-slate-700
+                          bg-gradient-to-br from-slate-50 via-white to-slate-100/70 
+                          dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/70
+                          shadow-sm transition-colors duration-200"
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
