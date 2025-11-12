@@ -1,118 +1,112 @@
+// src/components/roadmap/ProgramStructure.jsx
+import { Layers, Info, Sparkles } from "lucide-react";
 import RoadmapCard from "./RoadmapCard";
-import CourseChip from "./CourseChip";
 
-const TERM_ORDER = { T1: 1, T2: 2, T3: 3 };
-
-function SumUoC(list = []) {
-  return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
-}
-
-function TermColumn({ term }) {
-  const total = SumUoC(term?.courses || []);
-  return (
-    <div className="rounded-2xl border border-border-light dark:border-border-medium bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-primary">{term.term}</div>
-        <div className="text-xs rounded-full border border-border-light dark:border-border-medium px-2 py-0.5 text-secondary">
-          {total} UoC
-        </div>
-      </div>
-      <ul className="space-y-2">
-        {(term.courses || []).map((c, idx) => (
-          <CourseChip
-            key={c.code || idx}
-            code={c.code}
-            title={c.title}
-            term={term.term}
-            uoc={c.uoc}
-            type={c.type}
-          />
-        ))}
-        {(!term.courses || term.courses.length === 0) && (
-          <li className="text-sm text-secondary">No courses listed.</li>
-        )}
-      </ul>
-    </div>
-  );
-}
-
-function YearUNSW({ y }) {
-  const terms = [...(y?.terms || [])].sort(
-    (a, b) => (TERM_ORDER[a?.term] ?? 99) - (TERM_ORDER[b?.term] ?? 99)
-  );
-  const yearUoC = terms.reduce((s, t) => s + SumUoC(t?.courses || []), 0);
-
-  return (
-    <div className="rounded-2xl border border-border-light dark:border-border-medium bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="font-medium text-primary">Year {y?.year ?? "—"}</div>
-        <div className="text-xs rounded-full border border-border-light dark:border-border-medium px-2 py-0.5 text-secondary">
-          Year total {yearUoC} UoC
-        </div>
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {terms.map((t, i) => <TermColumn key={i} term={t} />)}
-      </div>
-    </div>
-  );
-}
+/**
+ * School Program Structure Card
+ * -------------------------------------
+ * Visually aligned with ProgramStructureUNSW but simplified for
+ * school roadmap data (years + description only).
+ * No backend or data logic changes.
+ */
 
 function YearSchool({ y }) {
-  // Backward-compatible: original flat list rendering for “school” mode
   return (
-    <div className="p-4 rounded-2xl border border-border-light dark:border-border-medium bg-card">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="h-2 w-2 rounded-full bg-accent dark:bg-secondary" />
-        <div className="font-medium text-primary">Year {y?.year ?? "—"}</div>
+    <div
+      className="rounded-xl border border-slate-200/60 dark:border-slate-700/60
+                 bg-gradient-to-br from-white to-slate-50/30
+                 dark:from-slate-900 dark:to-slate-800/50
+                 shadow-sm hover:shadow-md transition-all duration-200 p-5"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className="p-2 rounded-lg bg-gradient-to-br from-sky-100 to-indigo-100
+                     dark:from-sky-900/30 dark:to-indigo-900/30 flex-shrink-0"
+        >
+          <Layers className="h-4 w-4 text-sky-700 dark:text-sky-400" />
+        </div>
+        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
+          Year {y?.year ?? "—"}
+        </h3>
       </div>
 
-      {y?.overview && <p className="text-primary mb-3">{y.overview}</p>}
-
-      {Array.isArray(y?.courses) && y.courses.length > 0 ? (
-        <ul className="space-y-2">
-          {y.courses.map((c, j) => (
-            <CourseChip
-              key={j}
-              code={c.code}
-              title={c.title}
-              term={c.term}
-              uoc={c.uoc}
-              type={c.type}
-            />
-          ))}
-        </ul>
+      {y?.overview ? (
+        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+          {y.overview}
+        </p>
       ) : (
-        <div className="text-sm text-secondary">No courses listed.</div>
+        <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+          No description provided for this year.
+        </p>
       )}
     </div>
   );
 }
 
-export default function ProgramStructure({ years = [], unsw = false }) {
-  const hasUNSWShape = years.some((y) => Array.isArray(y?.terms));
-
+export default function ProgramStructure({ years = [] }) {
   return (
-    <RoadmapCard
-      title="Program Structure"
-      subtitle={unsw ? "UNSW-specific plan by year & term." : "General year-by-year structure."}
+    <div
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60
+                 dark:border-slate-700/60 p-8 shadow-xl space-y-6 relative"
     >
-      <div className="space-y-4">
-        {/* UNSW layout: Year → T1/T2/T3 columns */}
-        {unsw || hasUNSWShape ? (
-          years.length ? (
-            <div className="space-y-4">
-              {years.map((y, i) => <YearUNSW key={i} y={y} />)}
-            </div>
-          ) : (
-            <div className="text-sm text-secondary">No years found.</div>
-          )
-        ) : (
-          // School layout fallback (original behavior)
-          <div className="grid md:grid-cols-2 gap-4">
-            {years.map((y, i) => <YearSchool key={i} y={y} />)}
+      {/* Accent bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r 
+                      from-sky-500 via-blue-500 to-indigo-500 rounded-t-2xl" />
+
+      {/* Header */}
+      <div
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6
+                   border-b border-slate-200/50 dark:border-slate-700/50"
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className="p-3 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100
+                       dark:from-sky-900/30 dark:to-indigo-900/30 shadow-sm"
+          >
+            <Layers className="h-6 w-6 text-sky-700 dark:text-sky-400" />
           </div>
-        )}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Program Structure
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              General year-by-year study plan for this school pathway.
+            </p>
+          </div>
+        </div>
       </div>
-    </RoadmapCard>
+
+      {/* User Guidance */}
+      <div
+        className="flex items-start gap-2 text-sm text-slate-500 dark:text-slate-400
+                   italic px-1"
+      >
+        <Info className="h-4 w-4 text-sky-500 dark:text-sky-400 flex-shrink-0 mt-0.5" />
+        <p>
+          Each year outlines the key focus or subjects typically studied. 
+          These are indicative only — check your school handbook for full details.
+        </p>
+      </div>
+
+      {/* Year Sections */}
+      {years.length > 0 ? (
+        <div className="space-y-3">
+          {years.map((y, i) => (
+            <YearSchool key={i} y={y} />
+          ))}
+        </div>
+      ) : (
+        <div
+          className="flex items-center gap-3 p-5 rounded-xl
+                     bg-slate-50 dark:bg-slate-800/50
+                     border border-slate-200 dark:border-slate-700"
+        >
+          <Sparkles className="h-5 w-5 text-sky-600 dark:text-sky-400 animate-pulse" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            No structure data available.
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
