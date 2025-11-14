@@ -25,6 +25,9 @@ import MyPlannerPage from "./pages/MyPlannerPage";
 import MindMeshGraphPage from "./mindmesh/MindMeshGraphPage";
 import PlannerSwitchPage from "./pages/PlannerSwitchPage";
 import TraitsPage from "./pages/TraitsPage";
+import MajorDetailPage from "./pages/MajorDetailPage";
+import MinorDetailPage from "./pages/MinorDetailPage";
+import HonoursDetailPage from "./pages/HonoursDetailPage";
 
 
 
@@ -55,5 +58,7 @@ export const router = createBrowserRouter([
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/planner/switch", element: <PrivateRoute><PlannerSwitchPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
-
+  { path: "/specialisation/major/:id", element: <PrivateRoute><MajorDetailPage /></PrivateRoute> },
+  { path: "/specialisation/minor/:id", element: <PrivateRoute><MinorDetailPage /></PrivateRoute> },
+  { path: "/specialisation/honours/:id", element: <PrivateRoute><HonoursDetailPage /></PrivateRoute> },
 ]);

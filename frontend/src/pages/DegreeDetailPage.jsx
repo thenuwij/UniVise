@@ -64,7 +64,7 @@ function DegreeDetailPage() {
     let alive = true;
     const fetchDegreeData = async () => {
       setLoadErr(null);
-      
+
       const { data: deg, error: dErr } = await supabase
         .from("unsw_degrees_final")
         .select("*")
@@ -97,18 +97,19 @@ function DegreeDetailPage() {
       let parsedSections = [];
       try {
         if (deg?.sections) {
-          parsedSections = typeof deg.sections === 'string' 
-            ? JSON.parse(deg.sections) 
-            : deg.sections;
+          parsedSections =
+            typeof deg.sections === "string"
+              ? JSON.parse(deg.sections)
+              : deg.sections;
         }
       } catch (e) {
         console.error("Error parsing sections:", e);
       }
 
-      setDegree({ 
-        ...deg, 
+      setDegree({
+        ...deg,
         career_outcomes: parsedCareerOutcomes,
-        sections: parsedSections 
+        sections: parsedSections,
       });
     };
 
@@ -136,59 +137,65 @@ function DegreeDetailPage() {
   const goBack = () => navigate(-1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-slate-300/80 to-slate-400/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 to-slate-400/40 dark:from-slate-950 dark:to-slate-900">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        
+      {/* 🔥 Updated to match Majors/Minors/Honours */}
+      <main className="max-w-[1600px] mx-auto px-6 py-16">
+
         {/* Back Button */}
         <button
           onClick={goBack}
-          className="group flex items-center gap-2 mb-8 px-4 py-2 rounded-xl
+          className="group flex items-center gap-2 mb-12 px-4 py-2 rounded-xl
                    bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600
                    text-slate-700 dark:text-slate-300 font-semibold
                    hover:bg-slate-50 dark:hover:bg-slate-800
                    shadow-md hover:shadow-lg transition-all duration-200"
         >
           <HiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-          <span>Back to Search</span>
+          <span>Back</span>
         </button>
 
         {/* Header Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-600 
-                      shadow-2xl p-8 mb-8 ring-1 ring-slate-400/20 dark:ring-slate-500/20">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 
+                      shadow-2xl p-10 mb-14 ring-1 ring-slate-400/20 dark:ring-slate-500/20">
           <div className="flex items-start gap-6 mb-6">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 
                           dark:from-blue-900/30 dark:to-indigo-900/30 shadow-md">
-              <HiAcademicCap className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              <HiAcademicCap className="w-12 h-12 text-blue-600 dark:text-blue-400" />
             </div>
+
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-800 dark:text-blue-400 mb-3 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-black dark:text-white mb-4 leading-tight">
                 {degree.program_name}
               </h1>
+
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 {degree.faculty && (
                   <span className="px-4 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 
-                                 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
+                         text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
                     {degree.faculty}
                   </span>
                 )}
+
                 {degree.other_faculty && (
                   <span className="px-4 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 
-                                 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
+                         text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
                     {degree.other_faculty}
                   </span>
                 )}
+
                 {degree.program_code && (
                   <span className="px-4 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 
-                                 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-700">
+                         text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-700">
                     Code: {degree.program_code}
                   </span>
                 )}
+
                 {degree.level && (
                   <span className="px-4 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 
-                                 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-700">
+                         text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-700">
                     {degree.level}
                   </span>
                 )}
@@ -196,9 +203,9 @@ function DegreeDetailPage() {
             </div>
           </div>
 
-          {/* Overview Description */}
+          {/* Overview */}
           {degree.overview_description && (
-            <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
               <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
                 {degree.overview_description}
               </p>
@@ -206,10 +213,12 @@ function DegreeDetailPage() {
           )}
         </div>
 
-        {/* Smart Advisor Section */}
-        <div ref={advisorRef} className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20
-                                       rounded-2xl border-2 border-emerald-200 dark:border-emerald-700 
-                                       shadow-xl p-8 mb-8">
+        {/* Smart Advisor */}
+        <div
+          ref={advisorRef}
+          className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20
+                     rounded-2xl border-2 border-emerald-200 dark:border-emerald-700 shadow-xl p-10 mb-14"
+        >
           {loadingSummary ? (
             <div className="text-center">
               <div className="inline-block p-4 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-4">
@@ -246,12 +255,13 @@ function DegreeDetailPage() {
                   Get an AI-powered summary of how this degree aligns with your goals, interests, and personality.
                 </p>
               </div>
+
               <button
                 onClick={fetchSmartAdvisor}
                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600
-                         text-white font-bold text-base shadow-lg hover:shadow-xl
-                         hover:from-emerald-600 hover:to-teal-700
-                         transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+                           text-white font-bold text-base shadow-lg hover:shadow-xl
+                           hover:from-emerald-600 hover:to-teal-700
+                           transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
               >
                 <HiSparkles className="w-5 h-5" />
                 Generate Smart Advisor
@@ -260,15 +270,15 @@ function DegreeDetailPage() {
           )}
         </div>
 
-        {/* Key Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
           {degree.duration && (
             <InfoCard
               icon={<HiClock className="w-6 h-6" />}
               label="Duration"
-              value={`${degree.duration} year${degree.duration > 1 ? 's' : ''}`}
-              gradient="from-blue-100 to-sky-100"
-              darkGradient="from-blue-900/30 to-sky-900/30"
+              value={`${degree.duration} year${degree.duration > 1 ? "s" : ""}`}
+              gradient="from-slate-50 to-slate-100"
+              darkGradient="from-slate-800/20 to-slate-700/20"
             />
           )}
           {degree.minimum_uoc && (
@@ -276,8 +286,8 @@ function DegreeDetailPage() {
               icon={<HiChartBar className="w-6 h-6" />}
               label="Total UOC"
               value={`${degree.minimum_uoc} UOC`}
-              gradient="from-blue-100 to-sky-100"
-              darkGradient="from-blue-900/30 to-sky-900/30"
+              gradient="from-slate-50 to-slate-100"
+              darkGradient="from-slate-800/20 to-slate-700/20"
             />
           )}
           {degree.uac_code && (
@@ -285,8 +295,8 @@ function DegreeDetailPage() {
               icon={<HiDocumentText className="w-6 h-6" />}
               label="UAC Code"
               value={degree.uac_code}
-              gradient="from-blue-100 to-sky-100"
-              darkGradient="from-blue-900/30 to-sky-900/30"
+              gradient="from-slate-50 to-slate-100"
+              darkGradient="from-slate-800/20 to-slate-700/20"
             />
           )}
           {degree.cricos_code && (
@@ -294,16 +304,18 @@ function DegreeDetailPage() {
               icon={<HiLocationMarker className="w-6 h-6" />}
               label="CRICOS Code"
               value={degree.cricos_code}
-              gradient="from-blue-100 to-sky-100"
-              darkGradient="from-blue-900/30 to-sky-900/30"
+              gradient="from-slate-50 to-slate-100"
+              darkGradient="from-slate-800/20 to-slate-700/20"
             />
           )}
         </div>
 
         {/* Admission Requirements */}
-        {(degree.lowest_selection_rank || degree.lowest_atar || degree.assumed_knowledge) && (
+        {(degree.lowest_selection_rank ||
+          degree.lowest_atar ||
+          degree.assumed_knowledge) && (
           <Section title="Admission Requirements" icon={<HiInformationCircle className="w-6 h-6" />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {degree.lowest_selection_rank && (
                 <StatCard label="Lowest Selection Rank" value={degree.lowest_selection_rank} />
               )}
@@ -329,20 +341,22 @@ function DegreeDetailPage() {
           <Section title="Program Structure" icon={<HiCollection className="w-6 h-6" />}>
             <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
-                {degree.program_structure.split(/\d+\.\s/).filter(Boolean).map((part, idx, arr) => {
-                  // First part might not start with a number
-                  const isNumberedItem = idx > 0 || arr.length > 1;
-                  return (
-                    <div key={idx} className={isNumberedItem ? "flex gap-3" : ""}>
-                      {isNumberedItem && (
-                        <span className="font-bold text-blue-700 dark:text-blue-400 min-w-[1.5rem]">
-                          {idx + 1}.
-                        </span>
-                      )}
-                      <p className="flex-1">{part.trim()}</p>
-                    </div>
-                  );
-                })}
+                {degree.program_structure
+                  .split(/\d+\.\s/)
+                  .filter(Boolean)
+                  .map((part, idx, arr) => {
+                    const numbered = idx > 0 || arr.length > 1;
+                    return (
+                      <div key={idx} className={numbered ? "flex gap-4" : ""}>
+                        {numbered && (
+                          <span className="font-bold text-blue-700 dark:text-blue-400 min-w-[1.5rem]">
+                            {idx + 1}.
+                          </span>
+                        )}
+                        <p className="flex-1">{part.trim()}</p>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </Section>
@@ -355,7 +369,7 @@ function DegreeDetailPage() {
               {degree.sections.map((section, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 shadow-md"
+                  className="p-6 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -368,13 +382,13 @@ function DegreeDetailPage() {
                       </span>
                     )}
                   </div>
-                  
+
                   {section.description && (
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
                       {section.description}
                     </p>
                   )}
-                  
+
                   {section.notes && (
                     <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 mb-4">
                       <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
@@ -382,36 +396,31 @@ function DegreeDetailPage() {
                       </p>
                     </div>
                   )}
-                  
-                  {section.courses && section.courses.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-                        Courses:
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {section.courses.map((course, cIdx) => (
-                          <div
-                            key={cIdx}
-                            className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
-                                  {course.code}
-                                </p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                                  {course.name}
-                                </p>
-                              </div>
-                              {course.uoc > 0 && (
-                                <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                                  {course.uoc} UOC
-                                </span>
-                              )}
+
+                  {section.courses?.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {section.courses.map((course, cIdx) => (
+                        <div
+                          key={cIdx}
+                          className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
+                                {course.code}
+                              </p>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                {course.name}
+                              </p>
                             </div>
+                            {course.uoc > 0 && (
+                              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                {course.uoc} UOC
+                              </span>
+                            )}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -453,7 +462,7 @@ function DegreeDetailPage() {
 
         {/* Source Link */}
         {degree.source_url && (
-          <div className="mt-8 text-center">
+          <div className="mt-14 text-center">
             <a
               href={degree.source_url}
               target="_blank"
@@ -474,17 +483,13 @@ function DegreeDetailPage() {
   );
 }
 
-// Helper Components
+// Section Wrapper
 function Section({ title, icon, children }) {
   return (
-    <div className="mb-8">
-      <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-slate-300 dark:border-slate-600">
-        <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-          {icon}
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          {title}
-        </h2>
+    <div className="mb-14">
+      <div className="flex items-center gap-3 mb-6 pb-3 border-b-2 border-slate-300 dark:border-slate-700">
+        <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">{icon}</div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{title}</h2>
       </div>
       {children}
     </div>
@@ -493,19 +498,17 @@ function Section({ title, icon, children }) {
 
 function InfoCard({ icon, label, value, gradient, darkGradient }) {
   return (
-    <div className={`p-5 rounded-xl bg-gradient-to-br ${gradient} dark:bg-gradient-to-br dark:${darkGradient}
-                   border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200`}>
+    <div
+      className={`p-5 rounded-xl bg-gradient-to-br ${gradient} dark:bg-gradient-to-br dark:${darkGradient}
+        border border-slate-100 dark:border-slate-600 shadow-sm hover:shadow-md transition-all duration-200`}
+    >
       <div className="flex items-center gap-3 mb-3">
-        <div className="text-slate-700 dark:text-slate-300">
-          {icon}
-        </div>
+        <div className="text-slate-700 dark:text-slate-300">{icon}</div>
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
           {label}
         </p>
       </div>
-      <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-        {value}
-      </p>
+      <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
     </div>
   );
 }
@@ -516,9 +519,7 @@ function StatCard({ label, value }) {
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
         {label}
       </p>
-      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-        {value}
-      </p>
+      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
     </div>
   );
 }

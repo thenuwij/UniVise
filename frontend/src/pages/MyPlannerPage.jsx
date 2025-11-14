@@ -125,7 +125,7 @@ function MyPlannerPage() {
               </p>
 
               <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                <span>Explore Degrees</span>
+                <span>Explore</span>
                 <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -139,7 +139,7 @@ function MyPlannerPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    Explore Majors
+                    Explore Specialisations
                   </h3>
                 </div>
               </div>
@@ -149,7 +149,7 @@ function MyPlannerPage() {
               </p>
 
               <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                <span>Explore Majors</span>
+                <span>Explore</span>
                 <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -173,7 +173,7 @@ function MyPlannerPage() {
               </p>
 
               <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                <span>Explore Courses</span>
+                <span>Explore</span>
                 <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </button>
             </div>
