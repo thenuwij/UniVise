@@ -62,22 +62,30 @@ async def generate_final_plan(user_id: str):
     The student received these career recommendations:
     {user_recs_text}
 
-    Now, here is a list of official UNSW degrees to choose from:
+    Below is the official list of ALL UNSW degrees:
     {unsw_degree_list}
 
-    Task:
-    - Recommend up to 5 UNSW degrees that best match the career options listed.
-    - For each degree, include:
-        - Degree Name
-        - A short reason why it matches
-    - Respond in valid JSON only. No markdown or explanations.
+    IMPORTANT RULES:
+    - You MUST ONLY choose degrees EXACTLY from the list above.
+    - Do NOT create, modify, or infer degree names.
+    - If a degree is not in the list, you CANNOT recommend it.
+    - The "degreeName" field MUST match a name from the list, character-for-character.
+    - If none are appropriate, return an empty JSON list [].
 
-    Example:
+    Your task:
+    - Recommend up to 5 UNSW degrees that best match the student’s career interests.
+    - For each degree, include:
+        - "degreeName": exact UNSW degree name from the list
+        - "reason": a short explanation
+
+    Respond with VALID JSON only. No markdown, no comments, no extra text.
+
+    Example output:
     [
-      {{
+    {{
         "degreeName": "Software Engineering (Honours)",
-        "reason": "...",
-      }}
+        "reason": "Strong alignment with software development and technical career goals."
+    }}
     ]
     """
 
@@ -118,26 +126,28 @@ async def generate_final_plan(user_id: str):
                 .limit(1)
                 .execute()
             )
-            degree_code = None
+
             if match and match.data and len(match.data) > 0:
-                degree_code = match.data[0].get("degree_code")
+                degree_code = match.data[0]["degree_code"]
                 print(f"Exact match: {degree_name} → {degree_code}")
             else:
-                degree_code = None
-                print(f"No exact match found for: '{degree_name}'")
+                print(f"[SKIP] No exact UNSW match found for: '{degree_name}'")
+                continue  
 
         except Exception as e:
-            print(f"Query failed for '{degree_name}': {e}")
-            degree_code = None
-    
+            print(f"[ERROR] Query failed for '{degree_name}': {e}")
+            continue  
+
+        # --- Only insert valid UNSW degrees ---
         rows.append({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
             "degree_name": degree_name,
             "reason": reason,
-            "degree_code": degree_code, 
+            "degree_code": degree_code,
             "created_at": datetime.utcnow().isoformat()
         })
+
 
     # --- DEBUG: Show what will be inserted ---
     print("\n=== FINAL DEGREE RECOMMENDATIONS TO INSERT ===")

@@ -12,7 +12,7 @@ import PersonalityQuizPage from "./pages/PersonalityQuizPage";
 import PersonalityResultPage from "./pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
 import ExploreByDegreePage from "./pages/ExploreByDegreePage";
-import ExploreByMajorPage from "./pages/ExploreByMajorPage";
+import ExploreBySpecialisationPage from "./pages/ExploreBySpecialisationPage";
 import ExploreByCoursePage from "./pages/ExploreByCoursePage";
 import DegreeDetailPage from "./pages/DegreeDetailPage";
 import RoadmapPage from "./pages/RoadmapPage";
@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
   { path: "/explore-by-degree", element: <PrivateRoute><ExploreByDegreePage /></PrivateRoute> },
-  { path: "/explore-by-major", element: <PrivateRoute><ExploreByMajorPage /></PrivateRoute> },
+  { path: "/explore-by-specialisation", element: <PrivateRoute><ExploreBySpecialisationPage /></PrivateRoute> },
   { path: "/explore-by-course", element: <PrivateRoute><ExploreByCoursePage /></PrivateRoute> },
   { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },

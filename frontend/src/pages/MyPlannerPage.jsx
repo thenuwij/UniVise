@@ -3,163 +3,184 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import MindMeshSummary from "../components/MindMeshSummary";
-
 import {
   HiCollection,
   HiClipboard,
   HiUsers,
-  HiSwitchHorizontal,
-  HiInformationCircle,
-  HiChevronDown,
+  HiArrowRight,
 } from "react-icons/hi";
 
 function MyPlannerPage() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [showTips, setShowTips] = useState(false);
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  const goSwitch = () => navigate("/planner/switch");
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-100">
-      <DashboardNavBar onMenuClick={openDrawer} />
-      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-
-      {/* Hero */}
-      <div className="max-w-7xl mx-auto pt-16 pb-6 px-6 text-center">
-        <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
-          My Planner
-        </h1>
-        <p className="mb-4 text-lg font-normal text-gray-600 lg:text-xl sm:px-16 xl:px-48">
-          Plan your path with clarity. Explore courses, majors, and degrees — then build your MindMesh
-          and compare changes before you switch.
-        </p>
-
-        {/* Expandable "How to use" */}
-        <div className="mx-auto mt-4 mb-2 max-w-3xl text-left">
-          <button
-            onClick={() => setShowTips((v) => !v)}
-            aria-expanded={showTips}
-            className="w-full flex items-center justify-between gap-3 bg-white/80 rounded-2xl p-4 shadow border border-slate-200 hover:bg-white transition"
-          >
-            <div className="flex items-center gap-3">
-              <HiInformationCircle className="w-6 h-6 text-sky-600" />
-              <span className="font-semibold text-slate-900">How to use My Planner</span>
-            </div>
-            <HiChevronDown
-              className={`w-5 h-5 text-slate-600 transition-transform ${showTips ? "rotate-180" : ""}`}
-            />
-          </button>
-
-          {showTips && (
-            <div className="mt-3 bg-white/70 rounded-2xl p-4 shadow border border-slate-200">
-              <ol className="list-decimal list-inside space-y-1 text-sm text-slate-700">
-                <li>Explore <strong>Degrees</strong>, <strong>Majors</strong>, and <strong>Courses</strong> to shortlist options.</li>
-                <li>Add items to your <strong>MindMesh</strong> from each details page.</li>
-                <li>Use <strong>Switch Majors</strong> to compare your current path vs. a target path.</li>
-              </ol>
-            </div>
-          )}
-        </div>
+    <div>
+      {/* Fixed Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <DashboardNavBar onMenuClick={openDrawer} />
+        <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
-      {/* Main actions */}
-      <div className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <ActionCard
-            title="Explore Degrees"
-            description="Browse UNSW programs, see total UOC and structure at a glance."
-            icon={<HiCollection className="w-7 h-7" />}
-            onClick={() => navigate("/explore-by-degree")}
-          />
-          <ActionCard
-            title="Explore Majors"
-            description="Review specialisations and their core/required courses."
-            icon={<HiUsers className="w-7 h-7" />}
-            onClick={() => navigate("/explore-by-major")}
-          />
-          <ActionCard
-            title="Explore Courses"
-            description="Search courses, prerequisites, and where each course fits."
-            icon={<HiClipboard className="w-7 h-7" />}
-            onClick={() => navigate("/explore-by-course")}
-          />
-        </div>
-
-        {/* MindMesh — live summary (links to /planner/mindmesh) */}
-        <div className="mt-10">
-          <MindMeshSummary />
-        </div>
-
-        {/* Switch Majors — full width */}
-        <div className="mt-10">
-          <div className="rounded-3xl p-6 bg-white shadow-md border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <HiSwitchHorizontal className="w-6 h-6 text-sky-700" />
-              <h2 className="text-2xl font-bold text-slate-900">Switch Majors</h2>
+      <div className="pt-16 sm:pt-20">
+        <div className="flex flex-col justify-center h-full px-10 xl:px-20">
+          
+          {/* Header Section */}
+          <div className="mt-8">
+            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+              My Planner
             </div>
 
-            <p className="text-sm text-slate-600 mb-6">
-              Compare your current path <em>(FROM)</em> with a target path <em>(TO)</em>. We’ll show WAM
-              requirements, UOC that carries over, what’s new, and an estimated remaining load.
+            <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+              <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                Plan
+              </span>{" "}
+              Your Academic Journey
+            </h1>
+            
+            <p className="mt-2 text-gray-700 dark:text-gray-300 max-w-4xl">
+              Explore degrees, majors, and courses to build your personalized study plan. 
+              Compare paths and see how different choices shape your academic journey at UNSW.
+            </p>
+          </div>
+
+          {/* How to Use Card */}
+          <div className="card-glass-spotlight mt-6 p-8">
+            <p className="text-2xl font-semibold mb-4">
+              How My Planner Works
+            </p>
+            
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              My Planner helps you explore and organize your academic options before committing. 
+              Start by browsing programs, then build semester-by-semester plans to visualize your path.
             </p>
 
-            {/* Non-functional stubs for now */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SelectorStub label="FROM — Degree" />
-              <SelectorStub label="TO — Degree" />
-              <SelectorStub label="FROM — Specialisation" />
-              <SelectorStub label="TO — Specialisation" />
-            </div>
+            {/* Steps Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                  1
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Explore Options</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Browse degrees, majors, and courses to shortlist programs</p>
+                </div>
+              </div>
 
-            <div className="mt-6">
-              <button
-                onClick={goSwitch}
-                className="w-full px-8 py-3 text-white font-semibold rounded-2xl shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300"
-              >
-                Compare Paths (Preview)
-              </button>
-              <p className="mt-2 text-sm text-slate-500">
-                This will be fully interactive once Planner compare is live.
-              </p>
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                  2
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Build Your Plan</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Create semester-by-semester course schedules and visualize your path</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                  3
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Compare Paths</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">See how switching programs changes your workload and timeline</p>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Explore Options Section */}
+          <div className="mt-12 mb-6">
+            <h2 className="text-2xl font-semibold mb-2">
+              Start Exploring
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Choose where you'd like to begin your planning journey
+            </p>
+          </div>
+
+          {/* Action Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-16">
+            
+            {/* Explore Degrees */}
+            <div className="card-glass-spotlight p-6 group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                 onClick={() => navigate("/explore-by-degree")}>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-gradient-to-br from-sky-100 to-blue-100 dark:from-sky-900/40 dark:to-blue-900/40">
+                  <HiCollection className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    Explore Degrees
+                  </h3>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                Browse UNSW degree programs, view their structures, and understand entry requirements at a glance.
+              </p>
+
+              <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                <span>Explore Degrees</span>
+                <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* Explore Majors */}
+            <div className="card-glass-spotlight p-6 group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                 onClick={() => navigate("/explore-by-specialisation")}>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40">
+                  <HiUsers className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Explore Majors
+                  </h3>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                Review specializations, minors, and honours streams to see their core requirements and career paths.
+              </p>
+
+              <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                <span>Explore Majors</span>
+                <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* Explore Courses */}
+            <div className="card-glass-spotlight p-6 group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                 onClick={() => navigate("/explore-by-course")}>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40">
+                  <HiClipboard className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    Explore Courses
+                  </h3>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                Search individual courses, check prerequisites, and see how they fit into your degree plan.
+              </p>
+
+              <button className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                <span>Explore Courses</span>
+                <HiArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+          </div>
+
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Small presentational stubs (no logic yet) ---------- */
-
-function ActionCard({ title, description, icon, onClick }) {
-  return (
-    <div className="rounded-3xl p-6 bg-white border border-slate-200 shadow-md hover:shadow-lg transition-all">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="text-sky-700">{icon}</div>
-        <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-      </div>
-      <p className="text-slate-600 text-sm mb-4">{description}</p>
-      <button
-        onClick={onClick}
-        className="px-6 py-2 text-white font-semibold rounded-2xl shadow transition-all bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300"
-      >
-        Open
-      </button>
-    </div>
-  );
-}
-
-function SelectorStub({ label }) {
-  return (
-    <div className="text-left">
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 text-slate-400 px-3 py-2">
-        Select…
       </div>
     </div>
   );

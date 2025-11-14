@@ -1,5 +1,6 @@
 // src/components/RecommendedDegrees.jsx
 import React from "react";
+import { HiAcademicCap, HiCheckCircle } from "react-icons/hi";
 
 function RecommendedDegrees({
   userType,
@@ -9,32 +10,32 @@ function RecommendedDegrees({
   setSelectedDegreeId,
   setSelectedDegreeObject,
 }) {
-
-  console.log("Recommendations received:", recommendations);
-
   if (loading) {
     return (
-      <p className="italic text-secondary">Generating recommendations...</p>
+      <div className="text-center py-8">
+        <p className="text-slate-600 dark:text-slate-300 italic">
+          Generating recommendations...
+        </p>
+      </div>
     );
   }
 
   if (!recommendations || recommendations.length === 0) {
     return (
-      <p className="italic text-secondary">No recommendations available.</p>
+      <div className="text-center py-8">
+        <p className="text-slate-500 dark:text-slate-400 italic">
+          No recommendations available at the moment.
+        </p>
+      </div>
     );
   }
 
   return (
-    <section className="w-full mb-12">
-      <h2 className="heading-lg mt-12 mb-6 text-primary">Recommended Degrees</h2>
-      <div
-        className={`grid grid-cols-1 ${
-          userType === "high_school"
-            ? "md:grid-cols-2"
-            : "sm:grid-cols-2 lg:grid-cols-3"
-        } gap-8`}
-      >
-        {recommendations.map((rec) => (
+    <div className="space-y-3">
+      {recommendations.map((rec) => {
+        const isSelected = selectedDegreeId === rec.id;
+
+        return (
           <div
             key={rec.id}
             role="button"
@@ -48,8 +49,6 @@ function RecommendedDegrees({
                     : "uni_recommendation",
                 ...rec,
               };
-              console.log("🎯 Setting selectedDegreeObject to:", degreeObj);
-              console.log("🔑 Keys in degreeObj:", Object.keys(degreeObj));
               setSelectedDegreeObject(degreeObj);
             }}
             onKeyDown={(e) => {
@@ -64,24 +63,57 @@ function RecommendedDegrees({
                 });
               }
             }}
-            className={`cursor-pointer card-flex transition-transform duration-300 ${
-              selectedDegreeId === rec.id
-                ? "border-2 border-sky-600 dark:border-sky-400 bg-sky-50 dark:bg-slate-800 scale-[1.02]"
-                : "hover:shadow-md hover:scale-[1.01]"
-            }`}
+            className={`relative transition-all duration-300 cursor-pointer rounded-lg p-4 border 
+              ${
+                isSelected
+                  ? "border-sky-500 bg-sky-50 dark:bg-sky-900/40 shadow-md"
+                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700"
+              }`}
           >
-            <h3 className="heading-md mb-2 text-brand">{rec.program_name || rec.degree_name}</h3>
-
-            {userType === "high_school" && rec.university_name && (
-              <p className="text-sm italic text-secondary">{rec.university_name}</p>
+            {/* Selection Badge */}
+            {isSelected && (
+              <div className="absolute top-3 right-3 flex items-center gap-1 text-sky-600 dark:text-sky-400 text-xs font-semibold">
+                <HiCheckCircle className="w-5 h-5" />
+                <span>Selected</span>
+              </div>
             )}
 
-            {rec.reason && <p className="text-sm text-primary">{rec.reason}</p>}
-          </div>
-        ))}
+            {/* Content */}
+            <div className="pr-20">
+              {/* Header with Icon and Degree Name */}
+              <div className="flex items-start gap-2 mb-2">
+                <div className="flex-shrink-0 p-1.5 rounded-md bg-sky-100 dark:bg-sky-900/40 mt-0.5">
+                  <HiAcademicCap className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                </div>
+                <h3
+                  className={`text-base font-bold leading-snug flex-1 ${
+                    isSelected
+                      ? "text-sky-700 dark:text-sky-300"
+                      : "text-slate-900 dark:text-white"
+                  }`}
+                >
+                  {rec.program_name || rec.degree_name}
+                </h3>
+              </div>
 
-      </div>
-    </section>
+              {/* University */}
+              {userType === "high_school" && rec.university_name && (
+                <p className="text-sm italic text-slate-500 dark:text-slate-400 mb-2">
+                  {rec.university_name}
+                </p>
+              )}
+
+              {/* Reason */}
+              {rec.reason && (
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                  {rec.reason}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
