@@ -25,7 +25,7 @@ export function useRoadmapData() {
         const currentUserType = user.user_metadata?.student_type || "university";
         if (!active) return;
         setUserType(currentUserType);
-
+        console.log("Current userType:", currentUserType);
         // Pick correct tables
         const analysisTable =
           currentUserType === "high_school"
@@ -47,15 +47,43 @@ export function useRoadmapData() {
         if (!active) return;
         setHasTranscript(!!analysisData);
 
-        // Recommendations
-        const { data: recs } = await supabase
+        // --- Recommendations ---
+        const { data: recs, error: recsError } = await supabase
           .from(recsTable)
-          .select("*")
+          .select("*") 
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
+
+        if (recsError) throw recsError;
         if (!active) return;
-        setRecommendations(recs || []);
+
+        if (currentUserType === "high_school") {
+          setRecommendations(recs || []);
+          return;
+        }
+
+        if (currentUserType === "university" && recs?.length) {
+          const codes = recs.map(r => r.degree_code).filter(Boolean);
+
+          const { data: unswRecords, error: unswError } = await supabase
+            .from("unsw_degrees_final")
+            .select("*")
+            .in("degree_code", codes);
+
+          if (unswError) console.warn("UNSW join error:", unswError.message);
+
+          // Merge UNSW degree info + recommendation reason
+          const enriched = recs.map(r => {
+            const match = unswRecords?.find(u => u.degree_code === r.degree_code);
+            return match ? { ...r, ...match, reason: r.reason, id: r.id } : r;
+          });
+
+          setRecommendations(enriched);
+        } else {
+          setRecommendations(recs || []);
+        }
+
       } catch (err) {
         if (active) setError(err);
       } finally {
@@ -66,7 +94,7 @@ export function useRoadmapData() {
     fetchData();
 
     return () => {
-      active = false; // cleanup if component unmounts
+      active = false; 
     };
   }, []);
 

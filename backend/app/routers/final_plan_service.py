@@ -45,7 +45,7 @@ async def generate_final_plan(user_id: str):
     # Get UNSW degrees
     degrees_response = (
         supabase
-        .from_("unsw_degrees")
+        .from_("unsw_degrees_final")
         .select("program_name")
         .execute()
     )
@@ -62,42 +62,99 @@ async def generate_final_plan(user_id: str):
     The student received these career recommendations:
     {user_recs_text}
 
-    Now, here is a list of official UNSW degrees to choose from:
+    Below is the official list of ALL UNSW degrees:
     {unsw_degree_list}
 
-    Task:
-    - Recommend up to 5 UNSW degrees that best match the career options listed.
-    - For each degree, include:
-        - Degree Name
-        - A short reason why it matches
-    - Respond in valid JSON only. No markdown or explanations.
+    IMPORTANT RULES:
+    - You MUST ONLY choose degrees EXACTLY from the list above.
+    - Do NOT create, modify, or infer degree names.
+    - If a degree is not in the list, you CANNOT recommend it.
+    - The "degreeName" field MUST match a name from the list, character-for-character.
+    - If none are appropriate, return an empty JSON list [].
 
-    Example:
+    Your task:
+    - Recommend up to 5 UNSW degrees that best match the student’s career interests.
+    - For each degree, include:
+        - "degreeName": exact UNSW degree name from the list
+        - "reason": a short explanation
+
+    Respond with VALID JSON only. No markdown, no comments, no extra text.
+
+    Example output:
     [
-      {{
+    {{
         "degreeName": "Software Engineering (Honours)",
-        "reason": "...",
-      }}
+        "reason": "Strong alignment with software development and technical career goals."
+    }}
     ]
     """
 
-    result = clean_openai_response(ask_openai(prompt))
+    # --- Call OpenAI and clean the response ---
+    result_raw = ask_openai(prompt)         
+    result = clean_openai_response(result_raw)
+
+    # --- Debug: print what the AI actually said ---
+    print("=== RAW AI RESULT START ===")
+    print(result)
+    print("=== RAW AI RESULT END ===")
+
     try:
         degrees = json.loads(result)
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 
+    # --- Debug: show parsed degrees clearly ---
+    print("=== PARSED AI RECOMMENDATIONS ===")
+    for d in degrees:
+        print("-", d.get("degreeName"))
+    print("=== END PARSED ===")
+
+
     # Insert into Supabase final_recommendations table (University students only)
-    rows = [
-        {
+    rows = []
+
+    for degree in degrees:
+        degree_name = degree.get("degreeName")
+        reason = degree.get("reason")
+
+        try:
+            match = (
+                supabase
+                .from_("unsw_degrees_final")
+                .select("degree_code, program_name")
+                .eq("program_name", degree_name)
+                .limit(1)
+                .execute()
+            )
+
+            if match and match.data and len(match.data) > 0:
+                degree_code = match.data[0]["degree_code"]
+                print(f"Exact match: {degree_name} → {degree_code}")
+            else:
+                print(f"[SKIP] No exact UNSW match found for: '{degree_name}'")
+                continue  
+
+        except Exception as e:
+            print(f"[ERROR] Query failed for '{degree_name}': {e}")
+            continue  
+
+        # --- Only insert valid UNSW degrees ---
+        rows.append({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
-            "degree_name": degree.get("degreeName"),
-            "reason": degree.get("reason"),
+            "degree_name": degree_name,
+            "reason": reason,
+            "degree_code": degree_code,
             "created_at": datetime.utcnow().isoformat()
-        }
-        for degree in degrees
-]
+        })
+
+
+    # --- DEBUG: Show what will be inserted ---
+    print("\n=== FINAL DEGREE RECOMMENDATIONS TO INSERT ===")
+    for r in rows:
+        print(f"- {r['degree_name']} → degree_code={r['degree_code']} | reason={r['reason'][:80]}...")
+    print("=============================================\n")
+
 
     insert_response = supabase.table("final_degree_recommendations").insert(rows).execute()
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from app.utils.database import supabase
 from dependencies import get_current_user
 
@@ -8,7 +8,8 @@ from .roadmap_common import (
 )
 from .roadmap_school import gather_school_context, ai_generate_school_payload
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
-from .roadmap_transcript import gather_transcript_context, ai_generate_transcript_payload
+from .roadmap_unsw_flexibility import generate_and_update_flexibility
+from .roadmap_industry import generate_and_update_industry_careers
 
 router = APIRouter(tags=["roadmap"])
 
@@ -29,10 +30,19 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 @router.post("/unsw", response_model=RoadmapResp)
-async def create_unsw(body: UNSWReq, user=Depends(get_current_user)):
-    ensure(any([body.degree_id, body.uac_code, body.program_name]), "Provide degree_id or uac_code or program_name.")
+async def create_unsw(
+    body: UNSWReq,
+    background_tasks: BackgroundTasks,  
+    user=Depends(get_current_user)
+):
+    ensure(any([body.degree_id, body.uac_code, body.program_name]),
+           "Provide degree_id or uac_code or program_name.")
+
+    # --- Stage 1: build roadmap context & payload ---
     ctx = await gather_unsw_context(user.id, body)
     payload = await ai_generate_unsw_payload(ctx)
+
+    # --- Stage 2: save roadmap in DB ---
     try:
         ins = (
             supabase.table("unsw_roadmap")
@@ -48,23 +58,122 @@ async def create_unsw(body: UNSWReq, user=Depends(get_current_user)):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+
     rec = ins.data[0]
+
+    # --- Stage 3 & 4: trigger BOTH background tasks in parallel ---
+    try:
+        import asyncio
+        
+        print(f"[Background] Launching flexibility + industry/careers in parallel for roadmap: {rec['id']}")
+        
+        # Create both tasks immediately (they'll run concurrently)
+        asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
+        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
+        
+    except Exception as e:
+        print(f"[Background] Failed to schedule tasks: {e}")
+
+
+    # --- Stage 5: return immediate response to frontend ---
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
-@router.post("/transcript", response_model=RoadmapResp)
-async def create_transcript(body: TranscriptReq, user=Depends(get_current_user)):
-    ctx = await gather_transcript_context(user.id, body)
-    payload = await ai_generate_transcript_payload(ctx)
+@router.post("/refresh_sections")
+async def refresh_sections(
+    body: dict,
+    user=Depends(get_current_user)
+):
+    """
+    Refresh industry sections when specialisation changes.
+    """
+    degree_code = body.get("degree_code")
+    if not degree_code:
+        raise HTTPException(status_code=400, detail="degree_code is required")
+    
+    # Find user's most recent roadmap
     try:
-        ins = (
-            supabase.table("transcript_roadmap")
-            .insert({"user_id": user.id, "mode": "transcript", "payload": payload})
+        roadmap_response = supabase.table("unsw_roadmap")\
+            .select("*")\
+            .eq("user_id", user.id)\
+            .order("created_at", desc=True)\
+            .limit(1)\
             .execute()
-        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
-    rec = ins.data[0]
-    return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
+        raise HTTPException(status_code=500, detail=f"Failed to fetch roadmap: {e}")
+    
+    if not roadmap_response.data:
+        raise HTTPException(status_code=404, detail="No roadmap found")
+    
+    roadmap_data = roadmap_response.data[0]
+    roadmap_id = roadmap_data["id"]
+    
+    # Add context for specialisation
+    roadmap_data["degree_code"] = degree_code
+    roadmap_data["user_id"] = user.id
+    
+    # Trigger regeneration
+    try:
+        import asyncio
+        print(f"[Refresh] Regenerating industry sections for roadmap {roadmap_id}")
+        asyncio.create_task(generate_and_update_industry_careers(roadmap_id, roadmap_data))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")
+    
+    return {
+        "status": "regenerating",
+        "message": "Industry sections are being regenerated",
+        "roadmap_id": roadmap_id
+    }
+
+@router.post("/unsw/{roadmap_id}/flexibility")
+async def generate_flexibility(
+    roadmap_id: str,
+    background_tasks: BackgroundTasks,
+    user=Depends(get_current_user)
+):
+    """
+    Generate flexibility/degree switching recommendations for an existing UNSW roadmap.
+    
+    This runs as a background task, so the endpoint returns immediately.
+    The flexibility data is added to the roadmap payload once generation completes.
+    """
+    
+    # Verify roadmap exists and belongs to user
+    try:
+        roadmap_response = supabase.table("unsw_roadmap")\
+            .select("*")\
+            .eq("id", roadmap_id)\
+            .eq("user_id", user.id)\
+            .single()\
+            .execute()
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+    
+    if not roadmap_response.data:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+    
+    roadmap_data = roadmap_response.data
+    
+    # Check if flexibility already exists
+    if roadmap_data.get("payload", {}).get("flexibility_detailed"):
+        return {
+            "status": "already_exists",
+            "message": "Flexibility recommendations already exist for this roadmap"
+        }
+    
+    # Schedule background task to generate flexibility
+    background_tasks.add_task(
+        generate_and_update_flexibility,
+        roadmap_id,
+        roadmap_data
+    )
+    
+    return {
+        "status": "generating",
+        "message": "Flexibility recommendations are being generated in the background"
+    }
+
+
 
 @router.get("/{mode}", response_model=RoadmapResp)
 async def get_latest(mode: str, user=Depends(get_current_user)):

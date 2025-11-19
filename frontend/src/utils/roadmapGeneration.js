@@ -74,11 +74,18 @@ export async function handleRoadmapGeneration({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
+      console.log("Navigating to RoadmapUNSW with roadmap_id:", json?.id || json?.roadmap_id);
+
       navigate("/roadmap/unsw", {
-        state: { degree, payload: json?.payload || null, roadmap_id: json?.roadmap_id || null },
+        state: {
+          degree,
+          payload: json?.payload || null,
+          roadmap_id: json?.id || json?.roadmap_id || null,
+        },
         replace: true,
       });
       return;
+
     }
 
     // Fallback ONLY when caller explicitly passed null for type

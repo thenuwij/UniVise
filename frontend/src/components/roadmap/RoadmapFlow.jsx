@@ -30,13 +30,13 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
             <svg className="w-full h-16" viewBox="0 0 100 16" preserveAspectRatio="none">
               <path
                 d="M2,8 L98,8"
-                stroke="var(--border-light)"
+                className="stroke-slate-300 dark:stroke-slate-700"
                 strokeWidth="0.8"
                 fill="none"
               />
               <path
                 d={`M2,8 L${2 + (96 * (activeIndex / (Math.max(steps.length - 1, 1))))},8`}
-                stroke="var(--text-primary)"
+                className="stroke-sky-600 dark:stroke-sky-400"
                 strokeWidth="1.2"
                 fill="none"
               />

@@ -12,7 +12,7 @@ import PersonalityQuizPage from "./pages/PersonalityQuizPage";
 import PersonalityResultPage from "./pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
 import ExploreByDegreePage from "./pages/ExploreByDegreePage";
-import ExploreByMajorPage from "./pages/ExploreByMajorPage";
+import ExploreBySpecialisationPage from "./pages/ExploreBySpecialisationPage";
 import ExploreByCoursePage from "./pages/ExploreByCoursePage";
 import DegreeDetailPage from "./pages/DegreeDetailPage";
 import RoadmapPage from "./pages/RoadmapPage";
@@ -22,9 +22,16 @@ import RoadmapSchoolPage from "./pages/RoadmapSchoolPage";
 import RoadmapUNSWPage from "./pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
-import MindMeshGraphPage from "./pages/MindMeshGraphPage";
+import MindMeshGraphPage from "./mindmesh/MindMeshGraphPage";
 import PlannerSwitchPage from "./pages/PlannerSwitchPage";
 import TraitsPage from "./pages/TraitsPage";
+import MajorDetailPage from "./pages/MajorDetailPage";
+import MinorDetailPage from "./pages/MinorDetailPage";
+import HonoursDetailPage from "./pages/HonoursDetailPage";
+import MyPathway from "./pages/MyPathway";
+import ProgressPage from "./pages/ProgressPage";
+import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
+
 
 
 
@@ -42,7 +49,7 @@ export const router = createBrowserRouter([
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
   { path: "/explore-by-degree", element: <PrivateRoute><ExploreByDegreePage /></PrivateRoute> },
-  { path: "/explore-by-major", element: <PrivateRoute><ExploreByMajorPage /></PrivateRoute> },
+  { path: "/explore-by-specialisation", element: <PrivateRoute><ExploreBySpecialisationPage /></PrivateRoute> },
   { path: "/explore-by-course", element: <PrivateRoute><ExploreByCoursePage /></PrivateRoute> },
   { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
@@ -52,8 +59,14 @@ export const router = createBrowserRouter([
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
+  { path: "/planner/school", element: <PrivateRoute><MyPlannerSchoolPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/planner/switch", element: <PrivateRoute><PlannerSwitchPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
-
+  { path: "/specialisation/major/:id", element: <PrivateRoute><MajorDetailPage /></PrivateRoute> },
+  { path: "/specialisation/minor/:id", element: <PrivateRoute><MinorDetailPage /></PrivateRoute> },
+  { path: "/specialisation/honours/:id", element: <PrivateRoute><HonoursDetailPage /></PrivateRoute> },
+  { path: "/mypathway", element: <PrivateRoute><MyPathway /></PrivateRoute> },
+  { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
+  
 ]);

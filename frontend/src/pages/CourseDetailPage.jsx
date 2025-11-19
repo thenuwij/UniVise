@@ -4,12 +4,24 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import AddToMeshButton from "../components/mindmesh/AddToMeshButton";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
+import SaveButton from "../components/SaveButton";
+import {
+  HiArrowLeft,
+  HiBookOpen,
+  HiAcademicCap,
+  HiChartBar,
+  HiCalendar,
+  HiCollection,
+  HiInformationCircle,
+  HiClipboardList,
+} from "react-icons/hi";
 
 function CourseDetailPage() {
-  const { courseId } = useParams(); // Course UUID
+  const { courseId } = useParams();
   const navigate = useNavigate();
+
+  // Correct: use degreeId (UUID) for navigation
   const goDegree = (degreeId) => navigate(`/degrees/${degreeId}`);
 
   const [course, setCourse] = useState(null);
@@ -30,6 +42,7 @@ function CourseDetailPage() {
         .single();
 
       if (!alive) return;
+
       if (error) {
         console.error("Failed to fetch course:", error.message);
         setLoadErr(error.message);
@@ -45,172 +58,207 @@ function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="p-6 text-center text-gray-400 text-lg">
-        {loadErr ? `Error: ${loadErr}` : "Loading course details..."}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400/40 dark:from-slate-950 dark:to-slate-900">
+        <div className="text-center">
+          <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+            <HiBookOpen className="w-12 h-12 text-slate-400 animate-pulse" />
+          </div>
+          <p className="text-slate-700 dark:text-slate-300 text-lg">
+            {loadErr ? `Error: ${loadErr}` : "Loading course details..."}
+          </p>
+        </div>
       </div>
     );
   }
 
-  // ---- Derived fields / normalizers ----
-  const levelTag = (() => {
-    const m = String(course?.code || "").match(/\d{4}/); // e.g. COMP2511 -> "2511"
-    return m ? `level-${m[0][0]}` : "level-x"; // "2" -> level-2
-  })();
-
-  const normalizedTerms = Array.isArray(course?.offering_terms)
+  // Normalize terms
+  const normalizedTerms = Array.isArray(course.offering_terms)
     ? course.offering_terms.join(", ")
-    : (typeof course?.offering_terms === "string" ? course.offering_terms : "N/A");
+    : typeof course.offering_terms === "string"
+    ? course.offering_terms
+    : "N/A";
 
-  // ---- Quick nav handlers ----
   const goBack = () => navigate(-1);
-  const goExploreDegrees = () => navigate("/explore-by-degree");
-  const goExploreMajors = () => navigate("/explore-by-major");
-  const goExploreCourses = () => navigate("/explore-by-course");
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Static sidebar (leave as-is if this is your current layout) */}
-      <MenuBar />
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 to-slate-400/40 dark:from-slate-950 dark:to-slate-900">
+      <DashboardNavBar onMenuClick={openDrawer} />
+      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      <div className="flex flex-col flex-1">
-        {/* Top bar */}
-        <DashboardNavBar onMenuClick={openDrawer} />
-        {/* Drawer for mobile */}
-        <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+      {/* 🔥 Full-width like degree + specialisation pages */}
+      <main className="max-w-[1600px] mx-auto px-6 py-16">
 
-        <main className="flex-1 overflow-y-auto px-8 py-14">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12">
+        {/* Back Button */}
+        <button
+          onClick={goBack}
+          className="group flex items-center gap-2 mb-12 px-4 py-2 rounded-xl
+                     bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600
+                     text-slate-700 dark:text-slate-300 font-semibold
+                     hover:bg-slate-50 dark:hover:bg-slate-800
+                     shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <HiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
 
-            {/* LEFT SECTION */}
-            <div className="flex-1 space-y-10">
-              {/* Top Back Button */}
-              <div>
-                <button
-                  onClick={goBack}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm text-sm"
-                >
-                  <svg viewBox="0 0 24 24" width="16" height="16" className="opacity-80">
-                    <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Back
-                </button>
-              </div>
+        {/* Header Card */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-14">
 
-              {/* Header */}
-              <header className="pb-6 border-b border-gray-300">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h1 className="text-5xl font-bold tracking-tight mb-2 bg-gradient-to-r from-sky-600 to-indigo-600 text-transparent bg-clip-text break-words">
-                      {course.code}: {course.title}
-                    </h1>
-                    <p className="text-sky-700 text-lg">
-                      {course.faculty ?? "—"}
-                      {course.school ? <span className="ml-2 text-sky-600/80">• {course.school}</span> : null}
-                    </p>
-                  </div>
-
-                  {/* Add to MindMesh */}
-                  <AddToMeshButton
-                    itemType="course"
-                    itemKey={course?.code}
-                    title={course?.title}
-                    sourceTable="unsw_courses"
-                    sourceId={course?.id}
-                    tags={["course", levelTag]}
-                    metadata={{
-                      uoc: course?.uoc ?? null,
-                      term: normalizedTerms,
-                      study_level: course?.study_level ?? null,
-                    }}
-                    className="shrink-0"
-                  />
-                </div>
-              </header>
-
-              {/* Course Overview */}
-              <section>
-                <h2 className="text-2xl font-semibold text-slate-800 mb-3">Course Overview</h2>
-                <div className="bg-white p-6 rounded-3xl shadow border border-gray-200">
-                  <p className="text-base text-gray-700 leading-relaxed">
-                    {course.overview || "No overview provided."}
-                  </p>
-                </div>
-              </section>
-
-              {/* Conditions for Enrolment */}
-              <section>
-                <h2 className="text-2xl font-semibold text-slate-800 mb-3">Conditions for Enrolment</h2>
-                <div className="bg-white p-6 rounded-3xl shadow border border-gray-200">
-                  <p className="text-base text-gray-700">
-                    {course.conditions_for_enrolment || "None listed."}
-                  </p>
-                </div>
-              </section>
-              {/* Related Degrees */}
-              <section>
-                <CourseRelatedDegrees
-                  courseId={course?.id}
-                  courseCode={course?.code}
-                  onNavigateDegree={goDegree}
-                />
-              </section>
+          <div className="flex items-start gap-6 mb-6">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-md">
+              <HiBookOpen className="w-12 h-12 text-blue-600 dark:text-blue-400" />
             </div>
 
+            <div className="flex-1 min-w-0">
+              <h1 className="text-4xl md:text-5xl font-bold text-black dark:text-white mb-4 leading-tight">
+                {course.title}
+              </h1>
 
-            {/* RIGHT SECTION – Key Information + Explore More */}
-            <aside className="w-full lg:w-96">
-              <div className="bg-white h-full min-h-[520px] p-6 rounded-3xl shadow border border-gray-200 flex flex-col">
-                <h2 className="text-2xl font-semibold text-slate-800 mb-6">Key Information</h2>
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                  {[
-                    { label: "UOC", value: course?.uoc ?? "N/A" },
-                    { label: "Faculty", value: course?.faculty ?? "N/A" },
-                    { label: "School", value: course?.school ?? "N/A" },
-                    { label: "Study Level", value: course?.study_level ?? "N/A" },
-                    { label: "Offered In", value: normalizedTerms },
-                    { label: "Field of Education", value: course?.field_of_education ?? "N/A" },
-                  ].map((item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 rounded-xl bg-gradient-to-br from-sky-50 to-white border border-sky-100 shadow-sm hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">{item.label}</div>
-                      <div className="text-base font-semibold text-slate-800">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
+              <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 font-semibold mb-2">
+                {course.code}
+              </p>
 
-                {/* Explore More Actions */}
-                <div className="mt-auto">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Explore more</h3>
-                  <div className="flex flex-col gap-3">
-                    <button
-                      onClick={goExploreDegrees}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 shadow-sm text-sm font-medium"
-                    >
-                      Add more degrees
-                    </button>
-                    <button
-                      onClick={goExploreMajors}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 shadow-sm text-sm font-medium"
-                    >
-                      Add more majors
-                    </button>
-                    <button
-                      onClick={goExploreCourses}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 shadow-sm text-sm font-medium"
-                    >
-                      Add more courses
-                    </button>
-                  </div>
-                </div>
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                {course.faculty && (
+                  <Tag>{course.faculty}</Tag>
+                )}
+
+                {course.school && (
+                  <Tag>{course.school}</Tag>
+                )}
+
+                {course.study_level && (
+                  <Tag blue>{course.study_level}</Tag>
+                )}
               </div>
-            </aside>
+            </div>
 
+            {/* Save Button - Top Right */}
+            <div className="flex-shrink-0">
+              <SaveButton
+                itemType="course"
+                itemId={course.code}
+                itemName={course.title}
+                itemData={{
+                  code: course.code,
+                  title: course.title,
+                  faculty: course.faculty,
+                  uoc: course.uoc ? `${course.uoc} Units of Credit` : null,
+                  description: course.overview,
+                }}
+              />
+            </div>
           </div>
-        </main>
-      </div>
+
+          {/* Overview */}
+          {course.overview && (
+            <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+              <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300">
+                {course.overview}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
+          {course.uoc && (
+            <InfoCard
+              icon={<HiChartBar className="w-6 h-6" />}
+              label="Units of Credit"
+              value={`${course.uoc} UOC`}
+            />
+          )}
+
+          {normalizedTerms && normalizedTerms !== "N/A" && (
+            <InfoCard
+              icon={<HiCalendar className="w-6 h-6" />}
+              label="Offered In"
+              value={normalizedTerms}
+            />
+          )}
+
+          {course.field_of_education && (
+            <InfoCard
+              icon={<HiCollection className="w-6 h-6" />}
+              label="Field of Education"
+              value={course.field_of_education}
+            />
+          )}
+        </div>
+
+        {/* Enrolment Requirements */}
+        {course.conditions_for_enrolment && (
+          <Section title="Enrolment Requirements" icon={<HiClipboardList className="w-6 h-6" />}>
+            <div className="p-6 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700">
+              <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                {course.conditions_for_enrolment}
+              </p>
+            </div>
+          </Section>
+        )}
+
+        {/* Related Degrees */}
+        <CourseRelatedDegrees
+          courseId={course.id}
+          courseCode={course.code}
+          onNavigateDegree={goDegree}
+        />
+      </main>
     </div>
+  );
+}
+
+
+/* ————————————————————————————————
+  COMPONENTS
+——————————————————————————————— */
+
+function Section({ title, icon, children }) {
+  return (
+    <div className="mb-14">
+      <div className="flex items-center gap-3 mb-6 pb-3 border-b-2 border-slate-300 dark:border-slate-700">
+        <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+          {icon}
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          {title}
+        </h2>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function InfoCard({ icon, label, value }) {
+  return (
+    <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 
+                     dark:from-blue-900/20 dark:to-indigo-900/20
+                     border border-slate-200 dark:border-slate-700
+                     shadow-md hover:shadow-lg transition-all duration-200">
+      <div className="flex items-center gap-3 mb-3">
+        {icon}
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+          {label}
+        </p>
+      </div>
+      <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function Tag({ children, blue }) {
+  return (
+    <span
+      className={`px-4 py-1.5 rounded-lg font-semibold border
+        ${blue
+          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+        }
+      `}
+    >
+      {children}
+    </span>
   );
 }
 

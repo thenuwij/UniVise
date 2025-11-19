@@ -2,9 +2,23 @@
 import { Button } from "flowbite-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+
 
 export default function MyPlannerCard() {
   const navigate = useNavigate();
+  const [userType, setUserType] = useState(null);
+  
+  useEffect(() => {
+    const loadType = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const type = user?.user_metadata?.student_type; // "high_school" or "university"
+      setUserType(type || null);
+    };
+
+    loadType();
+  }, []);
 
   return (
     <div className="card-glass-spotlight">
@@ -34,7 +48,7 @@ export default function MyPlannerCard() {
             {/* CTAs (only two) */}
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
-                onClick={() => navigate("/roadmap")}
+                onClick={() => navigate("/roadmap-entryload")}
                 className="button-primary"
                 pill
               >
@@ -51,9 +65,15 @@ export default function MyPlannerCard() {
               </Button>
 
               <Button
-                onClick={() => navigate("/planner")}
+                onClick={() => {
+                  if (userType === "high_school") {
+                    navigate("/planner/school");
+                  } else {
+                    navigate("/planner");
+                  }
+                }}
                 pill
-              className="button-primary"
+                className="button-primary"
               >
                 Open My Planner
                 <svg

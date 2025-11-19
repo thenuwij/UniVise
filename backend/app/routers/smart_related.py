@@ -25,18 +25,43 @@ class DegreeOut(BaseModel):
     reason: Optional[str] = None              # why AI picked this
     score: Optional[float] = None
 
-SYSTEM_PROMPT = """You are selecting the most relevant university degrees for a single course.
-Pick ONLY from the provided DEGREE CANDIDATES.
-Return STRICT JSON:
-{"choices":[{"degree_id":str,"score":0..1,"reason":str}, ...]}
+SYSTEM_PROMPT = """
+You are selecting the most relevant university degrees for ONE course.
 
-Guidelines:
-- Relevance: primary fit by curriculum alignment, prerequisites pipeline, and faculty match.
-- Penalize degrees outside the course's faculty unless clearly justified.
-- Prefer generalist 'home' degrees for foundational courses; specialized degrees for niche courses.
-- Cap choices at the requested top_k.
-- Output JSON only; no extra text.
+You MUST:
+- Pick ONLY from the provided DEGREE_CANDIDATES list.
+- Return STRICT JSON with this exact structure:
+
+{
+  "choices": [
+    {
+      "degree_id": "string",
+      "score": float,   // between 0 and 1
+      "reason": "string"
+    }
+  ]
+}
+
+Rules:
+1. You MUST return EXACTLY top_k choices. Never more, never fewer.
+2. If fewer than top_k valid degrees exist, repeat the BEST ones with slightly lower scores.
+3. Scores MUST be unique and between 0.0 and 1.0.
+4. Reasons MUST be short, factual, and tied to curriculum overlap.
+
+Ranking logic (most to least important):
+- Curriculum alignment: does the degree normally include or rely on this course?
+- Faculty match: same faculty is preferred unless obviously incorrect.
+- Pipeline relevance: does the course feed into core study areas of the degree?
+- Course level: foundational courses fit generalist degrees; advanced courses fit specialized degrees.
+
+Penalize strongly:
+- Degrees from unrelated faculties.
+- Degrees that cannot include this course in any program structure.
+- Degrees without clear academic linkage.
+
+Output ONLY the JSON object above. No explanations, no prose, no markdown.
 """
+
 
 def _safe_json_choices(text: str) -> List[Dict[str, Any]]:
     try:
@@ -82,11 +107,12 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         "overview": (c.get("overview") or "")[:1200],
         "foe": c.get("field_of_education"),
     }
-
-    # --- 2) fetch candidate degrees (from unsw_degrees ONLY) ---
-    dq = supabase.table("unsw_degrees").select(
-        "id,program_name,uac_code,faculty,description"
+    
+    # --- 2) fetch candidate degrees (from unsw_degrees_final) ---
+    dq = supabase.table("unsw_degrees_final").select(
+        "id,program_name,uac_code,faculty,overview_description,other_faculty,duration"
     )
+
     if req.restrict_faculty and c.get("faculty"):
         dq = dq.eq("faculty", c["faculty"])
     # Hard cap to keep prompt reasonable
@@ -94,8 +120,8 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
     candidates = dr.data or []
     if not candidates:
         # fallback: try without faculty restriction
-        dr = supabase.table("unsw_degrees").select(
-            "id,program_name,uac_code,faculty,description,overview"
+        dr = supabase.table("unsw_degrees_final").select(
+            "id,program_name,uac_code,faculty,overview_description,other_faculty,duration"
         ).limit(80).execute()
         candidates = dr.data or []
     if not candidates:
@@ -103,8 +129,7 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
 
     # Pre-trim long text
     for d in candidates:
-        d["desc"] = ((d.get("overview") or d.get("description") or "")[:600]).strip()
-
+        d["desc"] = ((d.get("overview_description") or "")[:600]).strip()
     # --- 3) short heuristic prefilter (keyword overlap) to shrink list for LLM ---
     def toks(s: str) -> set:
         return set(w.lower() for w in re.findall(r"[a-zA-Z]{3,}", s or ""))
@@ -121,9 +146,15 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
 
     # --- 4) LLM selection ---
     new_lines = [
-        f'- DEGREE id={d["id"]} name="{d["program_name"]}" faculty="{d.get("faculty") or ""}" uac="{d.get("uac_code") or ""}" | {d.get("desc") or ""}'
+        f'- DEGREE id={d["id"]} name="{d["program_name"]}" '
+        f'faculty="{d.get("faculty") or ""}" '
+        f'other_faculty="{d.get("other_faculty") or ""}" '
+        f'duration="{d.get("duration") or ""}" '
+        f'uac="{d.get("uac_code") or ""}" | {d.get("desc") or ""}'
         for d in shortlist
     ]
+
+
     user_prompt = (
         "COURSE:\n"
         f'- code={course_blob["code"]} title="{course_blob["title"]}" faculty="{course_blob.get("faculty") or ""}" '
