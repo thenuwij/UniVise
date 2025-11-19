@@ -3,6 +3,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import { ChevronDown, ChevronUp, Layers, BookOpen, Sparkles, Info, AlertCircle } from "lucide-react";
+import SaveButton from "../../components/SaveButton";
+
 
 /**
  * Redesigned Premium Program Structure Component
@@ -332,7 +334,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                     px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
                     rounded-t-2xl">
-      
+              
       {/* Very subtle gradient accent */}
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
       
@@ -351,18 +353,32 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         </div>
 
-        <button
-          onClick={handleVisualise}
-          disabled={!allCourses.length}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white 
-                    bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
-                    hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    shadow-md hover:shadow-lg transition-all duration-200"
-        >
-          <Layers className="w-4 h-4" />
-          Visualise in MindMesh
-        </button>
+        <div className="flex items-center gap-3">
+          <SaveButton
+            itemType="degree"
+            itemId={degreeCode}
+            itemName={`Program Structure — ${degreeCode}`}
+            itemData={{
+              degree_code: degreeCode,
+              total_sections: sections?.length || 0,
+              minimum_uoc: minimumUoc,
+              structure_description: structureDescription,
+            }}
+          />
+
+          <button
+            onClick={handleVisualise}
+            disabled={!allCourses.length}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white 
+                      bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
+                      hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      shadow-md hover:shadow-lg transition-all duration-200"
+          >
+            <Layers className="w-4 h-4" />
+            Visualise in MindMesh
+          </button>
+        </div>
       </div>
     </div>
 

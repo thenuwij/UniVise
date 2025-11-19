@@ -5,6 +5,7 @@ import { supabase } from "../supabaseClient";
 
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
+import SaveButton from "../components/SaveButton";
 
 import {
   HiArrowLeft,
@@ -197,6 +198,21 @@ function MajorDetailPage() {
                 Code: {major.major_code}
               </span>
             )}
+          </div>
+
+          <div className="absolute top-20 right-6">
+            <SaveButton
+              itemType="specialisation"
+              itemId={id}
+              itemName={major.major_name}
+              itemData={{
+                major_code: major.major_code,
+                major_name: major.major_name,
+                specialisation_type: major.specialisation_type,
+                faculty: major.faculty,
+                uoc_required: major.uoc_required,
+              }}
+            />
           </div>
 
           {/* NAME + ICON */}

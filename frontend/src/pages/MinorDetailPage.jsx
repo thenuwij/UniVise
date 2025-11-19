@@ -1,8 +1,8 @@
 // src/pages/MinorDetailPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import SaveButton from "../components/SaveButton";
 import { supabase } from "../supabaseClient";
-
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 
@@ -199,6 +199,22 @@ function MinorDetailPage() {
                 Code: {minor.major_code}
               </span>
             )}
+          </div>
+
+          {/* SAVE BUTTON - Below tags */}
+          <div className="absolute top-20 right-6">
+            <SaveButton
+              itemType="specialisation"
+              itemId={id}
+              itemName={minor.major_name}
+              itemData={{
+                major_code: minor.major_code,
+                major_name: minor.major_name,
+                specialisation_type: minor.specialisation_type,
+                faculty: minor.faculty,
+                uoc_required: minor.uoc_required,
+              }}
+            />
           </div>
 
           {/* NAME + ICON */}

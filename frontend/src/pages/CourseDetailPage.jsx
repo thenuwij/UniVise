@@ -5,6 +5,7 @@ import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
+import SaveButton from "../components/SaveButton";
 import {
   HiArrowLeft,
   HiBookOpen,
@@ -130,6 +131,22 @@ function CourseDetailPage() {
                   <Tag blue>{course.study_level}</Tag>
                 )}
               </div>
+            </div>
+
+            {/* Save Button - Top Right */}
+            <div className="flex-shrink-0">
+              <SaveButton
+                itemType="course"
+                itemId={course.code}
+                itemName={course.title}
+                itemData={{
+                  code: course.code,
+                  title: course.title,
+                  faculty: course.faculty,
+                  uoc: course.uoc ? `${course.uoc} Units of Credit` : null,
+                  description: course.overview,
+                }}
+              />
             </div>
           </div>
 

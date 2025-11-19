@@ -1,4 +1,6 @@
 import { useState } from "react";
+import SaveButton from "../SaveButton";
+
 import { 
   Briefcase, 
   Clock,
@@ -121,14 +123,13 @@ export default function IndustryExperience({ industryExperience }) {
                           dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
                           shadow-sm hover:shadow-md transition-all duration-300"
               >
-                {/* Program Header */}
                 <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
                   <div className="flex-1">
                     <div className="inline-block mb-2">
                       <h5 className="font-bold text-lg 
-                                   bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 
-                                   dark:from-blue-400 dark:via-sky-400 dark:to-indigo-400
-                                   bg-clip-text text-transparent">
+                                  bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 
+                                  dark:from-blue-400 dark:via-sky-400 dark:to-indigo-400
+                                  bg-clip-text text-transparent">
                         {program.program_name}
                       </h5>
                     </div>
@@ -139,16 +140,25 @@ export default function IndustryExperience({ industryExperience }) {
                       </p>
                     </div>
                   </div>
+
+                  <SaveButton
+                    itemType="internship"
+                    itemId={`${program.company}-${program.program_name}`} 
+                    itemName={program.program_name}
+                    itemData={program}
+                  />
+
                   {program.paid && (
                     <span className="px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-green-50 
-                                   dark:from-emerald-900/20 dark:to-green-900/20 
-                                   border border-emerald-200 dark:border-emerald-700
-                                   text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-lg
-                                   shadow-sm">
-                       Paid
+                                  dark:from-emerald-900/20 dark:to-green-900/20 
+                                  border border-emerald-200 dark:border-emerald-700
+                                  text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-lg
+                                  shadow-sm">
+                      Paid
                     </span>
                   )}
                 </div>
+
 
                 {/* Program Details Grid */}
                 <div className="grid sm:grid-cols-2 gap-4 mb-4">

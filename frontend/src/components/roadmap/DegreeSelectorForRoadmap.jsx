@@ -15,7 +15,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId }) {
     const fetchDegrees = async () => {
       const { data, error } = await supabase
         .from("unsw_degrees_final")
-        .select("id, program_name, faculty")
+        .select("*")
         .range(0, 2999);
       if (!error && data) {
         setDegrees(data);

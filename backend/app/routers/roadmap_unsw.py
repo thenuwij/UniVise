@@ -133,8 +133,8 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
 === CONTEXT DATA ===
 - Program: {program_name}
 - UAC Code: {uac_code}
-- ATAR: {json.dumps(lowest_atar) if lowest_atar is not None else "null"}
-- Selection Rank: {json.dumps(lowest_sel_rank) if lowest_sel_rank is not None else "null"}
+- ATAR_provided: {json.dumps(lowest_atar)}
+- SelectionRank_provided: {json.dumps(lowest_sel_rank)}
 - Faculty: {context.get("faculty", "Not specified")}
 - Majors available: {majors_count}
 - Minors available: {minors_count}
@@ -144,11 +144,12 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
 {{
   "summary": "Write 2-3 engaging sentences describing what this program offers, key focus areas, and career preparation",
   "entry_requirements": {{
-    "atar": {json.dumps(lowest_atar) if lowest_atar is not None else "null"},
-    "selectionRank": {json.dumps(lowest_sel_rank) if lowest_sel_rank is not None else "null"},
-    "subjects": ["List 2-3 of assumed knowledge or recommended HSC subjects"],
-    "notes": "Mention any adjustment factors, portfolio requirements, interviews, or special entry pathways"
+    "atar": "Output ONLY a number (no words). If ATAR_provided is a number, use it exactly. If it is null, output a realistic UNSW ATAR cutoff as a pure integer or float.",
+    "selectionRank": "Output ONLY a number (no words). If SelectionRank_provided is a number, use it exactly. If it is null, output a realistic UNSW selection rank cutoff as a pure integer or float.",
+    "subjects": ["List 2-3 assumed knowledge or recommended HSC subjects"],
+    "notes": "Mention adjustment factors or pathways"
   }},
+
   "capstone": {{
     "courses": ["List specific final-year capstone course codes and names FROM THE CORE COURSES LIST, e.g., COMP4920 Professional Issues and Ethics, SENG4920 Thesis A"],
     "highlights": "Describe what students do in their capstone based on the actual courses identified - thesis, industry project, research, design challenge, etc. Be specific about the structure if multiple courses are involved (e.g., Thesis A and B over two terms)."

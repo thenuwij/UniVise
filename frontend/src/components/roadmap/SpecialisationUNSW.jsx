@@ -3,6 +3,8 @@ import { supabase } from "../../supabaseClient";
 import GeneratingMessage from "./GeneratingMessage";
 import { Info, Award, BookOpen, GraduationCap, X, RefreshCw, ChevronDown, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import SaveButton from "../../components/SaveButton";
+
 
 export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) {
   const [specialisations, setSpecialisations] = useState([]);
@@ -255,28 +257,46 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
         
         <div className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {spec.major_name}
-              </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {spec.specialisation_type}
+         <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 pr-4">
+            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              {spec.major_name}
+            </h4>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {spec.specialisation_type}
+            </p>
+            {spec.faculty && (
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                {spec.faculty.replace(/^Faculty of\s+/i, "")}
               </p>
-              {spec.faculty && (
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  {spec.faculty.replace(/^Faculty of\s+/i, "")}
-                </p>
-              )}
-            </div>
+            )}
+          </div>
+
+          {/* RIGHT-SIDE BUTTON COLUMN */}
+          <div className="flex flex-col items-end gap-2">
+            <SaveButton
+              itemType="specialisation"
+              itemId={spec.id}
+              itemName={spec.major_name}
+              itemData={{
+                type: spec.specialisation_type,
+                uoc_required: spec.uoc_required,
+                faculty: spec.faculty,
+                overview: spec.overview_description,
+                degree_code: degreeCode,
+              }}
+            />
+
             <button
               onClick={() => handleSelectionChange(type, null)}
               className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 
-                       dark:hover:bg-red-900/20 transition-colors"
+                      dark:hover:bg-red-900/20 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
+        </div>
+
 
           {/* Overview */}
           {spec.overview_description && (
@@ -418,7 +438,7 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
   if (specialisations.length === 0)
     return (
       <p className="text-secondary italic">
-        No specialisations found for this degree.
+        No specialisations found for this degree. For double degree programs please check the individual program roadmaps for exploring specialisations.
       </p>
     );
 

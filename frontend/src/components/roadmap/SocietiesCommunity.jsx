@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SaveButton from "../SaveButton";
 import { 
   Users, 
   Clock,
@@ -173,6 +174,19 @@ export default function SocietiesCommunity({ societies }) {
                       </p>
                     )}
                   </div>
+
+                  <SaveButton
+                    itemType="society"
+                    itemId={society.name}
+                    itemName={society.name}
+                    itemData={{
+                      category: society.category,
+                      professional_affiliation: society.professional_affiliation,
+                      key_activities: society.key_activities,
+                      membership_benefits: society.membership_benefits
+                    }}
+                  />
+                  
                 </div>
 
                 <p className="text-sm text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
@@ -259,9 +273,23 @@ export default function SocietiesCommunity({ societies }) {
                           dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
                           shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <p className="font-bold text-sm text-slate-900 dark:text-slate-100 mb-2">
-                  {s.name}
-                </p>
+                {/* Top row with Name + SaveButton */}
+                <div className="flex items-start justify-between mb-2">
+                  <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                    {s.name}
+                  </p>
+
+                  <SaveButton
+                    itemType="society"
+                    itemId={s.name}
+                    itemName={s.name}
+                    itemData={{
+                      why_join: s.why_join
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   {s.why_join}
                 </p>

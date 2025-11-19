@@ -28,6 +28,10 @@ import TraitsPage from "./pages/TraitsPage";
 import MajorDetailPage from "./pages/MajorDetailPage";
 import MinorDetailPage from "./pages/MinorDetailPage";
 import HonoursDetailPage from "./pages/HonoursDetailPage";
+import MyPathway from "./pages/MyPathway";
+import ProgressPage from "./pages/ProgressPage";
+
+
 
 
 
@@ -61,4 +65,7 @@ export const router = createBrowserRouter([
   { path: "/specialisation/major/:id", element: <PrivateRoute><MajorDetailPage /></PrivateRoute> },
   { path: "/specialisation/minor/:id", element: <PrivateRoute><MinorDetailPage /></PrivateRoute> },
   { path: "/specialisation/honours/:id", element: <PrivateRoute><HonoursDetailPage /></PrivateRoute> },
+  { path: "/mypathway", element: <PrivateRoute><MyPathway /></PrivateRoute> },
+  { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
+  
 ]);

@@ -1,44 +1,44 @@
-import React, { useState, useEffect } from "react";
+// src/components/DegreeSearchPlanner.jsx
+import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { Link } from "react-router-dom";
-import { HiSearch, HiBookOpen } from "react-icons/hi";
+import { HiSearch, HiAcademicCap } from "react-icons/hi";
 
-function CourseSearch() {
+function DegreeSearchPlanner() {
   const [query, setQuery] = useState("");
-  const [allCourses, setAllCourses] = useState([]);
   const [facultyFilter, setFacultyFilter] = useState("");
+  const [allDegrees, setAllDegrees] = useState([]);
   const [faculties, setFaculties] = useState([]);
 
-  // Fetch ALL courses on mount (like degrees do)
+  // Fetch ALL degrees on mount (like specialisations do)
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchDegrees = async () => {
       try {
         const { data, error } = await supabase
-          .from("unsw_courses")
+          .from("unsw_degrees_final")
           .select("*");
         if (error) throw error;
-        setAllCourses(data || []);
+        setAllDegrees(data || []);
 
         // Extract unique faculties
-        const unique = [...new Set(data.map((course) => course.faculty).filter(Boolean))];
+        const unique = [...new Set(data.map((d) => d.faculty).filter(Boolean))];
         setFaculties(unique.sort());
       } catch (err) {
-        console.error("Course fetch error:", err.message);
+        console.error("Degree fetch error:", err.message);
       }
     };
 
-    fetchCourses();
+    fetchDegrees();
   }, []);
 
-  // Filter courses client-side (like degrees do)
-  const filteredCourses = allCourses.filter((course) => {
+  // Filter degrees client-side (like specialisations do)
+  const filteredDegrees = allDegrees.filter((degree) => {
     const matchesQuery =
       query.length === 0 ||
-      course.code.toLowerCase().includes(query.toLowerCase()) ||
-      course.title.toLowerCase().includes(query.toLowerCase());
+      degree.program_name.toLowerCase().includes(query.toLowerCase()) ||
+      degree.degree_code?.toLowerCase().includes(query.toLowerCase());
 
-    const matchesFaculty =
-      !facultyFilter || course.faculty === facultyFilter;
+    const matchesFaculty = !facultyFilter || degree.faculty === facultyFilter;
 
     return matchesQuery && matchesFaculty;
   });
@@ -53,7 +53,7 @@ function CourseSearch() {
           <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Search by course code or title..."
+            placeholder="Search degrees..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all outline-none"
@@ -76,30 +76,30 @@ function CourseSearch() {
       </div>
 
       {/* Results Section */}
-      {filteredCourses.length > 0 ? (
+      {filteredDegrees.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 mb-16">
-          {filteredCourses.map((course) => (
+          {filteredDegrees.map((degree) => (
             <Link
-              to={`/course/${course.id}`}
-              key={course.id}
+              to={`/degrees/${degree.id}`}
+              key={degree.id}
               className="group rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg transition-all hover:-translate-y-1"
             >
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
-                {course.code}
+                {degree.program_name}
               </h3>
 
               <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                {course.title}
+                {degree.overview_description?.slice(0, 120) || "No description available."}
               </p>
 
               <div className="flex gap-2 flex-wrap">
                 <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                  {course.faculty}
+                  {degree.faculty}
                 </span>
 
-                {course.uoc && (
+                {degree.degree_code && (
                   <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                    {course.uoc} UOC
+                    {degree.degree_code}
                   </span>
                 )}
               </div>
@@ -112,7 +112,7 @@ function CourseSearch() {
             <HiSearch className="w-8 h-8 text-slate-400" />
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-base">
-            No courses found. Try another search.
+            No degrees found. Try another search.
           </p>
         </div>
       )}
@@ -120,4 +120,4 @@ function CourseSearch() {
   );
 }
 
-export default CourseSearch;
+export default DegreeSearchPlanner;

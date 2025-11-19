@@ -45,7 +45,30 @@ const normalizeSources = (data) => {
 };
 
 const extractDegreeCode = (degree) => {
-  return degree?.code || degree?.degree_code || degree?.program_code || "3586";
+  console.log("--------------------------------------------------");
+  console.log("🔥 EXTRACT DEGREE CODE — RAW DEGREE OBJECT:");
+  console.log(JSON.stringify(degree, null, 2));
+
+  const code = degree?.code;
+  const degree_code = degree?.degree_code;
+  const program_code = degree?.program_code;
+
+  console.log("➡ FIELD CHECK:");
+  console.log("   degree.code =", code);
+  console.log("   degree.degree_code =", degree_code);
+  console.log("   degree.program_code =", program_code);
+
+  const finalCode = code || degree_code || program_code || "3586";
+
+  if (finalCode === "3586") {
+    console.warn("🚨 WARNING: extractDegreeCode() fell back to DEFAULT '3586'!");
+    console.warn("🚨 This means the degree object was missing all valid code fields.");
+  }
+
+  console.log("🎯 FINAL DEGREE CODE USED:", finalCode);
+  console.log("--------------------------------------------------");
+
+  return finalCode;
 };
 
 const getSelectionRank = (entryRequirements) => {
@@ -312,18 +335,27 @@ export default function RoadmapUNSWPage() {
   const steps = useMemo(() => {
     if (!data) return [];
     return [
+
       {
         key: "entry",
         title: "Entry Requirements",
         render: () => (
           <EntryRequirementsCardUnsw 
-            atar={data?.entry_requirements?.atar}
-            selectionRank={getSelectionRank(data?.entry_requirements)}
+            // Prefer UNSW database values
+            atar={degree?.lowest_atar ?? data?.entry_requirements?.atar}
+            selectionRank={
+              degree?.lowest_selection_rank ??
+              getSelectionRank(data?.entry_requirements)
+            }
             subjects={data?.entry_requirements?.subjects || []}
             notes={data?.entry_requirements?.notes}
           />
         ),
       },
+
+
+
+      
       {
         key: "structure",
         title: "Program Structure",
@@ -464,7 +496,7 @@ export default function RoadmapUNSWPage() {
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 
-      <div className="max-w-7xl mx-auto pt-20 pb-10 px-6">
+      <div className="max-w-[1600px] mx-auto pt-20 pb-10 px-4 md:px-6">
         {/* Back button */}
         <button
           onClick={handleBackClick}
@@ -478,7 +510,7 @@ export default function RoadmapUNSWPage() {
         </button>
 
         {/* Hero section */}
-        <GradientCard className="mt-6 shadow-lg 
+        <GradientCard className="w-full mt-6 shadow-lg 
                                  bg-white/80 dark:bg-slate-900/70 
                                  border border-slate-200/70 dark:border-slate-700/60 
                                  backdrop-blur-md">
@@ -493,10 +525,12 @@ export default function RoadmapUNSWPage() {
               icon={<UniIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
               subtitle="UNSW Mode"
             >
-              <span className="bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-500 
-                               bg-clip-text text-transparent font-bold">
+              <span className="font-extrabold text-transparent bg-clip-text
+                 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
+                 dark:from-white dark:via-slate-200 dark:to-white">
                 {headerProgramName}
               </span>
+
             </SectionTitle>
 
             {data && (
@@ -562,12 +596,12 @@ export default function RoadmapUNSWPage() {
 
         {/* Content */}
         <div className="mt-8">
-          <GradientCard className="shadow-lg 
+          <GradientCard className="w-full shadow-lg 
                                   bg-white/70 dark:bg-slate-900/60 
                                   border border-slate-200/60 dark:border-slate-700/60 
                                   backdrop-blur-sm">
 
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <ContentSection
                 data={data}
                 loading={loading}

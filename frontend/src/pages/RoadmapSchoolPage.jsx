@@ -101,7 +101,7 @@ export default function RoadmapSchoolPage() {
         render: () => (
           <EntryRequirementsCard
             atar={data?.entry_requirements?.atar}
-            selectionRank={data?.entry_requirements?.selectionRank ?? data?.entry_requirements?.selection_rank ?? null}
+            selectionRank={data?.entry_requirements?.selection_rank || null}
             subjects={data?.entry_requirements?.subjects || []}
             notes={data?.entry_requirements?.notes}
           />
@@ -112,9 +112,8 @@ export default function RoadmapSchoolPage() {
         title: "Program Structure",
         render: () => (
           <ProgramStructure
-            years={data?.program_structure?.years || data?.program_structure || []}
+            years={data?.program_structure || []}
             suggestedSpecialisations={
-              data?.program_structure?.suggested_specialisations ||
               data?.suggested_specialisations ||
               data?.specialisations ||
               []
@@ -124,20 +123,27 @@ export default function RoadmapSchoolPage() {
       },
       {
         key: "industry",
-        title: "Industry & Careers",
+        title: "Industry",
         render: () => (
-          <div className="space-y-6">
-            <IndustrySection
-              internships={data?.industry?.internships || data?.industry?.best_sites_for_internships || []}
-              careersHint={data?.industry?.rolesHint || data?.careers?.live_api_hint}
-            />
-            <CareersSection rolesHint={data?.industry?.rolesHint || data?.careers?.live_api_hint} />
-          </div>
+          <IndustrySection 
+            industryExperience={data?.industry_experience}
+          />
         ),
       },
+      {
+        key: "careers",
+        title: "Careers",
+        render: () => (
+          <CareersSection 
+            careerPathways={data?.career_pathways || {}}
+            source={data?.source || null}
+          />
+        ),
+      }
     ],
     [data]
   );
+
 
   const sources = Array.isArray(data?.sources) ? data.sources : [];
 
@@ -155,7 +161,7 @@ export default function RoadmapSchoolPage() {
       <DashboardNavBar onMenuClick={() => setIsMenuOpen(true)} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => setIsMenuOpen(false)} />
 
-      <div className="max-w-7xl mx-auto pt-20 pb-10 px-6">
+      <div className="max-w-[1600px] mx-auto pt-20 pb-10 px-4 md:px-6">
         {/* Back button */}
         <button
           onClick={() => navigate("/roadmap")}
@@ -177,7 +183,7 @@ export default function RoadmapSchoolPage() {
             />
             <SectionTitle
               icon={<SchoolIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
-              subtitle="School Mode"
+              subtitle="General Mode"
             >
               <span
                 className="bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-500 
@@ -217,7 +223,7 @@ export default function RoadmapSchoolPage() {
         <div className="mt-8">
           <GradientCard className="shadow-lg bg-white/70 dark:bg-slate-900/60 
                                   border border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm">
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {!data && loading && (
                 <>
                   <SkeletonCard lines={4} />

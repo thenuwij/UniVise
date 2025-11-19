@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
+import SaveButton from "../components/SaveButton";
 import {
   HiArrowLeft,
   HiAcademicCap,
@@ -201,6 +202,25 @@ function DegreeDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Save Button */}
+            <div className="flex-shrink-0">
+              <SaveButton
+                itemType="degree"
+                itemId={degreeId}
+                itemName={degree.program_name}
+                itemData={{
+                  degree_code: degree.degree_code,
+                  program_name: degree.program_name,
+                  faculty: degree.faculty,
+                  duration: degree.duration,
+                  minimum_uoc: degree.minimum_uoc,
+                  lowest_atar: degree.lowest_atar,
+                  overview_description: degree.overview_description,
+                }}
+              />
+            </div>
+
           </div>
 
           {/* Overview */}
