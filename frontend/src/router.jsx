@@ -30,7 +30,7 @@ import MinorDetailPage from "./pages/MinorDetailPage";
 import HonoursDetailPage from "./pages/HonoursDetailPage";
 import MyPathway from "./pages/MyPathway";
 import ProgressPage from "./pages/ProgressPage";
-
+import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
 
 
 
@@ -59,6 +59,7 @@ export const router = createBrowserRouter([
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
+  { path: "/planner/school", element: <PrivateRoute><MyPlannerSchoolPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/planner/switch", element: <PrivateRoute><PlannerSwitchPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
