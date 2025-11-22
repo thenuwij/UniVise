@@ -11,8 +11,8 @@ export default function SpecialisationSelectionPanel({
 }) {
   const [availableSpecialisations, setAvailableSpecialisations] = useState([]);
   const [confirmedSpecs, setConfirmedSpecs] = useState({});
-  const [selectingType, setSelectingType] = useState(null); // Which type is being selected
-  const [tempSelection, setTempSelection] = useState(null); // Temporary selection before confirm
+  const [selectingType, setSelectingType] = useState(null);
+  const [tempSelection, setTempSelection] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch available specialisations for this degree
@@ -133,120 +133,114 @@ export default function SpecialisationSelectionPanel({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6 shadow-lg">
-      {/* Program Info */}
+    <div>
+      {/* Compact Program Info */}
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-sky-500 rounded-full" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-sky-500 rounded-full" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {enrolledProgram?.program_name}
             </h2>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 ml-16">Program</p>
         </div>
         
         <button
           onClick={onReselectProgram}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-blue-500 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
+          className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
         >
-          <HiPencil className="w-4 h-4" />
-          <span>Reselect Program</span>
+          <HiPencil className="w-3.5 h-3.5" />
+          <span>Change Program</span>
         </button>
       </div>
 
-      {/* Specialisation Selection */}
+      {/* Compact Specialisation Selection */}
       {Object.keys(specsByType).length > 0 && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            Specialisations
-          </h3>
-          
-          <div className="space-y-3">
-            {Object.entries(specsByType).map(([type, specs]) => {
-              const isConfirmed = confirmedSpecs[type];
-              const isSelecting = selectingType === type;
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {Object.entries(specsByType).map(([type, specs]) => {
+            const isConfirmed = confirmedSpecs[type];
+            const isSelecting = selectingType === type;
 
-              return (
-                <div key={type} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  {/* Confirmed or Collapsed State */}
-                  {!isSelecting && (
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {type}:
-                        </span>
-                        {isConfirmed ? (
-                          <span className="text-sm text-gray-900 dark:text-gray-100">
-                            {isConfirmed.major_name}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            Not selected
-                          </span>
-                        )}
-                      </div>
-                      
+            return (
+              <div key={type} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800/30">
+                {/* Collapsed State */}
+                {!isSelecting && (
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                        {type}
+                      </span>
                       <button
                         onClick={() => {
                           setSelectingType(type);
                           setTempSelection(isConfirmed || null);
                         }}
-                        className="flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition"
+                        className="text-xs px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition"
                       >
-                        {isConfirmed ? "Reselect" : "Select"} {type}
-                        <HiChevronDown className="w-4 h-4" />
+                        {isConfirmed ? "Change" : "Select"}
                       </button>
                     </div>
-                  )}
-
-                  {/* Selection State */}
-                  {isSelecting && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                          Select {type}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectingType(null);
-                            setTempSelection(null);
-                          }}
-                          className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                        >
-                          <HiChevronUp className="w-4 h-4" />
-                        </button>
+                    {isConfirmed ? (
+                      <div className="flex items-center gap-2">
+                        <HiCheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <p className="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                          {isConfirmed.major_name}
+                        </p>
                       </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        Not selected
+                      </p>
+                    )}
+                  </div>
+                )}
 
-                      <select
-                        value={tempSelection?.major_code || ""}
-                        onChange={(e) => {
-                          const spec = specs.find(s => s.major_code === e.target.value);
-                          setTempSelection(spec || null);
-                        }}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-sm mb-3"
-                      >
-                        <option value="">Choose {type}...</option>
-                        {specs.map(spec => (
-                          <option key={spec.major_code} value={spec.major_code}>
-                            {spec.major_name}
-                          </option>
-                        ))}
-                      </select>
-
+                {/* Selection State */}
+                {isSelecting && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                        Select {type}
+                      </span>
                       <button
-                        onClick={handleConfirm}
-                        disabled={!tempSelection || loading}
-                        className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          setSelectingType(null);
+                          setTempSelection(null);
+                        }}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                       >
-                        {loading ? "Saving..." : `Confirm ${type}`}
+                        <HiChevronUp className="w-4 h-4" />
                       </button>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+
+                    <select
+                      value={tempSelection?.major_code || ""}
+                      onChange={(e) => {
+                        const spec = specs.find(s => s.major_code === e.target.value);
+                        setTempSelection(spec || null);
+                      }}
+                      className="w-full px-2 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 mb-2"
+                    >
+                      <option value="">Choose...</option>
+                      {specs.map(spec => (
+                        <option key={spec.major_code} value={spec.major_code}>
+                          {spec.major_name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={handleConfirm}
+                      disabled={!tempSelection || loading}
+                      className="w-full px-3 py-1.5 text-xs rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? "Saving..." : "Confirm"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

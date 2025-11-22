@@ -31,6 +31,7 @@ import HonoursDetailPage from "./pages/HonoursDetailPage";
 import MyPathway from "./pages/MyPathway";
 import ProgressPage from "./pages/ProgressPage";
 import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
+import ComparePage from "./pages/ComparePage";
 
 
 
@@ -68,5 +69,6 @@ export const router = createBrowserRouter([
   { path: "/specialisation/honours/:id", element: <PrivateRoute><HonoursDetailPage /></PrivateRoute> },
   { path: "/mypathway", element: <PrivateRoute><MyPathway /></PrivateRoute> },
   { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
+  { path: "/compare", element: <PrivateRoute><ComparePage /></PrivateRoute> },
   
 ]);
