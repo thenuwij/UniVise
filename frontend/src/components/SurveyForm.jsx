@@ -124,7 +124,7 @@ function SurveyForm() {
 
   const analyseFile = async (filePath) => {  // Accept path parameter
     try {
-      const resp = await fetch("http://localhost:8000/reports/analyse", {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/reports/analyse`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,
@@ -148,7 +148,7 @@ function SurveyForm() {
 
   const generateRecommendations = async () => {
     try {
-      const resp = await fetch(`http://localhost:8000/recommendation/prompt`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/recommendation/prompt`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,

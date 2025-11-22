@@ -42,7 +42,7 @@ function DegreeDetailPage() {
     setAdvisorSummary(null);
     setLoadErr(null);
     try {
-      const res = await fetch("http://localhost:8000/smart-summary/degree", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/smart-summary/degree`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

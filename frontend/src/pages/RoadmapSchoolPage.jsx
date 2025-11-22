@@ -75,7 +75,7 @@ export default function RoadmapSchoolPage() {
         country: "AU",
       };
 
-      const res = await fetch("http://localhost:8000/roadmap/school", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/school`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
         credentials: "include",
