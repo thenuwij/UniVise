@@ -1,4 +1,4 @@
-// src/components/CourseSection.jsx
+// src/components/progress/CourseSection.jsx
 import React from "react";
 import CourseRow from "./CourseRow";
 import { HiPlus } from "react-icons/hi";
@@ -8,34 +8,38 @@ export default function CourseSection({ section, completedCourses, userId, onCou
   
   // Check if section is for electives or general education
   const isElectiveSection = section.title.toLowerCase().includes("elective") || 
-                           section.title.toLowerCase().includes("general education");
+    section.title.toLowerCase().includes("general education");
 
   return (
-    <div className="border-l-4 border-blue-500 dark:border-blue-600 pl-6 mb-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+    <div className="border-l-2 border-blue-400 dark:border-blue-600 pl-3 mb-3">
+      {/* Super Compact Section Header */}
+      <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
           {section.title}
         </h3>
         {section.uoc && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Required: {section.uoc} UOC
-          </p>
-        )}
-        {section.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {section.description}
-          </p>
-        )}
-        {section.notes && (
-          <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
-            Note: {section.notes}
-          </p>
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+            {section.uoc} UOC
+          </span>
         )}
       </div>
 
+      {/* Compact Description & Notes */}
+      {(section.description || section.notes) && (
+        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 space-y-0.5">
+          {section.description && <p>{section.description}</p>}
+          {section.notes && (
+            <p className="text-amber-600 dark:text-amber-400">
+              <span className="font-semibold">Note:</span> {section.notes}
+            </p>
+          )}
+        </div>
+      )}
+
       {hasCourses ? (
         <>
-          <div className="space-y-2">
+          {/* 2-COLUMN GRID LAYOUT FOR COURSES */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-2">
             {section.courses.map((course) => {
               const completed = completedCourses.find((c) => c.course_code === course.code);
               return (
@@ -50,44 +54,42 @@ export default function CourseSection({ section, completedCourses, userId, onCou
               );
             })}
           </div>
-          
-          {/* Show Add Course button for elective sections even if they have courses */}
+
+          {/* Show Add Course button for elective sections */}
           {isElectiveSection && (
-            <div className="mt-3">
-              <button
-                onClick={() => {
-                  window.location.href = "/explore-by-course";
-                }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition text-sm"
-              >
-                <HiPlus className="w-4 h-4" />
-                <span>Add More Courses</span>
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+            >
+              <HiPlus className="w-3.5 h-3.5" />
+              <span>Add More</span>
+            </button>
           )}
         </>
       ) : (
-        // No courses - show Add Course button if it's elective section, otherwise just show info
+        // No courses - show compact version
         <>
           {isElectiveSection ? (
-            <div className="p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                No predefined courses for this section. Add courses from the course detail pages.
+            <div className="p-2.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                No predefined courses. Add from course detail pages.
               </p>
               <button
                 onClick={() => {
-                  window.location.href = "/explore-by-course";
+                  window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition text-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition"
               >
-                <HiPlus className="w-4 h-4" />
+                <HiPlus className="w-3.5 h-3.5" />
                 <span>Add Course</span>
               </button>
             </div>
           ) : (
-            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                This section's courses vary by specialisation. Select your specialisation above to see specific requirements.
+            <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Courses vary by specialisation. Select above to see requirements.
               </p>
             </div>
           )}
