@@ -82,7 +82,7 @@ function ProgressPage() {
         setCompletedCourses(coursesData || []);
 
         // Fetch and build course structure
-        await buildCourseStructure(programData);
+        await buildCourseStructure(programData, session.user.id);
 
         setLoading(false);
       } catch (error) {
@@ -95,7 +95,7 @@ function ProgressPage() {
   }, [session]);
 
   // Build merged course structure from program + specialisations
-  const buildCourseStructure = async (programData) => {
+  const buildCourseStructure = async (programData, userId) => {
     const { degree_code, specialisation_codes } = programData;
 
     try {
@@ -194,6 +194,40 @@ function ProgressPage() {
         }
       }
 
+      // Fetch and add user's custom courses
+      const { data: customCourses, error: customError } = await supabase
+        .from("user_custom_courses")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (customError) {
+        console.error("Error fetching custom courses:", customError);
+      } else if (customCourses && customCourses.length > 0) {
+        // Group custom courses by section name
+        const coursesBySection = {};
+        customCourses.forEach(course => {
+          if (!coursesBySection[course.section_name]) {
+            coursesBySection[course.section_name] = [];
+          }
+          coursesBySection[course.section_name].push({
+            code: course.course_code,
+            name: course.course_name,
+            uoc: course.uoc
+          });
+        });
+
+        // Add each section with its custom courses to the structure
+        Object.entries(coursesBySection).forEach(([sectionName, courses]) => {
+          // Find if this section already exists in the structure
+          const existingSection = structure.find(s => s.title === sectionName);
+          
+          if (existingSection) {
+            // Add custom courses to existing section
+            existingSection.courses = [...existingSection.courses, ...courses];
+          }
+        });
+      }
+
       console.log("Built structure with", structure.length, "sections");
       setCourseStructure(structure);
     } catch (err) {
@@ -252,7 +286,7 @@ function ProgressPage() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
@@ -260,15 +294,17 @@ function ProgressPage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
-        <div className="flex flex-col justify-center h-full px-10 xl:px-20">
-          {/* Header Section */}
-          <div className="mt-8">
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
+        <div className="flex flex-col justify-center h-full px-6 lg:px-10 xl:px-20">
+          {/* Compact Header Section */}
+          <div className="mt-6 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
               Track Progress
             </div>
-            <h1 className="text-4xl font-bold mt-4 mb-2">My Academic Progress</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold mt-3 text-slate-900 dark:text-white">
+              My Academic Progress
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Track your courses, calculate your WAM, and monitor your degree completion
             </p>
           </div>
@@ -289,8 +325,8 @@ function ProgressPage() {
           {/* Main Content */}
           {enrolledProgram && !showSetupModal && (
             <>
-              {/* Specialisation Selection Panel */}
-              <div className="mt-6">
+              {/* Compact Specialisation Selection Panel */}
+              <div className="mt-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
                 <SpecialisationSelectionPanel
                   enrolledProgram={enrolledProgram}
                   userId={session.user.id}
@@ -316,7 +352,7 @@ function ProgressPage() {
           )}
 
           {/* Back Button */}
-          <div className="my-16">
+          <div className="my-12">
             <button
               onClick={() => navigate("/planner")}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200"
@@ -333,7 +369,7 @@ function ProgressPage() {
 
 /* HELPER COMPONENTS */
 
-// Progress Stats Overview
+// Progress Stats Overview - More Compact
 function ProgressStatsOverview({ stats }) {
   if (!stats) return null;
 
@@ -342,79 +378,76 @@ function ProgressStatsOverview({ stats }) {
     : 0;
 
   return (
-    <div className="mt-6 border-t border-b border-gray-200 dark:border-gray-700 py-6">
-      <h2 className="text-2xl font-bold mb-6">Progress Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="mt-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+      <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Progress Overview</h2>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatBox
           label="UOC Completed"
           value={stats.uoc_completed}
-          sublabel={`of ${stats.total_uoc_required} required`}
+          sublabel={`of ${stats.total_uoc_required}`}
           color="blue"
         />
         <StatBox
-          label="Minimum UOC remaining"
+          label="UOC Remaining"
           value={stats.uoc_remaining}
-          sublabel={`${completionPercentage}% complete`}
+          sublabel={`${completionPercentage}% done`}
           color="purple"
         />
         <StatBox
           label="Current WAM"
           value={stats.current_wam ? stats.current_wam.toFixed(2) : "N/A"}
-          sublabel="Weighted Average"
+          sublabel="Weighted Avg"
           color="green"
         />
         <StatBox
-          label="Courses Completed"
+          label="Courses Done"
           value={stats.courses_completed_count}
-          sublabel="courses finished"
+          sublabel="completed"
           color="amber"
         />
       </div>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-        Minimum UOC Required: {stats.total_uoc_required} UOC
-      </p>
     </div>
   );
 }
 
 function StatBox({ label, value, sublabel, color }) {
   const colorMap = {
-    blue: "text-blue-600 dark:text-blue-400",
-    purple: "text-purple-600 dark:text-purple-400",
-    green: "text-green-600 dark:text-green-400",
-    amber: "text-amber-600 dark:text-amber-400",
+    blue: "text-black dark:text-white",
+    purple: "text-black dark:text-white",
+    green: "text-black dark:text-white",
+    amber: "text-black dark:text-white",
   };
 
   return (
-    <div className="text-center">
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{label}</p>
-      <p className={`text-4xl font-bold ${colorMap[color]}`}>{value}</p>
-      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{sublabel}</p>
+    <div className="text-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">{label}</p>
+      <p className={`text-2xl lg:text-3xl font-bold ${colorMap[color]}`}>{value}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{sublabel}</p>
     </div>
   );
 }
 
-// Compare Programs Promo Banner
+// Compare Programs Promo Banner - More Compact
 function ComparePromoBanner() {
+  const navigate = useNavigate(); // ADD THIS LINE
+  
   return (
-    <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border-2 border-sky-200 dark:border-sky-700">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border border-sky-200 dark:border-sky-700">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h3 className="text-lg font-bold text-sky-900 dark:text-sky-100">
+          <h3 className="text-base font-bold text-sky-900 dark:text-sky-100">
             Thinking about switching programs?
           </h3>
-          <p className="text-sky-700 dark:text-sky-300 text-sm mt-1">
-            Compare your current progress with other programs to see how your courses transfer
+          <p className="text-sky-700 dark:text-sky-300 text-xs mt-0.5">
+            Compare your progress with other programs to see how courses transfer
           </p>
         </div>
         <button
-          onClick={() => {
-            alert("Compare feature coming soon!");
-          }}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-sky-600 text-white font-semibold hover:bg-sky-700 transition"
+          onClick={() => navigate("/compare")}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition"
         >
           <span>Compare Programs</span>
-          <HiArrowRight className="w-5 h-5" />
+          <HiArrowRight className="w-4 h-4" />
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { HiSearch, HiBookOpen } from "react-icons/hi";
 
 function CourseSearch() {
@@ -8,6 +8,8 @@ function CourseSearch() {
   const [allCourses, setAllCourses] = useState([]);
   const [facultyFilter, setFacultyFilter] = useState("");
   const [faculties, setFaculties] = useState([]);
+  const [searchParams] = useSearchParams();
+  const sectionName = searchParams.get("section");
 
   // Fetch ALL courses on mount (like degrees do)
   useEffect(() => {
@@ -45,6 +47,15 @@ function CourseSearch() {
 
   return (
     <div className="w-full">
+
+      {/* Show section info if coming from progress page */}
+      {sectionName && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            <span className="font-semibold">Adding course to:</span> {sectionName}
+          </p>
+        </div>
+      )}
       
       {/* Search Inputs */}
       <div className="flex flex-col lg:flex-row items-center gap-4">
@@ -80,7 +91,7 @@ function CourseSearch() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 mb-16">
           {filteredCourses.map((course) => (
             <Link
-              to={`/course/${course.id}`}
+              to={`/course/${course.id}${sectionName ? `?section=${encodeURIComponent(sectionName)}` : ''}`}
               key={course.id}
               className="group rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg transition-all hover:-translate-y-1"
             >
