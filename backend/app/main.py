@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from .routers import auth, chat, recommendation, user, reports, roadmap, smart_related
 from app.routers.final_plan import router as final_plan_router
 from app.routers.ai_advisor import router as smart_summary_router
-from app.routers import mindmesh_ai
 from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
@@ -40,7 +39,6 @@ app.include_router(
     smart_summary_router, prefix="/smart-summary", tags=["AI Smart Summaries"]
 )
 app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
-app.include_router(mindmesh_ai.router, prefix="/mindmesh", tags=["MindMesh"])
 app.include_router(smart_related.router)
 app.include_router(traits.router, prefix="/traits", tags=["Traits"])
 app.include_router(health.router, prefix="/health", tags=["Health"])

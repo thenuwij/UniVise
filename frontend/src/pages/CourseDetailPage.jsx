@@ -1,7 +1,8 @@
 // src/pages/CourseDetailPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
@@ -15,11 +16,17 @@ import {
   HiCollection,
   HiInformationCircle,
   HiClipboardList,
+  HiCheckCircle,
 } from "react-icons/hi";
 
 function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { session } = UserAuth();
+  
+  // Get section from URL parameter
+  const sectionName = searchParams.get("section");
 
   // Correct: use degreeId (UUID) for navigation
   const goDegree = (degreeId) => navigate(`/degrees/${degreeId}`);
@@ -27,6 +34,8 @@ function CourseDetailPage() {
   const [course, setCourse] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
+  const [addingToProgress, setAddingToProgress] = useState(false);
+  const [addedSuccess, setAddedSuccess] = useState(false);
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
@@ -55,6 +64,46 @@ function CourseDetailPage() {
       alive = false;
     };
   }, [courseId]);
+
+  const handleAddToProgress = async () => {
+    if (!session?.user?.id || !course || !sectionName) {
+      alert("Unable to add course. Please ensure you're logged in and came from a progress section.");
+      return;
+    }
+
+    setAddingToProgress(true);
+
+    try {
+      // Extract UOC number from string like "6 Units of Credit"
+      const uocNumber = course.uoc ? parseInt(course.uoc.match(/\d+/)?.[0] || 0) : 0;
+
+      // Insert into user_custom_courses table
+      const { error } = await supabase
+        .from("user_custom_courses")
+        .insert({
+          user_id: session.user.id,
+          course_code: course.code,
+          course_name: course.title,
+          uoc: uocNumber,
+          section_name: sectionName,
+        });
+
+      if (error) {
+        console.error("Error adding course:", error);
+        alert("Failed to add course to progress. It may already be added.");
+      } else {
+        setAddedSuccess(true);
+        setTimeout(() => {
+          navigate("/progress");
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("An error occurred while adding the course.");
+    } finally {
+      setAddingToProgress(false);
+    }
+  };
 
   if (!course) {
     return (
@@ -101,6 +150,27 @@ function CourseDetailPage() {
           Back
         </button>
 
+        {/* Success Message */}
+        {addedSuccess && (
+          <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-700">
+            <div className="flex items-center gap-3">
+              <HiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <p className="text-green-800 dark:text-green-200 font-semibold">
+                Course added to progress! Redirecting...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Section Info Banner */}
+        {sectionName && !addedSuccess && (
+          <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 dark:border-blue-700">
+            <p className="text-blue-800 dark:text-blue-200 font-semibold">
+              Adding course to: <span className="font-bold">{sectionName}</span>
+            </p>
+          </div>
+        )}
+
         {/* Header Card */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-14">
 
@@ -133,8 +203,35 @@ function CourseDetailPage() {
               </div>
             </div>
 
-            {/* Save Button - Top Right */}
-            <div className="flex-shrink-0">
+            {/* Action Buttons - Top Right */}
+            <div className="flex-shrink-0 flex gap-3">
+              {/* Add to Progress Button - Only show if section name exists */}
+              {sectionName && (
+                <button
+                  onClick={handleAddToProgress}
+                  disabled={addingToProgress || addedSuccess}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {addingToProgress ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Adding...</span>
+                    </>
+                  ) : addedSuccess ? (
+                    <>
+                      <HiCheckCircle className="w-5 h-5" />
+                      <span>Added!</span>
+                    </>
+                  ) : (
+                    <>
+                      <HiAcademicCap className="w-5 h-5" />
+                      <span>Add to Progress</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Save Button */}
               <SaveButton
                 itemType="course"
                 itemId={course.code}

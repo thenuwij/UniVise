@@ -82,7 +82,7 @@ function ProgressPage() {
         setCompletedCourses(coursesData || []);
 
         // Fetch and build course structure
-        await buildCourseStructure(programData);
+        await buildCourseStructure(programData, session.user.id);
 
         setLoading(false);
       } catch (error) {
@@ -95,7 +95,7 @@ function ProgressPage() {
   }, [session]);
 
   // Build merged course structure from program + specialisations
-  const buildCourseStructure = async (programData) => {
+  const buildCourseStructure = async (programData, userId) => {
     const { degree_code, specialisation_codes } = programData;
 
     try {
@@ -192,6 +192,40 @@ function ProgressPage() {
             }
           });
         }
+      }
+
+      // Fetch and add user's custom courses
+      const { data: customCourses, error: customError } = await supabase
+        .from("user_custom_courses")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (customError) {
+        console.error("Error fetching custom courses:", customError);
+      } else if (customCourses && customCourses.length > 0) {
+        // Group custom courses by section name
+        const coursesBySection = {};
+        customCourses.forEach(course => {
+          if (!coursesBySection[course.section_name]) {
+            coursesBySection[course.section_name] = [];
+          }
+          coursesBySection[course.section_name].push({
+            code: course.course_code,
+            name: course.course_name,
+            uoc: course.uoc
+          });
+        });
+
+        // Add each section with its custom courses to the structure
+        Object.entries(coursesBySection).forEach(([sectionName, courses]) => {
+          // Find if this section already exists in the structure
+          const existingSection = structure.find(s => s.title === sectionName);
+          
+          if (existingSection) {
+            // Add custom courses to existing section
+            existingSection.courses = [...existingSection.courses, ...courses];
+          }
+        });
       }
 
       console.log("Built structure with", structure.length, "sections");

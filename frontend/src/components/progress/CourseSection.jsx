@@ -59,7 +59,7 @@ export default function CourseSection({ section, completedCourses, userId, onCou
           {isElectiveSection && (
             <button
               onClick={() => {
-                window.location.href = "/explore-by-course";
+                window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
             >
@@ -78,7 +78,7 @@ export default function CourseSection({ section, completedCourses, userId, onCou
               </p>
               <button
                 onClick={() => {
-                  window.location.href = "/explore-by-course";
+                  window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition"
               >
