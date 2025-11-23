@@ -351,11 +351,7 @@ export default function RoadmapUNSWPage() {
             notes={data?.entry_requirements?.notes}
           />
         ),
-      },
-
-
-
-      
+      }, 
       {
         key: "structure",
         title: "Program Structure",
@@ -367,8 +363,6 @@ export default function RoadmapUNSWPage() {
         render: () => (
           <SpecialisationUNSW 
             degreeCode={extractDegreeCode(degree)}
-            roadmapId={preloadedRoadmapId}
-            onRegenerationStart={() => setIsRegenerating(true)}
           />
         ),
       },

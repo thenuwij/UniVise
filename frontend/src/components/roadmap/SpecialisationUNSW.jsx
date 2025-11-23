@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import SaveButton from "../../components/SaveButton";
 
 
-export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) {
+export default function SpecialisationUNSW({ degreeCode }) {
   const [specialisations, setSpecialisations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -476,31 +476,51 @@ export default function SpecialisationUNSW({ degreeCode, onRegenerationStart }) 
           <button
             disabled={!selectedHonours && !selectedMajor && !selectedMinor}
             onClick={async () => {
-              if (!userId || !degreeCode) return;
+              console.log("CUSTOMISE BUTTON CLICKED");
+              
+              if (!userId || !degreeCode) {
+                console.log("Missing userId or degreeCode:", { userId, degreeCode });
+                return;
+              }
+              
               try {
-                if (onRegenerationStart) onRegenerationStart();
+                console.log("Fetching degree with code:", degreeCode);
+                
+                const { data: degreeData, error } = await supabase
+                  .from("unsw_degrees_final")
+                  .select("*")
+                  .eq("degree_code", degreeCode)
+                  .single();
 
-                const { data: { session } } = await supabase.auth.getSession();
-                const token = session?.access_token;
-                const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/refresh_sections`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({ user_id: userId, degree_code: degreeCode }),
-                });
-                if (!res.ok) throw new Error(await res.text());
-                console.log("Custom roadmap regeneration triggered");
-
-                // Temporary visual feedback
-                const btn = document.getElementById("customise-btn");
-                if (btn) {
-                  btn.classList.add("scale-95", "opacity-80");
-                  setTimeout(() => btn.classList.remove("scale-95", "opacity-80"), 200);
+                // debugging 
+                // console.log("degreeData from DB:", degreeData);
+                // console.log("DB error:", error);
+                // console.log("Has overview_description?:", !!degreeData?.overview_description);
+                
+                if (error || !degreeData) {
+                  console.error("Could not fetch degree:", error?.message);
+                  return;
                 }
+                
+                const stateToPass = { 
+                  type: "unsw", 
+                  degree: {
+                    ...degreeData,
+                    degree_id: degreeData.id,
+                  },
+                  isRegeneration: true,
+                };
+                
+                console.log("NAVIGATING WITH STATE:", stateToPass);
+                console.log("isRegeneration:", stateToPass.isRegeneration);
+                
+                navigate("/roadmap-loading", {
+                  state: stateToPass,
+                  replace: true,
+                });
+
               } catch (err) {
-                console.error("Regeneration error:", err.message);
+                console.error("Error:", err.message);
               }
             }}
             id="customise-btn"

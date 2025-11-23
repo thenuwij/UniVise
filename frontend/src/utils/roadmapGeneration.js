@@ -53,7 +53,7 @@ export async function handleRoadmapGeneration({
 
     if (type === "unsw") {
       if (!degree) throw new Error("Missing degree context for UNSW flow.");
-
+      
       const body = {
         degree_id: degree?.degree_id ?? degree?.id ?? null,
         uac_code: degree?.uac_code ?? null,
@@ -61,6 +61,8 @@ export async function handleRoadmapGeneration({
         specialisation: degree?.specialisation || undefined,
       };
 
+      // Stage 1: Call API to start generation
+      setProgress(5);
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw`, {
         method: "POST",
         headers: {
@@ -74,18 +76,78 @@ export async function handleRoadmapGeneration({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
-      console.log("Navigating to RoadmapUNSW with roadmap_id:", json?.id || json?.roadmap_id);
+      const roadmapId = json?.id || json?.roadmap_id;
+      console.log("Roadmap created, now polling for completion:", roadmapId);
 
+      setProgress(20); // Base roadmap created
+    
+      await new Promise(r => setTimeout(r, 1500));
+      const maxAttempts = 90; 
+      const pollInterval = 1000;
+      
+      let attempts = 0;
+      let finalPayload = json?.payload || {};
+
+      while (attempts < maxAttempts) {
+        attempts++;
+        
+        // Check current state in database
+        const { data: roadmapData, error } = await supabase
+          .from("unsw_roadmap")
+          .select("payload")
+          .eq("id", roadmapId)
+          .single();
+
+        if (error) {
+          console.warn("Polling error:", error.message);
+          await new Promise(r => setTimeout(r, pollInterval));
+          continue;
+        }
+
+        const payload = roadmapData?.payload || {};
+        finalPayload = payload;
+
+        // Check which sections are complete
+        const hasFlexibility = !!payload.flexibility_detailed;
+        const hasSocieties = !!payload.industry_societies;
+        const hasExperience = !!payload.industry_experience;
+        const hasCareers = !!payload.career_pathways;
+
+        // Calculate progress based on completed sections
+        let completedSections = 0;
+        if (hasFlexibility) completedSections++;
+        if (hasSocieties) completedSections++;
+        if (hasExperience) completedSections++;
+        if (hasCareers) completedSections++;
+
+        // Progress: 20% base + 26.6% per priority section (flexibility + societies = 73%), then rest
+        const prioritySections = (hasFlexibility ? 1 : 0) + (hasSocieties ? 1 : 0);
+        const progress = 20 + (prioritySections * 40); // 20 -> 60 -> 100
+        setProgress(progress);
+
+        console.log(`[Polling] Attempt ${attempts}: ${prioritySections}/2 priority sections complete`);
+
+        // Navigate once flexibility and societies are done (industry/careers load in background)
+        if (hasFlexibility && hasSocieties) {
+          console.log("Priority sections complete, navigating to roadmap");
+          break;
+        }
+
+        // Wait before next poll
+        await new Promise(r => setTimeout(r, pollInterval));
+      }
+
+      // Navigate even if timeout
+      setProgress(100);
       navigate("/roadmap/unsw", {
         state: {
           degree,
-          payload: json?.payload || null,
-          roadmap_id: json?.id || json?.roadmap_id || null,
+          payload: finalPayload,
+          roadmap_id: roadmapId,
         },
         replace: true,
       });
       return;
-
     }
 
     // Fallback ONLY when caller explicitly passed null for type
@@ -117,7 +179,5 @@ export async function handleRoadmapGeneration({
   } catch (e) {
     console.error("handleRoadmapGeneration error:", e);
     navigate("/roadmap", { replace: true });
-  } finally {
-    setProgress(100);
   }
 }

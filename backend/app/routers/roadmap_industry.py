@@ -589,140 +589,6 @@ async def ai_enhance_industry_careers(context: Dict[str, Any]) -> Dict[str, Any]
     print(f"Faculty: {faculty}")
     print(f"{'='*60}\n")
     
-# ========== BACKGROUND TASK (separate threaded stages) ==========
-import asyncio
-import time
-from app.utils.database import supabase
-
-
-def _run_societies_thread(roadmap_id, roadmap_data):
-    start = time.time()
-    print(f"[Societies Thread] Started for {roadmap_id}")
-
-    try:
-        context = {
-            "program_name": roadmap_data.get("program_name"),
-            "faculty": roadmap_data.get("payload", {}).get("faculty"),
-        }
-
-        user_id = roadmap_data.get("user_id")
-        degree_code = roadmap_data.get("degree_code")
-        if user_id and degree_code:
-            spec = fetch_user_specialisation_context(user_id, degree_code)
-            context.update(spec)
-
-        result = asyncio.run(ai_generate_societies(context))
-
-        # print full result for debugging
-        print(f"[Societies Thread] Generated result:\n{json.dumps(result, indent=2)[:1000]}")
-
-        latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
-        payload = latest.data.get("payload", {}) if latest.data else {}
-
-        payload["industry_societies"] = result.get("societies", {})
-
-        print(f"[Societies Thread] Writing to DB — societies count: {len(payload['industry_societies'].get('faculty_specific', []))}")
-
-        supabase.from_("unsw_roadmap").update({
-            "payload": payload,
-            "updated_at": datetime.utcnow().isoformat()
-        }).eq("id", roadmap_id).execute()
-
-        print(f"[Societies Thread] ✓ Saved to DB in {time.time()-start:.1f}s")
-
-    except Exception as e:
-        print(f"[Societies Thread] ✗ ERROR for {roadmap_id}: {e}")
-
-
-def _run_industry_thread(roadmap_id, roadmap_data):
-    """Runs the industry experience stage in its own background thread."""
-    start = time.time()
-    print(f"[Industry Thread] Started for {roadmap_id}")
-
-    try:
-        context = {
-            "program_name": roadmap_data.get("program_name"),
-            "faculty": roadmap_data.get("payload", {}).get("faculty"),
-        }
-
-        try:
-            user_id = roadmap_data.get("user_id")
-            degree_code = roadmap_data.get("degree_code")
-            if user_id and degree_code:
-                spec = fetch_user_specialisation_context(user_id, degree_code)
-                context.update(spec)
-        except Exception as e:
-            print(f"[Thread] Failed to load specialisations: {e}")
-            
-        result = asyncio.run(ai_generate_industry_experience(context))
-
-        # Print full result for debugging
-        print(f"[Industry Thread] Generated result:\n{json.dumps(result, indent=2)[:1000]}")
-
-        # Always fetch the latest payload from DB before merging
-        latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
-        payload = latest.data.get("payload", {}) if latest.data else {}
-
-        payload["industry_experience"] = result.get("industry_experience", {})
-
-        print(f"[Industry Thread] Writing to DB — internship programs count: {len(payload['industry_experience'].get('internship_programs', []))}")
-
-        # Update + refresh timestamp to signal change
-        supabase.from_("unsw_roadmap").update({
-            "payload": payload,
-            "updated_at": datetime.utcnow().isoformat()
-        }).eq("id", roadmap_id).execute()
-
-        print(f"[Industry Thread] ✓ Done in {time.time()-start:.1f}s")
-    except Exception as e:
-        print(f"[Industry Thread] ✗ ERROR for {roadmap_id}: {e}")
-
-
-def _run_careers_thread(roadmap_id, roadmap_data):
-    """Runs the career pathways stage in its own background thread."""
-    start = time.time()
-    print(f"[Careers Thread] Started for {roadmap_id}")
-
-    try:
-        context = {
-            "program_name": roadmap_data.get("program_name"),
-            "faculty": roadmap_data.get("payload", {}).get("faculty"),
-        }
-
-        try:
-            user_id = roadmap_data.get("user_id")
-            degree_code = roadmap_data.get("degree_code")
-            if user_id and degree_code:
-                spec = fetch_user_specialisation_context(user_id, degree_code)
-                context.update(spec)
-        except Exception as e:
-            print(f"[Thread] Failed to load specialisations: {e}")
-
-        result = asyncio.run(ai_generate_career_pathways(context))
-
-        # debug
-        print(f"[Careers Thread] Generated result:\n{json.dumps(result, indent=2)[:1000]}")
-
-        # Always fetch the latest payload from DB before merging
-        latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
-        payload = latest.data.get("payload", {}) if latest.data else {}
-
-        payload["career_pathways"] = result.get("career_pathways", {})
-
-        entry_count = len(payload['career_pathways'].get('entry_level', {}).get('roles', []))
-        print(f"[Careers Thread] Writing to DB — entry roles count: {entry_count}")
-
-        # Update + refresh timestamp to signal change
-        supabase.from_("unsw_roadmap").update({
-            "payload": payload,
-            "updated_at": datetime.utcnow().isoformat()
-        }).eq("id", roadmap_id).execute()
-
-        print(f"[Careers Thread] ✓ Done in {time.time()-start:.1f}s")
-    except Exception as e:
-        print(f"[Careers Thread] ✗ ERROR for {roadmap_id}: {e}")
-
-
 import asyncio
 import time
 from datetime import datetime
@@ -731,14 +597,11 @@ from app.utils.database import supabase
 
 async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: dict):
     """
-    NEW VERSION — runs 3 generators in parallel,
-    then merges all results and writes ONE final payload.
-    Prevents race conditions and overwrites.
+    Generates industry experience + career pathways (NOT societies).
+    Slower task (~15-20s) - runs fully in background.
     """
-
     loop = asyncio.get_event_loop()
 
-    # Prepare shared context (with specialisations if available)
     base_context = {
         "program_name": roadmap_data.get("program_name"),
         "faculty": roadmap_data.get("payload", {}).get("faculty"),
@@ -753,10 +616,7 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         except Exception as e:
             print("[Coordinator] Failed to load specialisations:", str(e))
 
-    # Run 3 tasks in parallel (WITHOUT writing to DB)
-    societies_future = loop.run_in_executor(
-        None, lambda: asyncio.run(ai_generate_societies(base_context))
-    )
+    # Run only 2 tasks in parallel (no societies)
     industry_future = loop.run_in_executor(
         None, lambda: asyncio.run(ai_generate_industry_experience(base_context))
     )
@@ -764,42 +624,62 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         None, lambda: asyncio.run(ai_generate_career_pathways(base_context))
     )
 
-    print(f"[Coordinator] Waiting for all 3 tasks for roadmap {roadmap_id}...")
+    print(f"[Coordinator] Waiting for industry + careers for roadmap {roadmap_id}...")
 
-    societies_result, industry_result, careers_result = await asyncio.gather(
-        societies_future, industry_future, careers_future
+    industry_result, careers_result = await asyncio.gather(
+        industry_future, careers_future
     )
 
-    print("[Coordinator] All tasks finished. Merging payload...")
+    print("[Coordinator] Industry + careers finished. Merging payload...")
 
-    # Load latest payload
-    latest = (
-        supabase.from_("unsw_roadmap")
-        .select("payload")
-        .eq("id", roadmap_id)
-        .single()
-        .execute()
-    )
-
+    latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
 
-
-
-    # Merge all results
-    payload["industry_societies"] = societies_result.get("societies", {})
     payload["industry_experience"] = industry_result.get("industry_experience", {})
     payload["career_pathways"] = careers_result.get("career_pathways", {})
 
-    # DEBUG: Print final merged payload BEFORE writing
-    print("\n[Coordinator] FINAL PAYLOAD TO BE SAVED:")
-    print(json.dumps(payload, indent=2))  # print up to 5000 chars
+    supabase.from_("unsw_roadmap").update({
+        "payload": payload,
+        "updated_at": datetime.utcnow().isoformat(),
+    }).eq("id", roadmap_id).execute()
 
-    # Write ONE final update
-    supabase.from_("unsw_roadmap").update(
-        {
-            "payload": payload,
-            "updated_at": datetime.utcnow().isoformat(),
-        }
-    ).eq("id", roadmap_id).execute()
+    print("[Coordinator] ✓ Industry + careers saved.")
 
-    print("[Coordinator] ✓ Final merged payload saved.")
+async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
+    """
+    Generates ONLY societies and saves immediately.
+    Fast task (~3-5s) - frontend polls for this.
+    """
+    start = time.time()
+    print(f"[Societies Task] Started for {roadmap_id}")
+
+    base_context = {
+        "program_name": roadmap_data.get("program_name"),
+        "faculty": roadmap_data.get("payload", {}).get("faculty"),
+    }
+
+    user_id = roadmap_data.get("user_id")
+    degree_code = roadmap_data.get("degree_code")
+    if user_id and degree_code:
+        try:
+            spec = fetch_user_specialisation_context(user_id, degree_code)
+            base_context.update(spec)
+        except Exception as e:
+            print(f"[Societies Task] Failed to load specialisations: {e}")
+
+    # Generate societies
+    societies_result = await ai_generate_societies(base_context)
+
+    # Load latest payload and merge
+    latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
+    payload = latest.data.get("payload", {}) if latest.data else {}
+
+    payload["industry_societies"] = societies_result.get("societies", {})
+
+    # Save immediately
+    supabase.from_("unsw_roadmap").update({
+        "payload": payload,
+        "updated_at": datetime.utcnow().isoformat()
+    }).eq("id", roadmap_id).execute()
+
+    print(f"[Societies Task] ✓ Done in {time.time() - start:.1f}s")

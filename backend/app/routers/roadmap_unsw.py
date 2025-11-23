@@ -22,20 +22,29 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     - Core courses with enriched details
     - Honours context
     """
+
+    import time
+    total_start = time.time()
+
     print(f"Gathering UNSW context for request: {req}")
 
     # 1) Fetch degree information
+    t1 = time.time()
     degree = fetch_degree_by_identifier(
         degree_id=req.degree_id,
         uac_code=req.uac_code,
         program_name=req.program_name,
     )
 
+    print(f"[TIMING] fetch_degree_by_identifier: {time.time() - t1:.1f}s")
+
     degree_id = degree.get("id")
     degree_code = degree.get("degree_code")
 
     # 2) Fetch related information
+    t2 = time.time()
     majors, minors, doubles = fetch_degree_related_info(degree_id)
+    print(f"[TIMING] fetch_degree_related_info: {time.time() - t2:.1f}s")
 
     # 3) Fetch and enrich core courses
     core_courses = []
@@ -49,9 +58,13 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     print(f"---------------------------------\n")
 
     if degree_code:
+        t3 = time.time()
         core_courses = fetch_program_core_courses(degree_code)
+        print(f"[TIMING] fetch_program_core_courses: {time.time() - t3:.1f}s")
         if core_courses:
+            t4 = time.time()
             core_courses_formatted = format_core_courses_for_prompt(core_courses)
+            print(f"[TIMING] format_core_courses_for_prompt: {time.time() - t4:.1f}s")
 
             # Debug logging
             print(f"\n{'='*50}")
@@ -65,8 +78,14 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
             print(f"{'='*50}\n")
 
     # 4) Get honours context
+    t5 = time.time()
     faculty = degree.get("faculty")
     honours_context = get_honours_context_for_faculty(faculty)
+
+    print(f"[TIMING] get_honours_context_for_faculty: {time.time() - t5:.1f}s")
+
+    print(f"[TIMING] TOTAL gather_unsw_context: {time.time() - total_start:.1f}s")
+
 
     # 5) Return complete context
     return {
@@ -318,47 +337,81 @@ CRITICAL: Return ONLY the JSON object above. No explanatory text before or after
 
 async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Generate complete roadmap payload using optimized two-stage AI generation.
+    Generate complete roadmap payload using PARALLEL two-stage AI generation.
     
-    Stage 1: General program information (lighter, faster)
-    Stage 2: Detailed honours information (compressed prompt, better stability)
-    
-    This approach balances detail with reliability.
+    Both stages run concurrently using threads for faster generation.
     """
-    print("Starting two-stage AI generation (optimized)...")
+    import asyncio
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    
+    total_start = time.time()
+    print("Starting PARALLEL two-stage AI generation...")
 
     print("\n=== DEBUG: AI CONTEXT SUMMARY ===")
     print(f"Program: {context.get('program_name')}")
     print(f"Degree code: {context.get('degree_code')}")
     print(f"Core courses in context: {len(context.get('core_courses', []))}")
-    for c in context.get('core_courses', [])[:5]:
-        print(f"  {c['code']}: {c['name']}")
     print("==================================\n")
 
-    
-    # Stage 1: Generate general info
-    general_info = await ai_generate_general_info(context)
-    
-    # Stage 2: Generate honours info with compressed prompt (with fallback)
-    try:
-        honours_info = await ai_generate_honours_info(context)
-    except Exception as e:
-        print(f"Stage 2 failed, using fallback honours structure: {e}")
-        honours_info = {
-            "honours": {
-                "classes": [],
-                "entryCriteria": "Honours information could not be generated at this time.",
-                "structure": "Honours information could not be generated at this time.",
-                "calculation": "Honours information could not be generated at this time.",
-                "requirements": "Honours information could not be generated at this time.",
-                "wamRestrictions": "Honours information could not be generated at this time.",
-                "progressionRules": "Honours information could not be generated at this time.",
-                "awards": "Honours information could not be generated at this time.",
-                "careerOutcomes": "Honours information could not be generated at this time."
-            }
+    # Fallback honours structure
+    fallback_honours = {
+        "honours": {
+            "classes": [],
+            "entryCriteria": "Honours information could not be generated at this time.",
+            "structure": "Honours information could not be generated at this time.",
+            "calculation": "Honours information could not be generated at this time.",
+            "requirements": "Honours information could not be generated at this time.",
+            "wamRestrictions": "Honours information could not be generated at this time.",
+            "progressionRules": "Honours information could not be generated at this time.",
+            "awards": "Honours information could not be generated at this time.",
+            "careerOutcomes": "Honours information could not be generated at this time."
         }
+    }
+
+    # Wrapper functions with timing
+    def run_general():
+        start = time.time()
+        print(f"[Stage 1] STARTED at {start:.1f}")
+        result = asyncio.run(ai_generate_general_info(context))
+        elapsed = time.time() - start
+        print(f"[Stage 1] COMPLETED in {elapsed:.1f}s")
+        return result
     
-    # Combine both stages
+    def run_honours():
+        start = time.time()
+        print(f"[Stage 2] STARTED at {start:.1f}")
+        result = asyncio.run(ai_generate_honours_info(context))
+        elapsed = time.time() - start
+        print(f"[Stage 2] COMPLETED in {elapsed:.1f}s")
+        return result
+
+    # Run both AI calls in parallel using ThreadPoolExecutor
+    loop = asyncio.get_event_loop()
+    
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        general_future = loop.run_in_executor(executor, run_general)
+        honours_future = loop.run_in_executor(executor, run_honours)
+        
+        # Wait for both to complete
+        try:
+            general_info = await general_future
+        except Exception as e:
+            print(f"Stage 1 failed: {e}")
+            raise Exception("Failed to generate general program information")
+        
+        try:
+            honours_info = await honours_future
+        except Exception as e:
+            print(f"Stage 2 failed: {e}")
+            honours_info = fallback_honours
+
+    total_elapsed = time.time() - total_start
+    print(f"\n{'='*50}")
+    print(f"TOTAL PARALLEL GENERATION TIME: {total_elapsed:.1f}s")
+    print(f"{'='*50}\n")
+
+    # Combine both stages into ONE payload
     payload = {
         "summary": general_info.get("summary"),
         "entry_requirements": general_info.get("entry_requirements"),
@@ -366,10 +419,9 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "honours": honours_info.get("honours"),
         "flexibility": general_info.get("flexibility"),
         "industry": general_info.get("industry"),
-        #"source": general_info.get("source"),
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),
     }
 
-    print("Two-stage generation complete!")
+    print("Parallel two-stage generation complete!")
     return payload

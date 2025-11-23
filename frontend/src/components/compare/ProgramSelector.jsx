@@ -31,7 +31,7 @@ export default function ProgramSelector({
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 px-3 py-1 text-xs font-medium mb-3">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
-          {isBase ? "Step 1 of 2" : "Step 2 of 2"}
+          {isBase ? "Step 1 of 2" : "Step 1 of 2"}
         </div>
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{title}</h2>
         <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl">{subtitle}</p>
