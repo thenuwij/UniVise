@@ -55,7 +55,7 @@ export async function handleRoadmapGeneration({
       if (!degree) throw new Error("Missing degree context for UNSW flow.");
 
       const body = {
-        degree_id: degree?.id ?? null,
+        degree_id: degree?.degree_id ?? degree?.id ?? null,
         uac_code: degree?.uac_code ?? null,
         program_name: degree?.degree_name || degree?.program_name || undefined,
         specialisation: degree?.specialisation || undefined,
