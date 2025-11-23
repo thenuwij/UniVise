@@ -14,10 +14,17 @@ import { UserAuth } from "../context/AuthContext";
 import LoadingPage from "../components/LoadingPage";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
 
-// Progress bar animation constants
-const PROGRESS_CAP = 95;       // Max before backend finishes
-const PROGRESS_STEP = 1.2;     // Increment per tick
-const PROGRESS_INTERVAL = 150; // Interval in ms
+// Progress stage messages
+const getProgressMessage = (progress, isRegeneration) => {
+  const prefix = isRegeneration ? "Regenerating" : "Generating";
+
+  if (progress < 25) return `${prefix} roadmap structure...`;
+  if (progress < 50) return "Building flexibility options...";
+  if (progress < 75) return "Finding societies and communities...";
+  if (progress < 100) return "Finalizing your roadmap...";
+  
+  return "Almost done...";
+};
 
 function LoadingRoadmapPage() {
   const { session } = UserAuth();
@@ -25,26 +32,21 @@ function LoadingRoadmapPage() {
   const { state } = useLocation();
   const [progress, setProgress] = useState(0);
   const ranRef = useRef(false);
+  const isRegeneration = state?.isRegeneration || false;
 
-  // Animate the bar until finished (cap at 95 until backend completes)
-  useEffect(() => {
-    const id = setInterval(() => {
-      setProgress((p) => (p < PROGRESS_CAP ? p + PROGRESS_STEP : p));
-    }, PROGRESS_INTERVAL);
-    return () => clearInterval(id);
-  }, []);
+  console.log("LoadingRoadmapPage state:", state);
+  console.log("isRegeneration:", isRegeneration);
 
   useEffect(() => {
     const userId = session?.user?.id;
     const accessToken = session?.access_token;
-    const type = state?.type;      // undefined until navigation state arrives
+    const type = state?.type;      
     const degree = state?.degree ?? null;
 
     // Wait until prerequisites are ready
     if (!userId || !accessToken) return;
     if (typeof type !== "string" || !type.trim()) return;
 
-    // 2) Prevent React 18 StrictMode double-run in dev
     if (ranRef.current) return;
     ranRef.current = true;
 
@@ -67,7 +69,8 @@ function LoadingRoadmapPage() {
     ]);
 
 
-  return <LoadingPage message="Generating your roadmap..." progress={progress} />;
+  const message = getProgressMessage(progress, isRegeneration);
+  return <LoadingPage message={message} progress={progress} />;
 }
 
 export default LoadingRoadmapPage;

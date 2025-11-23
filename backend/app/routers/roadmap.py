@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from app.utils.database import supabase
 from dependencies import get_current_user
 
+
 from .roadmap_common import (
     SchoolReq, UNSWReq, TranscriptReq, RoadmapResp,
     ensure, table_for_mode
@@ -10,6 +11,7 @@ from .roadmap_school import gather_school_context, ai_generate_school_payload
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
 from .roadmap_unsw_flexibility import generate_and_update_flexibility
 from .roadmap_industry import generate_and_update_industry_careers
+from .roadmap_industry import generate_and_update_societies
 
 router = APIRouter(tags=["roadmap"])
 
@@ -35,6 +37,9 @@ async def create_unsw(
     background_tasks: BackgroundTasks,  
     user=Depends(get_current_user)
 ):
+    import time
+    endpoint_start = time.time()
+    
     ensure(any([body.degree_id, body.uac_code, body.program_name]),
            "Provide degree_id or uac_code or program_name.")
 
@@ -42,13 +47,17 @@ async def create_unsw(
     ctx = await gather_unsw_context(user.id, body)
     payload = await ai_generate_unsw_payload(ctx)
 
+    print(f"[TIMING] After AI generation: {time.time() - endpoint_start:.1f}s")
+
     # --- Stage 2: save roadmap in DB ---
+    db_start = time.time()
     try:
         ins = (
             supabase.table("unsw_roadmap")
             .insert({
                 "user_id": user.id,
                 "degree_id": ctx.get("degree_id"),
+                "degree_code": ctx.get("degree_code"),
                 "uac_code": ctx.get("uac_code"),
                 "program_name": ctx.get("program_name") or body.program_name,
                 "mode": "unsw",
@@ -58,6 +67,8 @@ async def create_unsw(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+    
+    print(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
 
     rec = ins.data[0]
 
@@ -66,14 +77,14 @@ async def create_unsw(
         import asyncio
         
         print(f"[Background] Launching flexibility + industry/careers in parallel for roadmap: {rec['id']}")
-        
-        # Create both tasks immediately (they'll run concurrently)
         asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
-        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
+        asyncio.create_task(generate_and_update_societies(rec["id"], rec))
+        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec)) 
         
     except Exception as e:
         print(f"[Background] Failed to schedule tasks: {e}")
 
+    print(f"[TIMING] TOTAL ENDPOINT: {time.time() - endpoint_start:.1f}s")
 
     # --- Stage 5: return immediate response to frontend ---
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
