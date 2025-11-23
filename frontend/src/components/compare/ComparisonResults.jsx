@@ -12,8 +12,24 @@ import {
   Info,
 } from "lucide-react";
 
-export default function ComparisonResults({ comparisonData, setStep }) {
+export default function ComparisonResults({ 
+    comparisonData, 
+    setStep,
+    baseSelectedSpecs = [],
+    targetSelectedSpecs = [],
+    baseSpecsOptions = [],
+    targetSpecsOptions = []
+  }) {
   if (!comparisonData) return null;
+
+  // Get spec names from codes
+  const baseSpecNames = baseSpecsOptions
+    .filter(s => baseSelectedSpecs.includes(s.major_code))
+    .map(s => s.major_name);
+  
+  const targetSpecNames = targetSpecsOptions
+    .filter(s => targetSelectedSpecs.includes(s.major_code))
+    .map(s => s.major_name);
 
   const {
     base_program,
@@ -52,9 +68,23 @@ export default function ComparisonResults({ comparisonData, setStep }) {
               Program Comparison Results
             </h1>
             <div className="mt-2 flex items-center text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-medium">{base_program.name}</span>
-              <ArrowRight className="w-4 h-4 mx-2 text-gray-400" />
-              <span className="font-medium">{target_program.name}</span>
+              <div>
+                <span className="font-medium">{base_program.name}</span>
+                {baseSpecNames.length > 0 && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {baseSpecNames.join(", ")}
+                  </div>
+                )}
+              </div>
+              <ArrowRight className="w-4 h-4 mx-3 text-gray-400 flex-shrink-0" />
+              <div>
+                <span className="font-medium">{target_program.name}</span>
+                {targetSpecNames.length > 0 && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {targetSpecNames.join(", ")}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
