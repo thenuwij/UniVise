@@ -128,9 +128,9 @@ function SurveyForm() {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${session?.access_token}`,
-          "Content-Type": "application/json",  // ADD THIS
+          "Content-Type": "application/json",  
         },
-        body: JSON.stringify({ file_path: filePath })  // SEND THE PATH
+        body: JSON.stringify({ file_path: filePath })  
       });
 
       if (!resp.ok) {
@@ -211,15 +211,10 @@ function SurveyForm() {
           degree_stage: formData.degree_stage_other || formData.degree_stage || null,
           academic_year: formData.academic_year_other || formData.academic_year || null,
           degree_field: formData.degree_field_other || formData.degree_field || null,
-          wam: formData.wam ? parseFloat(formData.wam) : null,
-          switching_pathway: formData.switching_pathway || null,
-          study_feelings: formData.study_feelings || null,
           interest_areas: formData.interest_areas || [],
           interest_areas_other: formData.interest_areas_other || null,
           hobbies: formData.hobbies || [],
           hobbies_other: formData.hobbies_other || null,
-          confidence: formData.confidence || null,
-          want_help: formData.want_help || null,
           report_path: reportPath || null,
         },
       ]);
@@ -252,7 +247,7 @@ function SurveyForm() {
 
    <SurveyProgressBar 
       step={step} 
-      totalSteps={userType === "high_school" ? 8 : 11} 
+      totalSteps={userType === "high_school" ? 8 : 6} 
     />
 
     {step === 1 && (
@@ -590,7 +585,7 @@ function SurveyForm() {
         if (selectedDegreeInterest && !formData.degree_interest?.includes(selectedDegreeInterest)) {
           const updated = [...(formData.degree_interest || []), selectedDegreeInterest];
           handleChange("degree_interest", updated);
-          setSelectedDegreeInterest(''); // Reset the select after adding
+          setSelectedDegreeInterest(''); 
         }
       }}
       disabled={!selectedDegreeInterest || formData.degree_interest?.includes(selectedDegreeInterest)}
@@ -768,91 +763,6 @@ function SurveyForm() {
 
   {userType === "university" && step === 5 && (
     <div>
-      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Do you know your WAM (Weighted Average Mark)?</h2>
-      <div className="flex flex-col gap-3 mb-6">
-        <Button
-          color={formData.wam_status === "yes" ? "blue" : "gray"}
-          onClick={() => handleChange("wam_status", "yes")}
-          className="w-full"
-        >
-          Yes
-        </Button>
-        {formData.wam_status === "yes" && (
-          <input
-            placeholder="Enter your current WAM"
-            className="border p-2 w-full mb-4 mt-2"
-            onChange={(e) => handleChange("wam", e.target.value)}
-          />
-        )}
-        <Button
-          color={formData.wam_status === "no" ? "blue" : "gray"}
-          onClick={() => handleChange("wam_status", "no")}
-          className="w-full"
-        >
-          No, I don’t have a WAM yet
-        </Button>
-      </div>
-      <div className="flex justify-between">
-        <Button onClick={handlePrev}>Back</Button>
-        <Button onClick={handleNext} disabled={!formData.wam_status || (formData.wam_status === "yes" && !formData.wam)}>Next</Button>
-      </div>
-    </div>
-  )}
-
-  {userType === "university" && step === 6 && (
-    <div>
-      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Are you considering switching your academic pathway?</h2>
-      <div className="flex flex-col gap-3 mb-6">
-        {[
-          "Yes, I’m thinking of switching my major",
-          "No, I’m happy with my current path",
-          "Not sure yet"
-        ].map((option) => (
-          <Button
-            key={option}
-            color={formData.switching_pathway === option ? "blue" : "gray"}
-            onClick={() => handleChange("switching_pathway", option)}
-            className="w-full"
-          >
-            {option}
-          </Button>
-        ))}
-      </div>
-      <div className="flex justify-between">
-        <Button onClick={handlePrev}>Back</Button>
-        <Button onClick={handleNext} disabled={!formData.switching_pathway}>Next</Button>
-      </div>
-    </div>
-  )}
-
-  {userType === "university" && step === 7 && (
-    <div>
-      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">How do you feel about your current studies?</h2>
-      <div className="flex flex-col gap-3 mb-6">
-        {[
-          "It aligns with my career goals",
-          "I’m unsure if it’s the right fit",
-          "I feel lost and need help exploring options"
-        ].map((option) => (
-          <Button
-            key={option}
-            color={formData.study_feelings === option ? "blue" : "gray"}
-            onClick={() => handleChange("study_feelings", option)}
-            className="w-full"
-          >
-            {option}
-          </Button>
-        ))}
-      </div>
-      <div className="flex justify-between">
-        <Button onClick={handlePrev}>Back</Button>
-        <Button onClick={handleNext} disabled={!formData.study_feelings}>Next</Button>
-      </div>
-    </div>
-  )}
-
-  {userType === "university" && step === 8 && (
-    <div>
       <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">Which areas of study and careers interest you the most?</h2>
       <div className="flex flex-col gap-3 mb-6">
         {[
@@ -896,7 +806,7 @@ function SurveyForm() {
     </div>
   )}
 
-  {userType === "university" && step === 9 && (
+  {userType === "university" && step === 6 && (
     <div>
       <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">What are your hobbies or personal interests?</h2>
       <div className="flex flex-col gap-3 mb-6">
@@ -940,73 +850,7 @@ function SurveyForm() {
     </div>
   )}
 
-  {userType === "university" && step === 10 && (
-    <div>
-      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">
-        How confident are you about your future career path?
-      </h2>
-      <div className="flex flex-col gap-3 mb-6">
-        {[
-          "Very confident — I know what I want",
-          "Somewhat confident — I have ideas but unsure",
-          "Not confident — I feel lost"
-        ].map((option) => (
-          <Button
-            key={option}
-            color={formData.confidence === option ? "blue" : "gray"}
-            onClick={() => handleChange("confidence", option)}
-            className="w-full"
-          >
-            {option}
-          </Button>
-        ))}
-      </div>
-      <div className="flex justify-between">
-        <Button onClick={handlePrev}>Back</Button>
-        <Button
-          onClick={handleNext}
-          disabled={!formData.confidence}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  )}
-
-  {userType === "university" && step === 11 && (
-    <div>
-      <h2 className="text-4xl font-bold mb-6 text-center  font-poppins">
-        Would you like help exploring how your courses, majors, and career options connect?
-      </h2>
-      <div className="flex flex-col gap-3 mb-6">
-        {[
-          "Yes, that would be helpful",
-          "No, I already feel clear"
-        ].map((option) => (
-          <Button
-            key={option}
-            color={formData.want_help === option ? "blue" : "gray"}
-            onClick={() => handleChange("want_help", option)}
-            className="w-full"
-          >
-            {option}
-          </Button>
-        ))}
-      </div>
-      <div className="flex justify-between">
-        <Button onClick={handlePrev}>Back</Button>
-        <Button
-          onClick={handleNext}
-          disabled={!formData.want_help}
-        >
-          Next
-        </Button>
-      </div>
-      {message && <p className="mt-2 text-center">{message}</p>}
-    </div>
-  )}
-
-  { userType == "university" && step === 12 && (
+  {userType === "university" && step === 7 && (
     <div>
       <h2 className="text-3xl font-bold mb-6 text-center  font-poppins">
         Optional: Upload your most recent academic transcript
@@ -1047,7 +891,6 @@ function SurveyForm() {
       </div>
       {message && <p className="mt-2 text-center">{message}</p>}
     </div>
-    
   )}
 
 
