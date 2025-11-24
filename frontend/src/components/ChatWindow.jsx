@@ -67,7 +67,7 @@ export default function ChatWindow({ convId }) {
     setInput("");
 
     if (textAreaRef.current) textAreaRef.current.style.height = "auto";
-    const res = await fetch(`http://localhost:8000/chat/conversations/${convId}/reply/stream`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/chat/conversations/${convId}/reply/stream`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${session.access_token}`,

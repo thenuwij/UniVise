@@ -121,15 +121,16 @@ async def generate_final_plan(user_id: str):
             match = (
                 supabase
                 .from_("unsw_degrees_final")
-                .select("degree_code, program_name")
+                .select("id, degree_code, program_name")
                 .eq("program_name", degree_name)
                 .limit(1)
                 .execute()
             )
 
             if match and match.data and len(match.data) > 0:
+                degree_id = match.data[0]["id"]  # Get the actual degree ID
                 degree_code = match.data[0]["degree_code"]
-                print(f"Exact match: {degree_name} → {degree_code}")
+                print(f"Exact match: {degree_name} → {degree_code} (id: {degree_id})")
             else:
                 print(f"[SKIP] No exact UNSW match found for: '{degree_name}'")
                 continue  
@@ -142,6 +143,7 @@ async def generate_final_plan(user_id: str):
         rows.append({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
+            "degree_id": degree_id,  # ADD THIS LINE
             "degree_name": degree_name,
             "reason": reason,
             "degree_code": degree_code,

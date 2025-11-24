@@ -1,10 +1,12 @@
 import { Alert, Button, Checkbox, Label, Select, TextInput } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
 import { TermsText } from "./TermsText";
+import { FcGoogle } from "react-icons/fc";
+import { supabase } from "../supabaseClient";
 
 
 function RegisterForm() {
@@ -23,6 +25,28 @@ function RegisterForm() {
     
     const navigate = useNavigate()
     const { session, registerNewUser } = UserAuth();
+
+     // Check if user is already logged in (e.g., after Google OAuth redirect)
+    useEffect(() => {
+      const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate("/survey");
+        }
+      };
+      checkSession();
+    }, [navigate]);
+
+    // Listen for auth state changes (for Google sign up)
+    useEffect(() => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          navigate("/survey");
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }, [navigate]);
     
 
     const handleRegister = async (e) => {
@@ -53,6 +77,21 @@ function RegisterForm() {
         setLoading(false)
       }
     }
+    const handleGoogleSignUp = async () => {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/survey`
+          }
+        });
+        if (error) {
+          console.error("Google sign up error:", error);
+        }
+      } catch (error) {
+        console.error("Google sign up error:", error);
+      }
+    };
 
     return (
     <form className="flex w-100 flex-col gap-3">
@@ -181,6 +220,28 @@ function RegisterForm() {
           <Button onClick={handleRegister} size="xl" pill type="submit">Register new account</Button>
         </Link>  
       </div>
+
+      {/* Divider */}
+      <div className="flex items-center w-full my-2">
+        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+        <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">or</span>
+        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+      </div>
+
+      {/* Google Sign-Up Button */}
+      <div className="flex justify-center mb-7">
+        <Button 
+          onClick={handleGoogleSignUp} 
+          size="xl" 
+          pill 
+          color="gray"
+          type="button"
+        >
+          <FcGoogle className="mr-2 h-5 w-5" />
+          Sign up with Google
+        </Button>
+      </div>
+
     </form>
   );
 }

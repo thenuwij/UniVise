@@ -1,8 +1,11 @@
 
 import { Button, Checkbox, Label, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import { supabase } from "../supabaseClient";
+
 
 export function LoginForm() {
 
@@ -13,6 +16,17 @@ export function LoginForm() {
   const [remember, setRemember] = useState(false)
 
   const { signInUser } = UserAuth();
+
+  // Check if user is already logged in (e.g., after Google OAuth redirect)
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,6 +43,22 @@ export function LoginForm() {
       setLoading(false);
     }
   }
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) {
+        console.error("Google login error:", error);
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
+  };
 
   return (
     <div className="w-2/5 flex flex-col justify-start items-center mt-6 py-8 card-base">
@@ -64,7 +94,26 @@ export function LoginForm() {
           />
         </div>
         <div className="flex flex-col items-center gap-3">
-          <Button onClick={handleLogin} size="lg" pill  className="w-full" type="submit">Sign In</Button>
+          <Button onClick={handleLogin} size="lg" pill className="w-full" type="submit">Sign In</Button>
+
+          {/* Divider */}
+          <div className="flex items-center w-full my-2">
+            <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+            <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">or</span>
+            <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+          </div>
+          {/* Google Sign-In Button */}
+          <Button 
+            onClick={handleGoogleLogin} 
+            size="lg" 
+            pill 
+            color="gray"
+            className="w-full"
+            type="button"
+          >
+            <FcGoogle className="mr-2 h-5 w-5" />
+            Continue with Google
+          </Button>
         </div>
       </form>
     </div>

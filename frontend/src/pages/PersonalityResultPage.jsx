@@ -125,7 +125,7 @@ const PersonalityResultPage = () => {
   const closeDrawer = () => setIsOpen(false);
   
   const generateTraitDescription = async () => {
-    const resp = await fetch(`http://localhost:8000/traits/results`, {
+    const resp = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/traits/results`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${session?.access_token}` },
     });

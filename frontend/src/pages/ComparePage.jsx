@@ -12,7 +12,8 @@ export default function ComparePage() {
   const navigate = useNavigate();
   const { session } = UserAuth();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -59,7 +60,17 @@ export default function ComparePage() {
         .eq("user_id", userId)
         .single();
 
-      if (programData) setUserEnrolledProgram(programData);
+      if (programData) {
+        setUserEnrolledProgram(programData);
+        
+        const program = {
+          code: programData.degree_code,
+          name: programData.program_name,
+        };
+        setBaseProgram(program);
+        setBaseSelectedSpecs(programData.specialisation_codes || []);
+        await fetchSpecialisationsForProgram(program.code, true);
+      }
 
       const { data: completed } = await supabase
         .from("user_completed_courses")
@@ -72,6 +83,8 @@ export default function ComparePage() {
     } catch (err) {
       setError("Failed to load your data");
       console.error(err);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -204,7 +217,7 @@ export default function ComparePage() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8000/compare", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/compare`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -256,7 +269,7 @@ export default function ComparePage() {
         )}
 
         {/* Loading */}
-        {loading && (
+        {(loading || initialLoading) && (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
           </div>
@@ -286,7 +299,7 @@ export default function ComparePage() {
           />
         )}
 
-        {!loading && step === 2 && (
+        {!loading && !initialLoading && step === 2 && (
           <ProgramSelector
             isBase={false}
             searchValue={searchTarget}
@@ -307,10 +320,14 @@ export default function ComparePage() {
           />
         )}
 
-        {!loading && step === 3 && (
+        {!loading && !initialLoading && step === 3 && (
           <ComparisonResults
             comparisonData={comparisonData}
             setStep={setStep}
+            baseSelectedSpecs={baseSelectedSpecs}
+            targetSelectedSpecs={targetSelectedSpecs}
+            baseSpecsOptions={baseSpecsOptions}
+            targetSpecsOptions={targetSpecsOptions}
           />
         )}
       </div>

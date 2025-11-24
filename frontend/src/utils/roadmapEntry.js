@@ -22,7 +22,7 @@ export async function handleRoadmapEntryGeneration({
 
     if (userType === "university") {
       // Call backend to generate final recommendations
-      const res = await fetch("http://localhost:8000/final-unsw-degrees/", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/final-unsw-degrees/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

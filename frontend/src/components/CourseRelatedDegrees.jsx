@@ -25,7 +25,7 @@ export default function CourseRelatedDegrees({
 
       try {
         const res = await fetch(
-          "http://localhost:8000/smart-related/degrees-for-course",
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/smart-related/degrees-for-course`,
           {
             method: "POST",
             headers: {
