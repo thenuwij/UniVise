@@ -15,14 +15,18 @@ import LoadingPage from "../components/LoadingPage";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
 
 // Progress stage messages
-const getProgressMessage = (progress, isRegeneration) => {
+const getProgressMessage = (progress, isRegeneration, type) => {
+  // Simple message for school roadmaps
+  if (type === "school") {
+    return isRegeneration ? "Regenerating your roadmap..." : "Generating your roadmap...";
+  }
+  
+  // Detailed messages for UNSW roadmaps
   const prefix = isRegeneration ? "Regenerating" : "Generating";
-
   if (progress < 25) return `${prefix} roadmap structure...`;
   if (progress < 50) return "Building flexibility options...";
   if (progress < 75) return "Finding societies and communities...";
   if (progress < 100) return "Finalizing your roadmap...";
-  
   return "Almost done...";
 };
 
@@ -69,7 +73,7 @@ function LoadingRoadmapPage() {
     ]);
 
 
-  const message = getProgressMessage(progress, isRegeneration);
+  const message = getProgressMessage(progress, isRegeneration, state?.type);
   return <LoadingPage message={message} progress={progress} />;
 }
 
