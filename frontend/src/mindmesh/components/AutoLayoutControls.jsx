@@ -33,10 +33,9 @@ export default function AutoLayoutControls({
     const links = normalizeLinksToIds(graph.links);
     const idSet = new Set(allNodes.map((n) => n.id));
 
-    // ✅ Filter valid links (both nodes exist)
+
     const validLinks = links.filter(l => idSet.has(l.source) && idSet.has(l.target));
     
-    // ✅ Filter out nodes with no edges (isolated nodes)
     const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
     const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
     
