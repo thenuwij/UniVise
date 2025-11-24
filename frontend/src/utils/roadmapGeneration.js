@@ -24,13 +24,28 @@ export async function handleRoadmapGeneration({
   try {
     if (type === "school") {
       if (!degree) throw new Error("Missing degree context for school flow.");
-
+      
+      setProgress(20);
+      
       const body = {
         recommendation_id: degree?.source === "hs_recommendation" ? degree?.id : undefined,
         degree_name: degree?.degree_name || degree?.program_name || undefined,
         country: "AU",
       };
-
+      
+      setProgress(40);
+      
+      // Start smooth progress animation to 95%
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 95) {
+            clearInterval(progressInterval);
+            return 95;
+          }
+          return prev + 0.3; // Increment by 0.3% every interval
+        });
+      }, 100); // Update every 100ms
+      
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/school`, {
         method: "POST",
         headers: {
@@ -40,10 +55,14 @@ export async function handleRoadmapGeneration({
         credentials: "include",
         body: JSON.stringify(body),
       });
-
+      
+      // Stop the animation once we get response
+      clearInterval(progressInterval);
+      setProgress(95);
+      
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
-
+      
       navigate("/roadmap/school", {
         state: { degree, payload: json?.payload || null, roadmap_id: json?.roadmap_id || null },
         replace: true,

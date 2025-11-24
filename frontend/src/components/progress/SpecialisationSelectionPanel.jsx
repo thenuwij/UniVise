@@ -20,12 +20,35 @@ export default function SpecialisationSelectionPanel({
     const fetchSpecialisations = async () => {
       if (!enrolledProgram?.degree_code) return;
 
+      // First check if this is a double degree
+      let codesToMatch = [enrolledProgram.degree_code];
+
+      const { data: degreeData } = await supabase
+        .from("unsw_degrees_final")
+        .select("program_name")
+        .eq("degree_code", enrolledProgram.degree_code)
+        .single();
+
+      if (degreeData?.program_name?.includes("/")) {
+        // It's a double degree - get individual program codes
+        const programNames = degreeData.program_name.split("/").map(n => n.trim());
+
+        const { data: individualDegrees } = await supabase
+          .from("unsw_degrees_final")
+          .select("degree_code, program_name")
+          .in("program_name", programNames);
+
+        if (individualDegrees?.length > 0) {
+          codesToMatch = individualDegrees.map(d => d.degree_code);
+        }
+      }
+
       const { data } = await supabase
         .from("unsw_specialisations")
         .select("major_code, major_name, specialisation_type, faculty, sections_degrees")
         .order("major_name");
 
-      // Filter specialisations for this degree
+      // Filter specialisations for all matching degree codes
       const filtered = data?.filter((spec) => {
         if (!spec.sections_degrees) return false;
         let degrees = [];
@@ -36,7 +59,7 @@ export default function SpecialisationSelectionPanel({
         } catch (err) {
           return false;
         }
-        return degrees.some((d) => d.degree_code === enrolledProgram.degree_code);
+        return degrees.some((d) => codesToMatch.includes(d.degree_code));
       }) || [];
 
       setAvailableSpecialisations(filtered);

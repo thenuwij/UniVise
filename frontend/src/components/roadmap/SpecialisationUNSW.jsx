@@ -13,13 +13,16 @@ export default function SpecialisationUNSW({ degreeCode }) {
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
+  const [degreeCodes, setDegreeCodes] = useState([]);
+  const [degreeNames, setDegreeNames] = useState({}); 
+
   // selector popover state
   const [openType, setOpenType] = useState(null);
 
-  // Selected specialisations - loaded from database
-  const [selectedHonours, setSelectedHonours] = useState(null);
-  const [selectedMajor, setSelectedMajor] = useState(null);
-  const [selectedMinor, setSelectedMinor] = useState(null);
+  // Selected specialisations - NOW keyed by degree code for double degrees
+  const [selectedHonours, setSelectedHonours] = useState({});
+  const [selectedMajor, setSelectedMajor] = useState({});
+  const [selectedMinor, setSelectedMinor] = useState({});
 
   // Get current user
   useEffect(() => {
@@ -39,50 +42,100 @@ export default function SpecialisationUNSW({ degreeCode }) {
       setError("");
 
       try {
-        // available specialisations for this degree
-        const filter = JSON.stringify([{ degree_code: degreeCode }]);
-        const { data: specsData, error: specsError } = await supabase
-          .from("unsw_specialisations")
-          .select("*")
-          .contains("sections_degrees", filter);
+        let codesToFetch = [degreeCode];
+        const codeToNameMap = {};
 
-        if (specsError) throw specsError;
-        setSpecialisations(specsData || []);
-
-        // user's saved selections
-        const { data: selectionData, error: selectionError } = await supabase
-          .from("user_specialisation_selections")
-          .select(`
-            honours_id,
-            major_id,
-            minor_id,
-            honours:honours_id(*),
-            major:major_id(*),
-            minor:minor_id(*)
-          `)
-          .eq("user_id", userId)
+        const { data: degreeData } = await supabase
+          .from("unsw_degrees_final")
+          .select("program_name")
           .eq("degree_code", degreeCode)
-          .maybeSingle();
+          .single();
 
-        if (selectionError && selectionError.code !== "PGRST116") {
-          throw selectionError;
+        if (degreeData?.program_name?.includes("/")) {
+          const programNames = degreeData.program_name.split("/").map(n => n.trim());
+
+          // Fetch individual degree codes
+          const { data: individualDegrees } = await supabase
+            .from("unsw_degrees_final")
+            .select("degree_code, program_name")
+            .in("program_name", programNames);
+
+          if (individualDegrees?.length > 0) {
+            codesToFetch = individualDegrees.map(d => d.degree_code);
+            individualDegrees.forEach(d => {
+              codeToNameMap[d.degree_code] = d.program_name;
+            });
+          }
+        } else if (degreeData?.program_name) {
+          codeToNameMap[degreeCode] = degreeData.program_name;
         }
 
-        // set selected specialisations from database
-        if (selectionData) {
-          if (selectionData.honours_id) {
-            const honours = specsData.find(s => s.id === selectionData.honours_id);
-            setSelectedHonours(honours || null);
+        setDegreeCodes(codesToFetch);
+        setDegreeNames(codeToNameMap);
+
+        // Fetch specialisations for all degree codes
+        const allSpecs = [];
+
+        for (const code of codesToFetch) {
+          const filter = JSON.stringify([{ degree_code: code }]);
+          const { data: specsData, error: specsError } = await supabase
+            .from("unsw_specialisations")
+            .select("*")
+            .contains("sections_degrees", filter);
+
+          if (specsError) throw specsError;
+
+          // Tag each spec with its degree code for grouping
+          const taggedSpecs = (specsData || []).map(s => ({ ...s, _degreeCode: code }));
+          allSpecs.push(...taggedSpecs);
+        }
+
+        setSpecialisations(allSpecs);
+
+        // Load user's saved selections for each degree code
+        const newHonours = {};
+        const newMajor = {};
+        const newMinor = {};
+
+        for (const code of codesToFetch) {
+          const { data: selectionData, error: selectionError } = await supabase
+            .from("user_specialisation_selections")
+            .select(`
+              honours_id,
+              major_id,
+              minor_id,
+              honours:honours_id(*),
+              major:major_id(*),
+              minor:minor_id(*)
+            `)
+            .eq("user_id", userId)
+            .eq("degree_code", code)
+            .maybeSingle();
+
+          if (selectionError && selectionError.code !== "PGRST116") {
+            throw selectionError;
           }
-          if (selectionData.major_id) {
-            const major = specsData.find(s => s.id === selectionData.major_id);
-            setSelectedMajor(major || null);
-          }
-          if (selectionData.minor_id) {
-            const minor = specsData.find(s => s.id === selectionData.minor_id);
-            setSelectedMinor(minor || null);
+
+          if (selectionData) {
+            if (selectionData.honours_id) {
+              const honours = allSpecs.find(s => s.id === selectionData.honours_id);
+              if (honours) newHonours[code] = honours;
+            }
+            if (selectionData.major_id) {
+              const major = allSpecs.find(s => s.id === selectionData.major_id);
+              if (major) newMajor[code] = major;
+            }
+            if (selectionData.minor_id) {
+              const minor = allSpecs.find(s => s.id === selectionData.minor_id);
+              if (minor) newMinor[code] = minor;
+            }
           }
         }
+
+        setSelectedHonours(newHonours);
+        setSelectedMajor(newMajor);
+        setSelectedMinor(newMinor);
+
       } catch (err) {
         console.error("Fetch error:", err.message);
         setError(err.message || "Failed to load specialisations.");
@@ -94,16 +147,16 @@ export default function SpecialisationUNSW({ degreeCode }) {
     fetchData();
   }, [degreeCode, userId]);
 
-  const saveSelection = async (type, specId) => {
-    if (!userId || !degreeCode) return;
+  const saveSelection = async (type, specId, forDegreeCode) => {
+    if (!userId || !forDegreeCode) return;
 
     try {
       const updateData = {
         user_id: userId,
-        degree_code: degreeCode,
-        honours_id: type === "honours" ? specId : selectedHonours?.id || null,
-        major_id: type === "major" ? specId : selectedMajor?.id || null,
-        minor_id: type === "minor" ? specId : selectedMinor?.id || null,
+        degree_code: forDegreeCode,
+        honours_id: type === "honours" ? specId : selectedHonours[forDegreeCode]?.id || null,
+        major_id: type === "major" ? specId : selectedMajor[forDegreeCode]?.id || null,
+        minor_id: type === "minor" ? specId : selectedMinor[forDegreeCode]?.id || null,
       };
 
       const { error } = await supabase
@@ -116,17 +169,16 @@ export default function SpecialisationUNSW({ degreeCode }) {
     }
   };
 
-  // Handle selection change
-  const handleSelectionChange = async (type, spec) => {
+  const handleSelectionChange = async (type, spec, forDegreeCode) => {
     if (type === "honours") {
-      setSelectedHonours(spec);
-      await saveSelection("honours", spec?.id || null);
+      setSelectedHonours(prev => ({ ...prev, [forDegreeCode]: spec }));
+      await saveSelection("honours", spec?.id || null, forDegreeCode);
     } else if (type === "major") {
-      setSelectedMajor(spec);
-      await saveSelection("major", spec?.id || null);
+      setSelectedMajor(prev => ({ ...prev, [forDegreeCode]: spec }));
+      await saveSelection("major", spec?.id || null, forDegreeCode);
     } else if (type === "minor") {
-      setSelectedMinor(spec);
-      await saveSelection("minor", spec?.id || null);
+      setSelectedMinor(prev => ({ ...prev, [forDegreeCode]: spec }));
+      await saveSelection("minor", spec?.id || null, forDegreeCode);
     }
     setOpenType(null);
   };
@@ -150,14 +202,15 @@ export default function SpecialisationUNSW({ degreeCode }) {
     }
   };
 
-  // Group by type
-  const groupedByType = {
-    Honours: specialisations.filter((s) => s.specialisation_type === "Honours"),
-    Major: specialisations.filter((s) => s.specialisation_type === "Major"),
-    Minor: specialisations.filter((s) => s.specialisation_type === "Minor"),
+  const getGroupedByType = (forDegreeCode) => {
+    const filtered = specialisations.filter(s => s._degreeCode === forDegreeCode);
+    return {
+      Honours: filtered.filter((s) => s.specialisation_type === "Honours"),
+      Major: filtered.filter((s) => s.specialisation_type === "Major"),
+      Minor: filtered.filter((s) => s.specialisation_type === "Minor"),
+    };
   };
 
-  // Safe JSON parser
   const parseJSON = (text) => {
     try {
       return typeof text === "string" ? JSON.parse(text) : text;
@@ -166,11 +219,18 @@ export default function SpecialisationUNSW({ degreeCode }) {
     }
   };
 
-  // Selector card (replaces plain <select>, keeps bottom section unchanged)
-  const renderTypeSelector = (type, options, selected) => {
+  const hasAnySelection = () => {
+    const hasHonours = Object.values(selectedHonours).some(v => v !== null);
+    const hasMajor = Object.values(selectedMajor).some(v => v !== null);
+    const hasMinor = Object.values(selectedMinor).some(v => v !== null);
+    return hasHonours || hasMajor || hasMinor;
+  };
+
+  const renderTypeSelector = (type, options, selected, forDegreeCode) => {
     if (options.length === 0) return null;
 
-    const isOpen = openType === type.toLowerCase();
+    const popoverKey = `${forDegreeCode}-${type.toLowerCase()}`;
+    const isOpen = openType === popoverKey;
 
     const getIcon = () => {
       if (type === "Honours") return <Award className="h-4 w-4" />;
@@ -181,7 +241,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
     return (
       <div className="relative">
         <button
-          onClick={() => setOpenType(isOpen ? null : type.toLowerCase())}
+          onClick={() => setOpenType(isOpen ? null : popoverKey)}
           className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md
           ${
             selected
@@ -212,7 +272,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
             {options.map((spec) => (
               <button
                 key={spec.id}
-                onClick={() => handleSelectionChange(type.toLowerCase(), spec)}
+                onClick={() => handleSelectionChange(type.toLowerCase(), spec, forDegreeCode)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors
                           hover:bg-emerald-50 dark:hover:bg-emerald-900/20
                           ${selected?.id === spec.id ? "bg-emerald-50 dark:bg-emerald-900/30 font-semibold text-emerald-700 dark:text-emerald-300" : "text-slate-800 dark:text-slate-200 font-medium"}`}
@@ -227,13 +287,13 @@ export default function SpecialisationUNSW({ degreeCode }) {
     );
   };
 
-  // Render selected specialisations card (unchanged)
-  const renderSelectedCard = (spec, type) => {
+  // UPDATED: Render selected specialisations card with degree code
+  const renderSelectedCard = (spec, type, forDegreeCode) => {
     if (!spec) return null;
 
     const sections = parseJSON(spec.sections);
 
-    // Remove duplicate "Overview" section if it's basically the same as the top overview_description
+    // Remove duplicate "Overview" section
     const filteredSections = Array.isArray(sections)
       ? sections.filter((sec) => {
           const isOverview = sec?.title?.toLowerCase().includes("overview");
@@ -283,12 +343,12 @@ export default function SpecialisationUNSW({ degreeCode }) {
                 uoc_required: spec.uoc_required,
                 faculty: spec.faculty,
                 overview: spec.overview_description,
-                degree_code: degreeCode,
+                degree_code: forDegreeCode,
               }}
             />
 
             <button
-              onClick={() => handleSelectionChange(type, null)}
+              onClick={() => handleSelectionChange(type, null, forDegreeCode)}
               className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 
                       dark:hover:bg-red-900/20 transition-colors"
             >
@@ -421,6 +481,46 @@ export default function SpecialisationUNSW({ degreeCode }) {
     );
   };
 
+  // UPDATED: Render selectors for a specific degree
+  const renderDegreeSection = (forDegreeCode) => {
+    const groupedByType = getGroupedByType(forDegreeCode);
+    const hasSpecs = groupedByType.Honours.length > 0 || 
+                     groupedByType.Major.length > 0 || 
+                     groupedByType.Minor.length > 0;
+
+    if (!hasSpecs) return null;
+
+    return (
+      <div key={forDegreeCode} className="space-y-6">
+        {/* Degree header for double degrees */}
+        {degreeCodes.length > 1 && (
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500" />
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+              {degreeNames[forDegreeCode] || `Program ${forDegreeCode}`}
+            </h3>
+          </div>
+        )}
+
+        {/* Selection cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {renderTypeSelector("Honours", groupedByType.Honours, selectedHonours[forDegreeCode], forDegreeCode)}
+          {renderTypeSelector("Major", groupedByType.Major, selectedMajor[forDegreeCode], forDegreeCode)}
+          {renderTypeSelector("Minor", groupedByType.Minor, selectedMinor[forDegreeCode], forDegreeCode)}
+        </div>
+
+        {/* Selected cards for this degree */}
+        {(selectedHonours[forDegreeCode] || selectedMajor[forDegreeCode] || selectedMinor[forDegreeCode]) && (
+          <div className="space-y-4 pt-4">
+            {selectedHonours[forDegreeCode] && renderSelectedCard(selectedHonours[forDegreeCode], "honours", forDegreeCode)}
+            {selectedMajor[forDegreeCode] && renderSelectedCard(selectedMajor[forDegreeCode], "major", forDegreeCode)}
+            {selectedMinor[forDegreeCode] && renderSelectedCard(selectedMinor[forDegreeCode], "minor", forDegreeCode)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Loading/Error states
   if (loading)
     return (
@@ -438,7 +538,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
   if (specialisations.length === 0)
     return (
       <p className="text-secondary italic">
-        No specialisations found for this degree. For double degree programs please check the individual program roadmaps for exploring specialisations.
+        No specialisations found for this degree.
       </p>
     );
 
@@ -467,14 +567,16 @@ export default function SpecialisationUNSW({ degreeCode }) {
                 Specialisations
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Customise your degree with majors, minors, or honours streams
+                {degreeCodes.length > 1 
+                  ? "Customise both programs with majors, minors, or honours streams"
+                  : "Customise your degree with majors, minors, or honours streams"}
               </p>
             </div>
           </div>
 
           {/* Customise Button */}
           <button
-            disabled={!selectedHonours && !selectedMajor && !selectedMinor}
+            disabled={!hasAnySelection()}
             onClick={async () => {
               console.log("CUSTOMISE BUTTON CLICKED");
               
@@ -492,11 +594,6 @@ export default function SpecialisationUNSW({ degreeCode }) {
                   .eq("degree_code", degreeCode)
                   .single();
 
-                // debugging 
-                // console.log("degreeData from DB:", degreeData);
-                // console.log("DB error:", error);
-                // console.log("Has overview_description?:", !!degreeData?.overview_description);
-                
                 if (error || !degreeData) {
                   console.error("Could not fetch degree:", error?.message);
                   return;
@@ -525,7 +622,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
             }}
             id="customise-btn"
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200
-              ${selectedHonours || selectedMajor || selectedMinor
+              ${hasAnySelection()
                 ? "bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 hover:-translate-y-0.5"
                 : "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-70"}`}
           >
@@ -538,49 +635,32 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
       {/* Intro Text */}
       <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-        Select up to one specialisation of each type to tailor your degree. Each selection will show
-        detailed course requirements and structure. Your selections are automatically saved.
+        {degreeCodes.length > 1 
+          ? "Select specialisations for each program in your double degree. Your selections are automatically saved."
+          : "Select up to one specialisation of each type to tailor your degree. Each selection will show detailed course requirements and structure. Your selections are automatically saved."}
       </p>
 
-      {/* Selection cards (top section only) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {renderTypeSelector("Honours", groupedByType.Honours, selectedHonours)}
-        {renderTypeSelector("Major", groupedByType.Major, selectedMajor)}
-        {renderTypeSelector("Minor", groupedByType.Minor, selectedMinor)}
+      <div className="space-y-10">
+        {degreeCodes.map(code => renderDegreeSection(code))}
       </div>
 
-        {/* Info Section */}
-        <div className="p-5 rounded-xl bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 
-                        dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 
-                        border border-slate-300/60 dark:border-slate-600/60 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 p-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">
-              <Info className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-            </div>
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-              Expand each specialisation below to explore its full structure and click on individual courses for more details. 
-              Use the <span className="font-semibold text-slate-900 dark:text-slate-100">Customise Roadmap to Specialisation</span> button above to tailor the 
-              <span className="font-semibold text-slate-900 dark:text-slate-100"> Societies</span>, 
-              <span className="font-semibold text-slate-900 dark:text-slate-100"> Industry</span>, and 
-              <span className="font-semibold text-slate-900 dark:text-slate-100"> Careers</span> sections to your chosen specialisations.
-            </p>
+      {/* Info Section */}
+      <div className="p-5 rounded-xl bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 
+                      dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 
+                      border border-slate-300/60 dark:border-slate-600/60 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 p-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">
+            <Info className="h-4 w-4 text-slate-600 dark:text-slate-300" />
           </div>
-      </div>
-
-
-      {/* Selected Specialisations (unchanged) */}
-      {(selectedHonours || selectedMajor || selectedMinor) && (
-        <div className="space-y-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <div className="h-1 w-8 bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full" />
-            Selected Specialisations
-          </h3>
-          {selectedHonours && renderSelectedCard(selectedHonours, "honours")}
-          {selectedMajor && renderSelectedCard(selectedMajor, "major")}
-          {selectedMinor && renderSelectedCard(selectedMinor, "minor")}
+          <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+            Expand each specialisation below to explore its full structure and click on individual courses for more details. 
+            Use the <span className="font-semibold text-slate-900 dark:text-slate-100">Customise Roadmap to Specialisation</span> button above to tailor the 
+            <span className="font-semibold text-slate-900 dark:text-slate-100"> Societies</span>, 
+            <span className="font-semibold text-slate-900 dark:text-slate-100"> Industry</span>, and 
+            <span className="font-semibold text-slate-900 dark:text-slate-100"> Careers</span> sections to your chosen specialisations.
+          </p>
         </div>
-      )}
-
+      </div>
     </div>
   );
 }

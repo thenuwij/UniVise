@@ -241,14 +241,22 @@ const useRoadmapData = (
   return { data, loading, error, header, updateHeader };
 };
 
-const useStepNavigation = (searchParams, stepsLength, hasData) => {
+const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapId) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Handle URL-based step navigation
+  // Handle URL-based step navigation on mount
   useEffect(() => {
     const stepIndex = extractStepIndexFromUrl(searchParams);
     setActiveIndex(stepIndex);
   }, [searchParams]);
+
+  // Sync activeIndex to URL (without page reload)
+  useEffect(() => {
+    if (!hasData || !preloadedRoadmapId) return;
+    
+    const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}`;
+    window.history.replaceState(null, '', newUrl);
+  }, [activeIndex, hasData, preloadedRoadmapId]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -315,9 +323,12 @@ export default function RoadmapUNSWPage() {
 
   const { state, search } = useLocation();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(search);
+
   const degree = state?.degree || null;
   const preloadedPayload = state?.payload || null;
-  const preloadedRoadmapId = state?.roadmap_id || null;
+  const preloadedRoadmapId = state?.roadmap_id || searchParams.get('id') || null;
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
@@ -460,7 +471,12 @@ export default function RoadmapUNSWPage() {
     ];
   }, [data, degree]);
 
-  const { activeIndex, setActiveIndex } = useStepNavigation(search, steps.length, !!data);
+  const { activeIndex, setActiveIndex } = useStepNavigation(
+    search, 
+    steps.length, 
+    !!data, 
+    preloadedRoadmapId
+  );
 
   const sources = normalizeSources(data);
   const headerProgramName =

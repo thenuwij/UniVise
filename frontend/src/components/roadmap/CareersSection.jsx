@@ -167,8 +167,8 @@ export default function CareersSection({ careerPathways = {}, sources = [] }) {
                         <DollarSign className="h-3.5 w-3.5" />
                         <span>Salary</span>
                       </div>
-                      <div className="text-base font-bold text-blue-900 dark:text-blue-400 text-center whitespace-nowrap">
-                        {role.salary_range}
+                      <div className="text-base font-bold text-blue-900 dark:text-blue-400 text-center">
+                        {role.salary_range.replace(' AUD based on current listings', '').replace(' based on current listings', '')}
                       </div>
                     </div>
                   )}
@@ -194,12 +194,43 @@ export default function CareersSection({ careerPathways = {}, sources = [] }) {
                   ))}
                 </div>
               )}
-              {role.source && (
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 italic mt-2">
-                  <BarChart3 className="h-3 w-3" />
-                  <span>Source: {role.source}</span>
-                </div>
-              )}
+              <div className="flex items-center justify-between gap-4 mt-2">
+                {role.source && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 italic">
+                    <BarChart3 className="h-3 w-3" />
+                    <span>Source: {role.source}</span>
+                  </div>
+                )}
+                
+                {role.source_url && (
+                  <a
+                    href={role.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 
+                              bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 
+                              hover:from-blue-700 hover:via-sky-700 hover:to-indigo-700
+                              text-white text-sm font-bold rounded-lg
+                              shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <span>View Listings</span>
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                )}
+              </div>
+
             </div>
           ))}
         </div>

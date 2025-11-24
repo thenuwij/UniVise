@@ -17,12 +17,22 @@ export function LoginForm() {
 
   const { signInUser } = UserAuth();
 
-  // Check if user is already logged in (e.g., after Google OAuth redirect)
+  // Check if user is already logged in 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        // Check if user has completed survey (has student_type)
+        const { data: userData } = await supabase.auth.getUser();
+        const hasStudentType = userData?.user?.user_metadata?.student_type;
+        
+        if (!hasStudentType) {
+          // Incomplete profile - needs to complete survey
+          navigate("/survey");
+        } else {
+          // Complete profile - go to dashboard
+          navigate("/dashboard");
+        }
       }
     };
     checkSession();
@@ -49,7 +59,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/login`
         }
       });
       if (error) {

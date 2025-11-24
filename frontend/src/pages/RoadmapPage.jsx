@@ -1,5 +1,5 @@
 // src/pages/RoadmapPage.jsx
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
@@ -29,6 +29,13 @@ function RoadmapPage() {
 
   const openDrawer = useCallback(() => setIsMenuOpen(true), []);
   const closeDrawer = useCallback(() => setIsMenuOpen(false), []);
+
+  // Scroll to top when a degree is selected
+  useEffect(() => {
+    if (selectedDegreeId) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedDegreeId]);
 
   const handleProceed = () => {
     if (!selectedDegreeId || !selectedDegreeObject) {

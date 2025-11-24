@@ -347,7 +347,8 @@ REQUIRED JSON OUTPUT:
         "timing": "e.g., 'Summer (Nov-Feb)'",
         "paid": true/false,
         "application_period": "e.g., 'March-April'",
-        "competitiveness": "Brief note"
+        "competitiveness": "Brief note",
+        "apply_url": "Direct URL to apply or company careers page (e.g., 'https://careers.pwc.com.au/students')"
       }}
     ],
     "top_recruiting_companies": ["Company 1", "Company 2", "...8-10 total"],
@@ -414,18 +415,25 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
             specialisation_context += f"- Honours: {selected_honours}\n"
 
         
-    prompt = f"""You are a UNSW career advisor. Provide career info for {program_name} ({faculty}) graduates.
+    prompt = f"""You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
 {specialisation_context}
 
+IMPORTANT: Base your role information on REAL job listings currently posted on Australian job sites (Seek, Indeed, LinkedIn, GradConnection). Use actual job titles, realistic salary ranges from current listings, and provide direct URLs to example listings or search results.
 
 A. ENTRY ROLES (3 roles, 0-2yrs)
-   - Title, salary AUD, 1-2 sentence description, requirements, 2-3 hiring companies, data source
+   - Title, salary AUD (based on current listings)
+   - DETAILED description (3-4 sentences): What you'd do day-to-day, key responsibilities, how it uses skills from the degree, why it suits {program_name} graduates
+   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
 B. MID ROLES (2 roles, 3-7yrs)
-   - Title, salary, 1-2 sentence description, requirements, 2-3 hiring companies, data source
+   - Title, salary AUD (based on current listings)
+   - DETAILED description (3-4 sentences): Day-to-day work, leadership/specialist responsibilities, career progression from entry level, how advanced skills from {program_name} apply
+   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
 C. SENIOR ROLES (2 roles, 8+yrs)
-   - Title, salary, 1-2 sentence description, requirements, 2-3 hiring companies, data source
+   - Title, salary AUD (based on current listings)
+   - DETAILED description (3-4 sentences): Strategic responsibilities, team/department leadership, impact on business outcomes, how expertise from {program_name} background provides competitive advantage
+   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
 D. CERTIFICATIONS (2-3 certs)
    - Name, provider, importance, timeline, notes (optional)
@@ -448,12 +456,13 @@ JSON STRUCTURE:
     "entry_level": {{
       "roles": [
         {{
-          "title": "...",
-          "salary_range": "...",
-          "description": "1-2 sentence description of the role and responsibilities",
-          "requirements": "...",
-          "hiring_companies": ["...", "...", "..."],
-          "source": "Seek/LinkedIn/GradConnection/Indeed/Company Website"
+          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+          "salary_range": "$X - $Y AUD based on current listings",
+          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+          "requirements": "Key requirements from actual listings",
+          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "source": "Seek/Indeed/LinkedIn/GradConnection",
+          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
       ],
       "years_experience": "0-2 years"
@@ -461,12 +470,13 @@ JSON STRUCTURE:
     "mid_career": {{
       "roles": [
         {{
-          "title": "...",
-          "salary_range": "...",
-          "description": "1-2 sentence description of the role and responsibilities",
-          "requirements": "...",
-          "hiring_companies": ["...", "...", "..."],
-          "source": "Seek/LinkedIn/Glassdoor/Company Website"
+          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+          "salary_range": "$X - $Y AUD based on current listings",
+          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+          "requirements": "Key requirements from actual listings",
+          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "source": "Seek/Indeed/LinkedIn/GradConnection",
+          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
       ],
       "years_experience": "3-7 years"
@@ -474,12 +484,13 @@ JSON STRUCTURE:
     "senior": {{
       "roles": [
         {{
-          "title": "...",
-          "salary_range": "...",
-          "description": "1-2 sentence description of the role and responsibilities",
-          "requirements": "...",
-          "hiring_companies": ["...", "...", "..."],
-          "source": "LinkedIn/Executive Networks/Company Website"
+          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+          "salary_range": "$X - $Y AUD based on current listings",
+          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+          "requirements": "Key requirements from actual listings",
+          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "source": "Seek/Indeed/LinkedIn/GradConnection",
+          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
       ],
       "years_experience": "8+ years"
@@ -513,14 +524,6 @@ JSON STRUCTURE:
   }}
 }}
 
-VALIDATION CHECKLIST:
-✓ All keys in double quotes: "name", "provider", "title", "source"
-✓ No unquoted property names
-✓ Valid JSON syntax throughout
-✓ Proper comma placement
-✓ Job descriptions are 1-2 sentences
-✓ Each role has a "source" field
-
 Return ONLY valid JSON. Start with {{ and end with }}.
 """
 
@@ -535,13 +538,52 @@ Return ONLY valid JSON. Start with {{ and end with }}.
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
-        # Parse JSON
         result = sanitize_and_parse_json(json_only)
-        
-        entry_roles = len(result.get('career_pathways', {}).get('entry_level', {}).get('roles', []))
-        print(f"[Stage 3: Careers] ✓ Generated {entry_roles} entry-level roles + full pathway")
+
+        # Basic count
+        entry_roles = result.get('career_pathways', {}).get('entry_level', {}).get('roles', [])
+        mid_roles = result.get('career_pathways', {}).get('mid_career', {}).get('roles', [])
+        senior_roles = result.get('career_pathways', {}).get('senior', {}).get('roles', [])
+
+        print(f"[Stage 3: Careers] ✓ Generated {len(entry_roles)} entry-level roles + full pathway")
+
+        # DETAILED DEBUGGING OUTPUT
+        print("\n" + "="*80)
+        print("DEBUG - CAREER PATHWAYS GENERATED CONTENT")
+        print("="*80)
+
+        # Entry Level Roles
+        print("\n ENTRY LEVEL ROLES:")
+        for idx, role in enumerate(entry_roles, 1):
+            print(f"\n  Role {idx}:")
+            print(f"    Title: {role.get('title', 'N/A')}")
+            print(f"    Salary: {role.get('salary_range', 'N/A')}")
+            print(f"    Description: {role.get('description', 'N/A')[:150]}...")
+            print(f"    Requirements: {role.get('requirements', 'N/A')[:100]}...")
+            print(f"    Source: {role.get('source', 'N/A')}")
+            print(f"    Source URL: {role.get('source_url', 'N/A')}")
+            print(f"    Hiring Companies: {', '.join(role.get('hiring_companies', []))}")
+
+        # Mid Career Roles
+        print("\n MID-CAREER ROLES:")
+        for idx, role in enumerate(mid_roles, 1):
+            print(f"\n  Role {idx}:")
+            print(f"    Title: {role.get('title', 'N/A')}")
+            print(f"    Salary: {role.get('salary_range', 'N/A')}")
+            print(f"    Source URL: {role.get('source_url', 'N/A')}")
+
+        # Senior Roles
+        print("\n SENIOR ROLES:")
+        for idx, role in enumerate(senior_roles, 1):
+            print(f"\n  Role {idx}:")
+            print(f"    Title: {role.get('title', 'N/A')}")
+            print(f"    Salary: {role.get('salary_range', 'N/A')}")
+            print(f"    Source URL: {role.get('source_url', 'N/A')}")
+
+        print("\n" + "="*80 + "\n")
+
         return result
-        
+                
     except Exception as e:
         print(f"[Stage 3: Careers] ✗ Error: {e}")
         print(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
