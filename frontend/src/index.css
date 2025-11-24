@@ -476,3 +476,41 @@ body {
 .animate-shimmer { 
   animation: shimmer 2s infinite; 
 }
+
+
+.control-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+/* Light mode */
+.control-btn {
+  border-color: rgb(203 213 225);
+  background-color: white;
+  color: rgb(51 65 85);
+}
+
+.control-btn:hover {
+  background-color: rgb(248 250 252);
+}
+
+/* Dark mode */
+.dark .control-btn {
+  border-color: rgb(51 65 85);
+  background-color: rgb(30 41 59);
+  color: rgb(203 213 225);
+}
+
+.dark .control-btn:hover {
+  background-color: rgb(51 65 85);
+}
+
+/* Disabled state */
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,9 +1,7 @@
+// src/pages/mindmesh/components/GraphControls.jsx
+import { HelpCircle } from "lucide-react";
 import AutoLayoutControls from "./AutoLayoutControls";
 
-/**
- * GraphControls.jsx
- * Toolbar for navigation, layout, and freeze controls in the MindMesh graph.
- */
 export default function GraphControls({
   graphHistory,
   handleBack,
@@ -17,69 +15,91 @@ export default function GraphControls({
   graphRef,
   setFrozen,
   focusedNode,          
-  handleViewCourse,     
+  handleViewCourse,
+  onShowHelp,
 }) {
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800">
-      {/* Title + Subtitle + View Button */}
+    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 
+                    bg-white dark:bg-slate-900 shadow-sm">
+      {/* Title + Subtitle */}
       <div className="flex items-center gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">MindMesh</h1>
-          <p className="text-sm text-slate-300/80">
-            Interactive graph of your selected degrees and courses.
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">MindMesh</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Interactive course prerequisite visualizer
           </p>
         </div>
 
-        {/* button appears next to the title when a node is selected */}
+        {/* View Course Button (appears when node is focused) */}
         {focusedNode && (
           <button
             onClick={handleViewCourse}
-            className="
-              px-6 py-2.5 text-base font-semibold tracking-wide
-              text-white rounded-xl
-              bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700
-              hover:from-sky-400 hover:via-blue-500 hover:to-indigo-600
-              border border-blue-400/40
-              shadow-[0_0_10px_rgba(56,189,248,0.3)]
-              hover:shadow-[0_0_18px_rgba(56,189,248,0.5)]
-              transition-all duration-200
-              hover:scale-[1.05] active:scale-[0.98]
-            "
+            className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl
+                     bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
+                     hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
+                     shadow-lg hover:shadow-xl transition-all duration-200
+                     hover:scale-105 active:scale-95"
           >
             View Course Details
           </button>
         )}
-
       </div>
 
       {/* Control Buttons */}
       <div className="flex items-center gap-2">
+        {/* Help Button */}
+        <button
+          onClick={onShowHelp}
+          className="p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 
+                   bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700
+                   text-slate-700 dark:text-slate-300 transition-colors"
+          title="Show help guide"
+        >
+          <HelpCircle className="h-5 w-5" />
+        </button>
+
+        {/* Navigation Buttons */}
         {graphHistory.current.length > 0 && (
           <>
-            <button onClick={handleBack} className="control-btn">
+            <button 
+              onClick={handleBack} 
+              className="control-btn"
+              title="Go back to previous view"
+            >
               Back
             </button>
-            <button onClick={handleHome} className="control-btn">
+            <button 
+              onClick={handleHome} 
+              className="control-btn"
+              title="Return to initial view"
+            >
               Home
             </button>
           </>
         )}
 
-        <button onClick={fitView} className="control-btn">
-          Fit
+        {/* View Controls */}
+        <button 
+          onClick={fitView} 
+          className="control-btn"
+          title="Fit all nodes in view"
+        >
+          Fit View
         </button>
 
         <button
           onClick={toggleFreeze}
           className={`control-btn ${
             frozen
-              ? "border-emerald-600 bg-emerald-700/20 text-emerald-300"
-              : "border-slate-700 bg-slate-800 hover:bg-slate-700"
+              ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
+              : ""
           }`}
+          title={frozen ? "Unfreeze graph movement" : "Freeze graph movement"}
         >
           {frozen ? "Unfreeze" : "Freeze"}
         </button>
 
+        {/* Layout Controls */}
         <AutoLayoutControls
           graph={graph}
           setGraph={setGraph}
