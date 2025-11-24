@@ -108,6 +108,29 @@ export default function ComparePage() {
 
   const fetchSpecialisationsForProgram = async (degreeCode, isBase = true) => {
     try {
+      // Check if this is a double degree
+      let codesToMatch = [degreeCode];
+
+      const { data: degreeData } = await supabase
+        .from("unsw_degrees_final")
+        .select("program_name")
+        .eq("degree_code", degreeCode)
+        .single();
+
+      if (degreeData?.program_name?.includes("/")) {
+        // It's a double degree - get individual program codes
+        const programNames = degreeData.program_name.split("/").map(n => n.trim());
+
+        const { data: individualDegrees } = await supabase
+          .from("unsw_degrees_final")
+          .select("degree_code, program_name")
+          .in("program_name", programNames);
+
+        if (individualDegrees?.length > 0) {
+          codesToMatch = individualDegrees.map(d => d.degree_code);
+        }
+      }
+
       const { data: specs } = await supabase
         .from("unsw_specialisations")
         .select("major_code, major_name, specialisation_type, sections_degrees")
@@ -119,7 +142,7 @@ export default function ComparePage() {
             ? JSON.parse(spec.sections_degrees)
             : spec.sections_degrees;
 
-          return degrees?.some((d) => d.degree_code === degreeCode);
+          return degrees?.some((d) => codesToMatch.includes(d.degree_code));
         } catch {
           return false;
         }
