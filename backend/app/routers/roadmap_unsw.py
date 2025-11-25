@@ -178,7 +178,6 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
   }},
   "industry": {{
     "trainingInfo": "Describe any mandatory or optional work placements, internships, industrial training, or practicum requirements",
-    "societies": ["List 3-5 relevant student societies (e.g., UNSW Business Society, Engineering Society, etc.)"],
     "rolesHint": "List 5-8 specific graduate job titles or career paths for this degree"
   }},
   "source": "Provide the official UNSW Handbook URL for this program"

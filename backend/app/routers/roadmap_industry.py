@@ -716,6 +716,7 @@ async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
 
+    # Save to industry_societies for frontend polling
     payload["industry_societies"] = societies_result.get("societies", {})
 
     # Save immediately

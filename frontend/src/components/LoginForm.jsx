@@ -13,30 +13,9 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState('false');
   const navigate = useNavigate();
-  const [remember, setRemember] = useState(false)
+  const [remember] = useState(false)
 
   const { signInUser } = UserAuth();
-
-  // Check if user is already logged in 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Check if user has completed survey (has student_type)
-        const { data: userData } = await supabase.auth.getUser();
-        const hasStudentType = userData?.user?.user_metadata?.student_type;
-        
-        if (!hasStudentType) {
-          // Incomplete profile - needs to complete survey
-          navigate("/survey");
-        } else {
-          // Complete profile - go to dashboard
-          navigate("/dashboard");
-        }
-      }
-    };
-    checkSession();
-  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -59,7 +38,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       if (error) {
