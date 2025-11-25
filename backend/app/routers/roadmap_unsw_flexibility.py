@@ -512,17 +512,23 @@ def _generate_and_update_flexibility_sync(roadmap_id: str, roadmap_data: dict):
         print(f"[Flexibility] Context built: {json.dumps(context, indent=2)}")
 
         # ---- Generate flexibility recommendations ----
-        # Note: this call is async, so we must run it in a temporary event loop
         flexibility = asyncio.run(ai_generate_flexibility_info(context))
 
-        # Merge into existing payload
-        payload = roadmap_data.get("payload", {})
+        # Load LATEST payload from database (preserve other background tasks' work)
+        latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
+        payload = latest.data.get("payload", {}) if latest.data else {}
+
+        # Merge only flexibility data
         payload.update(flexibility)
 
         # Save back to database
+        from datetime import datetime
         update_response = (
             supabase.from_("unsw_roadmap")
-            .update({"payload": payload})
+            .update({
+                "payload": payload,
+                "updated_at": datetime.utcnow().isoformat()
+            })
             .eq("id", roadmap_id)
             .execute()
         )
