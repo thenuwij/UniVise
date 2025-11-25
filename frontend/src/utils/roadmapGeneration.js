@@ -96,10 +96,10 @@ export async function handleRoadmapGeneration({
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
       const roadmapId = json?.id || json?.roadmap_id;
-      console.log("Roadmap created, now polling for completion:", roadmapId);
+      console.log("Roadmap created, now polling for flexibility completion:", roadmapId);
 
       setProgress(20); // Base roadmap created
-    
+
       await new Promise(r => setTimeout(r, 1500));
       const maxAttempts = 90; 
       const pollInterval = 1000;
@@ -126,29 +126,19 @@ export async function handleRoadmapGeneration({
         const payload = roadmapData?.payload || {};
         finalPayload = payload;
 
-        // Check which sections are complete
+        // Check if flexibility section is complete
         const hasFlexibility = !!payload.flexibility_detailed;
-        const hasSocieties = !!payload.industry_societies;
-        const hasExperience = !!payload.industry_experience;
-        const hasCareers = !!payload.career_pathways;
 
-        // Calculate progress based on completed sections
-        let completedSections = 0;
-        if (hasFlexibility) completedSections++;
-        if (hasSocieties) completedSections++;
-        if (hasExperience) completedSections++;
-        if (hasCareers) completedSections++;
-
-        // Progress: 20% base + 26.6% per priority section (flexibility + societies = 73%), then rest
-        const prioritySections = (hasFlexibility ? 1 : 0) + (hasSocieties ? 1 : 0);
-        const progress = 20 + (prioritySections * 40); // 20 -> 60 -> 100
+        // Smooth progress animation: 20% to 95% while waiting for flexibility
+        const progress = hasFlexibility ? 95 : Math.min(20 + (attempts * 0.8), 90);
         setProgress(progress);
 
-        console.log(`[Polling] Attempt ${attempts}: ${prioritySections}/2 priority sections complete`);
+        console.log(`[Polling] Attempt ${attempts}: Flexibility complete: ${hasFlexibility}`);
 
-        // Navigate once flexibility and societies are done (industry/careers load in background)
-        if (hasFlexibility && hasSocieties) {
-          console.log("Priority sections complete, navigating to roadmap");
+        // Navigate as soon as flexibility is ready
+        if (hasFlexibility) {
+          console.log("Flexibility complete. Navigating to roadmap...");
+          console.log("Note: Societies, careers, and industry experience will continue loading in background");
           break;
         }
 
@@ -156,13 +146,14 @@ export async function handleRoadmapGeneration({
         await new Promise(r => setTimeout(r, pollInterval));
       }
 
-      // Navigate even if timeout
+      // Navigate to roadmap
       setProgress(100);
       navigate("/roadmap/unsw", {
         state: {
           degree,
           payload: finalPayload,
           roadmap_id: roadmapId,
+          backgroundLoading: true, // Flag to indicate background sections are still loading
         },
         replace: true,
       });

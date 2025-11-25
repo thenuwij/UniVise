@@ -32,6 +32,7 @@ import MyPathway from "./pages/MyPathway";
 import ProgressPage from "./pages/ProgressPage";
 import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
 import ComparePage from "./pages/ComparePage";
+import AuthCallback from "./components/AuthCallBack";
 
 
 
@@ -70,5 +71,6 @@ export const router = createBrowserRouter([
   { path: "/mypathway", element: <PrivateRoute><MyPathway /></PrivateRoute> },
   { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
   { path: "/compare", element: <PrivateRoute><ComparePage /></PrivateRoute> },
+  { path: "/auth/callback", element: <AuthCallback /> },
   
 ]);
