@@ -426,7 +426,8 @@ export default function RoadmapUNSWPage() {
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
       },
-      {
+
+      ...(data?.payload?.flexibility_detailed ? [{
         key: "flex",
         title: "Flexibility",
         render: () => (
@@ -435,7 +436,8 @@ export default function RoadmapUNSWPage() {
             simulatorLink="/switching"
           />
         ),
-      },
+      }] : []),
+      
       {
         key: "societies",
         title: "Societies & Community",

@@ -25,54 +25,6 @@ CORE_COURSE_KEYWORDS = [
 # HELPER FUNCTIONS
 # =========================
 
-#------------- Honours Section ----------------
-#------------- Honours Section ----------------
-def get_honours_context_for_faculty(faculty: str) -> str:
-    """
-    Fetches Honours context text from the honours_contexts table in Supabase.
-    If no faculty-specific context is found (e.g., not Business or Engineering),
-    it automatically falls back to the 'General' context.
-    """
-    try:
-        # Normalise input
-        faculty_clean = (faculty or "General").strip().lower()
-
-        # Query Supabase for that faculty
-        result = (
-            supabase.from_("honours_contexts")
-            .select("description")
-            .ilike("faculty", f"%{faculty_clean}%")
-            .maybe_single()
-            .execute()
-        )
-
-        data = getattr(result, "data", None)
-
-        # If data exists and has description → return it
-        if data and data.get("description"):
-            return data["description"]
-
-        # Otherwise, fallback to General
-        fallback = (
-            supabase.from_("honours_contexts")
-            .select("description")
-            .ilike("faculty", "%general%")
-            .maybe_single()
-            .execute()
-        )
-
-        if fallback and getattr(fallback, "data", None):
-            return fallback.data["description"]
-
-        # Nothing found at all
-        print(f"No honours context found for '{faculty_clean}' (even General missing).")
-        return ""
-
-    except Exception as e:
-        print(f"Error fetching honours context from DB: {e}")
-        return ""
-
-
 #------------- Capstone Section ----------------
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:

@@ -266,19 +266,28 @@ export default function ProgramFlexibility({
         </div>
       )}
 
-      {/* ========== LOADING STATE ========== */}
+      {/* ========== LOADING/NO DATA STATE ========== */}
       {!hasNewData && (
         <div className="mb-8">
-          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 mb-4 p-4 
-                        bg-gradient-to-r from-blue-50/50 to-indigo-50/50 
-                        dark:from-blue-900/10 dark:to-indigo-900/10 
-                        rounded-xl border border-blue-200/40 dark:border-blue-800/40">
-            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 animate-pulse" />
-            <span className="text-sm font-medium">
-              Generating personalized flexibility recommendations...
-            </span>
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 
+                        dark:from-slate-800/50 dark:to-slate-800/30 
+                        border border-slate-200/60 dark:border-slate-700/60">
+            <div className="flex items-start gap-3 mb-3">
+              <Info className="h-5 w-5 text-slate-500 dark:text-slate-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Flexibility Information Unavailable
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Detailed degree switching recommendations are not available for this program. 
+                  This typically occurs when the program structure doesn't include specific course 
+                  listings in our database. For more information about switching programs, visit the 
+                  <span className="font-semibold text-blue-600 dark:text-blue-400"> My Planner </span> 
+                  section or contact UNSW Student Central.
+                </p>
+              </div>
+            </div>
           </div>
-          <LoadingShimmer />
         </div>
       )}
     </div>

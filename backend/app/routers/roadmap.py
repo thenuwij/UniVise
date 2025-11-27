@@ -76,11 +76,20 @@ async def create_unsw(
     try:
         import asyncio
         
-        print(f"[Background] Launching flexibility + industry/careers in parallel for roadmap: {rec['id']}")
-        asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
-        asyncio.create_task(generate_and_update_societies(rec["id"], rec))
-        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec)) 
+        # Check if degree has courses for flexibility generation
+        degree_code = ctx.get("degree_code")
+        core_courses = ctx.get("core_courses", [])
         
+        if core_courses and len(core_courses) > 0:
+            print(f"[Background] Launching flexibility (has {len(core_courses)} courses)")
+            asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
+        else:
+            print(f"[Background] Skipping flexibility - no courses found for degree {degree_code}")
+        
+        # Always generate societies and industry/careers
+        asyncio.create_task(generate_and_update_societies(rec["id"], rec))
+        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
+            
     except Exception as e:
         print(f"[Background] Failed to schedule tasks: {e}")
 
