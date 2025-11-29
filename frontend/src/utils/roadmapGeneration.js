@@ -82,6 +82,15 @@ export async function handleRoadmapGeneration({
 
       // Stage 1: Call API to start generation
       setProgress(5);
+
+      // Start smooth progress animation BEFORE the blocking fetch
+      let currentProgress = 5;
+      const progressInterval = setInterval(() => {
+        currentProgress = Math.min(currentProgress + 0.5, 90); // Slowly move to 90%
+        setProgress(currentProgress);
+      }, 100); // Update every 100ms
+
+      // This blocks while backend AI generates (~10-15 seconds)
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw`, {
         method: "POST",
         headers: {
@@ -95,56 +104,17 @@ export async function handleRoadmapGeneration({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
+      // Stop animation once backend responds
+      clearInterval(progressInterval);
+
       const roadmapId = json?.id || json?.roadmap_id;
-      console.log("Roadmap created, now polling for flexibility completion:", roadmapId);
-
-      setProgress(20); // Base roadmap created
-
-      await new Promise(r => setTimeout(r, 1500));
-      const maxAttempts = 90; 
-      const pollInterval = 1000;
-      
-      let attempts = 0;
       let finalPayload = json?.payload || {};
 
-      while (attempts < maxAttempts) {
-        attempts++;
-        
-        // Check current state in database
-        const { data: roadmapData, error } = await supabase
-          .from("unsw_roadmap")
-          .select("payload")
-          .eq("id", roadmapId)
-          .single();
+      // Quick final push to 95%
+      setProgress(95);
 
-        if (error) {
-          console.warn("Polling error:", error.message);
-          await new Promise(r => setTimeout(r, pollInterval));
-          continue;
-        }
-
-        const payload = roadmapData?.payload || {};
-        finalPayload = payload;
-
-        // Check if flexibility section is complete
-        const hasFlexibility = !!payload.flexibility_detailed;
-
-        // Smooth progress animation: 20% to 95% while waiting for flexibility
-        const progress = hasFlexibility ? 95 : Math.min(20 + (attempts * 0.8), 90);
-        setProgress(progress);
-
-        console.log(`[Polling] Attempt ${attempts}: Flexibility complete: ${hasFlexibility}`);
-
-        // Navigate as soon as flexibility is ready
-        if (hasFlexibility) {
-          console.log("Flexibility complete. Navigating to roadmap...");
-          console.log("Note: Societies, careers, and industry experience will continue loading in background");
-          break;
-        }
-
-        // Wait before next poll
-        await new Promise(r => setTimeout(r, pollInterval));
-      }
+      console.log("Initial generation complete. Navigating to roadmap...");
+      console.log("Note: Flexibility, societies, and careers will continue loading in background");
 
       // Navigate to roadmap
       setProgress(100);

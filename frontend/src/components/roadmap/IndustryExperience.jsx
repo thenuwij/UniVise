@@ -67,6 +67,7 @@ export default function IndustryExperience({ industryExperience }) {
       </div>
 
       {/* ========== MANDATORY PLACEMENTS BANNER ========== */}
+      
       {mandatoryPlacements && (
         <div className={`mb-8 p-6 rounded-xl border shadow-sm ${
           mandatoryPlacements.required 
@@ -100,6 +101,163 @@ export default function IndustryExperience({ industryExperience }) {
           </div>
         </div>
       )}
+
+      {/* ========== UNSW CAREER RESOURCES ========== */}
+      <div className="mb-8 p-6 rounded-xl border border-amber-200/60 dark:border-amber-800/60 
+                    bg-gradient-to-br from-amber-50/40 via-yellow-50/30 to-orange-50/20 
+                    dark:from-amber-900/15 dark:via-yellow-900/10 dark:to-orange-900/10 
+                    shadow-sm">
+        <div className="flex items-start gap-4 mb-5">
+          <div className="p-2.5 rounded-lg bg-amber-100/80 dark:bg-amber-900/30 shadow-sm">
+            <Briefcase className="h-5 w-5 text-amber-700 dark:text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-2 text-amber-900 dark:text-amber-300">
+              UNSW Career Resources
+            </h4>
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              Access internships, graduate programs, and career guidance through UNSW's official platforms
+            </p>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+
+          {/* UNSWConnect */}
+          <a
+            href="https://unswconnect.unsw.edu.au"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative p-5 rounded-xl 
+                      bg-white dark:bg-slate-900/60
+                      border-2 border-amber-300/60 dark:border-amber-700/60
+                      hover:border-amber-400 dark:hover:border-amber-600
+                      hover:shadow-lg hover:-translate-y-1
+                      transition-all duration-300"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h5 className="text-base font-bold text-amber-900 dark:text-amber-300 mb-1 
+                            group-hover:text-amber-800 dark:group-hover:text-amber-200 transition-colors">
+                  UNSWConnect
+                </h5>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Find internships, part-time jobs, and graduate opportunities
+                </p>
+              </div>
+              <div className="p-2 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 
+                            group-hover:bg-amber-200/60 dark:group-hover:bg-amber-900/30 
+                            transition-colors">
+                <svg
+                  className="h-4 w-4 text-amber-700 dark:text-amber-400 
+                          group-hover:translate-x-0.5 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Job Board
+              </span>
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Internships
+              </span>
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Events
+              </span>
+            </div>
+
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 
+                          bg-gradient-to-br from-amber-50/50 to-yellow-50/50 
+                          dark:from-amber-900/10 dark:to-yellow-900/10 
+                          pointer-events-none transition-opacity duration-300" />
+          </a>
+
+          {/* UNSW Prosple */}
+          <a
+            href="https://unsw.prosple.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative p-5 rounded-xl 
+                      bg-white dark:bg-slate-900/60
+                      border-2 border-amber-300/60 dark:border-amber-700/60
+                      hover:border-amber-400 dark:hover:border-amber-600
+                      hover:shadow-lg hover:-translate-y-1
+                      transition-all duration-300"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h5 className="text-base font-bold text-amber-900 dark:text-amber-300 mb-1 
+                            group-hover:text-amber-800 dark:group-hover:text-amber-200 transition-colors">
+                  UNSW Prosple
+                </h5>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Explore graduate programs and early career opportunities
+                </p>
+              </div>
+              <div className="p-2 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 
+                            group-hover:bg-amber-200/60 dark:group-hover:bg-amber-900/30 
+                            transition-colors">
+                <svg
+                  className="h-4 w-4 text-amber-700 dark:text-amber-400 
+                          group-hover:translate-x-0.5 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Grad Programs
+              </span>
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Career Advice
+              </span>
+              <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 
+                            text-amber-800 dark:text-amber-300 
+                            text-xs font-semibold rounded-md">
+                Employer Profiles
+              </span>
+            </div>
+
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 
+                          bg-gradient-to-br from-amber-50/50 to-yellow-50/50 
+                          dark:from-amber-900/10 dark:to-yellow-900/10 
+                          pointer-events-none transition-opacity duration-300" />
+          </a>
+
+        </div>
+      </div>
+
 
       {/* ========== INTERNSHIP PROGRAMS ========== */}
       {internshipPrograms.length > 0 && (

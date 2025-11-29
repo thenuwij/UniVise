@@ -109,6 +109,12 @@ export default function SpecialisationSelectionPanel({
       const currentCodes = enrolledProgram.specialisation_codes || [];
       const currentNames = enrolledProgram.specialisation_names || [];
 
+      // Find the old spec code being replaced
+      const oldSpecCode = currentCodes.find((code) => {
+        const s = availableSpecialisations.find(sp => sp.major_code === code);
+        return s && s.specialisation_type === selectingType;
+      });
+
       // Remove old spec of this type
       const filteredCodes = currentCodes.filter((code) => {
         const s = availableSpecialisations.find(sp => sp.major_code === code);
@@ -132,12 +138,17 @@ export default function SpecialisationSelectionPanel({
         })
         .eq("user_id", userId);
 
-      // Delete completed courses for this specialisation type
-      await supabase
-        .from("user_completed_courses")
-        .delete()
-        .eq("user_id", userId)
-        .ilike("category", `%${selectingType}%`);
+      // Delete completed courses for the OLD specialisation being replaced
+      if (oldSpecCode) {
+        const sourceType = selectingType.toLowerCase(); // 'major', 'minor', 'honours'
+        
+        await supabase
+          .from("user_completed_courses")
+          .delete()
+          .eq("user_id", userId)
+          .eq("source_type", sourceType)
+          .eq("source_code", oldSpecCode);
+      }
 
       setConfirmedSpecs(prev => ({
         ...prev,

@@ -6,8 +6,33 @@ export default function CourseStructureDisplay({
   structure, 
   completedCourses, 
   userId, 
+  enrolledProgram, // NEW: needed to get source codes
   onCourseUpdate 
 }) {
+  // Helper to get source type from section source
+  const getSourceType = (source) => {
+    if (source === "program") return "program";
+    if (source === "Major") return "major";
+    if (source === "Minor") return "minor";
+    if (source === "Honours") return "honours";
+    return "program";
+  };
+
+  // Helper to get source code for a section
+  const getSourceCode = (section) => {
+    // For program courses, return the degree code
+    if (section.source === "program") {
+      return enrolledProgram?.degree_code || null;
+    }
+    
+    // For specialisations, find the major_code from enrolled program
+    const specNames = enrolledProgram?.specialisation_names || [];
+    const specCodes = enrolledProgram?.specialisation_codes || [];
+    const index = specNames.indexOf(section.sourceName);
+    
+    return index >= 0 ? specCodes[index] : null;
+  };
+
   // Group sections by source (program vs specialisations)
   const programSections = structure.filter(s => s.source === "program");
   
@@ -39,7 +64,6 @@ export default function CourseStructureDisplay({
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 ml-16">Program</p>
           </div>
-          
           <div className="space-y-8">
             {programSections.map((section, idx) => (
               <CourseSection
@@ -47,6 +71,10 @@ export default function CourseStructureDisplay({
                 section={section}
                 completedCourses={completedCourses}
                 userId={userId}
+                courseSource={{
+                  source_type: getSourceType(section.source),
+                  source_code: getSourceCode(section)
+                }}
                 onCourseUpdate={onCourseUpdate}
               />
             ))}
@@ -68,7 +96,6 @@ export default function CourseStructureDisplay({
               {group.type}
             </p>
           </div>
-          
           <div className="space-y-8">
             {group.sections.map((section, idx) => (
               <CourseSection
@@ -76,6 +103,10 @@ export default function CourseStructureDisplay({
                 section={section}
                 completedCourses={completedCourses}
                 userId={userId}
+                courseSource={{
+                  source_type: getSourceType(section.source),
+                  source_code: getSourceCode(section)
+                }}
                 onCourseUpdate={onCourseUpdate}
               />
             ))}
