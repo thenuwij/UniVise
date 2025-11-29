@@ -6,7 +6,6 @@ import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import GraphControls from "./components/GraphControls";
-import HelpPanel from "./components/HelpPanel";
 import WelcomeModal from "./components/WelcomeModal";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
 import useMindMeshData from "./hooks/useMindMeshData";
@@ -273,7 +272,6 @@ export default function MindMeshGraphPage() {
       {/* Graph Canvas */}
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
-          <HelpPanel />
           <MindMeshInfoPanel
             graph={graph}
             programCode={programCode}

@@ -50,12 +50,14 @@ export default function GraphControls({
         {/* Help Button */}
         <button
           onClick={onShowHelp}
-          className="p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 
-                   bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700
-                   text-slate-700 dark:text-slate-300 transition-colors"
+          className="px-4 py-2.5 rounded-xl border border-sky-300 dark:border-sky-700 
+                    bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-800/30
+                    text-sky-700 dark:text-sky-300 transition-colors font-medium
+                    flex items-center gap-2"
           title="Show help guide"
         >
           <HelpCircle className="h-5 w-5" />
+          Help
         </button>
 
         {/* Navigation Buttons */}
