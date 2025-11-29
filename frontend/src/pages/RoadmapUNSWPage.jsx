@@ -21,6 +21,7 @@ import IndustryExperience from "../components/roadmap/IndustryExperience";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
 import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
 
+
 // --- Constants ---
 const DEFAULT_PROGRAM_NAME = "Selected degree";
 const DEFAULT_UAC_CODE = "—";
@@ -350,6 +351,15 @@ export default function RoadmapUNSWPage() {
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+  const getUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUserId(user?.id);
+  };
+  getUser();
+}, []);
 
   const { data, loading, error, header, updateHeader } = useRoadmapData(
     preloadedPayload,
@@ -427,16 +437,18 @@ export default function RoadmapUNSWPage() {
         render: () => <CapstoneHonours data={data} />,
       },
 
-      ...(data?.payload?.flexibility_detailed ? [{
+      {
         key: "flex",
         title: "Flexibility",
         render: () => (
           <ProgramFlexibility
             flexibility={data?.payload?.flexibility_detailed}
-            simulatorLink="/switching"
+            roadmapId={preloadedRoadmapId}
+            degreeCode={degreeCodeValue}  
+            userId={userId}
           />
         ),
-      }] : []),
+      },
       
       {
         key: "societies",
@@ -515,7 +527,7 @@ export default function RoadmapUNSWPage() {
         },
       },
     ];
-  }, [data, activeDegree, header]);
+  }, [data, activeDegree, header, userId]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 

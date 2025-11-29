@@ -1,5 +1,5 @@
 // src/components/roadmap/EntryRequirementsCard.jsx (School version)
-import { GraduationCap, BookOpen, Target } from "lucide-react";
+import { GraduationCap, BookOpen, Target, Info } from "lucide-react";
 
 export default function EntryRequirementsCard({ atar, selectionRank, subjects = [] }) {
   return (
@@ -19,10 +19,10 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
           
           <div className="flex-1">
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              Key Entry Requirements
+              Entry Requirements
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Check the latest university handbook for precise thresholds.
+              Check the latest university handbook for complete admission criteria
             </p>
           </div>
         </div>
@@ -41,6 +41,20 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
               <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 Entry ATAR
               </span>
+              <div className="relative group/tooltip ml-1">
+                <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                              bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                              opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                              transition-all duration-200 shadow-lg z-10
+                              pointer-events-none w-[220px]">
+                  <div className="whitespace-normal leading-relaxed">
+                    Australian Tertiary Admission Rank - the lowest ATAR score typically accepted
+                  </div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                                border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+                </div>
+              </div>
             </div>
             <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {atar || "Check university"}
@@ -57,6 +71,20 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
               <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 Selection Rank
               </span>
+              <div className="relative group/tooltip ml-1">
+                <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                              bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                              opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                              transition-all duration-200 shadow-lg z-10
+                              pointer-events-none w-[220px]">
+                  <div className="whitespace-normal leading-relaxed">
+                    Minimum combined score needed for entry - includes ATAR plus any bonus points
+                  </div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                                border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+                </div>
+              </div>
             </div>
             <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {selectionRank || "Varies"}
@@ -73,6 +101,20 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
               <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 Assumed Knowledge
               </span>
+              <div className="relative group/tooltip ml-1">
+                <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                              bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                              opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                              transition-all duration-200 shadow-lg z-10
+                              pointer-events-none w-[220px]">
+                  <div className="whitespace-normal leading-relaxed">
+                    High school subjects you should have studied for this degree
+                  </div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                                border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+                </div>
+              </div>
             </div>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
               {subjects.length ? subjects.join(", ") : "—"}

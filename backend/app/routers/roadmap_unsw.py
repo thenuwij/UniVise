@@ -8,7 +8,9 @@ from .roadmap_unsw_helpers import (
     fetch_degree_related_info,
     fetch_program_core_courses,
     format_core_courses_for_prompt,
+    fetch_user_specialisation_context,
 )
+
 
 # ========== MAIN FUNCTIONS ==========
 async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
@@ -75,6 +77,15 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
             print(f"{'='*50}\n")
 
     faculty = degree.get("faculty")
+    
+    specialisations = {}
+    if user_id and degree_code:
+        try:
+            specialisations = fetch_user_specialisation_context(user_id, degree_code)
+            print(f"[TIMING] Fetched specialisations: {specialisations.get('selected_honours_name', 'None')}")
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch specialisations: {e}")
+
 
     # Return complete context
     return {
@@ -95,6 +106,13 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "double_degrees": doubles,
         "core_courses": core_courses,
         "core_courses_formatted": core_courses_formatted,
+        "selected_honours_name": specialisations.get("selected_honours_name"),
+        "selected_honours_courses": specialisations.get("selected_honours_courses", []),
+        "selected_honours_overview": specialisations.get("selected_honours_overview"),
+        "selected_major_name": specialisations.get("selected_major_name"),
+        "selected_major_courses": specialisations.get("selected_major_courses", []),
+        "selected_minor_name": specialisations.get("selected_minor_name"),
+        "selected_minor_courses": specialisations.get("selected_minor_courses", []),
     }
 
 
@@ -114,6 +132,44 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     majors_count = len(context.get("majors", []))
     minors_count = len(context.get("minors", []))
     core_courses_count = len(context.get("core_courses", []))
+    selected_honours = context.get("selected_honours_name")
+    selected_honours_courses = context.get("selected_honours_courses", [])
+    selected_honours_overview = context.get("selected_honours_overview")
+    selected_major_name = context.get("selected_major_name")
+    selected_major_courses = context.get("selected_major_courses", [])
+    selected_minor_name = context.get("selected_minor_name")
+    selected_minor_courses = context.get("selected_minor_courses", [])
+
+    # Build specialisation courses context for ALL THREE types (honours, major, minor)
+    specialisation_courses_text = ""
+    has_any_specialisation = selected_honours_courses or selected_major_courses or selected_minor_courses
+
+    if has_any_specialisation:
+        specialisation_courses_text = "\n=== STUDENT'S SELECTED SPECIALISATIONS ===\n"
+        
+        if selected_honours and selected_honours_courses:
+            specialisation_courses_text += f"Honours: {selected_honours}\n"
+            specialisation_courses_text += f"Core Honours Courses: {', '.join(selected_honours_courses)}\n\n"
+        
+        if selected_major_name and selected_major_courses:
+            specialisation_courses_text += f"Major: {selected_major_name}\n"
+            specialisation_courses_text += f"Core Major Courses: {', '.join(selected_major_courses)}\n\n"
+        
+        if selected_minor_name and selected_minor_courses:
+            specialisation_courses_text += f"Minor: {selected_minor_name}\n"
+            specialisation_courses_text += f"Core Minor Courses: {', '.join(selected_minor_courses)}\n\n"
+        
+        specialisation_courses_text += "IMPORTANT: When selecting signature courses, prioritize courses from the student's selected specialisations that showcase advanced/unique aspects of their chosen pathway.\n"
+        
+        # Build log message
+        selected_list = []
+        if selected_honours: selected_list.append(f"Honours: {selected_honours}")
+        if selected_major_name: selected_list.append(f"Major: {selected_major_name}")
+        if selected_minor_name: selected_list.append(f"Minor: {selected_minor_name}")
+        print(f"[Capstone] Including specialisation courses - {', '.join(selected_list)}")
+    else:
+        print(f"[Capstone] No specialisations selected, using core courses only")
+        
 
     # Token monitoring
     prompt_est_tokens = len(core_courses_text) // 4
@@ -124,13 +180,27 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
 
 {core_courses_text}
 
+{specialisation_courses_text}
+
 === INSTRUCTIONS ===
 1. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
-2. For capstone (use for PROGRAM HIGHLIGHTS):
-   - In the "courses" array: List 2-3 SIGNATURE or UNIQUE courses that define this program (must be from core courses list)
-   - These should be courses that make this program special or different (e.g., industry projects, unique electives, innovative units)
-   - In "highlights": Write 2-3 sentences describing what makes this program distinctive - unique features, teaching approach, industry connections, special opportunities
-   - Focus on educational value, not just course listings
+
+2. For capstone (PROGRAM HIGHLIGHTS):
+   - In "courses": List 2-3 SIGNATURE courses that best represent this program
+   - Choose from BOTH the core courses list AND specialisation courses (if provided above)
+   - Prioritize: final-year capstone projects, industry partnership courses, thesis/research units, or advanced technical courses
+   
+   - In "highlights": Write 2-3 sentences about what makes this program VALUABLE and why students should choose it.
+     Focus on PRACTICAL VALUE and OUTCOMES:
+     * What unique skills or expertise will students develop?
+     * What real-world experience or hands-on learning opportunities are available?
+     * How does the program prepare students for their career or further study?
+     * What makes graduates of this program competitive in the job market?
+     * What professional development or industry connections does the program provide?
+     
+     DO NOT write generic statements like "strong industry connections" or "excellent career prospects"
+     DO write value-focused statements like "Develops advanced financial modeling skills through live trading simulations and professional-grade tools, preparing graduates for analyst roles in investment banking"
+
 4. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
 5. Return ONLY valid JSON with NO trailing commas.
 
@@ -143,6 +213,9 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
 - Majors available: {majors_count}
 - Minors available: {minors_count}
 - Core courses provided: {core_courses_count}
+{"- Selected Honours: " + selected_honours + " (" + str(len(selected_honours_courses)) + " core courses)" if selected_honours else ""}
+{"- Selected Major: " + selected_major_name + " (" + str(len(selected_major_courses)) + " core courses)" if selected_major_name else ""}
+{"- Selected Minor: " + selected_minor_name + " (" + str(len(selected_minor_courses)) + " core courses)" if selected_minor_name else ""}
 
 === REQUIRED JSON OUTPUT ===
 {{
@@ -155,8 +228,8 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
   }},
 
   "capstone": {{
-    "courses": ["List 2-3 signature/unique course codes and names FROM CORE COURSES LIST that exemplify this program"],
-    "highlights": "Describe what makes this program unique and valuable - innovative teaching methods, industry partnerships, special opportunities, distinctive focus areas, etc. (2-3 sentences)"
+    "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
+    "highlights": "Write 2-3 sentences with SPECIFIC, CONCRETE details about opportunities, partnerships, facilities, outcomes, and career advantages. Include real company names, actual numbers, and tangible benefits."
   }},
   "flexibility": {{
     "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]
@@ -183,27 +256,31 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
     )
 
     # Validate capstone courses against core courses
-    core_codes = {c["code"] for c in context.get("core_courses", []) if c.get("code")}
+    all_valid_codes = {c["code"] for c in context.get("core_courses", []) if c.get("code")}
+    all_valid_codes.update(selected_honours_courses)
+    all_valid_codes.update(selected_major_courses)
+    all_valid_codes.update(selected_minor_courses)
+
     capstone_courses = draft.get("capstone", {}).get("courses", [])
 
-    if capstone_courses and core_codes:
+    if capstone_courses and all_valid_codes:
         validated_capstone = []
         for course_str in capstone_courses:
-            if any(code in course_str for code in core_codes):
+            if any(code in course_str for code in all_valid_codes):
                 validated_capstone.append(course_str)
 
         if not validated_capstone:
             draft["capstone"]["courses"] = []
             draft["capstone"]["highlights"] = (
-                "No dedicated capstone or thesis course was identified among the program's core courses."
+                "No dedicated capstone or signature course was identified among the program's courses."
             )
-            print("Capstone validation: No valid capstone courses found in core courses list")
+            print("Capstone validation: No valid courses found")
         else:
             draft["capstone"]["courses"] = validated_capstone
-            print(f"Capstone validation: {len(validated_capstone)} courses validated against core curriculum")
-
-    print("Stage 1: General program information generated successfully")
-    return draft
+            source = 'core + specialisation' if has_any_specialisation else 'core only'
+            print(f"Capstone validation: {len(validated_capstone)} courses validated from {source}")
+        print("Stage 1: General program information generated successfully")
+        return draft
 
 
 async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
@@ -368,6 +445,12 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "industry": general_info.get("industry"),
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),
+        "selected_honours_name": context.get("selected_honours_name"),
+        "selected_honours_courses": context.get("selected_honours_courses", []),
+        "selected_major_name": context.get("selected_major_name"),
+        "selected_major_courses": context.get("selected_major_courses", []),
+        "selected_minor_name": context.get("selected_minor_name"),
+        "selected_minor_courses": context.get("selected_minor_courses", []),
     }
 
     print("Parallel two-stage generation complete!")

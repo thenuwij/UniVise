@@ -79,9 +79,18 @@ async def create_unsw(
         # Check if degree has courses for flexibility generation
         degree_code = ctx.get("degree_code")
         core_courses = ctx.get("core_courses", [])
-        
-        if core_courses and len(core_courses) > 0:
-            print(f"[Background] Launching flexibility (has {len(core_courses)} courses)")
+
+        # Also check for specialization courses
+        honours_courses = ctx.get("selected_honours_courses", [])
+        major_courses = ctx.get("selected_major_courses", [])
+        minor_courses = ctx.get("selected_minor_courses", [])
+
+        total_courses = len(core_courses) + len(honours_courses) + len(major_courses) + len(minor_courses)
+
+        print(f"[FLEXIBILITY] degree_code={degree_code}, core={len(core_courses)}, honours={len(honours_courses)}, major={len(major_courses)}, minor={len(minor_courses)}, total={total_courses}")
+
+        if total_courses > 0:
+            print(f"[Background] Launching flexibility (has {total_courses} total courses)")
             asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
         else:
             print(f"[Background] Skipping flexibility - no courses found for degree {degree_code}")
