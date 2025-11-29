@@ -1,12 +1,10 @@
 // src/pages/ProgressPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
-import { MenuBar } from "../components/MenuBar";
-import React, { useState, useEffect, useMemo } from "react";
 
 import {
   HiAcademicCap,
