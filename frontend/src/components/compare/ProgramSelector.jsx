@@ -33,8 +33,12 @@ export default function ProgramSelector({
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
           {isBase ? "Step 1 of 2" : "Step 1 of 2"}
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{title}</h2>
-        <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl">{subtitle}</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl">
+          {subtitle}
+        </p>
       </div>
 
       {/* Quick Start - More prominent */}
@@ -55,7 +59,9 @@ export default function ProgramSelector({
               </p>
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="text-sm text-gray-900 dark:text-white">
-                  <span className="font-bold">{userEnrolledProgram.program_name}</span>
+                  <span className="font-bold">
+                    {userEnrolledProgram.program_name}
+                  </span>
                   <span className="ml-2 text-gray-500 dark:text-gray-400">
                     ({userEnrolledProgram.degree_code})
                   </span>
@@ -74,11 +80,12 @@ export default function ProgramSelector({
 
       {/* Main Selection Area */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        
         {/* Search with icon and better spacing */}
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            {isBase ? "Or search for a different program" : "Search for your target program"}
+            {isBase
+              ? "Or search for a different program"
+              : "Search for your target program"}
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -92,14 +99,14 @@ export default function ProgramSelector({
           </div>
           {searchValue && (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Found {filteredPrograms.length} program{filteredPrograms.length !== 1 ? 's' : ''}
+              Found {filteredPrograms.length} program
+              {filteredPrograms.length !== 1 ? "s" : ""}
             </p>
           )}
         </div>
 
         {/* Two column layout with better visual balance */}
         <div className="grid lg:grid-cols-2 gap-6">
-          
           {/* Left: Program list with better visual feedback */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
@@ -159,7 +166,8 @@ export default function ProgramSelector({
                   No Program Selected
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
-                  Select a program from the list to see details and choose specialisations
+                  Select a program from the list to see details and choose
+                  specialisations
                 </p>
               </div>
             ) : (
@@ -173,7 +181,9 @@ export default function ProgramSelector({
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Selected Program</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Selected Program
+                      </p>
                       <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                         {program.name}
                       </h4>
@@ -192,24 +202,29 @@ export default function ProgramSelector({
                         Specialisations (Optional)
                       </h4>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Select any majors, minors or honours to include in the comparison
+                        Select any majors, minors or honours to include in the
+                        comparison
                       </p>
                     </div>
                     <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                       {Object.entries(specsByType).map(([type, specs]) => (
                         <div key={type}>
                           <div className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 flex items-center gap-2">
-                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
+                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
                             <span>{type}</span>
-                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
+                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
                           </div>
                           <div className="space-y-1.5">
                             {specs.map((spec) => {
-                              const isSelected = selectedSpecs.includes(spec.major_code);
+                              const isSelected = selectedSpecs.includes(
+                                spec.major_code
+                              );
                               return (
                                 <button
                                   key={spec.major_code}
-                                  onClick={() => toggleSpec(spec.major_code, isBase)}
+                                  onClick={() =>
+                                    toggleSpec(spec.major_code, isBase)
+                                  }
                                   className={`w-full text-left px-3 py-2.5 rounded-lg text-xs border transition-all ${
                                     isSelected
                                       ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-900 dark:text-blue-100 shadow-sm"
@@ -217,7 +232,9 @@ export default function ProgramSelector({
                                   }`}
                                 >
                                   <div className="flex items-center justify-between gap-2">
-                                    <span className="font-medium flex-1">{spec.major_name}</span>
+                                    <span className="font-medium flex-1">
+                                      {spec.major_name}
+                                    </span>
                                     {isSelected && (
                                       <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                                     )}
@@ -265,29 +282,6 @@ export default function ProgramSelector({
           <ChevronLeft className="w-4 h-4 rotate-180" />
         </button>
       </div>
-
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(156, 163, 175, 0.5);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(156, 163, 175, 0.7);
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(75, 85, 99, 0.5);
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(75, 85, 99, 0.7);
-        }
-      `}</style>
     </div>
   );
 }
