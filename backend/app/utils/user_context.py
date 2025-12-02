@@ -44,23 +44,24 @@ def _select_latest(table: str, cols: str, user_id: str, order_col: str | None):
     return _first_or_empty(res)
 
 async def get_user_context(user_id: str) -> dict:
-    # === High School Profile (no created_at assumption) ===
+
+    # High School Profile 
     highschool_data = _select_latest(
         table="student_school_data",
         cols="academic_strengths,hobbies,career_interests,confidence,degree_interest",
         user_id=user_id,
-        order_col=None,   # set to "created_at" if that column exists in your schema
+        order_col=None,  
     )
 
-    # === University Profile (avoid created_at ordering; it doesn't exist) ===
+    # University Profile 
     university_data = _select_latest(
         table="student_uni_data",
         cols="degree_stage,academic_year,degree_field,switching_pathway,study_feelings,interest_areas,hobbies,confidence,want_help",
         user_id=user_id,
-        order_col=None,   # was causing 42703 before
+        order_col=None,  
     )
 
-    # === Final Degree Recommendation (created_at likely exists; try it, fall back if not) ===
+    # Final Degree Recommendation
     plan_raw = _select_latest(
         table="final_degree_recommendations",
         cols="degree_name,reason,created_at",
@@ -72,11 +73,11 @@ async def get_user_context(user_id: str) -> dict:
         "degree_name": plan_raw.get("degree_name"),
         "reason": plan_raw.get("reason"),
         "created_at": plan_raw.get("created_at"),
-        "years": [],            # keep stable shape for callers expecting it
-        "specialisations": [],  # removed in DB; expose empty list for compat
+        "years": [],           
+        "specialisations": [],  
     }
 
-    # === Personality Result (created_at may exist; try it, fall back if not) ===
+    # Personality Result 
     personality_data = _select_latest(
         table="personality_results",
         cols="trait_scores,top_types,result_summary,created_at",
@@ -89,5 +90,5 @@ async def get_user_context(user_id: str) -> dict:
         "university": university_data or {},
         "personality": personality_data or {},
         "final_plan": final_plan,
-        "roadmap": final_plan,   # backward-compatible alias
+        "roadmap": final_plan,   
     }

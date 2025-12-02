@@ -146,13 +146,13 @@ async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current
         # remove ```json or ``` at top/bottom
         text = text.strip("```json").strip("```").strip()
 
-    # 1. Parse it into a native dict
+    # Parse it into a native dict
     try:
         ai_output = json.loads(text)
     except json.JSONDecodeError as e:
         raise HTTPException(500, f"Could not parse LLM output as JSON: {e}")
 
-    # 2. Upsert in one go (avoids having to check update vs insert yourself)
+    # Upsert in one go (avoids having to check update vs insert yourself)
     upsert_payload = {
         "user_id": user.id,
         "analysis": ai_output,  # dict → JSONB

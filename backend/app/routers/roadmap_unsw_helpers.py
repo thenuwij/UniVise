@@ -2,9 +2,6 @@ from typing import Any, Dict, List
 from app.utils.database import supabase
 import json
 
-# =========================
-# HONOURS CONTEXTS
-# =========================
 
 CORE_COURSE_KEYWORDS = [
     "core",
@@ -21,11 +18,7 @@ CORE_COURSE_KEYWORDS = [
     "honours",
 ]
 
-# =========================
-# HELPER FUNCTIONS
-# =========================
-
-#------------- Capstone Section ----------------
+# Helper functions for Capstone (Program Highlights section) in roadmap unsw
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:
         print("Missing degree_code in fetch_program_core_courses.")
@@ -141,12 +134,10 @@ def format_core_courses_for_prompt(courses: List[Dict[str, Any]]) -> str:
 
 
 
-#------------- General Roadmap UNSW ----------------
+# Helper functions for general UNSW roadmap mode
+# Fetch a specific UNSW degree entry from Supabase using an identifier that matches.
 def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None) -> Dict[str, Any]:
-    """
-    Fetch a specific UNSW degree entry from Supabase using the most reliable identifier.
-    Uses exact program_name match before fallback to ilike partial match.
-    """
+
     degree = None
     try:
         if degree_id:
@@ -170,7 +161,7 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
             degree = getattr(result, "data", None)
 
         if not degree and program_name:
-            # Step 1: try exact match
+            # try exact match
             result = (
                 supabase.from_("unsw_degrees_final")
                 .select("*")
@@ -180,7 +171,7 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
             )
             degree = getattr(result, "data", None)
 
-            # Step 2: fallback to partial case-insensitive match if nothing found
+            # fallback to partial case-insensitive match if nothing found
             if not degree:
                 result = (
                     supabase.from_("unsw_degrees_final")
@@ -195,7 +186,7 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
         print(f"Error fetching degree: {e}")
 
     if not degree:
-        print(f"[WARN] No degree found for id={degree_id}, uac={uac_code}, name={program_name}")
+        print(f"No degree found for id={degree_id}, uac={uac_code}, name={program_name}")
         return {
             "id": degree_id,
             "program_name": program_name,
@@ -235,28 +226,10 @@ def fetch_degree_related_info(degree_id: str):
     return majors, minors, doubles
 
 
-# ========== HELPER FUNCTIONS FOR FLEXIBILITY SECTION ==========
+# Helper functions for flexibility section
+# Extract all course codes from json flexibility structure
 def extract_all_course_codes(sections: list) -> List[str]:
-    """
-    Extract all course codes from sections JSON structure.
-    
-    Args:
-        sections: Parsed JSON "sections" array from unsw_degrees_final
 
-    Returns:
-        List of course codes (e.g., ["ACTL1101", "COMM1170", "MATH1151"])
-    
-    Example sections structure:
-        [
-            {
-                "title": "Level 1 Core Courses",
-                "courses": [
-                    {"code": "ACTL1101", "name": "...", "uoc": 6},
-                    {"code": "COMM1170", "name": "...", "uoc": 6}
-                ]
-            }
-        ]
-    """
     course_codes = []
     
     for section in sections:
@@ -268,94 +241,9 @@ def extract_all_course_codes(sections: list) -> List[str]:
     
     return course_codes
 
-
-def extract_keywords(program_name: str) -> List[str]:
-    """
-    Extract meaningful keywords from degree name for matching.
-    
-    Args:
-        program_name: Full degree name (e.g., "Bachelor of Commerce (Finance)", "Bachelor of Engineering (Hons)")
-        
-    Returns:
-        List of keywords (e.g., ["computer", "science"])
-    
-    Filters out common stopwords like "bachelor", "of", "honours", etc.
-    """
-    stopwords = {
-        'bachelor', 'of', 'honours', 'advanced', 'master', 
-        'diploma', 'certificate', 'and', 'the', 'in', 'with'
-    }
-    
-    # Replace slashes with spaces and split
-    words = program_name.lower().replace('/', ' ').replace('(', ' ').replace(')', ' ').split()
-    
-    # Filter out stopwords and short words
-    keywords = [w for w in words if w not in stopwords and len(w) > 3]
-    
-    return keywords
-
-
-def are_related_faculties(faculty1: str, faculty2: str) -> bool:
-    """
-    Check if two faculties are related for transfer purposes.
-    
-    Related faculties typically have easier credit transfer policies
-    and similar administrative processes.
-    
-    Args:
-        faculty1: First faculty name
-        faculty2: Second faculty name
-        
-    Returns:
-        True if faculties are in the same related group
-    """
-    # Normalize faculty names (lowercase for comparison)
-    f1 = faculty1.lower() if faculty1 else ""
-    f2 = faculty2.lower() if faculty2 else ""
-    
-    # Define related faculty groups
-    related_groups = [
-        # Business/Commerce/Economics group
-        ['business', 'commerce', 'economics'],
-        
-        # Engineering/IT/Computer Science group
-        ['engineering', 'computer', 'information technology', 'it'],
-        
-        # Science/Mathematics group
-        ['science', 'mathematics', 'statistics'],
-        
-        # Arts/Humanities/Social Sciences group
-        ['arts', 'humanities', 'social sciences', 'design', 'architecture'],
-        
-        # Health/Medical group
-        ['medicine', 'health', 'nursing', 'medical'],
-        
-        # Law group
-        ['law', 'legal']
-    ]
-    
-    # Check if both faculties are in the same group
-    for group in related_groups:
-        in_group_1 = any(keyword in f1 for keyword in group)
-        in_group_2 = any(keyword in f2 for keyword in group)
-        
-        if in_group_1 and in_group_2:
-            return True
-    
-    return False
-
-
+# Format selected degrees for AI prompt with all the relevant details
 def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
-    """
-    Format candidate degrees for AI prompt with all relevant details.
-    NOW INCLUDES SPECIALIZATION DATA when present.
-    
-    Args:
-        candidates: List of candidate degrees with overlap data
-        
-    Returns:
-        Formatted string for AI prompt
-    """
+
     formatted = ""
     
     for i, candidate in enumerate(candidates, 1):
@@ -388,11 +276,9 @@ def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
     
     return formatted
 
-
+# Fetches the user's selected specialisations with CORE COURSES.
 def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[str, Any]:
-    """
-    Fetches the user's selected specialisations with CORE COURSES.
-    """
+
     if not user_id or not degree_code:
         return {
             "selected_major_name": None,
@@ -404,7 +290,7 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
         }
 
     try:
-        # Step 1: Get specialisation IDs
+        # Get specialisation IDs
         response = (
             supabase.from_("user_specialisation_selections")
             .select("major_id, minor_id, honours_id")
@@ -434,7 +320,7 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
             "selected_honours_courses": [],
         }
 
-        # Step 2: Fetch details from unsw_specialisations
+        # Fetch details from unsw_specialisations
         if data.get("major_id"):
             major_resp = supabase.from_("unsw_specialisations")\
                 .select("major_name, sections, overview_description")\
@@ -490,12 +376,10 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
             "selected_honours_courses": [],
         }
 
-
+# Extract CORE course codes from sections JSON. 
+# Filters out electives and only returns core/required courses.
 def extract_core_course_codes_from_sections(sections_data) -> List[str]:
-    """
-    Extract CORE course codes from sections JSON.
-    Filters out electives and only returns core/required courses.
-    """
+
     if not sections_data:
         return []
     
@@ -551,27 +435,13 @@ def extract_core_course_codes_from_sections(sections_data) -> List[str]:
         return []
     
 
-
+# Calculate overlap percentage with specialization courses weighted more heavily.
 def calculate_overlap_weighted(
     current_courses: List[str],
     target_courses: List[str],
     spec_course_codes: List[str] = None
 ) -> float:
-    """
-    Calculate overlap percentage with specialization courses weighted more heavily.
-    
-    Weighting strategy:
-    - Courses from current specializations: 1.5x weight
-    - Courses from base degree only: 1.0x weight
-    
-    Args:
-        current_courses: All courses from student's current degree + specs
-        target_courses: All courses from target degree (+ target spec if applicable)
-        spec_course_codes: List of course codes from student's selected specializations
-        
-    Returns:
-        Weighted overlap percentage
-    """
+
     if not current_courses:
         return 0.0
     

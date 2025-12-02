@@ -1,55 +1,32 @@
-"""
-Enhanced industry and careers information for UNSW roadmaps.
+# Generated the societies, industry and careers sections in roadmap university mode
 
-This module generates rich, real-world industry and career insights using:
-- Web search for current internship programs, salaries, and industry trends
-- AI synthesis to provide actionable, student-focused information
-- Structured sections: Societies → Industry Training → Career Pathways
-
-Background task approach with fallback to basic data.
-"""
-
-from typing import Any, Dict, List
 import json
 import re
+import asyncio
+import time
+from typing import Any, Dict, List
+from datetime import datetime
+from app.utils.database import supabase
 from app.utils.openai_client import ask_openai
-from .roadmap_common import parse_json_or_500, assert_keys
 from .roadmap_unsw_helpers import fetch_user_specialisation_context
 
-
-# ========== ROBUST JSON SANITIZATION ==========
+# Json parse fixing
 def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
-    """
-    Robust JSON parser with multiple fallback strategies.
-
-    Fixes common AI-generated JSON errors:
-    1. Missing quotes around property names
-    2. Single quotes instead of double quotes
-    3. Trailing commas
-    4. Comments in JSON
-    5. Unescaped characters
-    6. Stringified JSON objects inside arrays, e.g. ["{"name": "GHD"}"]
-    """
 
     # Keep track of the last JSONDecodeError for debugging
     last_error: Exception | None = None
 
     # Start with trimmed text
     text = raw_text.strip()
-
-    # --- Fix 1: stringified JSON objects like ["{"name": "GHD"}", ...] ---
-    # Turn "{"name": "GHD"}" into {"name": "GHD"}
-    # This looks for a quoted { ... } and drops the surrounding quotes.
     text = re.sub(r'"\{([^}]*)\}"', r'{\1}', text)
 
-    # Strategy 1: Try parsing as-is (after the stringified-object fix)
+    # Try parsing as-is (after the stringified-object fix)
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"[JSON] Initial parse failed: {e}")
         last_error = e
-
-    # Strategy 2: Fix common issues (comments, trailing commas, single quotes)
+        
     try:
         cleaned = text
 
@@ -69,7 +46,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
         print(f"[JSON] Cleanup parse failed: {e}")
         last_error = e
 
-    # Strategy 3: Fix unquoted property names
+    # Fix unquoted property names
     try:
         def quote_property_names(match):
             prop_name = match.group(1)
@@ -81,7 +58,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
         print(f"[JSON] Property name fixing failed: {e}")
         last_error = e
 
-    # Strategy 4: Extract core JSON object/brackets
+    # Extract core JSON object/brackets
     try:
         start = cleaned.find('{')
         end = cleaned.rfind('}')
@@ -95,7 +72,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
         print(f"[JSON] Extraction strategy failed: {e}")
         last_error = e
 
-    # Strategy 5: Last resort - fix specific known patterns
+    # Fix specific known patterns
     try:
         patterns = [
             (r'\bname\s*:', '"name":'),
@@ -115,12 +92,12 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
         return json.loads(fixed_text)
     except json.JSONDecodeError as e:
-        print(f"[JSON] Pattern fixing failed: {e}")
+        print(f"Pattern fixing failed: {e}")
         last_error = e
 
-    # All strategies failed
-    print(f"[JSON] ALL PARSING STRATEGIES FAILED")
-    print(f"[JSON] Raw text (first 500 chars):\n{raw_text[:500]}")
+    # If all strategies failed
+    print(f"All parsing strategies failed")
+    # print(f"Raw text (first 500 chars):\n{raw_text[:500]}")
 
     raise ValueError(
         f"Could not parse JSON after multiple attempts. "
@@ -128,59 +105,13 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
     )
 
 
-# ========== HELPER: WEB SEARCH INTEGRATION ==========
-async def search_industry_data(program_name: str, faculty: str) -> Dict[str, str]:
-    """
-    Perform targeted web searches to gather real-world industry data.
-    
-    Returns search results for:
-    - Internship programs
-    - Graduate salaries
-    - Industry partners
-    - Career pathways
-    - Student societies
-    """
-    
-    # Note: You'll need to integrate with your web_search tool
-    # For now, returning structure that would be populated
-    
-    searches_to_perform = {
-        "internships": f"{program_name} UNSW internships industry placement programs 2024",
-        "salaries": f"{program_name} graduate salary Australia 2024",
-        "employers": f"UNSW {faculty} industry partners employers hiring graduates",
-        "careers": f"{program_name} career pathways progression Australia",
-        "societies": f"UNSW {faculty} student societies clubs",
-        "certifications": f"{program_name} professional certifications requirements Australia"
-    }
-    
-    print(f"[Industry Enhancement] Would search for:")
-    for key, query in searches_to_perform.items():
-        print(f"  - {key}: {query}")
-    
-    # Placeholder - integrate with your actual web_search tool
-    # Example: results = await web_search(query)
-    
-    return {
-        "internships_context": "# Search results would go here",
-        "salaries_context": "# Search results would go here",
-        "employers_context": "# Search results would go here",
-        "careers_context": "# Search results would go here",
-        "societies_context": "# Search results would go here",
-        "certifications_context": "# Search results would go here"
-    }
-
-
-# ========== STAGE 1: SOCIETIES (PARALLEL) ==========
+# OpenAI call for generating societies
 async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate societies and community information.
-    Optimized prompt - reduced society count but maintains quality.
-    """
     
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
-    # --- Add specialisation context ---
+    # Add specialisation context 
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
     selected_honours = context.get("selected_honours_name")
@@ -198,76 +129,76 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
     
     prompt = f"""You are a UNSW student engagement advisor with deep knowledge of Arc UNSW societies and campus life.
 
-Provide society and community information for {program_name} students in the Faculty of {faculty}.
-{specialisation_context}
+    Provide society and community information for {program_name} students in the Faculty of {faculty}.
+    {specialisation_context}
 
 
-Include:
+    Include:
 
-A. FACULTY-SPECIFIC SOCIETIES (4-5 societies)
-   - Use REAL society names from UNSW Arc
-   - Include both academic and social societies
-   - Specify what makes each relevant to {program_name} students
-   - Include typical membership benefits (workshops, networking, socials, competitions)
-   - Note if they're affiliated with professional bodies
+    A. FACULTY-SPECIFIC SOCIETIES (4-5 societies)
+      - Use REAL society names from UNSW Arc
+      - Include both academic and social societies
+      - Specify what makes each relevant to {program_name} students
+      - Include typical membership benefits (workshops, networking, socials, competitions)
+      - Note if they're affiliated with professional bodies
 
-B. CROSS-FACULTY SOCIETIES (2 societies)
-   - Broader UNSW societies that {program_name} students commonly join
+    B. CROSS-FACULTY SOCIETIES (2 societies)
+      - Broader UNSW societies that {program_name} students commonly join
 
-C. KEY EVENTS & OPPORTUNITIES (2-3 events)
-   - Faculty-specific networking nights and industry panels
-   - Annual competitions, hackathons, case competitions
-   - Career expos and employer information sessions
+    C. KEY EVENTS & OPPORTUNITIES (2-3 events)
+      - Faculty-specific networking nights and industry panels
+      - Annual competitions, hackathons, case competitions
+      - Career expos and employer information sessions
 
-D. PROFESSIONAL DEVELOPMENT
-   - Student chapters of professional organizations (list only)
-   - Brief note on leadership opportunities and skills gained
+    D. PROFESSIONAL DEVELOPMENT
+      - Student chapters of professional organizations (list only)
+      - Brief note on leadership opportunities and skills gained
 
-REQUIRED JSON OUTPUT:
-{{
-  "societies": {{
-    "faculty_specific": [
-      {{
-        "name": "Official society name (e.g., 'UNSW Computing Society (CompSoc)')",
-        "category": "Academic/Professional/Social",
-        "relevance": "Why this matters for {program_name} students (1 sentence)",
-        "key_activities": ["Activity 1", "Activity 2", "Activity 3"],
-        "membership_benefits": "What students gain",
-        "professional_affiliation": "Professional body name or null"
+    REQUIRED JSON OUTPUT:
+    {{
+      "societies": {{
+        "faculty_specific": [
+          {{
+            "name": "Official society name (e.g., 'UNSW Computing Society (CompSoc)')",
+            "category": "Academic/Professional/Social",
+            "relevance": "Why this matters for {program_name} students (1 sentence)",
+            "key_activities": ["Activity 1", "Activity 2", "Activity 3"],
+            "membership_benefits": "What students gain",
+            "professional_affiliation": "Professional body name or null"
+          }}
+        ],
+        "cross_faculty": [
+          {{
+            "name": "Society name",
+            "why_join": "Why {program_name} students benefit from this"
+          }}
+        ],
+        "major_events": [
+          {{
+            "event_name": "Event name",
+            "description": "What happens",
+            "frequency": "Annual/Per term",
+            "typical_timing": "e.g., 'Week 3, Term 1'"
+          }}
+        ],
+        "professional_development": {{
+          "student_chapters": ["Professional org 1", "Professional org 2"],
+          "leadership_note": "Brief description of exec roles and career value",
+          "skills_gained": ["Skill 1", "Skill 2", "Skill 3"]
+        }},
+        "getting_started": {{
+          "join_timing": "Best time to join",
+          "how_to_find": "Where to discover societies",
+          "cost_range": "Typical membership fees"
+        }}
       }}
-    ],
-    "cross_faculty": [
-      {{
-        "name": "Society name",
-        "why_join": "Why {program_name} students benefit from this"
-      }}
-    ],
-    "major_events": [
-      {{
-        "event_name": "Event name",
-        "description": "What happens",
-        "frequency": "Annual/Per term",
-        "typical_timing": "e.g., 'Week 3, Term 1'"
-      }}
-    ],
-    "professional_development": {{
-      "student_chapters": ["Professional org 1", "Professional org 2"],
-      "leadership_note": "Brief description of exec roles and career value",
-      "skills_gained": ["Skill 1", "Skill 2", "Skill 3"]
-    }},
-    "getting_started": {{
-      "join_timing": "Best time to join",
-      "how_to_find": "Where to discover societies",
-      "cost_range": "Typical membership fees"
     }}
-  }}
-}}
 
-Use REAL UNSW society names. Be specific with events and benefits. 
-Return ONLY valid JSON. Start with {{ and end with }}.
-"""
-    
-    print("[Stage 1: Societies] Generating...")
+    Use REAL UNSW society names. Be specific with events and benefits. 
+    Return ONLY valid JSON. Start with {{ and end with }}.
+    """
+        
+    print("Societies generating...")
     
     try:
         raw = ask_openai(prompt)
@@ -303,17 +234,13 @@ Return ONLY valid JSON. Start with {{ and end with }}.
             }
         }
 
-# ========== STAGE 2: INDUSTRY EXPERIENCE (PARALLEL) ==========
+# Generate industry experience section in parallel
 async def ai_generate_industry_experience(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate industry experience and internship information.
-    Optimized: Cleaner structure, reduced token count, maintains quality.
-    """
     
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
-    # --- Add specialisation context ---
+    # Add specialisation context
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
     selected_honours = context.get("selected_honours_name")
@@ -330,56 +257,56 @@ async def ai_generate_industry_experience(context: Dict[str, Any]) -> Dict[str, 
 
     
     prompt = f"""You are a UNSW career advisor. Provide industry experience information for {program_name} ({faculty}).
-{specialisation_context}
+    {specialisation_context}
 
 
-Include:
-A. MANDATORY PLACEMENTS
-   - Whether required for degree completion
-   - Duration, timing, and key requirements if applicable
+    Include:
+    A. MANDATORY PLACEMENTS
+      - Whether required for degree completion
+      - Duration, timing, and key requirements if applicable
 
-B. INTERNSHIP PROGRAMS (4-6 programs)
-   - Use REAL program names (e.g., "PwC Actuarial Cadetship", "Google STEP Internship")
-   - Company, duration, timing, paid/unpaid status
-   - Application periods and competitiveness
+    B. INTERNSHIP PROGRAMS (4-6 programs)
+      - Use REAL program names (e.g., "PwC Actuarial Cadetship", "Google STEP Internship")
+      - Company, duration, timing, paid/unpaid status
+      - Application periods and competitiveness
 
-C. TOP RECRUITING COMPANIES (8-10 companies)
-   - Real companies that actively hire UNSW {faculty} graduates
-   - Mix of large firms and notable employers
+    C. TOP RECRUITING COMPANIES (8-10 companies)
+      - Real companies that actively hire UNSW {faculty} graduates
+      - Mix of large firms and notable employers
 
-D. CAREER EVENTS & WIL
-   - Major career fairs or employer events
-   - Work Integrated Learning subjects or co-op programs
+    D. CAREER EVENTS & WIL
+      - Major career fairs or employer events
+      - Work Integrated Learning subjects or co-op programs
 
-REQUIRED JSON OUTPUT:
-{{
-  "industry_experience": {{
-    "mandatory_placements": {{
-      "required": true/false,
-      "details": "Description or 'No mandatory placements required.'"
-    }},
-    "internship_programs": [
-      {{
-        "program_name": "Specific program name",
-        "company": "Company name",
-        "duration": "e.g., '10-12 weeks'",
-        "timing": "e.g., 'Summer (Nov-Feb)'",
-        "paid": true/false,
-        "application_period": "e.g., 'March-April'",
-        "competitiveness": "Brief note",
-        "apply_url": "Direct URL to apply or company careers page (e.g., 'https://careers.pwc.com.au/students')"
+    REQUIRED JSON OUTPUT:
+    {{
+      "industry_experience": {{
+        "mandatory_placements": {{
+          "required": true/false,
+          "details": "Description or 'No mandatory placements required.'"
+        }},
+        "internship_programs": [
+          {{
+            "program_name": "Specific program name",
+            "company": "Company name",
+            "duration": "e.g., '10-12 weeks'",
+            "timing": "e.g., 'Summer (Nov-Feb)'",
+            "paid": true/false,
+            "application_period": "e.g., 'March-April'",
+            "competitiveness": "Brief note",
+            "apply_url": "Direct URL to apply or company careers page (e.g., 'https://careers.pwc.com.au/students')"
+          }}
+        ],
+        "top_recruiting_companies": ["Company 1", "Company 2", "...8-10 total"],
+        "career_fairs": "Description of major fairs/events",
+        "wil_opportunities": "WIL subjects or co-op info"
       }}
-    ],
-    "top_recruiting_companies": ["Company 1", "Company 2", "...8-10 total"],
-    "career_fairs": "Description of major fairs/events",
-    "wil_opportunities": "WIL subjects or co-op info"
-  }}
-}}
+    }}
 
-Use REAL company and program names. Return ONLY valid JSON. Start with {{ and end with }}.
-"""
-    
-    print("[Stage 2: Industry Experience] Generating...")
+    Use REAL company and program names. Return ONLY valid JSON. Start with {{ and end with }}.
+    """
+        
+    print("Industry Experience Generating...")
     
     try:
         raw = ask_openai(prompt)
@@ -390,11 +317,10 @@ Use REAL company and program names. Return ONLY valid JSON. Start with {{ and en
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
         result = sanitize_and_parse_json(json_only)
-        print(f"[Stage 2: Industry] ✓ Generated {len(result.get('industry_experience', {}).get('internship_programs', []))} internship programs")
+        print(f"Industry generated {len(result.get('industry_experience', {}).get('internship_programs', []))} internship programs")
         return result
         
     except Exception as e:
-        print(f"[Stage 2: Industry] ✗ Error: {e}")
         return {
             "industry_experience": {
                 "mandatory_placements": {
@@ -409,16 +335,13 @@ Use REAL company and program names. Return ONLY valid JSON. Start with {{ and en
         }
 
 
-# ========== STAGE 3: CAREER PATHWAYS (PARALLEL) ==========
+# Generate career pathways section in parallel
 async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate career pathways information.
-    Ultra-optimized: Reduced output size to prevent truncation.
-    """
+
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
-    # --- Add specialisation context ---
+    # Add specialisation context 
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
     selected_honours = context.get("selected_honours_name")
@@ -435,118 +358,118 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
 
         
     prompt = f"""You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
-{specialisation_context}
+    {specialisation_context}
 
-IMPORTANT: Base your role information on REAL job listings currently posted on Australian job sites (Seek, Indeed, LinkedIn, GradConnection). Use actual job titles, realistic salary ranges from current listings, and provide direct URLs to example listings or search results.
+    IMPORTANT: Base your role information on REAL job listings currently posted on Australian job sites (Seek, Indeed, LinkedIn, GradConnection). Use actual job titles, realistic salary ranges from current listings, and provide direct URLs to example listings or search results.
 
-A. ENTRY ROLES (3 roles, 0-2yrs)
-   - Title, salary AUD (based on current listings)
-   - DETAILED description (3-4 sentences): What you'd do day-to-day, key responsibilities, how it uses skills from the degree, why it suits {program_name} graduates
-   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
+    A. ENTRY ROLES (3 roles, 0-2yrs)
+      - Title, salary AUD (based on current listings)
+      - DETAILED description (3-4 sentences): What you'd do day-to-day, key responsibilities, how it uses skills from the degree, why it suits {program_name} graduates
+      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
-B. MID ROLES (2 roles, 3-7yrs)
-   - Title, salary AUD (based on current listings)
-   - DETAILED description (3-4 sentences): Day-to-day work, leadership/specialist responsibilities, career progression from entry level, how advanced skills from {program_name} apply
-   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
+    B. MID ROLES (2 roles, 3-7yrs)
+      - Title, salary AUD (based on current listings)
+      - DETAILED description (3-4 sentences): Day-to-day work, leadership/specialist responsibilities, career progression from entry level, how advanced skills from {program_name} apply
+      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
-C. SENIOR ROLES (2 roles, 8+yrs)
-   - Title, salary AUD (based on current listings)
-   - DETAILED description (3-4 sentences): Strategic responsibilities, team/department leadership, impact on business outcomes, how expertise from {program_name} background provides competitive advantage
-   - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
+    C. SENIOR ROLES (2 roles, 8+yrs)
+      - Title, salary AUD (based on current listings)
+      - DETAILED description (3-4 sentences): Strategic responsibilities, team/department leadership, impact on business outcomes, how expertise from {program_name} background provides competitive advantage
+      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
-D. CERTIFICATIONS (2-3 certs)
-   - Name, provider, importance, timeline, notes (optional)
+    D. CERTIFICATIONS (2-3 certs)
+      - Name, provider, importance, timeline, notes (optional)
 
-E. MARKET
-   - Demand level, trends (1-2 sentences), location notes
+    E. MARKET
+      - Demand level, trends (1-2 sentences), location notes
 
-F. TOP EMPLOYERS (6-8 companies in 2-3 sectors)
+    F. TOP EMPLOYERS (6-8 companies in 2-3 sectors)
 
-G. STATS
-   - Employment rate, starting salary, 3 common roles, source
+    G. STATS
+      - Employment rate, starting salary, 3 common roles, source
 
-CRITICAL: ALL property names MUST have double quotes. Example:
-CORRECT: {{"name": "..."}}
-WRONG: {{name: "..."}}
+    CRITICAL: ALL property names MUST have double quotes. Example:
+    CORRECT: {{"name": "..."}}
+    WRONG: {{name: "..."}}
 
-JSON STRUCTURE:
-{{
-  "career_pathways": {{
-    "entry_level": {{
-      "roles": [
-        {{
-          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-          "salary_range": "$X - $Y AUD based on current listings",
-          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-          "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
-          "source": "Seek/Indeed/LinkedIn/GradConnection",
-          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
+    JSON STRUCTURE:
+    {{
+      "career_pathways": {{
+        "entry_level": {{
+          "roles": [
+            {{
+              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+              "salary_range": "$X - $Y AUD based on current listings",
+              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+              "requirements": "Key requirements from actual listings",
+              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "source": "Seek/Indeed/LinkedIn/GradConnection",
+              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
+            }}
+          ],
+          "years_experience": "0-2 years"
+        }},
+        "mid_career": {{
+          "roles": [
+            {{
+              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+              "salary_range": "$X - $Y AUD based on current listings",
+              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+              "requirements": "Key requirements from actual listings",
+              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "source": "Seek/Indeed/LinkedIn/GradConnection",
+              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
+            }}
+          ],
+          "years_experience": "3-7 years"
+        }},
+        "senior": {{
+          "roles": [
+            {{
+              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
+              "salary_range": "$X - $Y AUD based on current listings",
+              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
+              "requirements": "Key requirements from actual listings",
+              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "source": "Seek/Indeed/LinkedIn/GradConnection",
+              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
+            }}
+          ],
+          "years_experience": "8+ years"
+        }},
+        "certifications": [
+          {{
+            "name": "...",
+            "provider": "...",
+            "importance": "Required/Highly Recommended/Optional",
+            "timeline": "...",
+            "notes": "Optional brief note about benefits or requirements"
+          }}
+        ],
+        "market_insights": {{
+          "demand_level": "High/Medium/Growing/Stable",
+          "trends": "1-2 sentences about industry trends and outlook",
+          "geographic_notes": "Location info"
+        }},
+        "top_employers": {{
+          "by_sector": {{
+            "Sector1": ["...", "..."],
+            "Sector2": ["...", "..."]
+          }}
+        }},
+        "employment_stats": {{
+          "employment_rate": "X%",
+          "median_starting_salary": "$X",
+          "common_first_roles": ["...", "...", "..."],
+          "source": "Graduate Careers Australia/QILT/Industry Report"
         }}
-      ],
-      "years_experience": "0-2 years"
-    }},
-    "mid_career": {{
-      "roles": [
-        {{
-          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-          "salary_range": "$X - $Y AUD based on current listings",
-          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-          "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
-          "source": "Seek/Indeed/LinkedIn/GradConnection",
-          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
-        }}
-      ],
-      "years_experience": "3-7 years"
-    }},
-    "senior": {{
-      "roles": [
-        {{
-          "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-          "salary_range": "$X - $Y AUD based on current listings",
-          "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-          "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
-          "source": "Seek/Indeed/LinkedIn/GradConnection",
-          "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
-        }}
-      ],
-      "years_experience": "8+ years"
-    }},
-    "certifications": [
-      {{
-        "name": "...",
-        "provider": "...",
-        "importance": "Required/Highly Recommended/Optional",
-        "timeline": "...",
-        "notes": "Optional brief note about benefits or requirements"
       }}
-    ],
-    "market_insights": {{
-      "demand_level": "High/Medium/Growing/Stable",
-      "trends": "1-2 sentences about industry trends and outlook",
-      "geographic_notes": "Location info"
-    }},
-    "top_employers": {{
-      "by_sector": {{
-        "Sector1": ["...", "..."],
-        "Sector2": ["...", "..."]
-      }}
-    }},
-    "employment_stats": {{
-      "employment_rate": "X%",
-      "median_starting_salary": "$X",
-      "common_first_roles": ["...", "...", "..."],
-      "source": "Graduate Careers Australia/QILT/Industry Report"
     }}
-  }}
-}}
 
-Return ONLY valid JSON. Start with {{ and end with }}.
-"""
+    Return ONLY valid JSON. Start with {{ and end with }}.
+    """
 
-    print("[Stage 3: Career Pathways] Generating...")
+    print("Career Pathways Generating...")
     
     try:
         raw = ask_openai(prompt)
@@ -558,53 +481,9 @@ Return ONLY valid JSON. Start with {{ and end with }}.
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
         result = sanitize_and_parse_json(json_only)
-
-        # Basic count
-        entry_roles = result.get('career_pathways', {}).get('entry_level', {}).get('roles', [])
-        mid_roles = result.get('career_pathways', {}).get('mid_career', {}).get('roles', [])
-        senior_roles = result.get('career_pathways', {}).get('senior', {}).get('roles', [])
-
-        print(f"[Stage 3: Careers] ✓ Generated {len(entry_roles)} entry-level roles + full pathway")
-
-        # DETAILED DEBUGGING OUTPUT
-        print("\n" + "="*80)
-        print("DEBUG - CAREER PATHWAYS GENERATED CONTENT")
-        print("="*80)
-
-        # Entry Level Roles
-        print("\n ENTRY LEVEL ROLES:")
-        for idx, role in enumerate(entry_roles, 1):
-            print(f"\n  Role {idx}:")
-            print(f"    Title: {role.get('title', 'N/A')}")
-            print(f"    Salary: {role.get('salary_range', 'N/A')}")
-            print(f"    Description: {role.get('description', 'N/A')[:150]}...")
-            print(f"    Requirements: {role.get('requirements', 'N/A')[:100]}...")
-            print(f"    Source: {role.get('source', 'N/A')}")
-            print(f"    Source URL: {role.get('source_url', 'N/A')}")
-            print(f"    Hiring Companies: {', '.join(role.get('hiring_companies', []))}")
-
-        # Mid Career Roles
-        print("\n MID-CAREER ROLES:")
-        for idx, role in enumerate(mid_roles, 1):
-            print(f"\n  Role {idx}:")
-            print(f"    Title: {role.get('title', 'N/A')}")
-            print(f"    Salary: {role.get('salary_range', 'N/A')}")
-            print(f"    Source URL: {role.get('source_url', 'N/A')}")
-
-        # Senior Roles
-        print("\n SENIOR ROLES:")
-        for idx, role in enumerate(senior_roles, 1):
-            print(f"\n  Role {idx}:")
-            print(f"    Title: {role.get('title', 'N/A')}")
-            print(f"    Salary: {role.get('salary_range', 'N/A')}")
-            print(f"    Source URL: {role.get('source_url', 'N/A')}")
-
-        print("\n" + "="*80 + "\n")
-
         return result
                 
     except Exception as e:
-        print(f"[Stage 3: Careers] ✗ Error: {e}")
         print(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
         
         return {
@@ -628,39 +507,10 @@ Return ONLY valid JSON. Start with {{ and end with }}.
             }
         }
 
-# ========== MAIN COORDINATOR (RUNS ALL 3 IN PARALLEL) ==========
-async def ai_enhance_industry_careers(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate enhanced industry and careers information using PARALLEL AI calls.
-    
-    THREE STAGES RUN SIMULTANEOUSLY:
-    1. Societies & Community
-    2. Industry Experience & Internships
-    3. Career Pathways & Outcomes
-    
-    This is MUCH faster than sequential calls and reduces risk of any single large prompt failing.
-    """
-    
-    program_name = context.get("program_name")
-    faculty = context.get("faculty", "Not specified")
-    
-    print(f"\n{'='*60}")
-    print(f"ENHANCING INDUSTRY & CAREERS INFO (PARALLEL)")
-    print(f"Program: {program_name}")
-    print(f"Faculty: {faculty}")
-    print(f"{'='*60}\n")
-    
-import asyncio
-import time
-from datetime import datetime
-from app.utils.database import supabase
 
-
+# Generate industry experience and career pathways ssections in one call
 async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: dict):
-    """
-    Generates industry experience + career pathways (NOT societies).
-    Slower task (~15-20s) - runs fully in background.
-    """
+
     loop = asyncio.get_event_loop()
 
     base_context = {
@@ -675,7 +525,7 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
             spec = fetch_user_specialisation_context(user_id, degree_code)
             base_context.update(spec)
         except Exception as e:
-            print("[Coordinator] Failed to load specialisations:", str(e))
+            print("Failed to load specialisations:", str(e))
 
     # Run only 2 tasks in parallel (no societies)
     industry_future = loop.run_in_executor(
@@ -685,13 +535,13 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         None, lambda: asyncio.run(ai_generate_career_pathways(base_context))
     )
 
-    print(f"[Coordinator] Waiting for industry + careers for roadmap {roadmap_id}...")
+    # print(f"Waiting for industry and careers for roadmap {roadmap_id}...")
 
     industry_result, careers_result = await asyncio.gather(
         industry_future, careers_future
     )
 
-    print("[Coordinator] Industry + careers finished. Merging payload...")
+    print("Industry and careers finished. Merging payload...")
 
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
@@ -704,15 +554,13 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
 
-    print("[Coordinator] ✓ Industry + careers saved.")
+    print("Industry and careers saved.")
 
+
+# Generate societies section in another call 
 async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
-    """
-    Generates ONLY societies and saves immediately.
-    Fast task (~3-5s) - frontend polls for this.
-    """
+
     start = time.time()
-    print(f"[Societies Task] Started for {roadmap_id}")
 
     base_context = {
         "program_name": roadmap_data.get("program_name"),
@@ -726,7 +574,7 @@ async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
             spec = fetch_user_specialisation_context(user_id, degree_code)
             base_context.update(spec)
         except Exception as e:
-            print(f"[Societies Task] Failed to load specialisations: {e}")
+            print(f"Failed to load specialisations: {e}")
 
     # Generate societies
     societies_result = await ai_generate_societies(base_context)
@@ -744,4 +592,4 @@ async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
         "updated_at": datetime.utcnow().isoformat()
     }).eq("id", roadmap_id).execute()
 
-    print(f"[Societies Task] ✓ Done in {time.time() - start:.1f}s")
+    print(f"Societies section completed in {time.time() - start:.1f}s")
