@@ -104,12 +104,13 @@ export default function AutoLayoutControls({
 
     // --- improved layout spacing ---
     const marginTop = 100;
+    const marginBottom = 100;
     const marginSide = 120;
     const baseRowGap = Math.max(220, canvasSize.h / (rows + 1));
 
     const W = Math.max(800, canvasSize.w - marginSide * 2);
-    const yForRow = (r) => marginTop + r * baseRowGap;
-
+    const yForRow = (r) => canvasSize.h - marginBottom - r * baseRowGap;
+    
     buckets.forEach((rowArr, r) => {
       const y = yForRow(r);
       const count = rowArr.length;

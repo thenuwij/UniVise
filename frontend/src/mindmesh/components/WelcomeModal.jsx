@@ -36,8 +36,8 @@ export default function WelcomeModal({ isOpen, onClose }) {
                 </h3>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
                   MindMesh visualizes how courses in your degree connect through prerequisites. 
-                  Each <strong>node</strong> represents a course, and <strong>edges</strong> (lines) 
-                  show prerequisite relationships between courses.
+                  Each <strong>node</strong> represents a course, and <strong>arrows</strong> point from 
+                  prerequisites to the courses that require them.
                 </p>
               </section>
 
@@ -45,41 +45,65 @@ export default function WelcomeModal({ isOpen, onClose }) {
               <section className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Network className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-                  Understanding the Graph
+                  Understanding Prerequisites
                 </h3>
                 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-3">
                     <div className="w-16 h-8 rounded bg-sky-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
                       COMP
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900 dark:text-slate-100">Course Nodes</p>
-                      <p className="text-slate-600 dark:text-slate-400">Each box represents a course, colored by level (1-4)</p>
+                      <p className="text-slate-600 dark:text-slate-400">Colored by level (Level 1-4)</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <div className="w-16 h-8 flex-shrink-0 flex items-center justify-center">
                       <div className="w-12 h-0.5 bg-slate-600"></div>
+                      <div className="w-0 h-0 border-l-4 border-l-slate-600 border-y-2 border-y-transparent ml-0.5"></div>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Solid Lines</p>
-                      <p className="text-slate-600 dark:text-slate-400">Direct prerequisite - you ONLY need to complete this course as a prereq</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Solid Lines →</p>
+                      <p className="text-slate-600 dark:text-slate-400"><strong>Required</strong> - You MUST complete this course</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <div className="w-16 h-8 flex-shrink-0 flex items-center justify-center">
-                      <svg width="48" height="2" className="stroke-blue-400">
-                        <line x1="0" y1="1" x2="48" y2="1" strokeWidth="2" strokeDasharray="4,4" />
+                      <svg width="48" height="8">
+                        <line x1="0" y1="4" x2="44" y2="4" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4,4" />
+                        <polygon points="44,1 48,4 44,7" fill="#3b82f6" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Dashed Lines</p>
-                      <p className="text-slate-600 dark:text-slate-400">One of multiple prereqs - ALL courses connected with dashlines need to be completed</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Dashed Lines (Same Color) →</p>
+                      <p className="text-slate-600 dark:text-slate-400"><strong>Pick ONE</strong> - Complete any one course from this color group</p>
                     </div>
                   </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-16 h-8 flex-shrink-0 flex flex-col items-center justify-center gap-0.5">
+                      <svg width="48" height="3">
+                        <line x1="0" y1="1.5" x2="48" y2="1.5" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4,4" />
+                      </svg>
+                      <svg width="48" height="3">
+                        <line x1="0" y1="1.5" x2="48" y2="1.5" stroke="#10b981" strokeWidth="2" strokeDasharray="4,4" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Multiple Color Groups →</p>
+                      <p className="text-slate-600 dark:text-slate-400"><strong>Pick ONE from EACH</strong> color - Complete one course from each group</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
+                  <p className="text-xs text-sky-900 dark:text-sky-100">
+                    <strong>Example:</strong> If you see blue dashed lines (A, B) and green dashed lines (C, D) pointing to a course, 
+                    you need ONE from blue (A OR B) AND ONE from green (C OR D).
+                  </p>
                 </div>
               </section>
             </div>
@@ -96,7 +120,7 @@ export default function WelcomeModal({ isOpen, onClose }) {
                     <MousePointer2 className="h-5 w-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-slate-900 dark:text-slate-100">Single Click</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Focus on a course to see its direct prerequisites and unlock a "View Course Details" button</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Focus on a course to highlight its prerequisites and unlock "View Course Details"</p>
                     </div>
                   </div>
 
@@ -104,15 +128,15 @@ export default function WelcomeModal({ isOpen, onClose }) {
                     <MousePointerClick className="h-5 w-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-slate-900 dark:text-slate-100">Double Click</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Expand the graph to show ALL courses connected to the selected course</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Expand to show ALL courses connected to this course (prerequisites and dependents)</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                     <Hand className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Drag & Scroll</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Drag nodes to rearrange, scroll to zoom in/out, drag background to pan</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Drag & Zoom</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Drag nodes to rearrange, scroll to zoom, drag background to pan around</p>
                     </div>
                   </div>
                 </div>
