@@ -1,8 +1,8 @@
 // src/mindmesh/components/MindMeshInfoPanel.jsx
-import { useEffect, useRef, useState, useMemo } from "react";
+import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { GripVertical, ChevronDown, ChevronRight } from "lucide-react";
 
 export default function MindMeshInfoPanel({
   graph,
@@ -16,7 +16,7 @@ export default function MindMeshInfoPanel({
   const [missing, setMissing] = useState([]);
   const [collapsed, setCollapsed] = useState(false);
 
-  // ----- derive loaded/missing -----
+  // derive loaded/missing
   useEffect(() => {
     if (!isProgramView || !programCourses.length || !graph?.nodes?.length) return;
     const nodeSet = new Set(graph.nodes.map((n) => n.id));
@@ -26,7 +26,7 @@ export default function MindMeshInfoPanel({
 
   if (!isProgramView) return null;
 
-  // ----- draggable setup -----
+  // draggable setup 
   const panelRef = useRef(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragStart = useRef({ x: 0, y: 0 });
@@ -90,7 +90,7 @@ export default function MindMeshInfoPanel({
   const loadedByLevel = useMemo(() => groupByLevel(loaded), [loaded]);
   const missingByLevel = useMemo(() => groupByLevel(missing), [missing]);
 
-  // --- handle course click (same as ProgramStructure) ---
+  // handle course click 
   const handleCourseClick = async (course) => {
     if (!course?.code) return;
     try {
@@ -106,7 +106,7 @@ export default function MindMeshInfoPanel({
     }
   };
 
-  // --- render grouped courses ---
+  // render grouped courses 
   const renderGroupedCourses = (grouped, variant = "loaded") => {
     const blocks = Object.entries(grouped).filter(([, list]) => list.length);
     const isLoaded = variant === "loaded";

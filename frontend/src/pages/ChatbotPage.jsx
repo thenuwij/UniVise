@@ -18,13 +18,13 @@ export default function ChatbotPage() {
 
  return (
   <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
-    {/* ─── Top navbars ───────────────────────────────────────── */}
+    {/*  Top navbars */}
     <div>
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
     </div>
 
-    {/* ─── Two-column chat layout ───────────────────────────────── */}
+    {/* Two-column chat layout */}
     <div className="flex overflow-hidden flex-1">
       {/* Dynamic Sidebar - changes width based on collapse state */}
       <div className={`${sidebarCollapsed ? 'w-24' : 'w-64'} flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>

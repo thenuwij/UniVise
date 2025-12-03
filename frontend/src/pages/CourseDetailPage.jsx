@@ -1,23 +1,22 @@
 // src/pages/CourseDetailPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
-import SaveButton from "../components/SaveButton";
+import { useEffect, useState } from "react";
 import {
+  HiAcademicCap,
   HiArrowLeft,
   HiBookOpen,
-  HiAcademicCap,
-  HiChartBar,
   HiCalendar,
-  HiCollection,
-  HiInformationCircle,
-  HiClipboardList,
+  HiChartBar,
   HiCheckCircle,
+  HiClipboardList,
+  HiCollection
 } from "react-icons/hi";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { MenuBar } from "../components/MenuBar";
+import SaveButton from "../components/SaveButton";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 function CourseDetailPage() {
   const { courseId } = useParams();
@@ -27,8 +26,6 @@ function CourseDetailPage() {
   
   // Get section from URL parameter
   const sectionName = searchParams.get("section");
-
-  // Correct: use degreeId (UUID) for navigation
   const goDegree = (degreeId) => navigate(`/degrees/${degreeId}`);
 
   const [course, setCourse] = useState(null);
@@ -74,7 +71,7 @@ function CourseDetailPage() {
     setAddingToProgress(true);
 
     try {
-      // Extract UOC number from string like "6 Units of Credit"
+      // Extract UOC number from string 
       const uocNumber = course.uoc ? parseInt(course.uoc.match(/\d+/)?.[0] || 0) : 0;
 
       // Insert into user_custom_courses table
@@ -134,7 +131,6 @@ function CourseDetailPage() {
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      {/* 🔥 Full-width like degree + specialisation pages */}
       <main className="max-w-[1600px] mx-auto px-6 py-16">
 
         {/* Back Button */}
@@ -203,9 +199,9 @@ function CourseDetailPage() {
               </div>
             </div>
 
-            {/* Action Buttons - Top Right */}
+            {/* Action Buttons*/}
             <div className="flex-shrink-0 flex gap-3">
-              {/* Add to Progress Button - Only show if section name exists */}
+              {/* Add to Progress Button */}
               {sectionName && (
                 <button
                   onClick={handleAddToProgress}
@@ -306,11 +302,7 @@ function CourseDetailPage() {
   );
 }
 
-
-/* ————————————————————————————————
-  COMPONENTS
-——————————————————————————————— */
-
+// Components
 function Section({ title, icon, children }) {
   return (
     <div className="mb-14">

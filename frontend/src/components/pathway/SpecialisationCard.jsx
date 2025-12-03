@@ -1,6 +1,5 @@
 // src/components/pathway/SpecialisationCard.jsx
-import React from "react";
-import { GraduationCap, BookOpen, Award } from "lucide-react";
+import { Award, BookOpen, GraduationCap } from "lucide-react";
 
 function SpecialisationCard({ data, itemType }) {
   // Determine the type (Honours, Major, Minor)

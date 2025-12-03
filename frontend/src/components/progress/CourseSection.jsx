@@ -1,7 +1,6 @@
 // src/components/progress/CourseSection.jsx
-import React from "react";
-import CourseRow from "./CourseRow";
 import { HiPlus } from "react-icons/hi";
+import CourseRow from "./CourseRow";
 
 export default function CourseSection({ section, completedCourses, userId, onCourseUpdate }) {
   const hasCourses = section.courses && section.courses.length > 0;

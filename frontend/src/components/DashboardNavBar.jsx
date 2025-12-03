@@ -1,24 +1,19 @@
 import {
   Avatar,
-  Button,
+  DarkThemeToggle,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
   DropdownItem,
   Navbar,
-  NavbarBrand,
-  NavbarCollapse,
-  NavbarLink,
-  NavbarToggle,
+  NavbarBrand
 } from "flowbite-react";
-import logo from "../assets/logo.svg"; 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LuMenu } from "react-icons/lu";
-import { UserAuth } from "../context/AuthContext";
-import { useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import { DarkThemeToggle } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.svg";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 export function DashboardNavBar({ onMenuClick }) {
 

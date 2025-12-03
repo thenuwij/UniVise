@@ -1,19 +1,8 @@
 // src/components/roadmap/ProgramFlexibility.jsx
-import RoadmapCard from "./RoadmapCard";
-import { useState, useEffect } from "react";
+import { ArrowRight, CheckCircle2, Info, RefreshCw, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { Info, RefreshCw, TrendingUp, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
-
-/**
- * Premium Program Flexibility Component
- * 
- * Sophisticated design with:
- * - Elegant blue/sky/indigo gradients
- * - Enhanced progress bars
- * - Premium card layouts
- * - Professional visual hierarchy
- */
 
 export default function ProgramFlexibility({
   flexibility,
@@ -39,7 +28,7 @@ export default function ProgramFlexibility({
       }
 
       try {
-        // 1. Check if degree has courses
+        // Check if degree has courses
         const { data: degreeData } = await supabase
           .from("unsw_degrees_final")
           .select("sections")
@@ -54,7 +43,7 @@ export default function ProgramFlexibility({
           hasDegreeCourses = sections.some(s => s.courses?.length > 0);
         }
 
-        // 2. Check if user has selected specializations
+        // Check if user has selected specializations
         const { data: userSpecs } = await supabase
           .from("user_specialisation_selections")
           .select("honours_id, major_id, minor_id")
@@ -64,7 +53,7 @@ export default function ProgramFlexibility({
 
         const hasSpecs = !!(userSpecs?.honours_id || userSpecs?.major_id || userSpecs?.minor_id);
 
-        // 3. If has specs, check if they have courses
+        // If has specs, check if they have courses
         let hasSpecCourses = false;
         if (hasSpecs) {
           const specIds = [userSpecs.honours_id, userSpecs.major_id, userSpecs.minor_id].filter(Boolean);
@@ -101,20 +90,20 @@ export default function ProgramFlexibility({
       for (const opt of easySwitches) {
         if (!opt.program_name) continue;
 
-        // PRIORITY 1: Use the ID directly from flexibility data if available
+        // Use the ID directly from flexibility data if available
         if (opt.id) {
           mapping[opt.program_name] = opt.id;
           continue;
         }
 
-        // PRIORITY 2: Try exact match first
+        // Try exact match first
         let { data, error } = await supabase
           .from("unsw_degrees_final")
           .select("id")
           .eq("program_name", opt.program_name)
           .maybeSingle();
 
-        // PRIORITY 3: Fallback to ilike if exact match fails
+        // Fallback to ilike if exact match fails
         if (!data?.id) {
           const result = await supabase
             .from("unsw_degrees_final")
@@ -160,7 +149,7 @@ export default function ProgramFlexibility({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
-    {/* ---------- HEADER ---------- */}
+    {/* HEADER */}
     <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                     px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
                     rounded-t-2xl">
@@ -186,6 +175,7 @@ export default function ProgramFlexibility({
     <div className="mt-6 mb-8 p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-indigo-50/40 
                     dark:from-blue-900/20 dark:to-indigo-900/20 
                     border border-blue-200/60 dark:border-blue-800/60 flex items-start gap-3">
+
       {/* Info icon with circular background */}
       <div className="flex items-center justify-center w-6 h-6 rounded-full 
                   bg-blue-100 dark:bg-blue-900/40 shrink-0 mt-0.5">
@@ -213,7 +203,7 @@ export default function ProgramFlexibility({
       </p>
     </div>
 
-      {/* ========== DEGREE OPTIONS ========== */}
+      {/* DEGREE OPTIONS */}
       {hasNewData && (
         <div className="space-y-5 mb-8">
           {easySwitches.map((opt, i) => {
@@ -377,7 +367,7 @@ export default function ProgramFlexibility({
         </div>
       )}
 
-      {/* ========== LOADING/NO DATA STATE ========== */}
+      {/* LOADING/NO DATA STATE */}
       {!hasNewData && (
         <>
           {/* Still checking if should show */}
@@ -437,10 +427,3 @@ export default function ProgramFlexibility({
     </div>
   );
 }
-
-// Add shimmer animation to your global CSS or tailwind config
-// @keyframes shimmer {
-//   0% { transform: translateX(-100%); }
-//   100% { transform: translateX(100%); }
-// }
-// .animate-shimmer { animation: shimmer 2s infinite; }

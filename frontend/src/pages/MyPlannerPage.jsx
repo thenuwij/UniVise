@@ -1,16 +1,16 @@
 // src/pages/MyPlannerPage.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
+import { useState } from "react";
 import {
-  HiCollection,
-  HiClipboard,
-  HiUsers,
   HiArrowRight,
   HiBookmark,
   HiCheckCircle,
+  HiClipboard,
+  HiCollection,
+  HiUsers,
 } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { MenuBar } from "../components/MenuBar";
 
 function MyPlannerPage() {
   const navigate = useNavigate();
@@ -21,16 +21,14 @@ function MyPlannerPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      
-      {/* Fixed Navigation */}
+    
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
       <div className="pt-16 sm:pt-20">
-        
-        {/* PAGE CONTAINER */}
+
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
           {/* HEADER */}
@@ -53,10 +51,9 @@ function MyPlannerPage() {
             </p>
           </div>
 
-          {/* TWO COLUMN LAYOUT FOR PLANNER OPTIONS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             
-            {/* TRACK PROGRESS BOX - LEFT */}
+            {/* TRACK PROGRESS BOX */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-6">
               
               {/* Header */}
@@ -88,7 +85,6 @@ function MyPlannerPage() {
                 </li>
               </ul>
 
-              {/* CTA Button */}
               <button
                 onClick={() => navigate("/progress")}
                 className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
@@ -99,7 +95,7 @@ function MyPlannerPage() {
               </button>
             </div>
 
-            {/* MY SAVED ITEMS BOX - RIGHT */}
+            {/* MY SAVED ITEMS BOX  */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-6">
               
               {/* Header */}
@@ -132,7 +128,6 @@ function MyPlannerPage() {
                 </li>
               </ul>
 
-              {/* CTA Button */}
               <button
                 onClick={() => navigate("/mypathway")}
                 className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"

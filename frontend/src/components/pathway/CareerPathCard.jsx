@@ -1,6 +1,5 @@
 // src/components/pathway/CareerPathCard.jsx
-import React from "react";
-import { Briefcase, DollarSign, TrendingUp, Building2 } from "lucide-react";
+import { Briefcase, Building2, DollarSign, TrendingUp } from "lucide-react";
 
 function CareerPathCard({ data }) {
   return (
@@ -49,7 +48,7 @@ function CareerPathCard({ data }) {
         </div>
       )}
 
-      {/* KEY SKILLS (if exists) */}
+      {/* KEY SKILLS */}
       {data.key_skills && data.key_skills.length > 0 && (
         <div>
           <p className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2">

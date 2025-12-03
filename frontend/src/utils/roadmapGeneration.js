@@ -1,17 +1,4 @@
-/**
- * Handles roadmap generation for school and UNSW users.
- * Responsible for calling backend APIs, waiting for Supabase updates,
- * and navigating to the appropriate roadmap page.
- *
- * @param {Object} params
- * @param {"school"|"unsw"|null} params.type - Type of roadmap flow.
- * @param {Object|null} params.degree - Degree object passed from state.
- * @param {string} params.accessToken - Current session access token.
- * @param {string} params.userId - Supabase user ID.
- * @param {Function} params.navigate - React Router navigate function.
- * @param {Object} params.supabase - Supabase client instance.
- * @param {Function} params.setProgress - Progress state setter.
- */
+
 export async function handleRoadmapGeneration({
   type,
   degree,

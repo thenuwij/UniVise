@@ -47,7 +47,7 @@ export function useRoadmapData() {
         if (!active) return;
         setHasTranscript(!!analysisData);
 
-        // --- Recommendations ---
+        // Recommendations
         const { data: recs, error: recsError } = await supabase
           .from(recsTable)
           .select("*") 
@@ -73,7 +73,7 @@ export function useRoadmapData() {
 
           if (unswError) console.warn("UNSW join error:", unswError.message);
 
-          // Merge UNSW degree info + recommendation reason
+          // Merge UNSW degree info and recommendation reason
           const enriched = recs.map(r => {
             const match = unswRecords?.find(u => u.degree_code === r.degree_code);
             return match ? { ...r, ...match, reason: r.reason, id: r.id } : r;

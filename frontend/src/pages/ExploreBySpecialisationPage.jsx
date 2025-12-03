@@ -1,18 +1,18 @@
 // src/pages/ExploreBySpecialisationPage.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  HiAcademicCap,
+  HiArrowLeft,
+  HiArrowRight,
+  HiChevronLeft,
+  HiCollection,
+  HiSearch,
+  HiStar,
+} from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  HiSearch,
-  HiAcademicCap,
-  HiStar,
-  HiChevronLeft,
-  HiArrowRight,
-  HiArrowLeft,
-  HiCollection,
-} from "react-icons/hi";
 
 function ExploreBySpecialisationPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +21,6 @@ function ExploreBySpecialisationPage() {
   const [facultyFilter, setFacultyFilter] = useState("");
   const [faculties, setFaculties] = useState([]);
   const [results, setResults] = useState([]);
-
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
   const navigate = useNavigate();
@@ -79,7 +78,6 @@ function ExploreBySpecialisationPage() {
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
-          {/* ENTRY PAGE */}
           {!selectedType && (
             <>
               {/* Back Button */}
@@ -99,7 +97,7 @@ function ExploreBySpecialisationPage() {
                 </div>
               </div>
 
-              {/* Type Selection Cards - Bigger & Better */}
+              {/* Type Selection Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
 
                 {[

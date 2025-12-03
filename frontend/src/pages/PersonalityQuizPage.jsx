@@ -1,10 +1,9 @@
-import PersonalityQuizForm from "../components/PersonalityQuizForm";
 import { Button } from "flowbite-react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
-import Logo from "../components/Logo";
-import { motion } from "framer-motion"; // ✅ Add animation support
 import { Header } from "../components/Header";
+import PersonalityQuizForm from "../components/PersonalityQuizForm";
+import { UserAuth } from "../context/AuthContext";
 
 const PersonalityQuizPage = () => {
   const { session, signOut } = UserAuth();

@@ -1,21 +1,19 @@
 // src/pages/RoadmapPage.jsx
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  HiArrowRight,
+  HiChartBar,
+  HiCheckCircle,
+  HiSearch,
+  HiStar
+} from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import { useRoadmapData } from "../hooks/useRoadmapData";
-import RecommendedDegrees from "../components/roadmap/RecommendedDegrees";
 import DegreeSelectorSection from "../components/roadmap/DegreeSelectorSection";
 import GenerateButton from "../components/roadmap/GenerateButton";
-import {
-  HiChartBar,
-  HiUsers,
-  HiBriefcase,
-  HiArrowRight,
-  HiStar,
-  HiSearch,
-  HiCheckCircle,
-} from "react-icons/hi";
+import RecommendedDegrees from "../components/roadmap/RecommendedDegrees";
+import { useRoadmapData } from "../hooks/useRoadmapData";
 
 function RoadmapPage() {
   const navigate = useNavigate();
@@ -91,7 +89,7 @@ function RoadmapPage() {
                 </p>
               </div>
 
-              {/* Generate Button - Top Right, aligned with description */}
+              {/* Generate Button */}
               <div className="flex-shrink-0 self-end">
                 <GenerateButton onClick={handleProceed} disabled={!selectedDegreeId}>
                   <span className="flex items-center gap-2">
@@ -118,7 +116,7 @@ function RoadmapPage() {
             </div>
           )}
 
-          {/* Main Info Card - Professional Design */}
+          {/* Main Info Card */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-8">
 
             {/* Title */}
@@ -135,7 +133,6 @@ function RoadmapPage() {
               UniVise generates your comprehensive academic roadmap including entry requirements, course structure, student communities, industry opportunities, and career pathways — all customized to your selected degree.
             </p>
 
-            {/* Highlights - Minimal, Professional */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-start gap-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <HiCheckCircle className="w-5 h-5 text-slate-600 dark:text-slate-400 flex-shrink-0 mt-0.5" />
@@ -163,7 +160,6 @@ function RoadmapPage() {
             </div>
           </div>
 
-          {/* Bottom Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
 
             {/* Left - Recommendations */}
@@ -187,7 +183,7 @@ function RoadmapPage() {
               />
             </div>
 
-            {/* Right - Search */}
+            {/* Right */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md p-6">
               <div className="flex items-center gap-2 mb-2 pb-3 border-b border-slate-200 dark:border-slate-700">
                 <HiSearch className="w-5 h-5 text-blue-500" />

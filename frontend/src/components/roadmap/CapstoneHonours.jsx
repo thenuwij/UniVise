@@ -1,8 +1,7 @@
-import GradientCard from "../GradientCard";
+import { Award, BookOpen, CheckCircle2, Star, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { Award, BookOpen, TrendingUp, CheckCircle2, Star } from "lucide-react";
-import { useState, useEffect } from "react"; 
 
 
 export default function CapstoneHonours({ data }) {
@@ -102,12 +101,14 @@ export default function CapstoneHonours({ data }) {
 
   return (
     <div className="space-y-8">
-      {/* ========== CAPSTONE SECTION ========== */}
+
+      {/* CAPSTONE SECTION */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
+
         {/* Top Accent Bar */}
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 rounded-t-2xl" />
         
-      {/* Header */}
+       {/* Header */}
         <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                         px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
                         rounded-t-2xl">
@@ -184,7 +185,7 @@ export default function CapstoneHonours({ data }) {
         </div>
       </div>
 
-      {/* ========== HONOURS SECTION ========== */}
+      {/* HONOURS SECTION */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
         {/* Top Accent Bar */}
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-sky-500 rounded-t-2xl shadow-[0_0_10px_rgba(79,70,229,0.4)]" />

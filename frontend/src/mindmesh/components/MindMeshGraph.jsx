@@ -1,5 +1,5 @@
 // src/pages/mindmesh/components/MindMeshGraph.jsx
-import { forwardRef, useState, useEffect } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 const MindMeshGraph = forwardRef(function MindMeshGraph(
@@ -36,9 +36,9 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     return () => observer.disconnect();
   }, []);
   
-  // Calculate node dimensions (matching NodeRenderer.js logic)
+  // Calculate node dimensions matching NodeRenderer.js logic
   const getNodeSize = (node) => {
-    // Create temporary canvas to measure text
+
     const tempCanvas = document.createElement('canvas');
     const ctx = tempCanvas.getContext('2d');
     
@@ -65,7 +65,7 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     const h = titleSize + (sub ? gapY + subSize : 0) + padY * 2;
     const w = textW + padX * 2;
     
-    // Return half-dimensions (radius-like)
+    // Return half-dimensions
     return {
       width: w / 2,
       height: h / 2
@@ -91,13 +91,13 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     // Get target node dimensions
     const targetSize = getNodeSize(target);
     
-    // Calculate the maximum extent of the node (diagonal)
+    // Calculate the maximum extent of the node 
     const nodeRadius = Math.sqrt(targetSize.width ** 2 + targetSize.height ** 2);
     
     const arrowLength = 16;
-    const buffer = 5; // Extra space so arrow is clearly visible
+    const buffer = 5; 
     
-    // Calculate position: stop before node radius + arrow length + buffer
+    // Calculate position
     const stopDistance = nodeRadius + arrowLength + buffer;
     const relPos = Math.max(0.5, Math.min(0.98, 1 - (stopDistance / distance)));
     

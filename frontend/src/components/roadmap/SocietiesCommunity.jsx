@@ -1,26 +1,15 @@
-import { useState } from "react";
-import SaveButton from "../SaveButton";
-import { 
-  Users, 
-  Clock,
+import {
   Award,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Heart,
   Sparkles,
   Star,
-  Heart
+  Users
 } from "lucide-react";
-
-/**
- * Societies & Community Component
- * 
- * More vibrant and colorful for social/community feel:
- * - Rich purple/indigo/pink gradients
- * - Engaging visual elements
- * - Premium sophistication maintained
- * - Perfect for student community sections
- */
+import { useState } from "react";
+import SaveButton from "../SaveButton";
 
 export default function SocietiesCommunity({ societies }) {
   const [showAll, setShowAll] = useState(false);
@@ -38,7 +27,7 @@ export default function SocietiesCommunity({ societies }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
-      {/* ========== HEADER ========== */}
+      {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
@@ -61,7 +50,7 @@ export default function SocietiesCommunity({ societies }) {
         </div>
       </div>
 
-      {/* ========== GETTING STARTED BANNER ========== */}
+      {/* GETTING STARTED BANNER */}
       <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 
                       dark:from-purple-900/20 dark:via-pink-900/20 dark:to-indigo-900/20 
                       rounded-xl border border-purple-200/60 dark:border-purple-700/60 shadow-md">
@@ -128,7 +117,7 @@ export default function SocietiesCommunity({ societies }) {
         </div>
       </div>
 
-      {/* ========== FACULTY-SPECIFIC SOCIETIES ========== */}
+      {/* FACULTY-SPECIFIC SOCIETIES */}
       {facultySpecific.length > 0 && (
         <div className="mb-8">
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
@@ -248,7 +237,7 @@ export default function SocietiesCommunity({ societies }) {
         </div>
       )}
 
-      {/* ========== CROSS-FACULTY SOCIETIES ========== */}
+      {/* CROSS-FACULTY SOCIETIES */}
       {crossFaculty.length > 0 && (
         <div className="mb-8">
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
@@ -273,7 +262,7 @@ export default function SocietiesCommunity({ societies }) {
                           dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
                           shadow-sm hover:shadow-md transition-all duration-200"
               >
-                {/* Top row with Name + SaveButton */}
+                {/* Top row with Name and SaveButton */}
                 <div className="flex items-start justify-between mb-2">
                   <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
                     {s.name}
@@ -299,7 +288,7 @@ export default function SocietiesCommunity({ societies }) {
         </div>
       )}
 
-      {/* ========== PROFESSIONAL DEVELOPMENT ========== */}
+      {/* PROFESSIONAL DEVELOPMENT */}
       {(profDev.student_chapters?.length > 0 ||
         profDev.leadership_note ||
         profDev.skills_gained?.length > 0) && (

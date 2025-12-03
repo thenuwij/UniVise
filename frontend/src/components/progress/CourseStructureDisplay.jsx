@@ -1,14 +1,14 @@
 // src/components/progress/CourseStructureDisplay.jsx
-import React from "react";
 import CourseSection from "./CourseSection";
 
 export default function CourseStructureDisplay({ 
   structure, 
   completedCourses, 
   userId, 
-  enrolledProgram, // NEW: needed to get source codes
+  enrolledProgram, 
   onCourseUpdate 
 }) {
+
   // Helper to get source type from section source
   const getSourceType = (source) => {
     if (source === "program") return "program";
@@ -20,11 +20,11 @@ export default function CourseStructureDisplay({
 
   // Helper to get source code for a section
   const getSourceCode = (section) => {
+
     // For program courses, return the degree code
     if (section.source === "program") {
       return enrolledProgram?.degree_code || null;
     }
-    
     // For specialisations, find the major_code from enrolled program
     const specNames = enrolledProgram?.specialisation_names || [];
     const specCodes = enrolledProgram?.specialisation_codes || [];
@@ -52,6 +52,7 @@ export default function CourseStructureDisplay({
 
   return (
     <div className="mt-8 space-y-12">
+
       {/* Program Sections */}
       {programSections.length > 0 && (
         <div>

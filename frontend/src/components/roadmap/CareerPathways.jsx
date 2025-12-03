@@ -15,16 +15,6 @@ import {
   Crown
 } from "lucide-react";
 
-/**
- * Premium Career Pathways Component
- * 
- * Sophisticated design with:
- * - Elegant color palette (slate, gold, indigo)
- * - Refined typography and spacing
- * - Subtle shadows and borders
- * - Professional, luxury aesthetic
- */
-
 export default function CareerPathways({ careerPathways }) {
   const [activeTab, setActiveTab] = useState('entry');
   const [showAllCerts, setShowAllCerts] = useState(false);
@@ -51,7 +41,7 @@ export default function CareerPathways({ careerPathways }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
-      {/* ========== HEADER ========== */}
+      {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
@@ -74,7 +64,7 @@ export default function CareerPathways({ careerPathways }) {
         </div>
       </div>
 
-      {/* ========== EMPLOYMENT STATISTICS ========== */}
+      {/* EMPLOYMENT STATISTICS */}
       {employmentStats && (
         <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {employmentStats.employment_rate && employmentStats.employment_rate !== 'Data not available' && (
@@ -164,7 +154,7 @@ export default function CareerPathways({ careerPathways }) {
         </div>
       </div>
 
-      {/* ========== ROLE CARDS ========== */}
+      {/* ROLE CARDS */}
       {activeData?.roles && activeData.roles.length > 0 && (
         <div className="space-y-5 mb-8">
           {activeData.roles.map((role, idx) => (
@@ -308,7 +298,7 @@ export default function CareerPathways({ careerPathways }) {
         </div>
       )}
 
-      {/* ========== PROFESSIONAL CERTIFICATIONS ========== */}
+      {/* PROFESSIONAL CERTIFICATIONS */}
       {certifications.length > 0 && (
         <div className="mb-8">
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
@@ -380,7 +370,7 @@ export default function CareerPathways({ careerPathways }) {
         </div>
       )}
 
-      {/* ========== MARKET INSIGHTS ========== */}
+      {/* MARKET INSIGHTS */}
       {marketInsights && (marketInsights.demand_level || marketInsights.trends || marketInsights.geographic_notes) && (
         <div className="mb-8">
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
@@ -426,7 +416,7 @@ export default function CareerPathways({ careerPathways }) {
         </div>
       )}
 
-      {/* ========== TOP EMPLOYERS BY SECTOR ========== */}
+      {/* TOP EMPLOYERS BY SECTOR */}
       {Object.keys(topEmployers).length > 0 && (
         <div>
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">

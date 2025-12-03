@@ -1,4 +1,3 @@
-import React from "react";
 
 function LoadingPage({ message = "Loading...", progress = 0 }) {
   return (

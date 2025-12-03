@@ -1,6 +1,5 @@
 // src/components/pathway/CourseCard.jsx
-import React from "react";
-import { BookOpen, GraduationCap, Award } from "lucide-react";
+import { Award, BookOpen, GraduationCap } from "lucide-react";
 
 function CourseCard({ data }) {
   return (

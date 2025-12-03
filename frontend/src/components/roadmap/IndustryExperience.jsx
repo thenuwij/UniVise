@@ -1,29 +1,17 @@
 import { useState } from "react";
 import SaveButton from "../SaveButton";
 
-import { 
-  Briefcase, 
-  Clock,
-  MapPin,
-  CheckCircle2,
+import {
   AlertCircle,
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Building2,
-  TrendingUp,
-  Calendar,
-  DollarSign
+  Clock,
+  TrendingUp
 } from "lucide-react";
-
-/**
- * Premium Industry Experience & Training Component
- * 
- * Sophisticated design with:
- * - Elegant blue/indigo/slate color palette
- * - Refined typography and spacing
- * - Professional card layouts
- * - Subtle shadows and borders
- */
 
 export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
@@ -43,7 +31,7 @@ export default function IndustryExperience({ industryExperience }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
       
-      {/* ========== HEADER ========== */}
+      {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
@@ -66,8 +54,7 @@ export default function IndustryExperience({ industryExperience }) {
         </div>
       </div>
 
-      {/* ========== MANDATORY PLACEMENTS BANNER ========== */}
-      
+      {/*  MANDATORY PLACEMENTS BANNER */}
       {mandatoryPlacements && (
         <div className={`mb-8 p-6 rounded-xl border shadow-sm ${
           mandatoryPlacements.required 
@@ -102,7 +89,7 @@ export default function IndustryExperience({ industryExperience }) {
         </div>
       )}
 
-      {/* ========== UNSW CAREER RESOURCES ========== */}
+      {/* UNSW CAREER RESOURCES */}
       <div className="mb-8 p-6 rounded-xl border border-amber-200/60 dark:border-amber-800/60 
                     bg-gradient-to-br from-amber-50/40 via-yellow-50/30 to-orange-50/20 
                     dark:from-amber-900/15 dark:via-yellow-900/10 dark:to-orange-900/10 
@@ -259,7 +246,7 @@ export default function IndustryExperience({ industryExperience }) {
       </div>
 
 
-      {/* ========== INTERNSHIP PROGRAMS ========== */}
+      {/* INTERNSHIP PROGRAMS */}
       {internshipPrograms.length > 0 && (
         <div className="mb-8">
           <div className="mb-6 pb-4 border-b-2 border-slate-200 dark:border-slate-700">

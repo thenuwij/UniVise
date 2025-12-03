@@ -1,21 +1,21 @@
 // RoadmapSchoolPage.jsx — Matches UNSW Roadmap Design (Quick Facts Removed)
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import RoadmapFlow from "../components/roadmap/RoadmapFlow";
-import EntryRequirementsCard from "../components/roadmap/EntryRequirementsCard";
-import ProgramStructure from "../components/roadmap/ProgramStructure";
-import IndustrySection from "../components/roadmap/IndustrySection";
-import CareersSection from "../components/roadmap/CareersSection";
-import SkeletonCard from "../components/roadmap/SkeletonCard";
 import GradientCard from "../components/GradientCard";
-import SectionTitle from "../components/SectionTitle";
+import { MenuBar } from "../components/MenuBar";
 import Pill from "../components/Pill";
+import SectionTitle from "../components/SectionTitle";
 import { ArrowLeft } from "../components/icons/InlineIcons";
+import CareersSection from "../components/roadmap/CareersSection";
+import EntryRequirementsCard from "../components/roadmap/EntryRequirementsCard";
+import IndustrySection from "../components/roadmap/IndustrySection";
+import ProgramStructure from "../components/roadmap/ProgramStructure";
+import RoadmapFlow from "../components/roadmap/RoadmapFlow";
+import SkeletonCard from "../components/roadmap/SkeletonCard";
+import { supabase } from "../supabaseClient";
 
-// --- ICON ---
+
 const SchoolIcon = (p) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
     <path d="M22 10L12 2 2 10l10 6 10-6z" />
@@ -23,7 +23,7 @@ const SchoolIcon = (p) => (
   </svg>
 );
 
-// --- Main Component ---
+// Main
 export default function RoadmapSchoolPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -59,39 +59,6 @@ export default function RoadmapSchoolPage() {
     };
     fetchByIdIfNeeded();
   }, [preloadedRoadmapId, data]);
-
-  const handleGenerate = useCallback(async () => {
-    try {
-      setErr("");
-      setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) throw new Error("Not authenticated.");
-      if (!degree) throw new Error("No degree context.");
-
-      const body = {
-        recommendation_id: degree?.source === "hs_recommendation" ? degree?.id : undefined,
-        degree_name: degree?.degree_name || degree?.program_name || undefined,
-        country: "AU",
-      };
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/school`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.detail || `Failed to generate roadmap (HTTP ${res.status}).`);
-      setData(json.payload);
-      setActiveIndex(0);
-    } catch (e) {
-      setErr(e.message || "Failed to generate roadmap.");
-    } finally {
-      setLoading(false);
-    }
-  }, [degree]);
 
   const steps = useMemo(
     () => [
@@ -143,9 +110,6 @@ export default function RoadmapSchoolPage() {
     ],
     [data]
   );
-
-
-  const sources = Array.isArray(data?.sources) ? data.sources : [];
 
   return (
     <div

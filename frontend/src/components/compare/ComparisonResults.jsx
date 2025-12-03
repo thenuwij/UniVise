@@ -1,20 +1,19 @@
-import React, { useState } from "react";
 import {
+  AlertCircle,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Sparkles,
   ArrowRight,
-  Clock,
+  BookOpen,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
-  TrendingUp,
-  BookOpen,
+  Clock,
   GraduationCap,
-  CalendarDays,
+  Sparkles,
   Target,
+  TrendingUp,
+  XCircle
 } from "lucide-react";
+import React, { useState } from "react";
 
 export default function ComparisonResults({ 
     comparisonData, 
@@ -95,7 +94,7 @@ export default function ComparisonResults({
   return (
     <div className="max-w-7xl mx-auto space-y-6">
 
-      {/* ===== HEADER SECTION ===== */}
+      {/* HEADER SECTION */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="p-6">
           <div className="flex items-center justify-between gap-4">
@@ -148,7 +147,7 @@ export default function ComparisonResults({
         </div>
       </div>
 
-      {/* ===== ASSESSMENT CARD ===== */}
+      {/* ASSESSMENT CARD */}
       <div className={`${style.bg} rounded-xl border-2 ${style.border} shadow-sm overflow-hidden`}>
         <div className="p-8">
           <div className="flex items-start justify-between gap-6">
@@ -224,7 +223,7 @@ export default function ComparisonResults({
         </div>
       </div>
 
-      {/* ===== CRITICAL ISSUES ===== */}
+      {/* CRITICAL ISSUES */}
       {critical_issues && critical_issues.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="p-6">
@@ -284,7 +283,7 @@ export default function ComparisonResults({
         </div>
       )}
 
-      {/* ===== TRANSFER ANALYSIS ===== */}
+      {/* TRANSFER ANALYSIS */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-5">

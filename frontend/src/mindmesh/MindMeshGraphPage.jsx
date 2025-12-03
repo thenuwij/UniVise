@@ -93,18 +93,18 @@ export default function MindMeshGraphPage() {
     [focusedNode]
   );
 
-  // Color palette for OR groups - ONLY based on group_id hash
+  // Color palette for OR groups 
   const getGroupColor = useCallback((groupId, link, isFocused) => {
-    if (!isFocused) return "rgba(148,163,184,0.15)";
+    if (!isFocused) return "rgba(148,163,184,0.4)";
     
     // Hash ONLY the group_id to get consistent color for same group
     let hash = 0;
     for (let i = 0; i < groupId.length; i++) {
       hash = groupId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const colorIndex = Math.abs(hash) % 4; // Only 4 colors now
+    const colorIndex = Math.abs(hash) % 4; 
     
-    // 4 highly distinct colors - enough for most courses
+    // highly distinct colors, enough for most courses
     const colors = [
       "#3b82f6", // blue
       "#10b981", // emerald/green
@@ -139,7 +139,7 @@ export default function MindMeshGraphPage() {
       
       // If only ONE OR group → use single blue color
       if (targetOrGroups.size <= 1) {
-        return isFocused ? "#3b82f6" : "rgba(59,130,246,0.15)";
+        return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
       }
       
       // If MULTIPLE OR groups → color-code by level
@@ -148,11 +148,11 @@ export default function MindMeshGraphPage() {
       }
       
       // Fallback
-      return isFocused ? "#3b82f6" : "rgba(59,130,246,0.15)";
+      return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
     }
     
     // AND (solid) edges use level-based color
-    return isFocused ? color : "rgba(148,163,184,0.1)";
+    return isFocused ? color : "rgba(148,163,184,0.35)";
   }, [graph.nodes, graph.links, focusedNode, isEdgeOfFocus, getGroupColor]);
 
   const linkWidth = useCallback((l) => {
@@ -166,17 +166,16 @@ export default function MindMeshGraphPage() {
   }, [graph.nodes, focusedNode, isEdgeOfFocus]);
 
   const linkLineDash = useCallback((l) => {
-    // Solid lines for AND (required prerequisites)
+    // Solid lines for AND 
     if (l.logic_type === 'and') {
       return null; // solid line
     }
     
     // Dashed lines for OR and OR_GROUP (alternatives)
     if (l.logic_type === 'or' || l.logic_type === 'or_group') {
-      return [6, 6]; // dashed line
+      return [6, 6]; 
     }
-    
-    // Default to solid
+
     return null;
   }, []);
 
@@ -214,7 +213,7 @@ export default function MindMeshGraphPage() {
         .select("key,label,uoc,faculty,school,level")
         .in("key", connectedKeys);
 
-      console.log("🔍 Expand node:", courseKey);
+      console.log("Expand node:", courseKey);
       console.log("  - Edges fetched:", edgesData.length);
       console.log("  - Connected keys:", connectedKeys.length);
       console.log("  - Nodes fetched:", nodesData?.length || 0);
@@ -322,7 +321,7 @@ export default function MindMeshGraphPage() {
       {/* Welcome Modal */}
       <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
       
-      {/* Header + Controls */}
+      {/* Header and Controls */}
       <GraphControls
         graphHistory={graphHistoryRef}
         handleBack={handleBackGraph}

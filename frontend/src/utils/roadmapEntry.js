@@ -1,15 +1,4 @@
-/**
- * Handles generation of roadmap entry recommendations.
- * For university users: calls backend and polls Supabase until
- * recommendations exist. For school users: quick simulated delay.
- *
- * @param {Object} params
- * @param {Object} params.user - Supabase user object
- * @param {string} params.accessToken - Current access token
- * @param {Function} params.navigate - React Router navigate function
- * @param {Object} params.supabase - Supabase client
- * @param {Function} params.setProgress - State setter for progress bar
- */
+
 export async function handleRoadmapEntryGeneration({
   user,
   accessToken,

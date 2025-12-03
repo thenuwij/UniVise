@@ -1,4 +1,3 @@
-import React from "react";
 
 // Reusable style configuration
 const documentStyles = {

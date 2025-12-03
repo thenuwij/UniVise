@@ -21,7 +21,7 @@ export default function GraphControls({
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 
                     bg-white dark:bg-slate-900 shadow-sm">
-      {/* Title + Subtitle */}
+      {/* Title and Subtitle */}
       <div className="flex items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">MindMesh</h1>
@@ -30,7 +30,7 @@ export default function GraphControls({
           </p>
         </div>
 
-        {/* View Course Button (appears when node is focused) */}
+        {/* View Course Button */}
         {focusedNode && (
           <button
             onClick={handleViewCourse}

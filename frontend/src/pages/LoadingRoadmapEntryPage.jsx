@@ -1,29 +1,21 @@
-/**
- * LoadingRoadmapEntryPage
- * -----------------------
- * Shows a progress bar while generating final recommendations
- * before entering the roadmap selection page.
- * Calls backend + polls Supabase, then redirects to /roadmap.
- */
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
 import LoadingPage from "../components/LoadingPage";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 import { handleRoadmapEntryGeneration } from "../utils/roadmapEntry";
 
 // Progress bar animation constants
-const PROGRESS_CAP = 95;       // Max before backend finishes
-const PROGRESS_STEP = 1.5;     // Increment per tick
-const PROGRESS_INTERVAL = 150; // Interval in ms
+const PROGRESS_CAP = 95;      
+const PROGRESS_STEP = 1.5;     
+const PROGRESS_INTERVAL = 150; 
 
 function LoadingRoadmapEntryPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
 
-  // Animate the bar until finished (cap at 95 until backend completes)
+  // Animate the bar until finished 
   useEffect(() => {
     const id = setInterval(() => {
       setProgress((p) => (p < PROGRESS_CAP ? p + PROGRESS_STEP : p));

@@ -1,8 +1,7 @@
 // src/components/MyPlannerCard.jsx
 import { Button } from "flowbite-react";
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 
