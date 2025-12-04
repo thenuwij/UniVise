@@ -7,22 +7,24 @@ import re
 
 from dependencies import get_current_user
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai  # your existing helper
+from app.utils.openai_client import ask_openai  
 
 router = APIRouter(prefix="/smart-related", tags=["Smart Related"])
 
+# Request model for finding degrees related to a course
 class CourseToDegreesReq(BaseModel):
-    course_id: Optional[str] = None           # prefer UUID
-    course_code: Optional[str] = None         # fallback
+    course_id: Optional[str] = None         
+    course_code: Optional[str] = None     
     top_k: int = 4
-    restrict_faculty: bool = True             # choose within same faculty if possible
+    restrict_faculty: bool = True           
 
+# Response model for degree recommendations
 class DegreeOut(BaseModel):
     id: str
     program_name: str
     uac_code: Optional[str] = None
     faculty: Optional[str] = None
-    reason: Optional[str] = None              # why AI picked this
+    reason: Optional[str] = None         
     score: Optional[float] = None
 
 SYSTEM_PROMPT = """
@@ -62,7 +64,7 @@ Penalize strongly:
 Output ONLY the JSON object above. No explanations, no prose, no markdown.
 """
 
-
+# Parse AI response JSON, with fallback for incorret output
 def _safe_json_choices(text: str) -> List[Dict[str, Any]]:
     try:
         obj = json.loads(text)
@@ -70,6 +72,7 @@ def _safe_json_choices(text: str) -> List[Dict[str, Any]]:
             return obj["choices"]
     except Exception:
         pass
+
     # try largest JSON object fallback
     try:
         start, end = text.find("{"), text.rfind("}")
@@ -81,9 +84,11 @@ def _safe_json_choices(text: str) -> List[Dict[str, Any]]:
         pass
     return []
 
+# Find top matching degrees for a given course using keyword prefiltering and AI ranking
 @router.post("/degrees-for-course", response_model=List[DegreeOut])
 async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_user)):
-    # --- 1) load course ---
+
+    # load course 
     if not req.course_id and not req.course_code:
         raise HTTPException(status_code=400, detail="course_id or course_code required")
 
@@ -108,17 +113,19 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         "foe": c.get("field_of_education"),
     }
     
-    # --- 2) fetch candidate degrees (from unsw_degrees_final) ---
+    # fetch candidate degrees (from unsw_degrees_final table)
     dq = supabase.table("unsw_degrees_final").select(
         "id,program_name,uac_code,faculty,overview_description,other_faculty,duration"
     )
 
     if req.restrict_faculty and c.get("faculty"):
         dq = dq.eq("faculty", c["faculty"])
+
     # Hard cap to keep prompt reasonable
     dr = dq.limit(80).execute()
     candidates = dr.data or []
     if not candidates:
+
         # fallback: try without faculty restriction
         dr = supabase.table("unsw_degrees_final").select(
             "id,program_name,uac_code,faculty,overview_description,other_faculty,duration"
@@ -130,7 +137,8 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
     # Pre-trim long text
     for d in candidates:
         d["desc"] = ((d.get("overview_description") or "")[:600]).strip()
-    # --- 3) short heuristic prefilter (keyword overlap) to shrink list for LLM ---
+
+    # short prefilter (keyword overlap) to reduce list for LLM 
     def toks(s: str) -> set:
         return set(w.lower() for w in re.findall(r"[a-zA-Z]{3,}", s or ""))
     c_toks = toks((course_blob["title"] or "") + " " + (course_blob["overview"] or ""))
@@ -140,11 +148,12 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         overlap = len(c_toks & toks(d["program_name"] + " " + d["desc"]))
         same_fac = 1 if (c.get("faculty") and d.get("faculty") == c.get("faculty")) else 0
         scored.append((overlap + 2*same_fac, d))
+
     # keep top 30 for the LLM
     scored.sort(key=lambda x: x[0], reverse=True)
     shortlist = [d for _, d in scored[:30]]
 
-    # --- 4) LLM selection ---
+    # LLM selection
     new_lines = [
         f'- DEGREE id={d["id"]} name="{d["program_name"]}" '
         f'faculty="{d.get("faculty") or ""}" '
@@ -153,7 +162,6 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         f'uac="{d.get("uac_code") or ""}" | {d.get("desc") or ""}'
         for d in shortlist
     ]
-
 
     user_prompt = (
         "COURSE:\n"
@@ -177,7 +185,7 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         raw = raw.get("text") or raw.get("content") or json.dumps(raw)
     choices = _safe_json_choices(raw or "")
 
-    # --- 5) validate outputs and map back to real rows ---
+    # validate outputs and map back to real rows 
     cand_by_id = {d["id"]: d for d in shortlist}
     out: List[DegreeOut] = []
     seen = set()
@@ -198,7 +206,6 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
         if len(out) >= max(1, req.top_k):
             break
 
-    # If LLM failed, fallback to top heuristic
     if not out:
         for _, r in scored[:req.top_k]:
             out.append(DegreeOut(

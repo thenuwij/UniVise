@@ -50,7 +50,6 @@ export default function AutoLayoutControls({
       return;
     }
 
-    // --- adjacency and constraints ---
     const prereq = validLinks.filter((l) => l.type === "prereq");
     const belongs = validLinks.filter((l) => l.type === "belongs_to");
     const constraints = [...prereq, ...belongs];
@@ -83,7 +82,7 @@ export default function AutoLayoutControls({
       }
     }
 
-    // --- bucket by level ---
+    // Bucket by level
     const maxLevel = Math.max(0, ...nodes.map((n) => level.get(n.id) ?? base.get(n.id) ?? 0));
     const rows = maxLevel + 1;
     const buckets = Array.from({ length: rows }, () => []);
@@ -102,20 +101,18 @@ export default function AutoLayoutControls({
     };
     buckets.forEach((r) => r.sort(keySort));
 
-    // --- improved layout spacing ---
-    const marginTop = 100;
+    const marginBottom = 100;
     const marginSide = 120;
     const baseRowGap = Math.max(220, canvasSize.h / (rows + 1));
 
     const W = Math.max(800, canvasSize.w - marginSide * 2);
-    const yForRow = (r) => marginTop + r * baseRowGap;
-
+    const yForRow = (r) => canvasSize.h - marginBottom - r * baseRowGap;
+    
     buckets.forEach((rowArr, r) => {
       const y = yForRow(r);
       const count = rowArr.length;
       if (!count) return;
 
-      // Dynamic spacing per row
       const approxNodeWidth = 120;
       const maxPossible = Math.floor(W / approxNodeWidth);
       const scalingFactor = count > maxPossible ? count / maxPossible : 1;
@@ -132,7 +129,7 @@ export default function AutoLayoutControls({
       });
     });
 
-    setGraph({ nodes, links: validLinks }); // ✅ Use filtered nodes and valid links
+    setGraph({ nodes, links: validLinks }); // Only use filtered nodes and valid links
     setFrozen?.(true);
     requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
   }, [graph, canvasSize, graphRef, setGraph, setFrozen]);
@@ -143,17 +140,15 @@ export default function AutoLayoutControls({
     const allNodes = graph.nodes.map(({ fx, fy, ...n }) => ({ ...n, fx: undefined, fy: undefined }));
     const links = normalizeLinksToIds(graph.links);
     
-    // ✅ Filter valid links
     const idSet = new Set(allNodes.map((n) => n.id));
     const validLinks = links.filter(l => idSet.has(l.source) && idSet.has(l.target));
     
-    // ✅ Filter out isolated nodes
     const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
     const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
     
-    console.log("🔄 Reset Layout:");
-    console.log("  - Connected nodes:", nodes.length);
-    console.log("  - Valid links:", validLinks.length);
+    console.log("Reset Layout:");
+    console.log("Connected nodes:", nodes.length);
+    console.log("Valid links:", validLinks.length);
     
     setGraph({ nodes, links: validLinks });
     setFrozen?.(false);

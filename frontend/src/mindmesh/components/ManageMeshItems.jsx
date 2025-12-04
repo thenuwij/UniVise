@@ -1,20 +1,13 @@
 // src/components/mindmesh/ManageMeshItems.jsx
-import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { useEffect, useMemo, useState } from "react";
 import { UserAuth } from "../../context/AuthContext";
+import { supabase } from "../../supabaseClient";
 
-/**
- * Props:
- *  - isOpen: boolean
- *  - onClose: () => void
- *  - meshId: string
- *  - onChanged: () => void   // call after deletes to refresh parent list
- */
 export default function ManageMeshItems({ isOpen, onClose, meshId, onChanged }) {
   const { session } = UserAuth();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
-  const [typeFilter, setTypeFilter] = useState("all"); // all|degree|specialisation|course
+  const [typeFilter, setTypeFilter] = useState("all"); 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(new Set());
   const uid = session?.user?.id;
@@ -76,7 +69,7 @@ export default function ManageMeshItems({ isOpen, onClose, meshId, onChanged }) 
     const selItems = items.filter((it) => selected.has(`${it.item_type}:${it.item_key}`));
     const keys = selItems.map((it) => it.item_key);
 
-    // 1) delete edges touching selected keys
+    // delete edges touching selected keys
     await supabase
       .from("mindmesh_edges")
       .delete()
@@ -84,7 +77,7 @@ export default function ManageMeshItems({ isOpen, onClose, meshId, onChanged }) 
       .eq("mesh_id", meshId)
       .or(`from_key.in.(${keys.map(k=>`"${k}"`).join(",")}),to_key.in.(${keys.map(k=>`"${k}"`).join(",")})`);
 
-    // 2) delete items
+    // delete items
     const { error } = await supabase
       .from("mindmesh_items")
       .delete()
@@ -93,7 +86,6 @@ export default function ManageMeshItems({ isOpen, onClose, meshId, onChanged }) 
       .in("item_key", keys);
 
     if (!error) {
-      // Optimistic UI: remove locally
       const setSel = new Set(selected);
       setItems((prev) => prev.filter((it) => !setSel.has(`${it.item_type}:${it.item_key}`)));
       setSelected(new Set());

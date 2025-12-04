@@ -22,9 +22,11 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
 
   return (
     <div ref={containerRef} className="w-full">
-      {/* PATH + NODES */}
+
+      {/* PATH and NODES */}
       <div className={`${verticalOnMobile ? "flex-col gap-6" : ""} flex md:flex-col`}>
         <div className="relative">
+
           {/* SVG path (desktop) */}
           <div className="hidden md:block">
             <svg className="w-full h-16" viewBox="0 0 100 16" preserveAspectRatio="none">
@@ -43,7 +45,7 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
             </svg>
           </div>
 
-          {/* Nodes (desktop) */}
+          {/* Nodes */}
           <div className="hidden md:grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-0 -mt-12">
             {steps.map((s, i) => {
               const active = i === activeIndex;

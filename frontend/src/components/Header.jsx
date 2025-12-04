@@ -1,7 +1,7 @@
 
-import { Navbar, NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle, DarkThemeToggle } from "flowbite-react";
+import { DarkThemeToggle, Navbar, NavbarBrand, NavbarToggle } from "flowbite-react";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.svg"
+import logo from "../assets/logo.svg";
 
 export function Header() {
   return (

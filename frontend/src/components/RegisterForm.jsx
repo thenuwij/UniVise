@@ -1,12 +1,10 @@
-import { Alert, Button, Checkbox, Label, Select, TextInput } from "flowbite-react";
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { UserAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
-import { TermsText } from "./TermsText";
+import { Alert, Button, Checkbox, Label, Modal, ModalBody, ModalHeader, Select, TextInput } from "flowbite-react";
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { Link, useNavigate } from "react-router-dom";
+import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { TermsText } from "./TermsText";
 
 
 function RegisterForm() {

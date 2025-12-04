@@ -89,26 +89,19 @@ async def generate_final_plan(user_id: str):
     ]
     """
 
-    # --- Call OpenAI and clean the response ---
+    # Call OpenAi and clean response
     result_raw = ask_openai(prompt)         
     result = clean_openai_response(result_raw)
-
-    # --- Debug: print what the AI actually said ---
-    print("=== RAW AI RESULT START ===")
-    print(result)
-    print("=== RAW AI RESULT END ===")
 
     try:
         degrees = json.loads(result)
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 
-    # --- Debug: show parsed degrees clearly ---
-    print("=== PARSED AI RECOMMENDATIONS ===")
-    for d in degrees:
-        print("-", d.get("degreeName"))
-    print("=== END PARSED ===")
-
+    # print("PARSED AI RECOMMENDATIONS")
+    # for d in degrees:
+    #     print("-", d.get("degreeName"))
+    # print("END PARSED")
 
     # Insert into Supabase final_recommendations table (University students only)
     rows = []
@@ -132,18 +125,18 @@ async def generate_final_plan(user_id: str):
                 degree_code = match.data[0]["degree_code"]
                 print(f"Exact match: {degree_name} → {degree_code} (id: {degree_id})")
             else:
-                print(f"[SKIP] No exact UNSW match found for: '{degree_name}'")
+                print(f"No exact UNSW match found for: '{degree_name}'")
                 continue  
 
         except Exception as e:
             print(f"[ERROR] Query failed for '{degree_name}': {e}")
             continue  
 
-        # --- Only insert valid UNSW degrees ---
+        # Only insert valid UNSW degrees 
         rows.append({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
-            "degree_id": degree_id,  # ADD THIS LINE
+            "degree_id": degree_id, 
             "degree_name": degree_name,
             "reason": reason,
             "degree_code": degree_code,
@@ -151,12 +144,9 @@ async def generate_final_plan(user_id: str):
         })
 
 
-    # --- DEBUG: Show what will be inserted ---
-    print("\n=== FINAL DEGREE RECOMMENDATIONS TO INSERT ===")
-    for r in rows:
-        print(f"- {r['degree_name']} → degree_code={r['degree_code']} | reason={r['reason'][:80]}...")
-    print("=============================================\n")
-
+    # print("\n FINAL DEGREE RECOMMENDATIONS TO INSERT")
+    # for r in rows:
+    #     print(f"- {r['degree_name']} → degree_code={r['degree_code']} | reason={r['reason'][:80]}...")
 
     insert_response = supabase.table("final_degree_recommendations").insert(rows).execute()
 

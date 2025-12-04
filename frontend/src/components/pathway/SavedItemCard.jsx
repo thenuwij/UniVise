@@ -1,20 +1,20 @@
 // src/components/pathway/SavedItemCard.jsx
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   HiAcademicCap,
-  HiClipboard,
-  HiUsers,
   HiBriefcase,
-  HiTrash,
+  HiClipboard,
   HiPencil,
+  HiTrash,
+  HiUsers,
 } from "react-icons/hi";
-import InternshipCard from "./InternshipCard";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
 import CareerPathCard from "./CareerPathCard";
 import CommunityCard from "./CommunityCard";
-import SpecialisationCard from "./SpecialisationCard";
-import { supabase } from "../../supabaseClient";
 import CourseCard from "./CourseCard";
+import InternshipCard from "./InternshipCard";
+import SpecialisationCard from "./SpecialisationCard";
 
 export default function SavedItemCard({ item, onRemove }) {
   const navigate = useNavigate();
@@ -139,11 +139,11 @@ export default function SavedItemCard({ item, onRemove }) {
     }
   };
 
-  // MAIN CARD WRAPPER - ONE WRAPPER FOR ALL TYPES
+  // MAIN CARD WRAPPER
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm hover:shadow-md transition-all">
       
-      {/* HEADER - COMMON FOR ALL TYPES */}
+      {/* HEADER - FOR ALL TYPES */}
       <div className="flex items-start gap-3 mb-4">
         <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
           {getIcon()}

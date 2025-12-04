@@ -1,22 +1,22 @@
 // src/pages/MinorDetailPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import SaveButton from "../components/SaveButton";
-import { supabase } from "../supabaseClient";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
+import SaveButton from "../components/SaveButton";
+import { supabase } from "../supabaseClient";
 
 import {
-  HiArrowLeft,
   HiAcademicCap,
-  HiInformationCircle,
-  HiChartBar,
+  HiArrowLeft,
   HiBookOpen,
+  HiChartBar,
   HiDocumentText,
+  HiInformationCircle,
 } from "react-icons/hi";
 
 function MinorDetailPage() {
-  const { id } = useParams(); // specialisation row UUID
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
   const [minor, setMinor] = useState(null);
@@ -30,9 +30,7 @@ function MinorDetailPage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // ───────────────────────────────────────────
-  // 1. Fetch minor specialisation
-  // ───────────────────────────────────────────
+  // FETCH MINOR SPECIALISATION
   useEffect(() => {
     let alive = true;
 
@@ -86,15 +84,13 @@ function MinorDetailPage() {
     };
   }, [id]);
 
-  // ───────────────────────────────────────────
-  // 2. Fetch degree + course metadata
-  // ───────────────────────────────────────────
+  // FETCH DEGREE AND COURSE METADATA 
   useEffect(() => {
     if (!minor) return;
 
     const fetchMeta = async () => {
       try {
-        // === DEGREE METADATA ===
+
         if (minor.related_degrees?.length > 0) {
           const degreeCodes = Array.from(
             new Set(
@@ -116,7 +112,6 @@ function MinorDetailPage() {
           }
         }
 
-        // === COURSE METADATA ===
         if (minor.sections?.length > 0) {
           const allCodes = new Set();
           minor.sections.forEach((sec) => {
@@ -146,8 +141,6 @@ function MinorDetailPage() {
     fetchMeta();
   }, [minor]);
 
-  // ───────────────────────────────────────────
-
   if (!minor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-950 dark:to-slate-900">
@@ -167,7 +160,6 @@ function MinorDetailPage() {
 
       <main className="max-w-[1600px] mx-auto px-6 py-16">
 
-        {/* BACK BUTTON */}
         <button
           onClick={goBack}
           className="group flex items-center gap-2 mb-10 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 
@@ -177,10 +169,8 @@ function MinorDetailPage() {
           Back
         </button>
 
-        {/* HEADER CARD */}
         <div className="relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-12">
 
-          {/* TOP RIGHT TAGS */}
           <div className="absolute top-6 right-6 flex flex-wrap gap-4">
             {minor.specialisation_type && (
               <span className="px-6 py-2 text-base font-bold rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
@@ -201,7 +191,6 @@ function MinorDetailPage() {
             )}
           </div>
 
-          {/* SAVE BUTTON - Below tags */}
           <div className="absolute top-20 right-6">
             <SaveButton
               itemType="specialisation"
@@ -217,7 +206,7 @@ function MinorDetailPage() {
             />
           </div>
 
-          {/* NAME + ICON */}
+          {/* NAME AND ICON */}
           <div className="flex items-start gap-6">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 shadow-md">
               <HiAcademicCap className="w-12 h-12 text-blue-600 dark:text-blue-400" />
@@ -257,7 +246,7 @@ function MinorDetailPage() {
           </Section>
         )}
 
-        {/* STRUCTURE + COURSES */}
+        {/* STRUCTURE AND COURSES */}
         {minor.sections?.length > 0 && (
           <Section title="Minor Structure" icon={<HiBookOpen className="w-6 h-6" />}>
             <div className="space-y-6">
@@ -393,9 +382,7 @@ function MinorDetailPage() {
   );
 }
 
-// ───────────────────────────────────────────
 // SECTION WRAPPER
-// ───────────────────────────────────────────
 function Section({ title, icon, children }) {
   return (
     <div className="mb-14">

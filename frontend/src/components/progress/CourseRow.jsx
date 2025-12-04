@@ -1,7 +1,7 @@
 // src/components/CourseRow.jsx
-import React, { useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { useState } from "react";
 import { HiCheckCircle, HiPencil } from "react-icons/hi";
+import { supabase } from "../../supabaseClient";
 
 // Helper function to recalculate stats
 async function recalculateStats(userId) {
@@ -52,7 +52,7 @@ export default function CourseRow({
   completed, 
   userId, 
   category, 
-  courseSource,  // NEW: { source_type, source_code }
+  courseSource, 
   onUpdate 
 }) {
   const [isCompleted, setIsCompleted] = useState(!!completed?.is_completed);

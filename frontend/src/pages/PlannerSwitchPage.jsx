@@ -9,7 +9,6 @@ export default function PlannerSwitchPage() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  // --- Static placeholders (no backend calls yet) ---
   const degrees = [
     { id: "425800", label: "BSc (Computer Science) — UNSW" },
     { id: "3778", label: "BE (Software) — UNSW" },
@@ -80,7 +79,6 @@ export default function PlannerSwitchPage() {
             </div>
           </section>
 
-          {/* FROM / TO */}
           <section className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* FROM */}
             <div className="rounded-3xl p-6 bg-white shadow-md border border-slate-200">
@@ -175,7 +173,6 @@ export default function PlannerSwitchPage() {
   );
 }
 
-/* --- tiny stat box --- */
 function StatBox({ label, value }) {
   return (
     <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-center">

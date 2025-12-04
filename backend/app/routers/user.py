@@ -4,7 +4,6 @@ from app.utils.database import supabase
 
 router = APIRouter()
 
-
 @router.get("/student_type")
 async def get_student_type(user=Depends(get_current_user)) -> str:
     # Grab it from the decoded JWT

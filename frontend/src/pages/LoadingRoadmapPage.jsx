@@ -1,24 +1,18 @@
-/**
- * LoadingRoadmapPage
- * ------------------
- * Shows a progress bar while generating a roadmap (school or UNSW).
- * Uses `handleRoadmapGeneration` to call the backend and redirect
- * once the roadmap is ready.
- */
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
 import LoadingPage from "../components/LoadingPage";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
 
 const getProgressMessage = (progress, isRegeneration, type) => {
-  // Simple message for school roadmaps
+  
+  // Message for school roadmaps
   if (type === "school") {
     return isRegeneration ? "Regenerating your roadmap..." : "Generating your roadmap...";
   }
 
-  // Updated messages for UNSW roadmaps (no flexibility wait)
+  // Messages for UNSW roadmaps 
   const prefix = isRegeneration ? "Regenerating" : "Generating";
   
   if (progress < 20) return `${prefix} roadmap structure...`;

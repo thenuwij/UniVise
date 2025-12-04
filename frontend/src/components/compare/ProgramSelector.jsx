@@ -1,5 +1,4 @@
-import React from "react";
-import { ChevronLeft, Search, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Search } from "lucide-react";
 
 export default function ProgramSelector({
   isBase,

@@ -1,26 +1,14 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { useEffect, useState, useMemo } from "react";
+import { AlertCircle, BookOpen, ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
-import { ChevronDown, ChevronUp, Layers, BookOpen, Sparkles, Info, AlertCircle } from "lucide-react";
 import SaveButton from "../../components/SaveButton";
-
-
-/**
- * Redesigned Premium Program Structure Component
- * 
- * Key improvements:
- * - Unified color scheme (blue/indigo gradient)
- * - Smart section rendering (cards for info-only, expandable for courses)
- * - Better text formatting with proper list parsing
- * - Cleaner visual hierarchy
- */
+import { supabase } from "../../supabaseClient";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
 
-// ---------- Info-Only Section Card (no courses) ----------
 function InfoSection({ section }) {
   return (
     <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60 
@@ -52,7 +40,7 @@ function InfoSection({ section }) {
   );
 }
 
-// ---------- Expandable Section Card (with courses) ----------
+// Expandable Section Card with courses 
 function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
   const total = section.uoc ?? sumUoC(section.courses);
 
@@ -155,7 +143,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
   );
 }
 
-// ---------- Main ----------
+// Main 
 export default function ProgramStructureUNSW({ degreeCode, sections: propSections }) {
   const navigate = useNavigate();
   const [sections, setSections] = useState([]);
@@ -177,7 +165,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     navigate(`/planner/mindmesh?program=${degreeCode}`);
   };
 
-  // --- Fetch program structure ---
+  // Fetch program structure
   useEffect(() => {
     const fetchStructure = async () => {
       if (propSections?.length > 0) {
@@ -264,7 +252,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
     let cleaned = text
       .replace(/\r?\n+/g, "\n")
-      .replace(/\u2022/g, "•") // normalise bullet char
+      .replace(/\u2022/g, "•") 
       .trim();
 
     const lines = cleaned
@@ -275,7 +263,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     let html = '<div class="space-y-1.5">';
 
     for (const line of lines) {
-      // Numbered items (keep numbers, no bullets)
+      // Numbered items 
       if (/^\d+\.\s*/.test(line)) {
         html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           ${line}
@@ -283,7 +271,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         continue;
       }
 
-      // Bullets (•)
+      // Bullets
       if (line.startsWith("•")) {
         html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex gap-2">
           <span class="text-sky-600 dark:text-sky-400 flex-shrink-0">•</span>
@@ -292,7 +280,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         continue;
       }
 
-      // Dashes (–)
+      // Dashes 
       if (/^[-–]\s*/.test(line)) {
         html += `<p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex gap-2 pl-4">
           <span class="text-slate-500 dark:text-slate-500 flex-shrink-0">-</span>
@@ -330,12 +318,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       {/* Accent bar */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-t-2xl" />
 
-     {/* ========== HEADER ========== */}
+     {/* HEADER */}
     <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                     px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
                     rounded-t-2xl">
               
-      {/* Very subtle gradient accent */}
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -450,7 +437,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
 
 
-      {/* ========== PROGRAM SECTIONS ========== */}
+      {/* PROGRAM SECTIONS */}
       <div className="space-y-3">
         {loading ? (
           <div className="flex items-center gap-3 p-5 rounded-xl

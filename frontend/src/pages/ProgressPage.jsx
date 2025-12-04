@@ -1,10 +1,10 @@
 // src/pages/ProgressPage.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 import {
   HiAcademicCap,
@@ -12,9 +12,9 @@ import {
 } from "react-icons/hi";
 
 // Import components
+import CourseStructureDisplay from "../components/progress/CourseStructureDisplay";
 import ProgramSetupModal from "../components/progress/ProgramSetupModal";
 import SpecialisationSelectionPanel from "../components/progress/SpecialisationSelectionPanel";
-import CourseStructureDisplay from "../components/progress/CourseStructureDisplay";
 
 function ProgressPage() {
   const navigate = useNavigate();
@@ -296,7 +296,7 @@ function ProgressPage() {
 
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full px-6 lg:px-10 xl:px-20">
-          {/* Compact Header Section */}
+          {/* Header Section */}
           <div className="mt-6 mb-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -336,10 +336,8 @@ function ProgressPage() {
                 />
               </div>
 
-              {/* Progress Stats Overview */}
               <ProgressStatsOverview stats={progressStats} />
 
-              {/* Compare Programs CTA */}
               <ComparePromoBanner />
 
               {/* Course Structure */}
@@ -427,9 +425,9 @@ function StatBox({ label, value, sublabel, color }) {
   );
 }
 
-// Compare Programs Promo Banner - More Compact
+// Compare Programs
 function ComparePromoBanner() {
-  const navigate = useNavigate(); // ADD THIS LINE
+  const navigate = useNavigate();
   
   return (
     <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border border-sky-200 dark:border-sky-700">

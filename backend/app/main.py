@@ -9,9 +9,6 @@ from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
 
-
-
-
 app = FastAPI()
 load_dotenv()
 

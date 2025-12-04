@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
+import { HiAcademicCap, HiFilter, HiSearch, HiStar, HiX } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { HiSearch, HiFilter, HiX, HiStar, HiAcademicCap } from "react-icons/hi";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 function DegreeSearch() {
   const [query, setQuery] = useState("");

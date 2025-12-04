@@ -1,5 +1,4 @@
 // Conversation.jsx
-import React from 'react'
 import {
   Button,
   Label,
@@ -8,8 +7,8 @@ import {
   ModalHeader,
   TextInput
 } from "flowbite-react";
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
 export default function Conversation({ show, onClose, onSave }) {

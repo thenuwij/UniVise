@@ -1,4 +1,4 @@
-# app/routers/smart_summary.py
+# app/routers/ai_advisor.py
 
 from fastapi import APIRouter, Request, Depends, HTTPException
 from app.utils.database import supabase
@@ -32,7 +32,7 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
 
     degree = degree_response.data
 
-    # Clean and parse career outcomes if it's a comma-separated string
+    # Clean and parse career outcomes if it's a comma separated string
     career_outcomes_raw = degree.get("career_outcomes", "")
     career_outcomes_list = (
         [s.strip() for s in career_outcomes_raw.split(",")]
@@ -43,7 +43,6 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     # Fetch student profile data
     context = await get_user_context(user.id)
 
-    # Build OpenAI prompt
     prompt = f"""
     You are UniVise's Smart Advisor.
     Your job is to give the student a clear, concise, and personal recommendation for the degree below, based on their profile.

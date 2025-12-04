@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
+import { useEffect, useState } from "react";
+import { HiSearch } from "react-icons/hi";
 import { Link, useSearchParams } from "react-router-dom";
-import { HiSearch, HiBookOpen } from "react-icons/hi";
+import { supabase } from "../supabaseClient";
 
 function CourseSearch() {
   const [query, setQuery] = useState("");
@@ -11,7 +11,7 @@ function CourseSearch() {
   const [searchParams] = useSearchParams();
   const sectionName = searchParams.get("section");
 
-  // Fetch ALL courses on mount (like degrees do)
+  // Fetch ALL courses on mount 
   useEffect(() => {
     const fetchCourses = async () => {
       try {

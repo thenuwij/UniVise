@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 import { DashboardNavBar } from "../components/DashboardNavBar";
-import ProgramSelector from "../components/compare/ProgramSelector";
-import ComparisonResults from "../components/compare/ComparisonResults";
-import { HiArrowPath } from "react-icons/hi2";
 import { MenuBar } from "../components/MenuBar";
+import ComparisonResults from "../components/compare/ComparisonResults";
+import ProgramSelector from "../components/compare/ProgramSelector";
 
 export default function ComparePage() {
   const navigate = useNavigate();
@@ -22,18 +21,18 @@ export default function ComparePage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // View mode: 'selector' or 'results'
+  // View mode 'selector' or 'results'
   const [viewMode, setViewMode] = useState("selector");
 
   // User
-  const [userEnrolledProgram, setUserEnrolledProgram] = useState(null);
-  const [completedCourses, setCompletedCourses] = useState([]);
+  const [setUserEnrolledProgram] = useState(null);
+  const [setCompletedCourses] = useState([]);
 
   // Programs
   const [availablePrograms, setAvailablePrograms] = useState([]);
   const [searchTarget, setSearchTarget] = useState("");
 
-  // Base program (always from user's enrolled program)
+  // Base program 
   const [baseProgram, setBaseProgram] = useState(null);
   const [baseSpecsOptions, setBaseSpecsOptions] = useState([]);
   const [baseSelectedSpecs, setBaseSelectedSpecs] = useState([]);
@@ -46,14 +45,10 @@ export default function ComparePage() {
   // Results
   const [comparisonData, setComparisonData] = useState(null);
 
-  // ---------------------------------------------------------------------------
-  // Load user + check for saved target
-  // ---------------------------------------------------------------------------
-
+  // load user and check for saved target 
   useEffect(() => {
     if (!session?.user?.id) return;
     initializePage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const initializePage = async () => {
@@ -62,7 +57,7 @@ export default function ComparePage() {
       const userId = session?.user?.id;
       if (!userId) return;
 
-      // 1. Fetch user's enrolled program (this is always the base program)
+      // Fetch user's enrolled program (this is always the base program)
       const { data: programData } = await supabase
         .from("user_enrolled_program")
         .select("*")
@@ -76,11 +71,12 @@ export default function ComparePage() {
           name: programData.program_name,
         });
         setBaseSelectedSpecs(programData.specialisation_codes || []);
+
         // Fetch base program specialisations to show their names
         await fetchSpecialisationsForProgram(programData.degree_code, true);
       }
 
-      // 2. Fetch completed courses
+      // Fetch completed courses
       const { data: completed } = await supabase
         .from("user_completed_courses")
         .select("*")
@@ -89,7 +85,7 @@ export default function ComparePage() {
 
       setCompletedCourses(completed || []);
 
-      // 3. Check if user has a saved comparison target
+      // Check if user has a saved comparison target
       const { data: savedTarget } = await supabase
         .from("user_comparison_target")
         .select("*")
@@ -97,7 +93,8 @@ export default function ComparePage() {
         .single();
 
       if (savedTarget) {
-        // User has a saved target - load it and show comparison
+
+        // User has a saved target, load it and show comparison
         setTargetProgram({
           code: savedTarget.target_program_code,
           name: savedTarget.target_program_name || "",
@@ -120,11 +117,12 @@ export default function ComparePage() {
 
         setViewMode("results");
       } else {
-        // No saved target - show selector
+
+        // No saved target, so show selector
         setViewMode("selector");
       }
 
-      // 4. Fetch available programs for selector
+      // Fetch available programs for selector
       await fetchAvailablePrograms();
     } catch (err) {
       setError("Failed to load your data");
@@ -147,13 +145,10 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Specialisations
-  // ---------------------------------------------------------------------------
-
   const fetchSpecialisationsForProgram = async (degreeCode, isBase = true) => {
     try {
-      // Check if this is a double degree
+
+      // Check if this is a double degree and get both degree codes
       let codesToMatch = [degreeCode];
 
       const { data: degreeData } = await supabase
@@ -163,7 +158,6 @@ export default function ComparePage() {
         .single();
 
       if (degreeData?.program_name?.includes("/")) {
-        // It's a double degree - get individual program codes
         const programNames = degreeData.program_name
           .split("/")
           .map((n) => n.trim());
@@ -211,10 +205,7 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
   // Fetch comparison results
-  // ---------------------------------------------------------------------------
-
   const fetchComparisonResults = async (
     baseProgramCode,
     baseSpecs,
@@ -254,10 +245,6 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Derived lists
-  // ---------------------------------------------------------------------------
-
   const filteredTargetPrograms = useMemo(
     () =>
       availablePrograms.filter(
@@ -285,10 +272,8 @@ export default function ComparePage() {
     [targetSpecsOptions]
   );
 
-  // ---------------------------------------------------------------------------
-  // Actions
-  // ---------------------------------------------------------------------------
 
+  // Actions
   const toggleSpec = (code, isBase = true) => {
     if (!isBase) {
       setTargetSelectedSpecs((prev) =>
@@ -306,7 +291,7 @@ export default function ComparePage() {
     setError(null);
 
     try {
-      // 1. Save target to database (upsert)
+      // Save target to database (upsert)
       const { error: saveError } = await supabase
         .from("user_comparison_target")
         .upsert(
@@ -324,7 +309,7 @@ export default function ComparePage() {
 
       if (saveError) throw saveError;
 
-      // 2. Fetch comparison results
+      // Fetch comparison results
       await fetchComparisonResults(
         baseProgram.code,
         baseSelectedSpecs,
@@ -332,7 +317,7 @@ export default function ComparePage() {
         targetSelectedSpecs
       );
 
-      // 3. Switch to results view
+      // Switch to results view
       setViewMode("results");
     } catch (err) {
       console.error(err);
@@ -352,10 +337,7 @@ export default function ComparePage() {
     setError(null);
   };
 
-  // ---------------------------------------------------------------------------
   // UI
-  // ---------------------------------------------------------------------------
-
   if (initialLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
@@ -372,13 +354,15 @@ export default function ComparePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
-      {/* Dashboard Navbar - Fixed positioning ensures hamburger menu is clickable */}
+      
+      {/* Dashboard Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
       <div className="max-w-7xl mx-auto py-8 px-4 pt-24 sm:pt-28">
+        
         {/* Error */}
         {error && (
           <div

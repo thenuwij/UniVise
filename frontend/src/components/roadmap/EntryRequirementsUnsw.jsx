@@ -1,10 +1,8 @@
 // src/components/roadmap/EntryRequirementsCard.jsx
 import { GraduationCap, BookOpen, Target, Info } from "lucide-react";
 
-
-
 export default function EntryRequirementsCardUnsw({ atar, selectionRank, subjects }) {
-  // --- FIX: Safely parse assumed knowledge ---
+  // Safely parse assumed knowledge
   let safeSubjects = [];
 
   if (Array.isArray(subjects)) {
@@ -24,12 +22,11 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
                     dark:border-slate-700/60 p-8 shadow-xl space-y-8">
 
-      {/* ---------- HEADER ---------- */}
+      {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
         
-        {/* Very subtle gradient accent */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
         
         <div className="flex items-center gap-4">
@@ -47,7 +44,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         </div>
       </div>
 
-      {/* ---------- REQUIREMENT STATS ---------- */}
+      {/* REQUIREMENT STATS */}
       <div className="grid sm:grid-cols-3 gap-4">
 
         {/* ATAR */}

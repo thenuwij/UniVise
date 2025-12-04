@@ -56,7 +56,7 @@ export default function ProgramStructure({ years = [] }) {
         </div>
       </div>
 
-      {/* ========== CONTENT ========== */}
+      {/* CONTENT */}
       <div className="p-8 space-y-6">
         {/* User Guidance */}
         <div className="flex items-start gap-2 text-sm text-slate-500 dark:text-slate-400

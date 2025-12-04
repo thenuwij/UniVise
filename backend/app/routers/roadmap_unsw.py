@@ -1,5 +1,6 @@
 from typing import Any, Dict
 import json
+import time
 
 from app.utils.openai_client import ask_openai
 from .roadmap_common import parse_json_or_500, assert_keys
@@ -11,20 +12,9 @@ from .roadmap_unsw_helpers import (
     fetch_user_specialisation_context,
 )
 
-
-# ========== MAIN FUNCTIONS ==========
+# Gathers complete context for UNSW degree roadmap generation.
 async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
-    """
-    Gathers complete context for UNSW degree roadmap generation.
 
-    Includes:
-    - Degree information
-    - Related info (majors, minors, double degrees)
-    - Core courses with enriched details
-    - Honours context
-    """
-
-    import time
     total_start = time.time()
 
     print(f"Gathering UNSW context for request: {req}")
@@ -66,9 +56,10 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
             print(f"[TIMING] format_core_courses_for_prompt: {time.time() - t4:.1f}s")
 
             # Debug logging
-            print(f"\n{'='*50}")
-            print(f"CORE COURSES FOR AI CONTEXT ({len(core_courses)} courses)")
-            print(f"{'='*50}")
+            # print(f"\n{'='*50}")
+            # print(f"CORE COURSES FOR AI CONTEXT ({len(core_courses)} courses)")
+            # print(f"{'='*50}")
+
             for c in core_courses[:5]:  # Show first 5
                 overview_preview = (c.get('overview') or '')[:100]
                 print(f"  {c['code']}: {c.get('name')} | {c.get('section')} | {overview_preview}...")
@@ -115,14 +106,9 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "selected_minor_courses": specialisations.get("selected_minor_courses", []),
     }
 
-
+# generate general program information except honours
 async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Stage 1: Generate general program information (everything except honours).
-    
-    This is a lighter prompt focused on program overview, entry requirements,
-    capstone, flexibility, and industry connections.
-    """
+
     # Extract context values
     program_name = context.get("program_name")
     uac_code = context.get("uac_code")
@@ -279,16 +265,12 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
             draft["capstone"]["courses"] = validated_capstone
             source = 'core + specialisation' if has_any_specialisation else 'core only'
             print(f"Capstone validation: {len(validated_capstone)} courses validated from {source}")
-        print("Stage 1: General program information generated successfully")
-        return draft
+    print("Stage 1: General program information generated successfully")
+    return draft
 
-
+# Stage 2: Return hardcoded honours information based on faculty.
 async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Stage 2: Return hardcoded honours information based on faculty.
-    
-    NO AI CALL - instant response using pre-structured data.
-    """
+
     faculty = context.get("faculty", "").lower()
     
     print(f"Stage 2: Fetching hardcoded honours for faculty: {faculty}")
@@ -360,23 +342,21 @@ async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
     print("Stage 2: Honours information retrieved instantly (hardcoded)")
     return {"honours": honours_data}
 
+
+# Generate complete roadmap payload using PARALLEL two-stage AI generation.
+# Both sections will run concurrently using threads
 async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate complete roadmap payload using PARALLEL two-stage AI generation.
-    
-    Both stages run concurrently using threads for faster generation.
-    """
+
     import asyncio
     import time
     from concurrent.futures import ThreadPoolExecutor
     
     total_start = time.time()
 
-    print("Starting PARALLEL two-stage AI generation for degree")
-    print(f"Program: {context.get('program_name')}")
-    print(f"Degree code: {context.get('degree_code')}")
-    print(f"Core courses in context: {len(context.get('core_courses', []))}")
-
+    # print("Starting PARALLEL two-stage AI generation for degree")
+    # print(f"Program: {context.get('program_name')}")
+    # print(f"Degree code: {context.get('degree_code')}")
+    # print(f"Core courses in context: {len(context.get('core_courses', []))}")
 
     # Fallback honours structure
     fallback_honours = {
@@ -430,10 +410,11 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
             print(f"Stage 2 failed: {e}")
             honours_info = fallback_honours
 
-    total_elapsed = time.time() - total_start
-    print(f"\n{'='*50}")
-    print(f"TOTAL PARALLEL GENERATION TIME: {total_elapsed:.1f}s")
-    print(f"{'='*50}\n")
+    # Debugging
+    # total_elapsed = time.time() - total_start
+    # print(f"\n{'='*50}")
+    # print(f"TOTAL PARALLEL GENERATION TIME: {total_elapsed:.1f}s")
+    # print(f"{'='*50}\n")
 
     # Combine both stages into ONE payload
     payload = {

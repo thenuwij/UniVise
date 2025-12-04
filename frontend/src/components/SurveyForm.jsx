@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { Button, TextInput } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
-import SurveyProgressBar from "../components/SurveyProgressBar";
-import { FileUpload } from '../components/FileUpload'
-import { Select, Label } from "flowbite-react";
+import { Button, Select, TextInput } from "flowbite-react";
+import { useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+import { FileUpload } from '../components/FileUpload';
+import SurveyProgressBar from "../components/SurveyProgressBar";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 function SurveyForm() {
 

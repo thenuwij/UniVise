@@ -1,20 +1,20 @@
 // src/pages/MyPathway.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  HiAcademicCap,
+  HiArrowRight,
+  HiBookmark,
+  HiBriefcase,
+  HiClipboard,
+  HiCollection,
+  HiUsers,
+} from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
 import SavedItemCard from "../components/pathway/SavedItemCard";
-import {
-  HiCollection,
-  HiClipboard,
-  HiUsers,
-  HiArrowRight,
-  HiBriefcase,
-  HiAcademicCap,
-  HiBookmark,
-} from "react-icons/hi";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 function MyPathway() {
   const navigate = useNavigate();

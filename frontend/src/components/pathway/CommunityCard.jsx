@@ -1,6 +1,5 @@
 // src/components/pathway/CommunityCard.jsx
-import React from "react";
-import { Users, Award, Calendar, Heart } from "lucide-react";
+import { Award, Calendar, Heart, Users } from "lucide-react";
 
 function CommunityCard({ data }) {
   return (

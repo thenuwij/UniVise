@@ -1,25 +1,23 @@
 // src/pages/MajorDetailPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import SaveButton from "../components/SaveButton";
+import { supabase } from "../supabaseClient";
 
 import {
-  HiArrowLeft,
   HiAcademicCap,
-  HiInformationCircle,
-  HiChartBar,
+  HiArrowLeft,
   HiBookOpen,
+  HiChartBar,
   HiDocumentText,
+  HiInformationCircle,
 } from "react-icons/hi";
 
 function MajorDetailPage() {
-  const { id } = useParams(); // specialisation row ID (UUID)
+  const { id } = useParams();
   const navigate = useNavigate();
-
   const [major, setMajor] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
@@ -27,13 +25,9 @@ function MajorDetailPage() {
   // Lookup maps
   const [degreeDetailsByCode, setDegreeDetailsByCode] = useState({});
   const [courseDetailsByCode, setCourseDetailsByCode] = useState({});
-
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // ───────────────────────────────────────────
-  // 1. Fetch specialisation
-  // ───────────────────────────────────────────
   useEffect(() => {
     let alive = true;
 
@@ -87,15 +81,12 @@ function MajorDetailPage() {
     };
   }, [id]);
 
-  // ───────────────────────────────────────────
-  // 2. Fetch degree + course metadata
-  // ───────────────────────────────────────────
+  // Fetch degree and course metadata
   useEffect(() => {
     if (!major) return;
 
     const fetchMeta = async () => {
       try {
-        // === DEGREE METADATA ===
         if (major.related_degrees?.length > 0) {
           const degreeCodes = Array.from(
             new Set(
@@ -117,7 +108,6 @@ function MajorDetailPage() {
           }
         }
 
-        // === COURSE METADATA ===
         if (major.sections?.length > 0) {
           const allCodes = new Set();
           major.sections.forEach((sec) => {
@@ -147,8 +137,6 @@ function MajorDetailPage() {
     fetchMeta();
   }, [major]);
 
-  // ───────────────────────────────────────────
-
   if (!major) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-950 dark:to-slate-900">
@@ -168,7 +156,6 @@ function MajorDetailPage() {
 
       <main className="max-w-[1600px] mx-auto px-6 py-16">
 
-        {/* BACK BUTTON */}
         <button
           onClick={goBack}
           className="group flex items-center gap-2 mb-10 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 
@@ -178,10 +165,8 @@ function MajorDetailPage() {
           Back
         </button>
 
-        {/* HEADER CARD */}
         <div className="relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-12">
 
-          {/* TOP RIGHT TAGS */}
           <div className="absolute top-6 right-6 flex flex-wrap gap-4">
             {major.specialisation_type && (
               <span className="px-6 py-2 text-base font-bold rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
@@ -215,7 +200,7 @@ function MajorDetailPage() {
             />
           </div>
 
-          {/* NAME + ICON */}
+          {/* NAME AND ICON */}
           <div className="flex items-start gap-6">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 shadow-md">
               <HiAcademicCap className="w-12 h-12 text-blue-600 dark:text-blue-400" />
@@ -255,7 +240,7 @@ function MajorDetailPage() {
           </Section>
         )}
 
-        {/* STRUCTURE + COURSES */}
+        {/* STRUCTURE AND COURSES */}
         {major.sections?.length > 0 && (
           <Section title="Specialisation Structure" icon={<HiBookOpen className="w-6 h-6" />}>
             <div className="space-y-6">
@@ -323,7 +308,7 @@ function MajorDetailPage() {
                 // link using internal UUID
                 const link = mapped?.id ? `/degrees/${mapped.id}` : null;
 
-                // degree_code is only for display now
+                // degree_code is only for display 
                 const degree_code = deg.degree_code;
                 const programName = mapped?.program_name || deg.program_name;
                 const faculty = mapped?.faculty;
@@ -397,9 +382,7 @@ function MajorDetailPage() {
   );
 }
 
-// ───────────────────────────────────────────
 // SECTION WRAPPER
-// ───────────────────────────────────────────
 function Section({ title, icon, children }) {
   return (
     <div className="mb-14">

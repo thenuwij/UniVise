@@ -1,8 +1,6 @@
 // src/components/mindmesh/index.js
 
-/**
- * Draw a rounded rectangle on a canvas.
- */
+// Draw a rounded rectangle on a canvas.
 export function roundRect(ctx, x, y, w, h, r) {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -13,16 +11,6 @@ export function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y, x + w, y, rr);
   ctx.closePath();
 }
-
-// /**
-//  * Colour utilities for nodes & edges.
-//  */
-// export const levelPalette = {
-//   1: "#f9fafb",
-//   2: "#34d399",
-//   3: "#818cf8",
-//   4: "#c084fc",
-// };
 
 export function colorFor(type) {
   switch (type?.toLowerCase()) {
@@ -38,29 +26,29 @@ export function colorFor(type) {
 
 export function levelStyle(lvl) {
   return {
-    color: levelPalette[lvl] || "#94a3b8",
-    width: 2.0 - (lvl - 1) * 0.3,
+    color: levelPalette[lvl] || "#B58CFA",  // fallback to purple
+    width: Math.max(1.2, 2.0 - (lvl - 1) * 0.1),
   };
 }
 
-
-// --- Node colours ---
+// Node colours
 export function getLevelColor(level) {
   const lvl = Number(level);
-  if (!lvl) return "#3BAFDA";        // default
-  if (lvl === 1) return "#2F8DDB";   // sapphire blue — clarity & trust
-  if (lvl === 2) return "#2563EB";   // royal cobalt — focused intelligence
-  if (lvl === 3) return "#178756";   // deep jade — growth & stability
-  if (lvl >= 4) return "#8A4FF7";    // vivid amethyst — mastery & insight
+  if (!lvl) return "#3BAFDA";       
+  if (lvl === 1) return "#2F8DDB";  
+  if (lvl === 2) return "#2563EB";   
+  if (lvl === 3) return "#178756";  
+  if (lvl >= 4) return "#8A4FF7";    
   return "#8E8E93";
 }
 
-// --- Edge colours ---
+// Edge colours 
 export const levelPalette = {
-  1: "#70BEE9",  // icy sky tint
-  2: "#86A7F7",  // muted cobalt tint
-  3: "#6DD8A4",  // gentle emerald tint
-  4: "#B58CFA",  // lilac-glow tint
-  default: "#A1A1AA",
+  1: "#70BEE9", 
+  2: "#86A7F7",  
+  3: "#6DD8A4",  
+  4: "#B58CFA", 
+  6: "#F59E0B",  
+  9: "#EC4899",  
 };
 

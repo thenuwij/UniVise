@@ -1,7 +1,7 @@
 // src/components/ProgramSetupModal.jsx
-import React, { useState, useEffect } from "react";
-import { supabase } from "../../supabaseClient";
+import { useEffect, useState } from "react";
 import { HiCheckCircle, HiX } from "react-icons/hi";
+import { supabase } from "../../supabaseClient";
 
 export default function ProgramSetupModal({ onClose, userId, onComplete }) {
   const [selectedDegree, setSelectedDegree] = useState(null);

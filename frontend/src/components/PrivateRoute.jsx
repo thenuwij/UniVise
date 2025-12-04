@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { UserAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { UserAuth } from "../context/AuthContext";
 
 const PrivateRoute = ({ children }) => {
   const { session } = UserAuth();

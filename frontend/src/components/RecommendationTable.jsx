@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
 import { Badge, Button } from "flowbite-react";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   HiAcademicCap,
-  HiOfficeBuilding,
-  HiTrendingUp,
+  HiArrowRight,
   HiClock,
   HiCurrencyDollar,
-  HiArrowRight,
+  HiOfficeBuilding,
+  HiTrendingUp,
 } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
-// ---------------- Utils ----------------
+// Utils
 const toPercent = (v) => {
   if (v == null) return 0;
   const n = typeof v === "string"
@@ -38,7 +38,6 @@ function ProgressBar({ value }) {
   );
 }
 
-// --------------- Aura Shell ---------------
 function AuraBoardShell({ label, children }) {
   return (
     <div className="card-glass">
@@ -61,7 +60,7 @@ function AuraBoardShell({ label, children }) {
   );
 }
 
-// --------------- Item Cards ---------------
+// Item Cards
 function HSItemCard({ rec, onOpen }) {
   return (
     <div
@@ -188,7 +187,7 @@ function ItemSkeleton() {
   );
 }
 
-// --------------- Main ---------------
+// Main
 export function RecommendationTable() {
   const { session } = UserAuth();
   const userType = session?.user?.user_metadata?.student_type;

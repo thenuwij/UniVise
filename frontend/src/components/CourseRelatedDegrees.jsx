@@ -1,8 +1,8 @@
 // src/components/CourseRelatedDegrees.jsx
-import React, { useEffect, useState } from "react";
-import { UserAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { HiAcademicCap } from "react-icons/hi";
+import { Link } from "react-router-dom";
+import { UserAuth } from "../context/AuthContext";
 
 export default function CourseRelatedDegrees({
   courseId,

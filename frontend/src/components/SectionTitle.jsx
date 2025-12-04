@@ -1,14 +1,8 @@
-/** @file SectionTitle.jsx
- *  Page section heading with optional icon + subtitle pill.
- */
 
-/**
- * @param {{ icon?: React.ReactNode, subtitle?: string, children: React.ReactNode }} props
- */
 export default function SectionTitle({ icon, subtitle, children }) {
   return (
     <div>
-      {/* Top row: icon + subtitle pill */}
+      {/* Top row: icon and subtitle pill */}
       <div className="flex items-center gap-2 text-xs font-medium text-secondary">
         {icon}
         {subtitle && (

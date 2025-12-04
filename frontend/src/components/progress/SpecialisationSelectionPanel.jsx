@@ -1,7 +1,7 @@
 // src/components/progress/SpecialisationSelectionPanel.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { HiCheckCircle, HiChevronUp, HiPencil } from "react-icons/hi";
 import { supabase } from "../../supabaseClient";
-import { HiPencil, HiCheckCircle, HiChevronDown, HiChevronUp } from "react-icons/hi";
 
 export default function SpecialisationSelectionPanel({ 
   enrolledProgram, 
@@ -30,7 +30,8 @@ export default function SpecialisationSelectionPanel({
         .single();
 
       if (degreeData?.program_name?.includes("/")) {
-        // It's a double degree - get individual program codes
+
+        // It's a double degree, get individual program codes
         const programNames = degreeData.program_name.split("/").map(n => n.trim());
 
         const { data: individualDegrees } = await supabase
@@ -105,6 +106,7 @@ export default function SpecialisationSelectionPanel({
     setLoading(true);
 
     try {
+
       // Get current specialisation codes
       const currentCodes = enrolledProgram.specialisation_codes || [];
       const currentNames = enrolledProgram.specialisation_names || [];
@@ -140,6 +142,7 @@ export default function SpecialisationSelectionPanel({
 
       // Delete completed courses for the OLD specialisation being replaced
       if (oldSpecCode) {
+
         const sourceType = selectingType.toLowerCase(); // 'major', 'minor', 'honours'
         
         await supabase
@@ -168,6 +171,7 @@ export default function SpecialisationSelectionPanel({
 
   return (
     <div>
+
       {/* Compact Program Info */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
@@ -197,6 +201,7 @@ export default function SpecialisationSelectionPanel({
 
             return (
               <div key={type} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800/30">
+                
                 {/* Collapsed State */}
                 {!isSelecting && (
                   <div className="p-3">

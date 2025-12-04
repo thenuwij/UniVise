@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { HiArrowLeft, HiClipboard } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import CourseSearch from "../components/CourseSearch";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
-import CourseSearch from "../components/CourseSearch";
-import { HiClipboard, HiArrowLeft } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
 
 
 function ExploreByCoursePage() {
@@ -24,7 +24,7 @@ function ExploreByCoursePage() {
 
       <div className="pt-16 sm:pt-20">
         
-        {/* PAGE CONTAINER */}
+        {/* Page Container */}
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
           {/* Back Button */}
@@ -36,7 +36,7 @@ function ExploreByCoursePage() {
             <span>Back to My Planner</span>
           </button>
 
-          {/* HEADER */}
+          {/* Header */}
           <div className="mb-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
@@ -44,7 +44,7 @@ function ExploreByCoursePage() {
             </div>
           </div>
 
-          {/* SEARCH SECTION */}
+          {/* Search Section */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-16">
             
             {/* Header */}

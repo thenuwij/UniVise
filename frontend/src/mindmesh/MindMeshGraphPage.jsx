@@ -6,7 +6,6 @@ import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import GraphControls from "./components/GraphControls";
-import HelpPanel from "./components/HelpPanel";
 import WelcomeModal from "./components/WelcomeModal";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
 import useMindMeshData from "./hooks/useMindMeshData";
@@ -94,21 +93,91 @@ export default function MindMeshGraphPage() {
     [focusedNode]
   );
 
-  const linkColor = (l) => {
+  // Color palette for OR groups 
+  const getGroupColor = useCallback((groupId, link, isFocused) => {
+    if (!isFocused) return "rgba(148,163,184,0.4)";
+    
+    // Hash ONLY the group_id to get consistent color for same group
+    let hash = 0;
+    for (let i = 0; i < groupId.length; i++) {
+      hash = groupId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colorIndex = Math.abs(hash) % 4; 
+    
+    // highly distinct colors, enough for most courses
+    const colors = [
+      "#3b82f6", // blue
+      "#10b981", // emerald/green
+      "#8b5cf6", // purple
+      "#f59e0b", // amber/orange
+    ];
+    
+    return colors[colorIndex];
+  }, []);
+
+  const linkColor = useCallback((l) => {
     const srcId = typeof l.source === "object" ? l.source.id : l.source;
+    const tgtId = typeof l.target === "object" ? l.target.id : l.target;
     const srcNode = graph.nodes.find((n) => n.id === srcId);
     const lvl = parseInt(srcNode?.metadata?.level) || 1;
     const { color } = levelStyle(lvl);
-    return !focusedNode || isEdgeOfFocus(l) ? color : "rgba(148,163,184,0.1)";
-  };
+    const isFocused = !focusedNode || isEdgeOfFocus(l);
+    
+    // Handle OR groups
+    if (l.logic_type === 'or' || l.logic_type === 'or_group') {
+      // Count how many unique OR groups this target course has
+      const targetOrGroups = new Set(
+        graph.links
+          .filter(link => {
+            const linkTgt = typeof link.target === "object" ? link.target.id : link.target;
+            return linkTgt === tgtId && 
+                  (link.logic_type === 'or' || link.logic_type === 'or_group') && 
+                  link.group_id;
+          })
+          .map(link => link.group_id)
+      );
+      
+      // If only ONE OR group → use single blue color
+      if (targetOrGroups.size <= 1) {
+        return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
+      }
+      
+      // If MULTIPLE OR groups → color-code by level
+      if (l.group_id) {
+        return getGroupColor(l.group_id, l, isFocused);
+      }
+      
+      // Fallback
+      return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
+    }
+    
+    // AND (solid) edges use level-based color
+    return isFocused ? color : "rgba(148,163,184,0.35)";
+  }, [graph.nodes, graph.links, focusedNode, isEdgeOfFocus, getGroupColor]);
 
-  const linkWidth = (l) => {
+  const linkWidth = useCallback((l) => {
     const srcId = typeof l.source === "object" ? l.source.id : l.source;
     const srcNode = graph.nodes.find((n) => n.id === srcId);
     const lvl = parseInt(srcNode?.metadata?.level) || 1;
     const { width } = levelStyle(lvl);
-    return focusedNode && isEdgeOfFocus(l) ? width + 0.5 : width;
-  };
+    const isFocused = !focusedNode || isEdgeOfFocus(l);
+    
+    return isFocused ? width + 0.5 : width;
+  }, [graph.nodes, focusedNode, isEdgeOfFocus]);
+
+  const linkLineDash = useCallback((l) => {
+    // Solid lines for AND 
+    if (l.logic_type === 'and') {
+      return null; // solid line
+    }
+    
+    // Dashed lines for OR and OR_GROUP (alternatives)
+    if (l.logic_type === 'or' || l.logic_type === 'or_group') {
+      return [6, 6]; 
+    }
+
+    return null;
+  }, []);
 
   // Neighbour helper
   const getDirectNeighbours = useCallback(
@@ -144,7 +213,7 @@ export default function MindMeshGraphPage() {
         .select("key,label,uoc,faculty,school,level")
         .in("key", connectedKeys);
 
-      console.log("🔍 Expand node:", courseKey);
+      console.log("Expand node:", courseKey);
       console.log("  - Edges fetched:", edgesData.length);
       console.log("  - Connected keys:", connectedKeys.length);
       console.log("  - Nodes fetched:", nodesData?.length || 0);
@@ -252,7 +321,7 @@ export default function MindMeshGraphPage() {
       {/* Welcome Modal */}
       <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
       
-      {/* Header + Controls */}
+      {/* Header and Controls */}
       <GraphControls
         graphHistory={graphHistoryRef}
         handleBack={handleBackGraph}
@@ -273,7 +342,6 @@ export default function MindMeshGraphPage() {
       {/* Graph Canvas */}
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
-          <HelpPanel />
           <MindMeshInfoPanel
             graph={graph}
             programCode={programCode}
@@ -295,6 +363,7 @@ export default function MindMeshGraphPage() {
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
             linkWidth={linkWidth}
+            linkLineDash={linkLineDash}
           />
         </div>
       </div>

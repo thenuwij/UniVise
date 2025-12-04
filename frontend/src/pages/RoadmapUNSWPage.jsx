@@ -1,28 +1,24 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { supabase } from "../supabaseClient";
 import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import RoadmapFlow from "../components/roadmap/RoadmapFlow";
-import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
-import CapstoneHonours from "../components/roadmap/CapstoneHonours";
-import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
-import SkeletonCard from "../components/roadmap/SkeletonCard";
 import GradientCard from "../components/GradientCard";
-import SectionTitle from "../components/SectionTitle";
-import Pill from "../components/Pill";
-import Fact from "../components/Fact";
 import { ArrowLeft, UniIcon } from "../components/icons/InlineIcons";
-import { courseToText } from "../utils/formatters";
+import { MenuBar } from "../components/MenuBar";
+import Pill from "../components/Pill";
+import CapstoneHonours from "../components/roadmap/CapstoneHonours";
 import CareerPathways from "../components/roadmap/CareerPathways";
-import GeneratingMessage from "../components/roadmap/GeneratingMessage";
-import SocietiesCommunity from "../components/roadmap/SocietiesCommunity";
-import IndustryExperience from "../components/roadmap/IndustryExperience";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
+import GeneratingMessage from "../components/roadmap/GeneratingMessage";
+import IndustryExperience from "../components/roadmap/IndustryExperience";
+import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
+import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
+import RoadmapFlow from "../components/roadmap/RoadmapFlow";
+import SkeletonCard from "../components/roadmap/SkeletonCard";
+import SocietiesCommunity from "../components/roadmap/SocietiesCommunity";
 import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
+import SectionTitle from "../components/SectionTitle";
+import { supabase } from "../supabaseClient";
 
-
-// --- Constants ---
 const DEFAULT_PROGRAM_NAME = "Selected degree";
 const DEFAULT_UAC_CODE = "—";
 const KEYBOARD_NAV_KEYS = {
@@ -30,7 +26,7 @@ const KEYBOARD_NAV_KEYS = {
   ARROW_LEFT: "ArrowLeft"
 };
 
-// --- Helper Functions ---
+// Helper functions
 const extractStepIndexFromUrl = (searchParams) => {
   const stepParam = new URLSearchParams(searchParams).get("step");
   if (!stepParam) return 0;
@@ -90,7 +86,6 @@ const getSelectionRank = (entryRequirements) => {
          null;
 };
 
-// --- Custom Hooks ---
 const useRoadmapData = (
   preloadedPayload,
   preloadedRoadmapId,
@@ -120,10 +115,6 @@ const useRoadmapData = (
 
         if (fetchError) throw fetchError;
 
-        // ADD THESE DEBUG LOGS
-        console.log("🔍 FETCH RESULT - Full row:", row);
-        console.log("🔍 degree_code from DB:", row?.degree_code);
-
         setData(row?.payload || null);
         setHeader((prevHeader) => ({
           program_name: prevHeader.program_name || row?.program_name || null,
@@ -142,7 +133,7 @@ const useRoadmapData = (
 
 
 
-  // --- Polling effect for INITIAL generation (always runs) ---
+  // Polling effect 
   useEffect(() => {
     if (!preloadedRoadmapId) return;
 
@@ -172,7 +163,6 @@ const useRoadmapData = (
           (newCareers && !existingCareers) ||
           (newFlex && !existingFlex)
         ) {
-          console.log("[Polling] New data detected! Updating...");
           setData((prev) => ({
             ...prev,
             payload: { ...prev?.payload, ...row.payload },
@@ -203,7 +193,6 @@ const useRoadmapData = (
           .single();
 
         lastTimestamp = initial?.updated_at;
-        console.log("Regeneration polling started. Baseline:", lastTimestamp);
 
         intervalId = setInterval(async () => {
           try {
@@ -218,7 +207,6 @@ const useRoadmapData = (
             if (row?.updated_at && row.updated_at !== lastTimestamp) {
               updateCount++;
               lastTimestamp = row.updated_at;
-              console.log(`[Polling] Detected update #${updateCount} at ${lastTimestamp}`);
 
               // Merge latest payload each time a new bump is detected
               setData((prev) => ({
@@ -229,7 +217,6 @@ const useRoadmapData = (
 
             // Stop after 3 bumps (all threads done)
             if (updateCount >= 3) {
-              console.log("[Polling] All threads finished, stopping polling.");
               setIsRegenerating(false);
               clearInterval(intervalId);
             }
@@ -374,8 +361,6 @@ export default function RoadmapUNSWPage() {
   useEffect(() => {
     if (degree) { 
       updateHeader(degree);
-      console.log("updateHeader called with degree:", degree);
-      console.log("After updateHeader, header state:", header);
     }
   }, [degree, updateHeader]);
 
@@ -383,7 +368,6 @@ export default function RoadmapUNSWPage() {
     if (!data) return [];
 
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
-    console.log("STEPS RECALCULATED - degreeCodeValue:", degreeCodeValue);
 
     return [
       {

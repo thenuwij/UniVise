@@ -1,6 +1,6 @@
 // src/pages/mindmesh/components/HelpPanel.jsx
-import { useState } from "react";
 import { ChevronDown, ChevronUp, HelpCircle, Info } from "lucide-react";
+import { useState } from "react";
 
 export default function HelpPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -26,7 +26,6 @@ export default function HelpPanel() {
       {/* Content */}
       {isExpanded && (
         <div className="px-4 pb-4 space-y-3 text-sm">
-          {/* What you're seeing */}
           <div>
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
               <Info className="h-4 w-4 text-sky-600 dark:text-sky-400" />
