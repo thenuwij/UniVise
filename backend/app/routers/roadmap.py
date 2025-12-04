@@ -6,7 +6,7 @@ from .roadmap_common import (
     SchoolReq, UNSWReq, RoadmapResp,
     ensure, table_for_mode
 )
-from .roadmap_school import gather_school_context, ai_generate_school_payload
+from .roadmap_school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
 from .roadmap_unsw_flexibility import generate_and_update_flexibility
 from .roadmap_industry import generate_and_update_industry_careers
@@ -17,6 +17,8 @@ router = APIRouter(tags=["roadmap"])
 # Generate roadmap for high school students
 @router.post("/school", response_model=RoadmapResp)
 async def create_school(body: SchoolReq, user=Depends(get_current_user)):
+    import asyncio
+    
     ensure(bool(body.recommendation_id or body.degree_name), "Provide recommendation_id or degree_name.")
     ctx = await gather_school_context(user.id, body)
     payload = await ai_generate_school_payload(ctx)
@@ -29,6 +31,10 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
     rec = ins.data[0]
+    
+    # Trigger background task for careers
+    asyncio.create_task(generate_and_update_school_careers(rec["id"], ctx))
+    
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 # Generate roadmap for UNSW students, triggers background tasks for flexibility/societies/careers

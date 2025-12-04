@@ -51,7 +51,7 @@ export async function handleRoadmapGeneration({
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
       
       navigate("/roadmap/school", {
-        state: { degree, payload: json?.payload || null, roadmap_id: json?.roadmap_id || null },
+        state: { degree, payload: json?.payload || null, roadmap_id: json?.id || null },
         replace: true,
       });
       return;

@@ -265,8 +265,8 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
             draft["capstone"]["courses"] = validated_capstone
             source = 'core + specialisation' if has_any_specialisation else 'core only'
             print(f"Capstone validation: {len(validated_capstone)} courses validated from {source}")
-        print("Stage 1: General program information generated successfully")
-        return draft
+    print("Stage 1: General program information generated successfully")
+    return draft
 
 # Stage 2: Return hardcoded honours information based on faculty.
 async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:

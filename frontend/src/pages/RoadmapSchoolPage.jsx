@@ -37,6 +37,8 @@ export default function RoadmapSchoolPage() {
   const [err, setErr] = useState("");
   const [data, setData] = useState(preloadedPayload);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [roadmapId, setRoadmapId] = useState(preloadedRoadmapId);
+  const [careersLoading, setCareersLoading] = useState(false);
 
   useEffect(() => {
     const fetchByIdIfNeeded = async () => {
@@ -45,11 +47,12 @@ export default function RoadmapSchoolPage() {
           setLoading(true);
           const { data: row, error } = await supabase
             .from("school_roadmap")
-            .select("payload")
+            .select("id, payload")
             .eq("id", preloadedRoadmapId)
             .maybeSingle();
           if (error) throw error;
           setData(row?.payload || null);
+          setRoadmapId(row?.id || null);
         } catch (e) {
           setErr(e.message || "Failed to fetch roadmap by id.");
         } finally {
@@ -59,6 +62,53 @@ export default function RoadmapSchoolPage() {
     };
     fetchByIdIfNeeded();
   }, [preloadedRoadmapId, data]);
+
+  // Poll for career_pathways if missing
+  useEffect(() => {
+    if (!roadmapId || !data) return;
+    
+    // If career_pathways already exists, no need to poll
+    if (data?.career_pathways && Object.keys(data.career_pathways).length > 0) {
+      setCareersLoading(false);
+      return;
+    }
+
+    setCareersLoading(true);
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const { data: row, error } = await supabase
+          .from("school_roadmap")
+          .select("payload")
+          .eq("id", roadmapId)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Polling error:", error);
+          return;
+        }
+
+        const newPayload = row?.payload;
+        if (newPayload?.career_pathways && Object.keys(newPayload.career_pathways).length > 0) {
+          setData(newPayload);
+          setCareersLoading(false);
+          clearInterval(pollInterval);
+        }
+      } catch (e) {
+        console.error("Polling failed:", e);
+      }
+    }, 3000);
+
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      setCareersLoading(false);
+    }, 60000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
+    };
+  }, [roadmapId, data]);
 
   const steps = useMemo(
     () => [
@@ -104,11 +154,12 @@ export default function RoadmapSchoolPage() {
           <CareersSection 
             careerPathways={data?.career_pathways || {}}
             source={data?.source || null}
+            isLoading={careersLoading}
           />
         ),
       }
     ],
-    [data]
+    [data, careersLoading]
   );
 
   return (
