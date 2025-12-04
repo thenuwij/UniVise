@@ -86,13 +86,14 @@ function MyPathway() {
             </div>
           </div>
 
+
           {/* Stats Card */}
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
+          <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between flex-wrap gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
-                    <HiBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <div className="p-2 rounded-lg bg-sky-100 dark:bg-sky-900/40">
+                    <HiBookmark className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                   </div>
                   <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Your Saved Items</h1>
                 </div>

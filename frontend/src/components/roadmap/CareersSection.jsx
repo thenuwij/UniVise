@@ -43,7 +43,7 @@ export default function CareersSection({ careerPathways = {}, sources = [], isLo
         <div className="p-10 flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Loading career information...
+            Loading career information please wait this section may take few extra seconds...
           </p>
         </div>
       );
