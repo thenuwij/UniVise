@@ -82,9 +82,9 @@ async def ai_generate_school_payload(context: Dict[str, Any]) -> Dict[str, Any]:
       }},
 
       "program_structure": [
-        {{"year": 1, "overview": "Year 1 overview including core skills & subjects"}},
-        {{"year": 2, "overview": "Year 2 overview including intermediate subjects & options"}},
-        {{"year": 3, "overview": "Year 3 overview including capstone/advanced subjects"}}
+        {{"year": 1, "overview": "3-4 detailed sentences about first year: foundational subjects covered, key skills introduced, typical workload, and how it prepares students for later years."}},
+        {{"year": 2, "overview": "3-4 detailed sentences about second year: intermediate subjects, specialisation options opening up, practical components, and skill progression."}},
+        {{"year": 3, "overview": "3-4 detailed sentences about final year: advanced subjects, capstone projects or thesis, industry preparation, and professional readiness."}}
       ],
 
       "specialisations": ["6–10 real majors/minors/specialisations with 10–15 word notes"],
