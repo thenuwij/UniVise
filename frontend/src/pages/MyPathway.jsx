@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   HiAcademicCap,
-  HiArrowRight,
+  HiArrowLeft,
   HiBookmark,
   HiBriefcase,
   HiClipboard,
@@ -27,7 +27,6 @@ function MyPathway() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // Fetch saved items
   useEffect(() => {
     if (!session?.user?.id) return;
 
@@ -39,22 +38,15 @@ function MyPathway() {
         .eq("user_id", session.user.id)
         .order("saved_at", { ascending: false });
 
-      if (!error && data) {
-        setSavedItems(data);
-      }
+      if (!error && data) setSavedItems(data);
       setLoading(false);
     };
 
     fetchItems();
   }, [session]);
 
-  // Category filters
-  const programItems = savedItems.filter((i) =>
-    ["degree", "major", "minor"].includes(i.item_type)
-  );
-  const specialisationItems = savedItems.filter((i) =>
-    ["major", "minor", "specialisation", "honours"].includes(i.item_type)
-  );
+  const programItems = savedItems.filter((i) => ["degree", "major", "minor"].includes(i.item_type));
+  const specialisationItems = savedItems.filter((i) => ["major", "minor", "specialisation", "honours"].includes(i.item_type));
   const courseItems = savedItems.filter((i) => i.item_type === "course");
   const communityItems = savedItems.filter((i) => i.item_type === "society");
   const industryItems = savedItems.filter((i) => i.item_type === "internship");
@@ -62,21 +54,13 @@ function MyPathway() {
 
   const totalCount = savedItems.length;
 
-  // Handle item removal
   const handleRemove = async (itemId) => {
-    const { error } = await supabase
-      .from("user_saved_items")
-      .delete()
-      .eq("id", itemId);
-
-    if (!error) {
-      setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
-    }
+    const { error } = await supabase.from("user_saved_items").delete().eq("id", itemId);
+    if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
   return (
-    <div>
-      {/* Fixed Navigation */}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
@@ -84,86 +68,92 @@ function MyPathway() {
 
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
-          {/* Header Section */}
-          <div className="mt-8">
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-              MyPlanner
+          
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/planner")}
+            className="flex items-center gap-2 mt-8 mb-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
+            <HiArrowLeft className="w-4 h-4" />
+            <span>Back to My Planner</span>
+          </button>
+
+          {/* Header Badge */}
+          <div className="mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-medium">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              My Planner
             </div>
           </div>
 
-          {/* Quick Stats Card */}
-          <div className="card-glass-spotlight mt-6 p-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Stats Card */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between flex-wrap gap-6">
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <HiBookmark className="w-6 h-6 text-sky-600 dark:text-sky-400" />
-                  <p className="text-2xl font-semibold">Your Saved Items</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
+                    <HiBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Your Saved Items</h1>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   {totalCount} item{totalCount !== 1 ? "s" : ""} saved in your planner
                 </p>
               </div>
 
-              {/* Counters */}
-              <div className="flex gap-6 text-sm">
-                <CountBlock count={programItems.length} label="Programs" color="blue" />
-                <CountBlock count={specialisationItems.length} label="Specialisations" color="sky" />
-                <CountBlock count={courseItems.length} label="Courses" color="purple" />
-                <CountBlock count={communityItems.length} label="Communities" color="indigo" />
-                <CountBlock count={industryItems.length} label="Industry" color="amber" />
-                <CountBlock count={careerItems.length} label="Careers" color="green" />
+              <div className="flex gap-8">
+                <CountBlock count={programItems.length} label="Programs" />
+                <CountBlock count={specialisationItems.length} label="Specialisations" />
+                <CountBlock count={courseItems.length} label="Courses" />
+                <CountBlock count={communityItems.length} label="Communities" />
+                <CountBlock count={industryItems.length} label="Industry" />
+                <CountBlock count={careerItems.length} label="Careers" />
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="mt-8 border-b border-gray-200 dark:border-gray-700">
-            <nav className="flex gap-6 overflow-x-auto">
+          <div className="mt-8 border-b border-slate-200 dark:border-slate-700">
+            <nav className="flex gap-1 overflow-x-auto">
               <TabButton
                 active={activeTab === "programs"}
                 onClick={() => setActiveTab("programs")}
-                icon={<HiAcademicCap className="w-5 h-5" />}
+                icon={<HiAcademicCap className="w-4 h-4" />}
                 label="Programs"
                 count={programItems.length}
               />
-
               <TabButton
                 active={activeTab === "specialisations"}
                 onClick={() => setActiveTab("specialisations")}
-                icon={<HiCollection className="w-5 h-5" />}
+                icon={<HiCollection className="w-4 h-4" />}
                 label="Specialisations"
                 count={specialisationItems.length}
               />
-
               <TabButton
                 active={activeTab === "courses"}
                 onClick={() => setActiveTab("courses")}
-                icon={<HiClipboard className="w-5 h-5" />}
+                icon={<HiClipboard className="w-4 h-4" />}
                 label="Courses"
                 count={courseItems.length}
               />
-
               <TabButton
                 active={activeTab === "communities"}
                 onClick={() => setActiveTab("communities")}
-                icon={<HiUsers className="w-5 h-5" />}
+                icon={<HiUsers className="w-4 h-4" />}
                 label="Communities"
                 count={communityItems.length}
               />
-
               <TabButton
                 active={activeTab === "industry"}
                 onClick={() => setActiveTab("industry")}
-                icon={<HiBriefcase className="w-5 h-5" />}
-                label="Industry Opportunities"
+                icon={<HiBriefcase className="w-4 h-4" />}
+                label="Industry"
                 count={industryItems.length}
               />
-
               <TabButton
                 active={activeTab === "careers"}
                 onClick={() => setActiveTab("careers")}
-                icon={<HiBriefcase className="w-5 h-5" />}
+                icon={<HiBriefcase className="w-4 h-4" />}
                 label="Careers"
                 count={careerItems.length}
               />
@@ -186,7 +176,6 @@ function MyPathway() {
                     onRemove={handleRemove}
                   />
                 )}
-
                 {activeTab === "specialisations" && (
                   <TabContent
                     items={specialisationItems}
@@ -197,7 +186,6 @@ function MyPathway() {
                     onRemove={handleRemove}
                   />
                 )}
-
                 {activeTab === "courses" && (
                   <TabContent
                     items={courseItems}
@@ -208,7 +196,6 @@ function MyPathway() {
                     onRemove={handleRemove}
                   />
                 )}
-
                 {activeTab === "communities" && (
                   <TabContent
                     items={communityItems}
@@ -219,7 +206,6 @@ function MyPathway() {
                     onRemove={handleRemove}
                   />
                 )}
-
                 {activeTab === "industry" && (
                   <TabContent
                     items={industryItems}
@@ -230,7 +216,6 @@ function MyPathway() {
                     onRemove={handleRemove}
                   />
                 )}
-
                 {activeTab === "careers" && (
                   <TabContent
                     items={careerItems}
@@ -244,39 +229,17 @@ function MyPathway() {
               </>
             )}
           </div>
-
-          {/* Back to Planner */}
-          <div className="mb-16">
-            <button
-              onClick={() => navigate("/planner")}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              <HiArrowRight className="w-5 h-5 rotate-180" />
-              <span>Back to My Planner</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/* COMPONENTS */
-
-function CountBlock({ count, label, color }) {
-  const colorMap = {
-    blue: "text-blue-600 dark:text-blue-400",
-    sky: "text-sky-600 dark:text-sky-400",
-    purple: "text-purple-600 dark:text-purple-400",
-    indigo: "text-indigo-600 dark:text-indigo-400",
-    amber: "text-amber-600 dark:text-amber-400",
-    green: "text-green-600 dark:text-green-400",
-  };
-
+function CountBlock({ count, label }) {
   return (
     <div className="text-center">
-      <p className={`text-3xl font-bold ${colorMap[color]}`}>{count}</p>
-      <p className="text-gray-600 dark:text-gray-400 text-xs">{label}</p>
+      <p className="text-2xl font-bold text-slate-900 dark:text-white">{count}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }
@@ -285,15 +248,15 @@ function TabButton({ active, onClick, icon, label, count }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+      className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-sm ${
         active
-          ? "border-sky-500 text-sky-600 dark:text-sky-400 font-semibold"
-          : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+          ? "border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 font-medium"
+          : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
       }`}
     >
       {icon}
       <span>{label}</span>
-      <span className="px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-xs font-semibold">
+      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-medium">
         {count}
       </span>
     </button>
@@ -302,11 +265,9 @@ function TabButton({ active, onClick, icon, label, count }) {
 
 function LoadingState() {
   return (
-    <div className="text-center py-12">
-      <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-        <HiBookmark className="w-8 h-8 text-slate-400 animate-pulse" />
-      </div>
-      <p className="text-gray-500 dark:text-gray-400">Loading your saved items...</p>
+    <div className="flex flex-col items-center justify-center py-16">
+      <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
+      <p className="text-sm text-slate-500 dark:text-slate-400">Loading your saved items...</p>
     </div>
   );
 }
@@ -314,19 +275,19 @@ function LoadingState() {
 function TabContent({ items, emptyMessage, emptyDescription, emptyAction, emptyActionText, onRemove }) {
   if (items.length === 0) {
     return (
-      <div className="card-glass-spotlight p-12 text-center">
-        <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-          <HiBookmark className="w-12 h-12 text-slate-400" />
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-12 text-center">
+        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+          <HiBookmark className="w-7 h-7 text-slate-400" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
           {emptyMessage}
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
           {emptyDescription}
         </p>
         <button
           onClick={emptyAction}
-          className="px-6 py-3 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold hover:shadow-lg transition"
+          className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
         >
           {emptyActionText}
         </button>
