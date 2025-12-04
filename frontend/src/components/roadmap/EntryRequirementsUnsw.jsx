@@ -1,5 +1,7 @@
 // src/components/roadmap/EntryRequirementsCard.jsx
-import { GraduationCap, BookOpen, Target } from "lucide-react";
+import { GraduationCap, BookOpen, Target, Info } from "lucide-react";
+
+
 
 export default function EntryRequirementsCardUnsw({ atar, selectionRank, subjects }) {
   // --- FIX: Safely parse assumed knowledge ---
@@ -23,17 +25,25 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
                     dark:border-slate-700/60 p-8 shadow-xl space-y-8">
 
       {/* ---------- HEADER ---------- */}
-      <div className="flex items-center gap-4 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 shadow-sm">
-          <GraduationCap className="h-6 w-6 text-blue-700 dark:text-blue-400" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Key Entry Requirements
-          </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Check the latest UNSW Handbook or UAC website for other thresholds.
-          </p>
+      <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
+                      px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
+                      rounded-t-2xl">
+        
+        {/* Very subtle gradient accent */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
+        
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+            <GraduationCap className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Entry Requirements
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Check the latest UNSW Handbook or UAC website for complete admission criteria
+            </p>
+          </div>
         </div>
       </div>
 
@@ -50,6 +60,20 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               Entry ATAR
             </span>
+            <div className="relative group/tooltip ml-1">
+              <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                            bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                            opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                            transition-all duration-200 shadow-lg z-10
+                            pointer-events-none w-[220px]">
+                <div className="whitespace-normal leading-relaxed">
+                  Australian Tertiary Admission Rank - the lowest ATAR score typically accepted
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                              border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+              </div>
+            </div>
           </div>
           <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
             {atar || "Check university"}
@@ -66,6 +90,20 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               Selection Rank
             </span>
+            <div className="relative group/tooltip ml-1">
+              <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                            bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                            opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                            transition-all duration-200 shadow-lg z-10
+                            pointer-events-none w-[220px]">
+                <div className="whitespace-normal leading-relaxed">
+                  Minimum combined score needed for entry - includes ATAR plus any bonus points
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                              border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+              </div>
+            </div>
           </div>
           <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
             {selectionRank || "Varies"}
@@ -82,6 +120,20 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               Assumed Knowledge
             </span>
+            <div className="relative group/tooltip ml-1">
+              <Info className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 
+                            bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg 
+                            opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                            transition-all duration-200 shadow-lg z-10
+                            pointer-events-none w-[220px]">
+                <div className="whitespace-normal leading-relaxed">
+                  High school subjects you should have studied for this degree
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 
+                              border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
+              </div>
+            </div>
           </div>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
             {safeSubjects.length ? safeSubjects.join(", ") : "—"}

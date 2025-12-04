@@ -47,7 +47,14 @@ async function recalculateStats(userId) {
     .eq("user_id", userId);
 }
 
-export default function CourseRow({ course, completed, userId, category, onUpdate }) {
+export default function CourseRow({ 
+  course, 
+  completed, 
+  userId, 
+  category, 
+  courseSource,  // NEW: { source_type, source_code }
+  onUpdate 
+}) {
   const [isCompleted, setIsCompleted] = useState(!!completed?.is_completed);
   const [mark, setMark] = useState(completed?.mark || "");
   const [editingMark, setEditingMark] = useState(false);
@@ -69,6 +76,8 @@ export default function CourseRow({ course, completed, userId, category, onUpdat
         uoc: course.uoc,
         is_completed: newCompletedState,
         category: category,
+        source_type: courseSource?.source_type || 'program',
+        source_code: courseSource?.source_code || null,
       });
     }
 
@@ -96,6 +105,8 @@ export default function CourseRow({ course, completed, userId, category, onUpdat
         uoc: course.uoc,
         mark: markValue,
         category: category,
+        source_type: courseSource?.source_type || 'program',
+        source_code: courseSource?.source_code || null,
       });
     }
 

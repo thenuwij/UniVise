@@ -21,58 +21,71 @@ from .roadmap_unsw_helpers import fetch_user_specialisation_context
 def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
     """
     Robust JSON parser with multiple fallback strategies.
-    
+
     Fixes common AI-generated JSON errors:
     1. Missing quotes around property names
     2. Single quotes instead of double quotes
     3. Trailing commas
     4. Comments in JSON
     5. Unescaped characters
-    
-    Returns parsed dict or raises exception with details.
+    6. Stringified JSON objects inside arrays, e.g. ["{"name": "GHD"}"]
     """
-    
-    # Strategy 1: Try parsing as-is
+
+    # Keep track of the last JSONDecodeError for debugging
+    last_error: Exception | None = None
+
+    # Start with trimmed text
+    text = raw_text.strip()
+
+    # --- Fix 1: stringified JSON objects like ["{"name": "GHD"}", ...] ---
+    # Turn "{"name": "GHD"}" into {"name": "GHD"}
+    # This looks for a quoted { ... } and drops the surrounding quotes.
+    text = re.sub(r'"\{([^}]*)\}"', r'{\1}', text)
+
+    # Strategy 1: Try parsing as-is (after the stringified-object fix)
     try:
-        return json.loads(raw_text)
+        return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"[JSON] Initial parse failed: {e}")
-    
-    # Strategy 2: Fix common issues
+        last_error = e
+
+    # Strategy 2: Fix common issues (comments, trailing commas, single quotes)
     try:
-        cleaned = raw_text
-        
+        cleaned = text
+
         # Remove comments (// and /* */)
         cleaned = re.sub(r'//.*?$', '', cleaned, flags=re.MULTILINE)
         cleaned = re.sub(r'/\*.*?\*/', '', cleaned, flags=re.DOTALL)
-        
+
         # Fix trailing commas
         cleaned = re.sub(r',(\s*[}\]])', r'\1', cleaned)
-        
+
         # Replace single quotes with double quotes (carefully)
         cleaned = re.sub(r"'([^']*?)'(\s*:)", r'"\1"\2', cleaned)  # Property names
         cleaned = re.sub(r":\s*'([^']*?)'", r': "\1"', cleaned)    # String values
-        
+
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
         print(f"[JSON] Cleanup parse failed: {e}")
-    
+        last_error = e
+
     # Strategy 3: Fix unquoted property names
     try:
         def quote_property_names(match):
             prop_name = match.group(1)
             return f'"{prop_name}":'
-        
+
         fixed = re.sub(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', quote_property_names, cleaned)
         return json.loads(fixed)
     except json.JSONDecodeError as e:
         print(f"[JSON] Property name fixing failed: {e}")
-    
-    # Strategy 4: Extract JSON object more carefully
+        last_error = e
+
+    # Strategy 4: Extract core JSON object/brackets
     try:
         start = cleaned.find('{')
         end = cleaned.rfind('}')
-        
+
         if start != -1 and end != -1:
             json_only = cleaned[start:end + 1]
             json_only = re.sub(r',(\s*[}\]])', r'\1', json_only)
@@ -80,7 +93,8 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
             return json.loads(json_only)
     except json.JSONDecodeError as e:
         print(f"[JSON] Extraction strategy failed: {e}")
-    
+        last_error = e
+
     # Strategy 5: Last resort - fix specific known patterns
     try:
         patterns = [
@@ -94,19 +108,24 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
             (r'\bdescription\s*:', '"description":'),
             (r'\brequirements\s*:', '"requirements":'),
         ]
-        
+
         fixed_text = cleaned
         for pattern, replacement in patterns:
             fixed_text = re.sub(pattern, replacement, fixed_text)
-        
+
         return json.loads(fixed_text)
     except json.JSONDecodeError as e:
         print(f"[JSON] Pattern fixing failed: {e}")
-    
+        last_error = e
+
     # All strategies failed
     print(f"[JSON] ALL PARSING STRATEGIES FAILED")
     print(f"[JSON] Raw text (first 500 chars):\n{raw_text[:500]}")
-    raise ValueError(f"Could not parse JSON after multiple attempts. Last error: {e}")
+
+    raise ValueError(
+        f"Could not parse JSON after multiple attempts. "
+        f"Last error: {last_error}"
+    )
 
 
 # ========== HELPER: WEB SEARCH INTEGRATION ==========
@@ -460,7 +479,7 @@ JSON STRUCTURE:
           "salary_range": "$X - $Y AUD based on current listings",
           "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
           "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
           "source": "Seek/Indeed/LinkedIn/GradConnection",
           "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
@@ -474,7 +493,7 @@ JSON STRUCTURE:
           "salary_range": "$X - $Y AUD based on current listings",
           "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
           "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
           "source": "Seek/Indeed/LinkedIn/GradConnection",
           "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
@@ -488,7 +507,7 @@ JSON STRUCTURE:
           "salary_range": "$X - $Y AUD based on current listings",
           "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
           "requirements": "Key requirements from actual listings",
-          "hiring_companies": ["Company currently hiring", "Another company", "Third company"],
+          "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
           "source": "Seek/Indeed/LinkedIn/GradConnection",
           "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
         }}
@@ -716,6 +735,7 @@ async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
 
+    # Save to industry_societies for frontend polling
     payload["industry_societies"] = societies_result.get("societies", {})
 
     # Save immediately

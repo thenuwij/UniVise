@@ -2,39 +2,63 @@ import GradientCard from "../GradientCard";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import { Award, BookOpen, TrendingUp, CheckCircle2, Star } from "lucide-react";
+import { useState, useEffect } from "react"; 
 
-/**
- * Premium Capstone & Honours Component
- * 
- * Sophisticated design with:
- * - Elegant blue/sky/indigo gradients
- * - Enhanced visual hierarchy
- * - Premium card layouts
- * - Professional typography
- */
+
 export default function CapstoneHonours({ data }) {
   const navigate = useNavigate();
+  const [validCourses, setValidCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
-  const handleCourseClick = async (course) => {
-    const text = typeof course === "string" ? course : course.code || "";
-    const match = text.match(/[A-Z]{4}\d{4}/i);
+  // Fetch and validate courses on mount
+  useEffect(() => {
+    const fetchValidCourses = async () => {
+      const capstoneCourses = data?.capstone?.courses || [];
+      if (capstoneCourses.length === 0) {
+        setLoadingCourses(false);
+        return;
+      }
 
-    if (!match) {
-      console.warn("No valid course code found in:", text);
-      return;
-    }
+      // Extract course codes
+      const courseCodes = capstoneCourses
+        .map(course => {
+          if (typeof course === "string") {
+            const match = course.match(/[A-Z]{4}\d{4}/i);
+            return match ? match[0].toUpperCase() : null;
+          } else if (typeof course === "object") {
+            return course.code || null;
+          }
+          return null;
+        })
+        .filter(Boolean);
 
-    const code = match[0].toUpperCase();
+      if (courseCodes.length === 0) {
+        setLoadingCourses(false);
+        return;
+      }
 
-    const { data: matchData, error } = await supabase
-      .from("unsw_courses")
-      .select("id")
-      .ilike("code", code)
-      .maybeSingle();
+      // Fetch from database
+      try {
+        const { data: courseData, error } = await supabase
+          .from("unsw_courses")
+          .select("id, code, title")
+          .in("code", courseCodes);
 
-    if (error) console.error(error);
-    if (matchData?.id) navigate(`/course/${matchData.id}`);
-    else console.warn("Course not found in DB:", code);
+        if (!error && courseData) {
+          setValidCourses(courseData);
+        }
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+      }
+      
+      setLoadingCourses(false);
+    };
+
+    fetchValidCourses();
+  }, [data?.capstone?.courses]);
+
+  const handleCourseClick = (courseId) => {
+    if (courseId) navigate(`/course/${courseId}`);
   };
 
   const formatTextContent = (text) => {
@@ -52,7 +76,6 @@ export default function CapstoneHonours({ data }) {
     });
   };
 
-  const capstoneCourses = data?.capstone?.courses || [];
   const highlights = data?.capstone?.highlights || "—";
 
   const honours = data?.honours || {};
@@ -98,71 +121,52 @@ export default function CapstoneHonours({ data }) {
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                Capstone Experience
+                Program Highlights
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Key courses featuring applied, project-based learning
+                What makes this program distinctive and valuable
               </p>
             </div>
           </div>
         </div>
 
-        {/* Courses Grid */}
-        {capstoneCourses.length > 0 && (
+        {/* Courses Grid - Only show if valid courses exist */}
+        {!loadingCourses && validCourses.length > 0 && (
           <div className="mb-8">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-4">
-              Capstone Courses
+              Signature Courses
             </h3>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {capstoneCourses.map((course, i) => {
-                let code = "";
-                let name = "";
-
-                if (typeof course === "string") {
-                  const match = course.match(/[A-Z]{4}\d{4}/i);
-                  if (match) {
-                    code = match[0].toUpperCase();
-                    name = course.replace(match[0], "").trim();
-                  } else {
-                    code = course;
-                  }
-                } else if (typeof course === "object") {
-                  code = course.code || "";
-                  name = course.name || "";
-                }
-
-                return (
-                  <div
-                    key={i}
-                    onClick={() => handleCourseClick(course)}
-                    className="group relative p-5 rounded-xl border border-slate-200/70 dark:border-slate-700/70
-                              bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100
-                              dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
-                              hover:shadow-lg hover:border-slate-400 dark:hover:border-slate-500
-                              hover:bg-gradient-to-br hover:from-white hover:via-blue-50/30 hover:to-slate-50
-                              dark:hover:bg-gradient-to-br dark:hover:from-slate-800/60 dark:hover:via-slate-800/50 dark:hover:to-slate-900/60
-                              hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-
-                  >
-                    <div className="mb-3">
-                      <p className="text-lg font-bold text-blue-700 dark:text-blue-400 tracking-tight">
-                        {code}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-snug line-clamp-2">
-                        {name || "Capstone Course"}
-                      </p>
-                    </div>
-
-                    <div className="opacity-70 group-hover:opacity-100 transition-opacity duration-150">
-                      <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
-                        View Details
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
-                      </span>
-                    </div>
+              {validCourses.map((course) => (
+                <div
+                  key={course.id}
+                  onClick={() => handleCourseClick(course.id)}
+                  className="group relative p-5 rounded-xl border border-slate-200/70 dark:border-slate-700/70
+                            bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100
+                            dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
+                            hover:shadow-lg hover:border-slate-400 dark:hover:border-slate-500
+                            hover:bg-gradient-to-br hover:from-white hover:via-blue-50/30 hover:to-slate-50
+                            dark:hover:bg-gradient-to-br dark:hover:from-slate-800/60 dark:hover:via-slate-800/50 dark:hover:to-slate-900/60
+                            hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="mb-3">
+                    <p className="text-lg font-bold text-blue-700 dark:text-blue-400 tracking-tight">
+                      {course.code}
+                    </p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-snug line-clamp-2">
+                      {course.title}
+                    </p>
                   </div>
-                );
-              })}
+
+                  <div className="opacity-70 group-hover:opacity-100 transition-opacity duration-150">
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
+                      View Details
+                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

@@ -23,31 +23,8 @@ function RegisterForm() {
     const [loading, setLoading] = useState('');
     const [openModal, setOpenModal] = useState(false)
     
-    const navigate = useNavigate()
+    const navigate = useNavigate() 
     const { session, registerNewUser } = UserAuth();
-
-     // Check if user is already logged in (e.g., after Google OAuth redirect)
-    useEffect(() => {
-      const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          navigate("/survey");
-        }
-      };
-      checkSession();
-    }, [navigate]);
-
-    // Listen for auth state changes (for Google sign up)
-    useEffect(() => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          navigate("/survey");
-        }
-      });
-
-      return () => subscription.unsubscribe();
-    }, [navigate]);
-    
 
     const handleRegister = async (e) => {
       e.preventDefault();
@@ -82,7 +59,7 @@ function RegisterForm() {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/survey`
+            redirectTo: `${window.location.origin}/auth/callback`
           }
         });
         if (error) {

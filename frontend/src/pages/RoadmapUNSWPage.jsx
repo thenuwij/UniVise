@@ -21,6 +21,7 @@ import IndustryExperience from "../components/roadmap/IndustryExperience";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
 import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
 
+
 // --- Constants ---
 const DEFAULT_PROGRAM_NAME = "Selected degree";
 const DEFAULT_UAC_CODE = "—";
@@ -44,30 +45,42 @@ const normalizeSources = (data) => {
   return [];
 };
 
+const useDegreeData = (degreeCode) => {
+  const [degreeData, setDegreeData] = useState(null);
+
+  useEffect(() => {
+    const fetchDegree = async () => {
+      if (!degreeCode) return;
+
+      try {
+        const { data: degree, error } = await supabase
+          .from("unsw_degrees_final")
+          .select("*")
+          .eq("degree_code", degreeCode)
+          .maybeSingle();
+
+        if (error) throw error;
+        setDegreeData(degree);
+      } catch (err) {
+        console.warn("Failed to fetch degree:", err.message);
+      }
+    };
+
+    fetchDegree();
+  }, [degreeCode]);
+
+  return degreeData;
+};
+
 const extractDegreeCode = (degree) => {
-  console.log("--------------------------------------------------");
-  console.log("🔥 EXTRACT DEGREE CODE — RAW DEGREE OBJECT:");
-  console.log(JSON.stringify(degree, null, 2));
-
-  const code = degree?.code;
-  const degree_code = degree?.degree_code;
-  const program_code = degree?.program_code;
-
-  console.log("➡ FIELD CHECK:");
-  console.log("   degree.code =", code);
-  console.log("   degree.degree_code =", degree_code);
-  console.log("   degree.program_code =", program_code);
-
-  const finalCode = code || degree_code || program_code || "3586";
-
-  if (finalCode === "3586") {
-    console.warn("🚨 WARNING: extractDegreeCode() fell back to DEFAULT '3586'!");
-    console.warn("🚨 This means the degree object was missing all valid code fields.");
+  if (!degree) return null;
+  
+  const finalCode = degree.code || degree.degree_code || degree.program_code || null;
+  
+  if (!finalCode) {
+    console.warn("extractDegreeCode: No valid degree code found");
   }
-
-  console.log("🎯 FINAL DEGREE CODE USED:", finalCode);
-  console.log("--------------------------------------------------");
-
+  
   return finalCode;
 };
 
@@ -90,6 +103,7 @@ const useRoadmapData = (
   const [header, setHeader] = useState({
     program_name: null,
     uac_code: null,
+    degree_code: null, 
   });
 
   useEffect(() => {
@@ -100,16 +114,21 @@ const useRoadmapData = (
         setLoading(true);
         const { data: row, error: fetchError } = await supabase
           .from("unsw_roadmap")
-          .select("payload, program_name, uac_code")
+          .select("payload, program_name, uac_code, degree_code")
           .eq("id", preloadedRoadmapId)
           .maybeSingle();
 
         if (fetchError) throw fetchError;
 
+        // ADD THESE DEBUG LOGS
+        console.log("🔍 FETCH RESULT - Full row:", row);
+        console.log("🔍 degree_code from DB:", row?.degree_code);
+
         setData(row?.payload || null);
         setHeader((prevHeader) => ({
           program_name: prevHeader.program_name || row?.program_name || null,
           uac_code: prevHeader.uac_code || row?.uac_code || null,
+          degree_code: prevHeader.degree_code || row?.degree_code || null,
         }));
       } catch (err) {
         setError(err.message || "Failed to fetch UNSW roadmap by id.");
@@ -235,6 +254,7 @@ const useRoadmapData = (
     setHeader({
       program_name: degree?.degree_name || degree?.program_name || null,
       uac_code: degree?.uac_code || null,
+      degree_code: extractDegreeCode(degree),
     });
   }, []);
 
@@ -331,6 +351,15 @@ export default function RoadmapUNSWPage() {
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+  const getUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUserId(user?.id);
+  };
+  getUser();
+}, []);
 
   const { data, loading, error, header, updateHeader } = useRoadmapData(
     preloadedPayload,
@@ -339,23 +368,32 @@ export default function RoadmapUNSWPage() {
     setIsRegenerating
   );
 
+  const fetchedDegree = useDegreeData(header.degree_code);
+  const activeDegree = degree || fetchedDegree;
+
   useEffect(() => {
-    if (degree) updateHeader(degree);
+    if (degree) { 
+      updateHeader(degree);
+      console.log("updateHeader called with degree:", degree);
+      console.log("After updateHeader, header state:", header);
+    }
   }, [degree, updateHeader]);
 
   const steps = useMemo(() => {
     if (!data) return [];
-    return [
 
+    const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
+    console.log("STEPS RECALCULATED - degreeCodeValue:", degreeCodeValue);
+
+    return [
       {
         key: "entry",
         title: "Entry Requirements",
         render: () => (
           <EntryRequirementsCardUnsw 
-            // Prefer UNSW database values
-            atar={degree?.lowest_atar ?? data?.entry_requirements?.atar}
+            atar={activeDegree?.lowest_atar ?? data?.entry_requirements?.atar}
             selectionRank={
-              degree?.lowest_selection_rank ??
+              activeDegree?.lowest_selection_rank ??
               getSelectionRank(data?.entry_requirements)
             }
             subjects={data?.entry_requirements?.subjects || []}
@@ -366,32 +404,52 @@ export default function RoadmapUNSWPage() {
       {
         key: "structure",
         title: "Program Structure",
-        render: () => <ProgramStructureUNSW degreeCode={extractDegreeCode(degree)} />,
+        render: () => {
+          if (!degreeCodeValue) {
+            return (
+              <div className="text-center py-10 text-secondary">
+                Unable to load program structure. Please try again.
+              </div>
+            );
+          }
+          
+          return <ProgramStructureUNSW degreeCode={degreeCodeValue} />;
+        },
       },
       {
         key: "specialisation",
         title: "Specialisations",
-        render: () => (
-          <SpecialisationUNSW 
-            degreeCode={extractDegreeCode(degree)}
-          />
-        ),
+        render: () => {
+          if (!degreeCodeValue) {
+            return (
+              <div className="text-center py-10 text-secondary">
+                Unable to load specialisations. Please try again.
+              </div>
+            );
+          }
+          
+          return <SpecialisationUNSW degreeCode={degreeCodeValue} />;
+        },
       },
       {
         key: "capstone",
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
       },
+
       {
         key: "flex",
         title: "Flexibility",
         render: () => (
           <ProgramFlexibility
             flexibility={data?.payload?.flexibility_detailed}
-            simulatorLink="/switching"
+            roadmapId={preloadedRoadmapId}
+            degreeCode={degreeCodeValue}  
+            userId={userId}
           />
         ),
       },
+      
       {
         key: "societies",
         title: "Societies & Community",
@@ -469,7 +527,7 @@ export default function RoadmapUNSWPage() {
         },
       },
     ];
-  }, [data, degree]);
+  }, [data, activeDegree, header, userId]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 
@@ -480,11 +538,11 @@ export default function RoadmapUNSWPage() {
 
   const sources = normalizeSources(data);
   const headerProgramName =
-    degree?.degree_name ||
-    degree?.program_name ||
+    activeDegree?.degree_name ||
+    activeDegree?.program_name ||
     header.program_name ||
     DEFAULT_PROGRAM_NAME;
-  const headerUac = degree?.uac_code ?? header.uac_code ?? DEFAULT_UAC_CODE;
+  const headerUac = activeDegree?.uac_code ?? header.uac_code ?? DEFAULT_UAC_CODE;
 
   const entryRequirements = data?.entry_requirements || {};
   const programStructure = data?.program_structure || {};
@@ -546,7 +604,7 @@ export default function RoadmapUNSWPage() {
             {data && (
               <div className="mt-6 space-y-4 text-slate-700 dark:text-slate-300">
                 <p className="text-base leading-relaxed">
-                  {degree?.overview_description || data?.summary || "—"}
+                  {activeDegree?.overview_description || data?.summary || "—"}
                 </p>
 
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -556,45 +614,45 @@ export default function RoadmapUNSWPage() {
                   </Pill>
 
                   {/* Faculty */}
-                  {degree?.faculty && (
+                  {activeDegree?.faculty && (
                     <Pill>
                       Faculty:{" "}
                       <span className="ml-1 font-medium">
-                        {degree.faculty.replace(/^Faculty of\s+/i, "")}
+                        {activeDegree.faculty.replace(/^Faculty of\s+/i, "")}
                       </span>
                     </Pill>
                   )}
 
                   {/* UAC code */}
-                  {degree?.uac_code && (
+                  {activeDegree?.uac_code && (
                     <Pill>
-                      UAC: <span className="ml-1 font-medium">{degree.uac_code}</span>
+                      UAC: <span className="ml-1 font-medium">{activeDegree.uac_code}</span>
                     </Pill>
                   )}
 
                   {/* CRICOS */}
-                  {degree?.cricos_code && (
+                  {activeDegree?.cricos_code && (
                     <Pill>
-                      CRICOS: <span className="ml-1 font-medium">{degree.cricos_code}</span>
+                      CRICOS: <span className="ml-1 font-medium">{activeDegree.cricos_code}</span>
                     </Pill>
                   )}
 
                   {/* Duration */}
-                  {degree?.duration && (
+                  {activeDegree?.duration && (
                     <Pill>
                       Duration:{" "}
                       <span className="ml-1 font-medium">
-                        {degree.duration.toString().includes("year")
-                          ? degree.duration
-                          : `${degree.duration} years`}
+                        {activeDegree.duration.toString().includes("year")
+                          ? activeDegree.duration
+                          : `${activeDegree.duration} years`}
                       </span>
                     </Pill>
                   )}
 
-                  {/* Degree Code (optional) */}
-                  {degree?.degree_code && (
+                  {/* Degree Code */}
+                  {activeDegree?.degree_code && (
                     <Pill>
-                      Code: <span className="ml-1 font-medium">{degree.degree_code}</span>
+                      Code: <span className="ml-1 font-medium">{activeDegree.degree_code}</span>
                     </Pill>
                   )}
                 </div>

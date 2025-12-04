@@ -82,6 +82,15 @@ export async function handleRoadmapGeneration({
 
       // Stage 1: Call API to start generation
       setProgress(5);
+
+      // Start smooth progress animation BEFORE the blocking fetch
+      let currentProgress = 5;
+      const progressInterval = setInterval(() => {
+        currentProgress = Math.min(currentProgress + 0.5, 90); // Slowly move to 90%
+        setProgress(currentProgress);
+      }, 100); // Update every 100ms
+
+      // This blocks while backend AI generates (~10-15 seconds)
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw`, {
         method: "POST",
         headers: {
@@ -95,74 +104,26 @@ export async function handleRoadmapGeneration({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
 
-      const roadmapId = json?.id || json?.roadmap_id;
-      console.log("Roadmap created, now polling for completion:", roadmapId);
+      // Stop animation once backend responds
+      clearInterval(progressInterval);
 
-      setProgress(20); // Base roadmap created
-    
-      await new Promise(r => setTimeout(r, 1500));
-      const maxAttempts = 90; 
-      const pollInterval = 1000;
-      
-      let attempts = 0;
+      const roadmapId = json?.id || json?.roadmap_id;
       let finalPayload = json?.payload || {};
 
-      while (attempts < maxAttempts) {
-        attempts++;
-        
-        // Check current state in database
-        const { data: roadmapData, error } = await supabase
-          .from("unsw_roadmap")
-          .select("payload")
-          .eq("id", roadmapId)
-          .single();
+      // Quick final push to 95%
+      setProgress(95);
 
-        if (error) {
-          console.warn("Polling error:", error.message);
-          await new Promise(r => setTimeout(r, pollInterval));
-          continue;
-        }
+      console.log("Initial generation complete. Navigating to roadmap...");
+      console.log("Note: Flexibility, societies, and careers will continue loading in background");
 
-        const payload = roadmapData?.payload || {};
-        finalPayload = payload;
-
-        // Check which sections are complete
-        const hasFlexibility = !!payload.flexibility_detailed;
-        const hasSocieties = !!payload.industry_societies;
-        const hasExperience = !!payload.industry_experience;
-        const hasCareers = !!payload.career_pathways;
-
-        // Calculate progress based on completed sections
-        let completedSections = 0;
-        if (hasFlexibility) completedSections++;
-        if (hasSocieties) completedSections++;
-        if (hasExperience) completedSections++;
-        if (hasCareers) completedSections++;
-
-        // Progress: 20% base + 26.6% per priority section (flexibility + societies = 73%), then rest
-        const prioritySections = (hasFlexibility ? 1 : 0) + (hasSocieties ? 1 : 0);
-        const progress = 20 + (prioritySections * 40); // 20 -> 60 -> 100
-        setProgress(progress);
-
-        console.log(`[Polling] Attempt ${attempts}: ${prioritySections}/2 priority sections complete`);
-
-        // Navigate once flexibility and societies are done (industry/careers load in background)
-        if (hasFlexibility && hasSocieties) {
-          console.log("Priority sections complete, navigating to roadmap");
-          break;
-        }
-
-        // Wait before next poll
-        await new Promise(r => setTimeout(r, pollInterval));
-      }
-
-      // Navigate even if timeout
+      // Navigate to roadmap
       setProgress(100);
       navigate("/roadmap/unsw", {
         state: {
           degree,
           payload: finalPayload,
           roadmap_id: roadmapId,
+          backgroundLoading: true, // Flag to indicate background sections are still loading
         },
         replace: true,
       });

@@ -1,10 +1,11 @@
 // src/pages/ProgressPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
+
 import {
   HiAcademicCap,
   HiArrowRight,
@@ -247,7 +248,7 @@ function ProgressPage() {
 
     if (programData) {
       setEnrolledProgram(programData);
-      await buildCourseStructure(programData);
+      await buildCourseStructure(programData, session.user.id);
     }
 
     // Refresh stats
@@ -396,11 +397,10 @@ function ProgressStatsOverview({ stats }) {
         <StatBox
           label="Current WAM"
           value={stats.current_wam ? stats.current_wam.toFixed(2) : "N/A"}
-          sublabel="Weighted Avg"
           color="green"
         />
         <StatBox
-          label="Courses Done"
+          label="Completed done"
           value={stats.courses_completed_count}
           sublabel="completed"
           color="amber"

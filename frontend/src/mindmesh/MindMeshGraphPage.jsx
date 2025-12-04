@@ -1,3 +1,4 @@
+// src/pages/MindMeshGraphPage.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -5,18 +6,15 @@ import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import GraphControls from "./components/GraphControls";
-import Legend from "./components/Legend";
+import HelpPanel from "./components/HelpPanel";
+import WelcomeModal from "./components/WelcomeModal";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
 import useMindMeshData from "./hooks/useMindMeshData";
 import { colorFor, levelStyle } from "./utils/index";
 import MindMeshGraph from "./components/MindMeshGraph"; 
 import MindMeshInfoPanel from "./components/MindMeshInfoPanel";
 
-
 export default function MindMeshGraphPage() {
-  // ------------------------------------------------------------
-  // 1. Setup / Hooks
-  // ------------------------------------------------------------
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -25,6 +23,7 @@ export default function MindMeshGraphPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [hoverLink, setHoverLink] = useState(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const graphRef = useRef(null);
   const containerRef = useRef(null);
@@ -34,15 +33,25 @@ export default function MindMeshGraphPage() {
 
   const programCode = searchParams.get("program");
   const isProgramView = !!programCode;
-  const { graph, setGraph, debugInfo, programCourses, programMeta } = useMindMeshData({ isProgramView, session, programCode });
+  const { graph, setGraph, debugInfo, programCourses, programMeta } = useMindMeshData({ 
+    isProgramView, 
+    session, 
+    programCode 
+  });
+  
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
-
   const [buttonPos, setButtonPos] = useState(null);
 
+  // Check if first time visiting
+  useEffect(() => {
+    const hasVisited = localStorage.getItem("mindmesh_visited");
+    if (!hasVisited) {
+      setShowWelcome(true);
+      localStorage.setItem("mindmesh_visited", "true");
+    }
+  }, []);
 
-  // ------------------------------------------------------------
-  // 2. Resize handling
-  // ------------------------------------------------------------
+  // Resize handling
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -66,18 +75,15 @@ export default function MindMeshGraphPage() {
   }, []);
 
   useEffect(() => {
-  if (!focusedNode || !graphRef.current) return;
-  const interval = setInterval(() => {
-    const pos = graphRef.current.graph2ScreenCoords(focusedNode.x, focusedNode.y);
-    setButtonPos(pos);
-  }, 100);
-  return () => clearInterval(interval);
-}, [focusedNode]);
+    if (!focusedNode || !graphRef.current) return;
+    const interval = setInterval(() => {
+      const pos = graphRef.current.graph2ScreenCoords(focusedNode.x, focusedNode.y);
+      setButtonPos(pos);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [focusedNode]);
 
-
-  // ------------------------------------------------------------
-  // 4. Layout & style helpers
-  // ------------------------------------------------------------
+  // Layout & style helpers
   const isEdgeOfFocus = useCallback(
     (l) => {
       if (!focusedNode) return true;
@@ -104,9 +110,7 @@ export default function MindMeshGraphPage() {
     return focusedNode && isEdgeOfFocus(l) ? width + 0.5 : width;
   };
 
-  // ------------------------------------------------------------
-  // 5. Neighbour helper
-  // ------------------------------------------------------------
+  // Neighbour helper
   const getDirectNeighbours = useCallback(
     (id) => {
       const set = new Set([id]);
@@ -120,12 +124,11 @@ export default function MindMeshGraphPage() {
     [graph.links]
   );
 
-  // ------------------------------------------------------------
-  // 6. Graph interactions
-  // ------------------------------------------------------------
+  // Graph interactions
   const expandGlobalMindMesh = async (n) => {
     graphHistoryRef.current.push(graph);
     const courseKey = n.id;
+    
     try {
       const { data: edgesData } = await supabase
         .from("mindmesh_edges_global")
@@ -135,24 +138,45 @@ export default function MindMeshGraphPage() {
       if (!edgesData?.length) return;
 
       const connectedKeys = Array.from(new Set([courseKey, ...edgesData.flatMap((e) => [e.from_key, e.to_key])]));
+      
       const { data: nodesData } = await supabase
         .from("mindmesh_nodes_global")
         .select("key,label,uoc,faculty,school,level")
         .in("key", connectedKeys);
 
+      console.log("🔍 Expand node:", courseKey);
+      console.log("  - Edges fetched:", edgesData.length);
+      console.log("  - Connected keys:", connectedKeys.length);
+      console.log("  - Nodes fetched:", nodesData?.length || 0);
+
       const nodes = (nodesData || []).map((n) => ({
-        id: n.key, label: n.label || n.key, type: "course",
+        id: n.key, 
+        label: n.label || n.key, 
+        type: "course",
         metadata: { uoc: n.uoc, faculty: n.faculty, school: n.school, level: n.level },
+      }));
+
+      // Filter out edges where nodes don't exist
+      const nodeIds = new Set(nodes.map(n => n.id));
+      const validEdges = edgesData.filter(e => nodeIds.has(e.from_key) && nodeIds.has(e.to_key));
+      
+      console.log("  - Valid edges (both nodes exist):", validEdges.length);
+      console.log("  - Invalid edges removed:", edgesData.length - validEdges.length);
+
+      const links = validEdges.map((e) => ({
+        source: e.from_key, 
+        target: e.to_key, 
+        type: e.edge_type,
+        confidence: e.confidence, 
+        logic_type: e.logic_type || "and", 
+        group_id: e.group_id || null,
       }));
 
       setGraph({
         nodes,
-        links: edgesData.map((e) => ({
-          source: e.from_key, target: e.to_key, type: e.edge_type,
-          confidence: e.confidence, logic_type: e.logic_type || "and", group_id: e.group_id || null,
-        })),
+        links,
       });
-      setDebugInfo({ nodes, edges: edgesData });
+      
       setFocusedNode(null);
       setFrozen(false);
       requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
@@ -161,32 +185,29 @@ export default function MindMeshGraphPage() {
     }
   };
 
-const handleNodeClick = async (node) => {
-  const now = Date.now();
-  const delta = now - lastClickRef.current.time;
+  const handleNodeClick = async (node) => {
+    const now = Date.now();
+    const delta = now - lastClickRef.current.time;
 
-  // double-click → expand
-  if (lastClickRef.current.id === node.id && delta < 250) {
-    lastClickRef.current = { id: null, time: 0 };
-    await expandGlobalMindMesh(node);
-    setButtonPos(null);
-    return;
-  }
+    // double-click → expand
+    if (lastClickRef.current.id === node.id && delta < 250) {
+      lastClickRef.current = { id: null, time: 0 };
+      await expandGlobalMindMesh(node);
+      setButtonPos(null);
+      return;
+    }
 
-  // single click → focus + show button
-  lastClickRef.current = { id: node.id, time: now };
-  setFocusedNode((f) => (f?.id === node.id ? null : node));
+    // single click → focus + show button
+    lastClickRef.current = { id: node.id, time: now };
+    setFocusedNode((f) => (f?.id === node.id ? null : node));
 
-  if (graphRef.current && node) {
-    const pos = graphRef.current.graph2ScreenCoords(node.x, node.y);
-    setButtonPos(pos);
-  }
-};
+    if (graphRef.current && node) {
+      const pos = graphRef.current.graph2ScreenCoords(node.x, node.y);
+      setButtonPos(pos);
+    }
+  };
 
-
-  // ------------------------------------------------------------
-  // 7. UI Controls
-  // ------------------------------------------------------------
+  // UI Controls
   const onBackgroundClick = () => setFocusedNode(null);
   const fitView = () => graphRef.current?.zoomToFit(400, 40);
   const toggleFreeze = () => setFrozen((f) => !f);
@@ -220,14 +241,16 @@ const handleNodeClick = async (node) => {
     if (match?.id) navigate(`/course/${match.id}`);
   };
 
-
-  // ------------------------------------------------------------
-  // 8. Render
-  // ------------------------------------------------------------
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 
+                    dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 
+                    text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      
+      {/* Welcome Modal */}
+      <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
       
       {/* Header + Controls */}
       <GraphControls
@@ -243,13 +266,14 @@ const handleNodeClick = async (node) => {
         graphRef={graphRef}
         setFrozen={setFrozen}
         focusedNode={focusedNode}         
-        handleViewCourse={handleViewCourse} 
+        handleViewCourse={handleViewCourse}
+        onShowHelp={() => setShowWelcome(true)}
       />
 
       {/* Graph Canvas */}
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
-          <Legend />
+          <HelpPanel />
           <MindMeshInfoPanel
             graph={graph}
             programCode={programCode}
@@ -273,7 +297,6 @@ const handleNodeClick = async (node) => {
             linkWidth={linkWidth}
           />
         </div>
-
       </div>
     </div>
   );

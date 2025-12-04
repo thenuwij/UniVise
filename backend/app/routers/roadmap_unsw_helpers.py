@@ -25,54 +25,6 @@ CORE_COURSE_KEYWORDS = [
 # HELPER FUNCTIONS
 # =========================
 
-#------------- Honours Section ----------------
-#------------- Honours Section ----------------
-def get_honours_context_for_faculty(faculty: str) -> str:
-    """
-    Fetches Honours context text from the honours_contexts table in Supabase.
-    If no faculty-specific context is found (e.g., not Business or Engineering),
-    it automatically falls back to the 'General' context.
-    """
-    try:
-        # Normalise input
-        faculty_clean = (faculty or "General").strip().lower()
-
-        # Query Supabase for that faculty
-        result = (
-            supabase.from_("honours_contexts")
-            .select("description")
-            .ilike("faculty", f"%{faculty_clean}%")
-            .maybe_single()
-            .execute()
-        )
-
-        data = getattr(result, "data", None)
-
-        # If data exists and has description → return it
-        if data and data.get("description"):
-            return data["description"]
-
-        # Otherwise, fallback to General
-        fallback = (
-            supabase.from_("honours_contexts")
-            .select("description")
-            .ilike("faculty", "%general%")
-            .maybe_single()
-            .execute()
-        )
-
-        if fallback and getattr(fallback, "data", None):
-            return fallback.data["description"]
-
-        # Nothing found at all
-        print(f"No honours context found for '{faculty_clean}' (even General missing).")
-        return ""
-
-    except Exception as e:
-        print(f"Error fetching honours context from DB: {e}")
-        return ""
-
-
 #------------- Capstone Section ----------------
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:
@@ -396,6 +348,7 @@ def are_related_faculties(faculty1: str, faculty2: str) -> bool:
 def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
     """
     Format candidate degrees for AI prompt with all relevant details.
+    NOW INCLUDES SPECIALIZATION DATA when present.
     
     Args:
         candidates: List of candidate degrees with overlap data
@@ -410,29 +363,48 @@ def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
         if len(candidate.get('shared_courses', [])) > 8:
             shared_courses_str += f" (and {len(candidate['shared_courses']) - 8} more)"
         
+        spec = candidate.get('specialisation')
+        
+        if spec:
+            spec_name = spec.get('spec_name', '')
+            spec_type = spec.get('spec_type', '')
+            program_display = f"{candidate['program_name']} + {spec_name} ({spec_type})"
+        else:
+            program_display = candidate['program_name']
+        
         formatted += f"""
-{i}. {candidate['program_name']}
+{i}. {program_display}
    Faculty: {candidate['faculty']}
    Course Overlap: {candidate['overlap_percentage']:.1f}% ({candidate['overlap_count']}/{candidate['total_current_courses']} courses)
    Shared Courses: {shared_courses_str}
-   Total Courses in Target: {candidate['total_target_courses']}
-"""
+   Total Courses in Target: {candidate['total_target_courses']}"""
+        
+        if spec:
+            formatted += f"""
+     RECOMMENDED SPECIALIZATION: {spec.get('spec_name')} ({spec.get('spec_type')})
+   This specialization significantly improves course overlap"""
+        
+        formatted += "\n"
     
     return formatted
 
-# Fecth specialisation context for user 
+
 def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[str, Any]:
     """
-    Fetches the user's selected major, minor, and honours specialisations.
+    Fetches the user's selected specialisations with CORE COURSES.
     """
     if not user_id or not degree_code:
         return {
             "selected_major_name": None,
+            "selected_major_courses": [],
             "selected_minor_name": None,
+            "selected_minor_courses": [],
             "selected_honours_name": None,
+            "selected_honours_courses": [],
         }
 
     try:
+        # Step 1: Get specialisation IDs
         response = (
             supabase.from_("user_specialisation_selections")
             .select("major_id, minor_id, honours_id")
@@ -446,31 +418,64 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
         if not data:
             return {
                 "selected_major_name": None,
+                "selected_major_courses": [],
                 "selected_minor_name": None,
+                "selected_minor_courses": [],
                 "selected_honours_name": None,
+                "selected_honours_courses": [],
             }
 
-        # Fetch the actual specialisation names by ID
         result = {
             "selected_major_name": None,
+            "selected_major_courses": [],
             "selected_minor_name": None,
+            "selected_minor_courses": [],
             "selected_honours_name": None,
+            "selected_honours_courses": [],
         }
 
+        # Step 2: Fetch details from unsw_specialisations
         if data.get("major_id"):
-            major_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["major_id"]).maybe_single().execute()
+            major_resp = supabase.from_("unsw_specialisations")\
+                .select("major_name, sections, overview_description")\
+                .eq("id", data["major_id"])\
+                .maybe_single()\
+                .execute()
+            
             if major_resp.data:
                 result["selected_major_name"] = major_resp.data.get("major_name")
+                result["selected_major_overview"] = major_resp.data.get("overview_description")
+                result["selected_major_courses"] = extract_core_course_codes_from_sections(
+                    major_resp.data.get("sections")
+                )
 
         if data.get("minor_id"):
-            minor_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["minor_id"]).maybe_single().execute()
+            minor_resp = supabase.from_("unsw_specialisations")\
+                .select("major_name, sections, overview_description")\
+                .eq("id", data["minor_id"])\
+                .maybe_single()\
+                .execute()
+            
             if minor_resp.data:
                 result["selected_minor_name"] = minor_resp.data.get("major_name")
+                result["selected_minor_overview"] = minor_resp.data.get("overview_description")
+                result["selected_minor_courses"] = extract_core_course_codes_from_sections(
+                    minor_resp.data.get("sections")
+                )
 
         if data.get("honours_id"):
-            honours_resp = supabase.from_("unsw_specialisations").select("major_name").eq("id", data["honours_id"]).maybe_single().execute()
+            honours_resp = supabase.from_("unsw_specialisations")\
+                .select("major_name, sections, overview_description")\
+                .eq("id", data["honours_id"])\
+                .maybe_single()\
+                .execute()
+            
             if honours_resp.data:
                 result["selected_honours_name"] = honours_resp.data.get("major_name")
+                result["selected_honours_overview"] = honours_resp.data.get("overview_description")
+                result["selected_honours_courses"] = extract_core_course_codes_from_sections(
+                    honours_resp.data.get("sections")
+                )
 
         return result
 
@@ -478,6 +483,122 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
         print(f"[fetch_user_specialisation_context] Error: {e}")
         return {
             "selected_major_name": None,
+            "selected_major_courses": [],
             "selected_minor_name": None,
+            "selected_minor_courses": [],
             "selected_honours_name": None,
+            "selected_honours_courses": [],
         }
+
+
+def extract_core_course_codes_from_sections(sections_data) -> List[str]:
+    """
+    Extract CORE course codes from sections JSON.
+    Filters out electives and only returns core/required courses.
+    """
+    if not sections_data:
+        return []
+    
+    try:
+        # Parse JSON if string
+        if isinstance(sections_data, str):
+            sections = json.loads(sections_data)
+        else:
+            sections = sections_data
+        
+        if not isinstance(sections, list):
+            return []
+        
+        core_course_codes = []
+        
+        # Keywords that indicate CORE courses (not electives)
+        core_keywords = [
+            "core", "required", "compulsory", "thesis", "project", 
+            "capstone", "honours", "stream core", "disciplinary"
+        ]
+        
+        # Keywords that indicate ELECTIVES (skip these)
+        elective_keywords = [
+            "elective", "flexible", "general education", "free elective"
+        ]
+        
+        for section in sections:
+            if not isinstance(section, dict):
+                continue
+            
+            title = section.get("title", "").lower()
+            
+            # Skip overview sections
+            if "overview" in title:
+                continue
+            
+            # Skip elective sections
+            if any(keyword in title for keyword in elective_keywords):
+                continue
+            
+            # Only include core sections
+            if any(keyword in title for keyword in core_keywords):
+                courses = section.get("courses", [])
+                if isinstance(courses, list):
+                    for course in courses:
+                        if isinstance(course, dict) and course.get("code"):
+                            core_course_codes.append(course["code"])
+        
+        return core_course_codes
+    
+    except Exception as e:
+        print(f"[extract_core_courses_from_sections] Error: {e}")
+        return []
+    
+
+
+def calculate_overlap_weighted(
+    current_courses: List[str],
+    target_courses: List[str],
+    spec_course_codes: List[str] = None
+) -> float:
+    """
+    Calculate overlap percentage with specialization courses weighted more heavily.
+    
+    Weighting strategy:
+    - Courses from current specializations: 1.5x weight
+    - Courses from base degree only: 1.0x weight
+    
+    Args:
+        current_courses: All courses from student's current degree + specs
+        target_courses: All courses from target degree (+ target spec if applicable)
+        spec_course_codes: List of course codes from student's selected specializations
+        
+    Returns:
+        Weighted overlap percentage
+    """
+    if not current_courses:
+        return 0.0
+    
+    current_set = set(current_courses)
+    target_set = set(target_courses)
+    shared = current_set & target_set
+    
+    if not spec_course_codes:
+        # No specs selected - use normal calculation
+        return (len(shared) / len(current_courses)) * 100
+    
+    spec_set = set(spec_course_codes)
+    
+    # Calculate weighted total
+    weighted_total = 0
+    for course in current_courses:
+        if course in spec_set:
+            weighted_total += 1.5  # Spec courses count 1.5x
+        else:
+            weighted_total += 1.0  # Base courses count 1.0x
+    
+    # Calculate weighted shared
+    weighted_shared = 0
+    for course in shared:
+        if course in spec_set:
+            weighted_shared += 1.5
+        else:
+            weighted_shared += 1.0
+    
+    return (weighted_shared / weighted_total) * 100

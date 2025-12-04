@@ -376,7 +376,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                       shadow-md hover:shadow-lg transition-all duration-200"
           >
             <Layers className="w-4 h-4" />
-            Visualise in MindMesh
+            Visualise Courses
           </button>
         </div>
       </div>
@@ -442,7 +442,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         <p>
           Expand sections to explore their courses, and click any course to view detailed
           information. You can also use <span className="font-semibold text-sky-600 dark:text-sky-400">
-          Visualise in Mesh</span> above to see how courses connect across the degree.
+          Visualise Courses</span> above to see how courses connect across the degree.
           This page shows the overall program structure — Honours and specialisation options
           can be selected in the next section.
         </p>
