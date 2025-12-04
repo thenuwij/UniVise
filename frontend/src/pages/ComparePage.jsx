@@ -25,8 +25,8 @@ export default function ComparePage() {
   const [viewMode, setViewMode] = useState("selector");
 
   // User
-  const [setUserEnrolledProgram] = useState(null);
-  const [setCompletedCourses] = useState([]);
+  const [userEnrolledProgram, setUserEnrolledProgram] = useState(null);
+  const [completedCourses, setCompletedCourses] = useState([]);
 
   // Programs
   const [availablePrograms, setAvailablePrograms] = useState([]);
