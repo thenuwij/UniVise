@@ -3,62 +3,58 @@ import { Briefcase, Building2, DollarSign, TrendingUp } from "lucide-react";
 
 function CareerPathCard({ data }) {
   return (
-    <div className="space-y-4">
-      {/* LEVEL & SALARY */}
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          {data.level && (
-            <p className="text-xs uppercase font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5 mb-1">
-              <TrendingUp className="h-3 w-3" />
+    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 space-y-4">
+      
+      {/* Level & Salary */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        {data.level && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-900/20">
+            <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span className="text-sm font-medium text-sky-700 dark:text-sky-300">
               {data.level} level
-            </p>
-          )}
-        </div>
+            </span>
+          </div>
+        )}
 
         {data.salary_range && (
-          <div className="px-4 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 shadow-sm text-center">
-            <p className="text-xs uppercase font-semibold text-green-600 dark:text-green-400 flex items-center justify-center gap-1 mb-0.5">
-              <DollarSign className="h-3 w-3" />
-              Salary
-            </p>
-            <p className="text-sm font-bold text-green-700 dark:text-green-300">
-              {data.salary_range}
-            </p>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+            <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <div>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">Salary</p>
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{data.salary_range}</p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* DESCRIPTION */}
+      {/* Description */}
       {data.description && (
-        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
           {data.description}
         </p>
       )}
 
-      {/* REQUIREMENTS */}
+      {/* Requirements */}
       {data.requirements && (
-        <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
-          <p className="text-xs uppercase font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
-            <Briefcase className="h-3 w-3" />
+        <div>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Requirements
           </p>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-            {data.requirements}
-          </p>
+          <p className="text-sm text-slate-700 dark:text-slate-300">{data.requirements}</p>
         </div>
       )}
 
-      {/* KEY SKILLS */}
+      {/* Key Skills */}
       {data.key_skills && data.key_skills.length > 0 && (
         <div>
-          <p className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Key Skills
           </p>
           <div className="flex flex-wrap gap-2">
             {data.key_skills.map((skill, idx) => (
               <span
                 key={idx}
-                className="px-2.5 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-xs font-semibold text-green-700 dark:text-green-300"
+                className="px-2.5 py-1 text-xs font-medium rounded-full bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300"
               >
                 {skill}
               </span>
@@ -67,19 +63,19 @@ function CareerPathCard({ data }) {
         </div>
       )}
 
-      {/* HIRING COMPANIES */}
+      {/* Hiring Companies */}
       {data.hiring_companies && data.hiring_companies.length > 0 && (
         <div>
-          <p className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
-            <Building2 className="h-3 w-3" />
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Companies Hiring
           </p>
           <div className="flex flex-wrap gap-2">
             {data.hiring_companies.map((company, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
               >
+                <Building2 className="w-3 h-3" />
                 {company}
               </span>
             ))}
@@ -87,19 +83,17 @@ function CareerPathCard({ data }) {
         </div>
       )}
 
-      {/* CAREER PROGRESSION (if exists) */}
+      {/* Career Progression */}
       {data.career_progression && (
-        <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-          <p className="text-xs text-slate-700 dark:text-slate-300">
-            <strong className="text-blue-700 dark:text-blue-300">Progression: </strong>
-            {data.career_progression}
-          </p>
+        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <Briefcase className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+          <span>Progression: {data.career_progression}</span>
         </div>
       )}
 
-      {/* SOURCE */}
+      {/* Source */}
       {data.source && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-2 border-t border-slate-200 dark:border-slate-700">
+        <p className="text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
           Source: {data.source}
         </p>
       )}
