@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { HiAcademicCap, HiArrowRight } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
@@ -93,7 +94,6 @@ export default function ComparePage() {
         .single();
 
       if (savedTarget) {
-
         // User has a saved target, load it and show comparison
         setTargetProgram({
           code: savedTarget.target_program_code,
@@ -117,7 +117,6 @@ export default function ComparePage() {
 
         setViewMode("results");
       } else {
-
         // No saved target, so show selector
         setViewMode("selector");
       }
@@ -147,7 +146,6 @@ export default function ComparePage() {
 
   const fetchSpecialisationsForProgram = async (degreeCode, isBase = true) => {
     try {
-
       // Check if this is a double degree and get both degree codes
       let codesToMatch = [degreeCode];
 
@@ -272,13 +270,32 @@ export default function ComparePage() {
     [targetSpecsOptions]
   );
 
-
   // Actions
   const toggleSpec = (code, isBase = true) => {
     if (!isBase) {
-      setTargetSelectedSpecs((prev) =>
-        prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
-      );
+      // Find the type of the clicked spec
+      const clickedSpec = targetSpecsOptions.find(s => s.major_code === code);
+      if (!clickedSpec) return;
+
+      const clickedType = clickedSpec.specialisation_type;
+
+      // Get all specs of the same type
+      const specsOfSameType = targetSpecsOptions
+        .filter(s => s.specialisation_type === clickedType)
+        .map(s => s.major_code);
+
+      setTargetSelectedSpecs((prev) => {
+        // Remove all specs of the same type
+        const withoutSameType = prev.filter(c => !specsOfSameType.includes(c));
+        
+        // If the clicked spec was already selected, just remove it (deselect)
+        if (prev.includes(code)) {
+          return withoutSameType;
+        }
+        
+        // Otherwise, add the clicked spec (select new one)
+        return [...withoutSameType, code];
+      });
     }
   };
 
@@ -340,81 +357,129 @@ export default function ComparePage() {
   // UI
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
         <div className="fixed top-0 left-0 right-0 z-50">
           <DashboardNavBar onMenuClick={openDrawer} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
         </div>
-        <div className="pt-16 sm:pt-20 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
+        <div className="pt-16 sm:pt-20 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+              <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">
+              Loading comparison data...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
-      
-      {/* Dashboard Navbar */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+      {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
-      <div className="max-w-7xl mx-auto py-8 px-4 pt-24 sm:pt-28">
-        
-        {/* Error */}
-        {error && (
-          <div
-            className="max-w-3xl mx-auto mb-6 p-4 
-            bg-red-50 dark:bg-red-900/30 
-            border border-red-200 dark:border-red-800 
-            rounded-lg text-red-700 dark:text-red-300 text-sm"
-          >
-            {error}
+      <div className="pt-16 sm:pt-20">
+
+        <div className="bg-gradient-to-b from-blue-50/10 via-transparent to-purple-50/10 dark:from-blue-950/5 dark:via-transparent dark:to-purple-950/5">
+          <div className="flex flex-col justify-center h-full px-6 lg:px-10 xl:px-20">
+
+            {/* BACK BUTTON */}
+            <div className="mt-6">
+              <button
+                onClick={() => navigate("/progress")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm hover:shadow-md"
+              >
+                <HiArrowRight className="w-5 h-5 rotate-180" />
+                <span>Back to Progress Page</span>
+              </button>
+            </div>
+
+            {/* HEADER */}
+            <div className="mt-6 mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-purple-500" />
+                Compare Programs
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl font-bold mt-3 text-slate-900 dark:text-white">
+                Program{" "}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600">
+                  Comparison
+                </span>
+              </h1>
+
+              <p className="text-base font-semibold text-slate-800 dark:text-slate-200 mt-3">
+                See which courses transfer and what's needed to switch programs
+              </p>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50/40 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm shadow">
+                {error}
+              </div>
+            )}
+
+            {/* Loading */}
+            {loading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                  <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
+                </div>
+              </div>
+            )}
+
+            {/* Program Selector View */}
+            {!loading && viewMode === "selector" && (
+              <ProgramSelector
+                isBase={false}
+                searchValue={searchTarget}
+                setSearchValue={setSearchTarget}
+                filteredPrograms={filteredTargetPrograms}
+                program={targetProgram}
+                onSelectProgram={async (p) => {
+                  if (!p) {
+                    // Clear selection
+                    setTargetProgram(null);
+                    setTargetSelectedSpecs([]);
+                    setTargetSpecsOptions([]);
+                    return;
+                  }
+                  setTargetProgram({ code: p.degree_code, name: p.program_name });
+                  setTargetSelectedSpecs([]);
+                  await fetchSpecialisationsForProgram(p.degree_code, false);
+                }}
+                specsOptions={targetSpecsOptions}
+                specsByType={targetSpecsByType}
+                selectedSpecs={targetSelectedSpecs}
+                toggleSpec={toggleSpec}
+                goNext={handleSaveAndCompare}
+                navigate={navigate}
+                baseProgram={baseProgram}
+                baseSpecsOptions={baseSpecsOptions}
+                baseSelectedSpecs={baseSelectedSpecs}
+              />
+            )}
+
+            {/* Comparison Results View */}
+            {!loading && viewMode === "results" && comparisonData && (
+              <ComparisonResults
+                comparisonData={comparisonData}
+                onReselect={handleReselectProgram}
+                baseSelectedSpecs={baseSelectedSpecs}
+                targetSelectedSpecs={targetSelectedSpecs}
+                baseSpecsOptions={baseSpecsOptions}
+                targetSpecsOptions={targetSpecsOptions}
+              />
+            )}
           </div>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
-          </div>
-        )}
-
-        {/* Program Selector View */}
-        {!loading && viewMode === "selector" && (
-          <ProgramSelector
-            isBase={false}
-            searchValue={searchTarget}
-            setSearchValue={setSearchTarget}
-            filteredPrograms={filteredTargetPrograms}
-            program={targetProgram}
-            onSelectProgram={async (p) => {
-              setTargetProgram({ code: p.degree_code, name: p.program_name });
-              setTargetSelectedSpecs([]);
-              await fetchSpecialisationsForProgram(p.degree_code, false);
-            }}
-            specsOptions={targetSpecsOptions}
-            specsByType={targetSpecsByType}
-            selectedSpecs={targetSelectedSpecs}
-            toggleSpec={toggleSpec}
-            goNext={handleSaveAndCompare}
-            navigate={navigate}
-          />
-        )}
-
-        {/* Comparison Results View */}
-        {!loading && viewMode === "results" && comparisonData && (
-          <ComparisonResults
-            comparisonData={comparisonData}
-            onReselect={handleReselectProgram}
-            baseSelectedSpecs={baseSelectedSpecs}
-            targetSelectedSpecs={targetSelectedSpecs}
-            baseSpecsOptions={baseSpecsOptions}
-            targetSpecsOptions={targetSpecsOptions}
-          />
-        )}
+        </div>
       </div>
     </div>
   );

@@ -283,43 +283,38 @@ export default function SpecialisationUNSW({ degreeCode }) {
       <div className="relative">
         <button
           onClick={() => setOpenType(isOpen ? null : popoverKey)}
-          className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md
+          className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 shadow-md hover:shadow-lg
           ${
             selected
               ? "border-emerald-500 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40"
               : isOpen
               ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30"
-              : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+              : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600"
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30">
-              {React.cloneElement(getIcon(), { className: "h-[18px] w-[18px] text-sky-700 dark:text-sky-400" })}
+          <div className="text-left flex-1">
+            <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              {type}
             </div>
-            <div className="text-left">
-              <div className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                {type}
-              </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {selected ? selected.major_name : `Select ${type}`}
-              </div>
+            <div className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+              {selected ? selected.major_name : `Select ${type}`}
             </div>
           </div>
-          <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <ChevronDown className={`h-5 w-5 text-slate-500 dark:text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
        {isOpen && (
-          <div className="absolute z-20 mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg max-h-64 overflow-y-auto">
+          <div className="absolute z-20 mt-2 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-xl max-h-64 overflow-y-auto">
             {options.map((spec) => (
               <button
                 key={spec.id}
                 onClick={() => handleSelectionChange(type.toLowerCase(), spec, forDegreeCode)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors
                           hover:bg-emerald-50 dark:hover:bg-emerald-900/20
-                          ${selected?.id === spec.id ? "bg-emerald-50 dark:bg-emerald-900/30 font-semibold text-emerald-700 dark:text-emerald-300" : "text-slate-800 dark:text-slate-200 font-medium"}`}
+                          ${selected?.id === spec.id ? "bg-emerald-50 dark:bg-emerald-900/30 font-bold text-emerald-700 dark:text-emerald-300" : "text-slate-800 dark:text-slate-200 font-medium"}`}
               >
                 <span className="line-clamp-1">{spec.major_name}</span>
-                {selected?.id === spec.id && <Check className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
+                {selected?.id === spec.id && <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
               </button>
             ))}
           </div>
@@ -350,27 +345,25 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
 
     return (
-      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/60 
-                      bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/50
+      <div className="rounded-xl border-2 border-slate-300 dark:border-slate-600 
+                      bg-white dark:bg-slate-900
                       shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
         {/* Accent bar */}
-        <div className="h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500" />
+        <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
         
         <div className="p-6">
           {/* Header */}
          <div className="flex items-start justify-between mb-4">
           <div className="flex-1 pr-4">
-            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {spec.major_name}
             </h4>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
               {spec.specialisation_type}
+              {spec.faculty && (
+                <span className="ml-2">• {spec.faculty.replace(/^Faculty of\s+/i, "")}</span>
+              )}
             </p>
-            {spec.faculty && (
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                {spec.faculty.replace(/^Faculty of\s+/i, "")}
-              </p>
-            )}
           </div>
 
           {/* RIGHT-SIDE BUTTON COLUMN */}
@@ -390,8 +383,9 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
             <button
               onClick={() => handleSelectionChange(type, null, forDegreeCode)}
-              className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 
+              className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 
                       dark:hover:bg-red-900/20 transition-colors"
+              title="Remove selection"
             >
               <X className="h-5 w-5" />
             </button>
@@ -402,8 +396,8 @@ export default function SpecialisationUNSW({ degreeCode }) {
           {/* Overview */}
           {spec.overview_description && (
             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4 
-                        p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 
-                        border border-slate-200/40 dark:border-slate-700/40">
+                        p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 
+                        border-2 border-slate-200 dark:border-slate-700">
               {spec.overview_description}
             </p>
           )}
@@ -411,10 +405,10 @@ export default function SpecialisationUNSW({ degreeCode }) {
           {/* UOC Badge */}
           {spec.uoc_required && (
             <div className="mb-4">
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold
-                             bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200
-                             border border-sky-300/50 dark:border-sky-700/50">
-                {spec.uoc_required}
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold
+                             bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
+                             border-2 border-emerald-300 dark:border-emerald-700 shadow-sm">
+                {spec.uoc_required} UOC Required
               </span>
             </div>
           )}
@@ -422,81 +416,81 @@ export default function SpecialisationUNSW({ degreeCode }) {
           {/* Structure */}
           {filteredSections && filteredSections.length > 0 && (
             <details className="group">
-              <summary className="cursor-pointer text-sm font-bold text-sky-600 dark:text-sky-400 
-                                hover:text-sky-700 dark:hover:text-sky-300
-                                flex items-center gap-2 select-none mb-4
-                                p-3 rounded-lg hover:bg-sky-50/50 dark:hover:bg-sky-900/20
-                                transition-colors">
-                <BookOpen className="h-4 w-4" />
-                <span className="group-open:rotate-90 transition-transform">▶</span>
-                View Program Structure ({filteredSections.length} sections)
+              <summary className="cursor-pointer flex items-center justify-between gap-3 select-none mb-4
+                                px-5 py-4 rounded-xl
+                                bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20
+                                border-2 border-emerald-300 dark:border-emerald-700
+                                hover:border-emerald-400 dark:hover:border-emerald-600
+                                hover:shadow-md hover:from-emerald-100 hover:to-teal-100
+                                dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30
+                                transition-all duration-200 list-none">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-800/40">
+                    <ChevronDown className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform" />
+                  </div>
+                  <div>
+                    <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">
+                      Click to View Program Structure
+                    </span>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
+                      {filteredSections.length} {filteredSections.length === 1 ? 'section' : 'sections'} with course details
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full
+                              bg-emerald-100 dark:bg-emerald-900/40 border-2 border-emerald-300 dark:border-emerald-700 shadow-sm">
+                  Expand ▼
+                </span>
               </summary>
               
-              <div className="space-y-4 pl-2">
+              <div className="space-y-4 pl-2 mt-4">
                 {filteredSections.map((sec, i) => (
-                  <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-700 
-                                         bg-gradient-to-br from-slate-50/50 to-white dark:from-slate-800/30 dark:to-slate-900/30
-                                         p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-7 h-7 rounded-lg 
-                                    bg-gradient-to-br from-sky-100 to-indigo-100 
-                                    dark:from-sky-900/30 dark:to-indigo-900/30
-                                    flex items-center justify-center shadow-sm">
-                        <span className="text-xs font-bold text-sky-700 dark:text-sky-400">
-                          {i + 1}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h5 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                          {sec.title}
-                        </h5>
-                        {sec.description && (
-                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-                            {sec.description}
-                          </p>
-                        )}
-                        {sec.courses && sec.courses.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                              Courses ({sec.courses.length}):
-                            </p>
-                            <div className="grid grid-cols-1 gap-2">
-                              {sec.courses.map((c) => (
-                                <button
-                                  key={c.code}
-                                  onClick={() => handleCourseClick(c)}
-                                  className="w-full text-left flex items-center justify-between gap-3 rounded-xl 
-                                          bg-gradient-to-br from-white via-slate-50 to-slate-100 
-                                          dark:from-slate-900 dark:via-slate-800 dark:to-slate-900
-                                          border border-slate-200/70 dark:border-slate-700/70
-                                          p-3 hover:border-sky-400 dark:hover:border-sky-500 
-                                          hover:bg-gradient-to-br hover:from-sky-50 hover:via-blue-50 hover:to-indigo-50
-                                          dark:hover:from-sky-900/20 dark:hover:via-indigo-900/20 dark:hover:to-slate-900
-                                          hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  <div key={i} className="rounded-xl border-2 border-slate-300 dark:border-slate-600 
+                                         bg-white dark:bg-slate-900
+                                         p-5 shadow-md">
+                    <h5 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3">
+                      {sec.title}
+                    </h5>
+                    {sec.description && (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed font-medium">
+                        {sec.description}
+                      </p>
+                    )}
+                    {sec.courses && sec.courses.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                          {sec.courses.length} {sec.courses.length === 1 ? 'Course' : 'Courses'}:
+                        </p>
+                        {sec.courses.map((c) => (
+                          <button
+                            key={c.code}
+                            onClick={() => handleCourseClick(c)}
+                            className="group w-full text-left flex items-center justify-between gap-3 rounded-lg
+                                    bg-white dark:bg-slate-800
+                                    border-2 border-slate-300 dark:border-slate-600
+                                    p-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                                    hover:border-emerald-400 dark:hover:border-emerald-500 
+                                    hover:shadow-md transition-all duration-200 cursor-pointer"
+                          >
+                            <span className="flex-shrink-0 text-xs font-mono font-bold
+                                            text-emerald-700 dark:text-emerald-400 
+                                            bg-emerald-100 dark:bg-emerald-900/40
+                                            px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700">
+                              {c.code}
+                            </span>
 
-                                >
-                                  <span className="flex-shrink-0 text-xs font-mono font-bold
-                                                  text-sky-800 dark:text-sky-300 
-                                                  bg-gradient-to-r from-sky-100 to-indigo-100 dark:from-sky-900/40 dark:to-indigo-900/40
-                                                  px-2.5 py-0.5 rounded-lg shadow-sm">
-                                    {c.code}
-                                  </span>
-
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
-                                      {c.name}
-                                    </p>
-                                  </div>
-                                  <span className="flex-shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                    {c.uoc} UOC
-                                  </span>
-                                </button>
-                              ))}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                                {c.name}
+                              </p>
                             </div>
-                          </div>
-                        )}
+                            <span className="flex-shrink-0 text-xs font-bold text-slate-600 dark:text-slate-400">
+                              {c.uoc} UOC
+                            </span>
+                          </button>
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -509,12 +503,11 @@ export default function SpecialisationUNSW({ degreeCode }) {
               href={spec.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-4 text-xs font-semibold
-                       text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300
+              className="inline-flex items-center gap-1.5 mt-4 text-sm font-bold
+                       text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300
                        transition-colors"
             >
-              View on UNSW Handbook
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              View on UNSW Handbook →
             </a>
           )}
         </div>
@@ -536,16 +529,16 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
         {/* Degree header for double degrees */}
         {degreeCodes.length > 1 && (
-          <div className="flex items-center gap-3 pb-3 border-b border-slate-200 dark:border-slate-700">
-            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500" />
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+          <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
+            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {degreeNames[forDegreeCode] || `Program ${forDegreeCode}`}
             </h3>
           </div>
         )}
 
         {/* Selection cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {renderTypeSelector("Honours", groupedByType.Honours, selectedHonours[forDegreeCode], forDegreeCode)}
           {renderTypeSelector("Major", groupedByType.Major, selectedMajor[forDegreeCode], forDegreeCode)}
           {renderTypeSelector("Minor", groupedByType.Minor, selectedMinor[forDegreeCode], forDegreeCode)}
@@ -553,7 +546,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
         {/* Selected cards for this degree */}
         {(selectedHonours[forDegreeCode] || selectedMajor[forDegreeCode] || selectedMinor[forDegreeCode]) && (
-          <div className="space-y-4 pt-4">
+          <div className="space-y-5 pt-2">
             {selectedHonours[forDegreeCode] && renderSelectedCard(selectedHonours[forDegreeCode], "honours", forDegreeCode)}
             {selectedMajor[forDegreeCode] && renderSelectedCard(selectedMajor[forDegreeCode], "major", forDegreeCode)}
             {selectedMinor[forDegreeCode] && renderSelectedCard(selectedMinor[forDegreeCode], "minor", forDegreeCode)}
@@ -579,45 +572,35 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
   if (specialisations.length === 0)
     return (
-      <p className="text-secondary italic">
-        No specialisations found for this degree.
+      <p className="text-slate-600 dark:text-slate-400 text-sm italic">
+        No specialisations available for this degree.
       </p>
     );
 
   // Final Render
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
-                    dark:border-slate-700/60 p-8 shadow-xl space-y-8">
+                    dark:border-slate-700/60 p-6 shadow-xl space-y-6">
       {/* Top Accent Bar */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-t-2xl pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-t-2xl pointer-events-none" />
       
-     {/* Header with Customise Button */}
+     {/* Header - COMPACT */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
-                      px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
+                      px-6 py-4 -mx-6 -mt-6 mb-4 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
         
-        {/* Very subtle gradient accent */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
-              <GraduationCap className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                Specialisations
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                {degreeCodes.length > 1 
-                  ? "Customise both programs with majors, minors, or honours streams"
-                  : "Customise your degree with majors, minors, or honours streams"}
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-
-            {/* Customise Button */}
+            <div className="p-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <GraduationCap className="h-5 w-5 text-slate-50" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Specialisations
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               disabled={!hasAnySelection()}
               onClick={async () => {
@@ -664,58 +647,57 @@ export default function SpecialisationUNSW({ degreeCode }) {
                 }
               }}
               id="customise-btn"
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-200
                 ${hasAnySelection()
-                  ? "bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 hover:-translate-y-0.5"
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 hover:scale-105"
                   : "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-70"}`}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-5 w-5" />
               Customise Roadmap to Specialisation
             </button>
 
             <button
               onClick={handleVisualise}
               disabled={!allCourses.length}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200
-                        bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
-                        hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600 hover:-translate-y-0.5
-                        disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-200
+                        bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 
+                        hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 hover:scale-105
+                        disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              <Layers className="h-4 w-4" />
+              <Layers className="h-5 w-5" />
               Visualise Courses
             </button>
           </div>
         </div>
       </div>
 
-      {/* Intro Text */}
-      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-        {degreeCodes.length > 1 
-          ? "Select specialisations for each program in your double degree. Your selections are automatically saved. Use Visualise Courses to map prerequisite links across all selected specialisations."
-          : "Select up to one specialisation of each type to tailor your degree. Your selections are automatically saved. Use Visualise Courses to map prerequisite links in your selected specialisations."}
-      </p>
-
-
-      <div className="space-y-10">
-        {degreeCodes.map(code => renderDegreeSection(code))}
+      {/* QUICK GUIDE - COMPACT */}
+      <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-md">
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">Quick Guide</h4>
+            <div className="space-y-1">
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                • Select specialisations from the dropdowns below (auto-saved)
+              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                • Expand cards to view structure and click courses for details
+              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                • Click <span className="text-blue-600 dark:text-blue-400 font-bold">'Visualise Courses'</span> to map course connections
+              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                • Click <span className="text-emerald-600 dark:text-emerald-400 font-bold">'Customise Roadmap'</span> to tailor Societies, Industry & Careers sections
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Info Section */}
-      <div className="p-5 rounded-xl bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 
-                      dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 
-                      border border-slate-300/60 dark:border-slate-600/60 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 p-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">
-            <Info className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-          </div>
-          <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-            Expand each specialisation below to explore its full structure and click on individual courses for more details. 
-            Use the <span className="font-semibold text-slate-900 dark:text-slate-100">Customise Roadmap to Specialisation</span> button above to tailor the 
-            <span className="font-semibold text-slate-900 dark:text-slate-100"> Societies</span>, 
-            <span className="font-semibold text-slate-900 dark:text-slate-100"> Industry</span>, and 
-            <span className="font-semibold text-slate-900 dark:text-slate-100"> Careers</span> sections to your chosen specialisations.
-          </p>
-        </div>
+      {/* Specialisation Sections */}
+      <div className="space-y-6">
+        {degreeCodes.map(code => renderDegreeSection(code))}
       </div>
     </div>
   );

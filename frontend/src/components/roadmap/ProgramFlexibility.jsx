@@ -161,30 +161,21 @@ export default function ProgramFlexibility({
         <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
           <RefreshCw className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Program Flexibility
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Easiest degree switch options and related programs to consider
-          </p>
-        </div>
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          Program Flexibility
+        </h3>
       </div>
     </div>
 
-    <div className="mt-6 mb-8 p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-indigo-50/40 
+    <div className="mt-6 mb-8 p-5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 
                     dark:from-blue-900/20 dark:to-indigo-900/20 
-                    border border-blue-200/60 dark:border-blue-800/60 flex items-start gap-3">
+                    border-2 border-blue-300 dark:border-blue-700 shadow-md flex items-start gap-3">
 
-      {/* Info icon with circular background */}
-      <div className="flex items-center justify-center w-6 h-6 rounded-full 
-                  bg-blue-100 dark:bg-blue-900/40 shrink-0 mt-0.5">
-          <Info className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-      </div>
-
+      {/* Info icon */}
+      <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
 
       {/* Info text */}
-      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
         The programs listed below show the most compatible degrees to switch into, 
         based on course overlap with your current program
         {easySwitches.some(opt => opt.specialisation) ? (
@@ -217,42 +208,41 @@ export default function ProgramFlexibility({
             return (
               <div
                 key={i}
-                className="relative p-6 rounded-2xl border border-slate-300 dark:border-slate-600
-                          bg-gradient-to-br from-white via-slate-50/70 to-gray-100/70
-                          dark:from-slate-900 dark:via-slate-850 dark:to-slate-800
-                          shadow-[0_4px_16px_rgba(0,0,0,0.05)]
+                className="relative p-6 rounded-xl border-2 border-slate-300 dark:border-slate-600
+                          bg-white dark:bg-slate-900
+                          shadow-md hover:shadow-lg
                           transition-all duration-200"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="flex items-center justify-center w-7 h-7 rounded-lg 
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="flex items-center justify-center w-8 h-8 rounded-lg 
                                      bg-gradient-to-br from-blue-100 to-indigo-100 
                                      dark:from-blue-900/40 dark:to-indigo-900/40 
-                                     border border-blue-200 dark:border-blue-700
-                                     text-blue-700 dark:text-blue-300 text-sm font-bold">
+                                     border-2 border-blue-300 dark:border-blue-700
+                                     text-blue-700 dark:text-blue-300 text-sm font-bold shadow-sm">
                         {i + 1}
                       </span>
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight">
+                      <h3 className="font-bold text-xl text-slate-900 dark:text-slate-100 leading-tight">
                         {opt.program_name}
                       </h3>
                     </div>
                     
                     {opt.specialisation && (
-                      <div className="ml-9 mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                      <div className="ml-11 mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full
                                     bg-gradient-to-r from-purple-100 to-pink-100 
                                     dark:from-purple-900/40 dark:to-pink-900/40
-                                    border border-purple-300 dark:border-purple-700">
-                        <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                        <span className="text-xs font-semibold text-purple-800 dark:text-purple-200">
+                                    border-2 border-purple-300 dark:border-purple-700 shadow-sm">
+                        <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <span className="text-xs font-bold text-purple-800 dark:text-purple-200">
                           {opt.specialisation.name} ({opt.specialisation.type})
                         </span>
                       </div>
                     )}
                     
-                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-9">
-                      <span className="font-semibold">Faculty:</span>{" "}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 ml-11 mt-2 font-medium">
+                      <span className="font-bold">Faculty:</span>{" "}
                       <span className="text-slate-700 dark:text-slate-300">
                         {opt.faculty || "—"}
                       </span>
@@ -261,10 +251,10 @@ export default function ProgramFlexibility({
 
                   {/* Overlap Badge */}
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1.5 text-xs font-bold rounded-lg 
+                    <span className="px-4 py-2 text-sm font-bold rounded-xl 
                                    bg-gradient-to-r from-blue-50 to-indigo-50 
                                    dark:from-blue-900/30 dark:to-indigo-900/30
-                                   border border-blue-200 dark:border-blue-700
+                                   border-2 border-blue-300 dark:border-blue-700
                                    text-blue-700 dark:text-blue-300 shadow-sm">
                       {overlap.toFixed(0)}% Course Overlap
                     </span>
@@ -272,7 +262,7 @@ export default function ProgramFlexibility({
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-4">
+                <div className="mb-5">
                   <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                     <div
                       className="h-full bg-gradient-to-r from-blue-400 via-sky-500 to-indigo-500 
@@ -284,8 +274,8 @@ export default function ProgramFlexibility({
                                     animate-shimmer" />
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
                     {overlap >= 90 ? "Excellent match" : overlap >= 70 ? "Strong match" : "Good match"} - 
                     Most of your courses transfer directly
                   </p>
@@ -293,15 +283,15 @@ export default function ProgramFlexibility({
 
                 {/* Reason */}
                 {opt.reason && (
-                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-5 leading-relaxed font-medium">
                     {opt.reason}
                   </p>
                 )}
 
                 {/* Key Benefits */}
                 {benefits.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                  <div className="mb-5">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                       Key Benefits:
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -310,10 +300,10 @@ export default function ProgramFlexibility({
                           b && (
                             <span
                               key={j}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold
+                              className="px-3 py-2 rounded-lg text-sm font-bold
                                         bg-gradient-to-r from-indigo-50 to-blue-50 
                                         dark:from-indigo-900/30 dark:to-blue-900/30
-                                        border border-indigo-200 dark:border-indigo-700
+                                        border-2 border-indigo-300 dark:border-indigo-700
                                         text-indigo-700 dark:text-indigo-300
                                         shadow-sm"
                             >
@@ -327,24 +317,24 @@ export default function ProgramFlexibility({
 
                 {/* Shared Courses */}
                 {Array.isArray(opt.shared_courses) && opt.shared_courses.length > 0 && (
-                  <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 
-                                dark:from-slate-800/40 dark:to-slate-800/60 
-                                rounded-lg border border-slate-200/60 dark:border-slate-700/60 mb-4">
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                  <div className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 
+                                dark:from-slate-800/60 dark:to-slate-800/80 
+                                rounded-xl border-2 border-slate-300 dark:border-slate-600 mb-5 shadow-sm">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                       Shared Courses ({opt.shared_courses.length}):
                     </p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 font-mono font-medium">
                       {opt.shared_courses.join(" • ")}
                     </p>
                   </div>
                 )}
 
                 {/* View Details Button */}
-                <div className="flex justify-end pt-4 border-t border-slate-200/40 dark:border-slate-700/40">
+                <div className="flex justify-end pt-4 border-t-2 border-slate-200 dark:border-slate-700">
                   {degreeLinks[opt.program_name] ? (
                     <Link
                       to={`/degrees/${degreeLinks[opt.program_name]}`}
-                      className="group/btn inline-flex items-center gap-2 px-4 py-2 rounded-xl 
+                      className="group/btn inline-flex items-center gap-2 px-5 py-3 rounded-xl 
                                 text-sm font-bold text-white
                                 bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500
                                 hover:from-blue-600 hover:via-sky-600 hover:to-indigo-600
@@ -355,7 +345,7 @@ export default function ProgramFlexibility({
                       <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   ) : (
-                    <span className="text-sm italic text-slate-400 flex items-center gap-2">
+                    <span className="text-sm italic text-slate-400 flex items-center gap-2 font-medium">
                       <div className="animate-spin h-4 w-4 border-2 border-slate-300 border-t-blue-500 rounded-full" />
                       Loading...
                     </span>
@@ -370,30 +360,29 @@ export default function ProgramFlexibility({
       {/* LOADING/NO DATA STATE */}
       {!hasNewData && (
         <>
-          {/* Still checking if should show */}
+        
           {shouldShowFlexibility === null && (
             <div className="mb-8">
               <LoadingShimmer />
             </div>
           )}
 
-          {/* Should NOT show flexibility */}
           {shouldShowFlexibility === false && (
             <div className="mb-8">
-              <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 
-                            dark:from-slate-800/50 dark:to-slate-800/30 
-                            border border-slate-200/60 dark:border-slate-700/60">
+              <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50
+                            dark:from-slate-800/60 dark:via-slate-800/80 dark:to-slate-800/60 
+                            border-2 border-slate-300 dark:border-slate-600 shadow-md">
                 <div className="flex items-start gap-3 mb-3">
-                  <Info className="h-5 w-5 text-slate-500 dark:text-slate-400 flex-shrink-0 mt-0.5" />
+                  <Info className="h-5 w-5 text-slate-600 dark:text-slate-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">
                       Flexibility Information Unavailable
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                       Detailed degree switching recommendations are not available for this program. 
                       This typically occurs when the program structure doesn't include specific course 
-                      listings in our database. For more information about switching programs, visit the 
-                      <span className="font-semibold text-blue-600 dark:text-blue-400"> My Planner </span> 
+                      listings in our database. For more information about switching programs, visit the
+                      <span className="font-bold text-blue-600 dark:text-blue-400"> My Planner </span> 
                       section or contact UNSW Student Central.
                     </p>
                   </div>
@@ -402,19 +391,18 @@ export default function ProgramFlexibility({
             </div>
           )}
 
-          {/* Should show but still generating */}
           {shouldShowFlexibility === true && (
             <div className="mb-8">
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 
                             dark:from-blue-900/20 dark:to-indigo-900/20 
-                            border border-blue-200/60 dark:border-blue-800/60">
+                            border-2 border-blue-300 dark:border-blue-700 shadow-md">
                 <div className="flex items-start gap-3">
                   <div className="animate-spin h-5 w-5 border-2 border-blue-300 border-t-blue-600 rounded-full flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">
+                    <h3 className="text-base font-bold text-blue-700 dark:text-blue-300 mb-2">
                       Generating Degree Flexibility...
                     </h3>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 leading-relaxed">
+                    <p className="text-sm text-blue-600 dark:text-blue-400 leading-relaxed font-medium">
                       Finding compatible degree switching options based on course overlap.
                     </p>
                   </div>

@@ -42,70 +42,121 @@ export default function WelcomeModal({ isOpen, onClose }) {
               </section>
 
               {/* Understanding the Graph */}
-              <section className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3">
+              <section className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-4">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Network className="h-5 w-5 text-sky-600 dark:text-sky-400" />
                   Understanding Prerequisites
                 </h3>
                 
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="w-16 h-8 rounded bg-sky-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                      COMP
+                <div className="space-y-4">
+
+                  {/* Course Nodes */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 rounded-lg bg-blue-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-md">
+                      COMP<br/>1511
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Course Nodes</p>
-                      <p className="text-slate-600 dark:text-slate-400">Colored by level (Level 1-4)</p>
+                      <p className="font-bold text-slate-900 dark:text-slate-100 mb-0.5 text-sm">
+                        Course Nodes
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        Courses are coloured by their level (1xxx, 2xxx, 3xxx, etc.)
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-16 h-8 flex-shrink-0 flex items-center justify-center">
-                      <div className="w-12 h-0.5 bg-slate-600"></div>
-                      <div className="w-0 h-0 border-l-4 border-l-slate-600 border-y-2 border-y-transparent ml-0.5"></div>
+                  {/* Solid Lines */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
+                      <div className="flex items-center gap-1">
+                        <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold shadow">A</div>
+                        <svg width="28" height="8">
+                          <line x1="0" y1="4" x2="24" y2="4" stroke="#334155" strokeWidth="3" />
+                          <polygon points="24,1 28,4 24,7" fill="#334155" />
+                        </svg>
+                        <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold shadow">B</div>
+                      </div>
                     </div>
+
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Solid Lines →</p>
-                      <p className="text-slate-600 dark:text-slate-400"><strong>Required</strong> - You MUST complete this course</p>
+                      <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                        Solid Line — <span className="text-blue-600 dark:text-blue-400 font-bold">You MUST complete this prerequisite</span>
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        The left course is required before you can take the right course.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-16 h-8 flex-shrink-0 flex items-center justify-center">
-                      <svg width="48" height="8">
-                        <line x1="0" y1="4" x2="44" y2="4" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4,4" />
-                        <polygon points="44,1 48,4 44,7" fill="#3b82f6" />
-                      </svg>
+                  {/* Dashed Lines - Pick One */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
+                      <div className="flex items-start gap-1">
+                        <div className="flex flex-col gap-1">
+                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">A</div>
+                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">B</div>
+                        </div>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <svg width="20" height="6">
+                            <line x1="0" y1="3" x2="20" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
+                          </svg>
+                          <svg width="20" height="6">
+                            <line x1="0" y1="3" x2="20" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
+                          </svg>
+                        </div>
+                        <div className="w-7 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-[9px] font-bold shadow mt-[7px]">C</div>
+                      </div>
                     </div>
+
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Dashed Lines (Same Color) →</p>
-                      <p className="text-slate-600 dark:text-slate-400"><strong>Pick ONE</strong> - Complete any one course from this color group</p>
+                      <p className="font-bold text-blue-900 dark:text-blue-100 text-sm">
+                        Dashed Line (Same Color) — <span className="font-bold">Choose ANY ONE</span>
+                      </p>
+                      <p className="text-xs text-blue-800 dark:text-blue-200">
+                        You only need one of the options on the left to unlock the course.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-16 h-8 flex-shrink-0 flex flex-col items-center justify-center gap-0.5">
-                      <svg width="48" height="3">
-                        <line x1="0" y1="1.5" x2="48" y2="1.5" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4,4" />
-                      </svg>
-                      <svg width="48" height="3">
-                        <line x1="0" y1="1.5" x2="48" y2="1.5" stroke="#10b981" strokeWidth="2" strokeDasharray="4,4" />
-                      </svg>
+                  {/* Multiple Colors – Pick from Each */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
+                      <div className="flex items-start gap-1">
+
+                        <div className="flex flex-col gap-1">
+                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">A</div>
+                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">B</div>
+                        </div>
+
+                        {/* TWO DASHED LINE COLOURS */}
+                        <div className="flex flex-col gap-1 mt-1">
+                          <svg width="24" height="6">
+                            <line x1="0" y1="3" x2="24" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
+                          </svg>
+                          <svg width="24" height="6">
+                            <line x1="0" y1="3" x2="24" y2="3" stroke="#10b981" strokeWidth="2.5" strokeDasharray="3,3" />
+                          </svg>
+                        </div>
+
+                        <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow mt-[7px]">
+                          C
+                        </div>
+                      </div>
                     </div>
+
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Multiple Color Groups →</p>
-                      <p className="text-slate-600 dark:text-slate-400"><strong>Pick ONE from EACH</strong> color - Complete one course from each group</p>
+                      <p className="font-bold text-purple-900 dark:text-purple-100 text-sm">
+                        Different Coloured Dashed Lines
+                      </p>
+                      <p className="text-xs text-purple-800 dark:text-purple-200 font-medium">
+                        You must complete <strong>one course from each dashed-line colour group</strong>.
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-3 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
-                  <p className="text-xs text-sky-900 dark:text-sky-100">
-                    <strong>Example:</strong> If you see blue dashed lines (A, B) and green dashed lines (C, D) pointing to a course, 
-                    you need ONE from blue (A OR B) AND ONE from green (C OR D).
-                  </p>
                 </div>
               </section>
+
             </div>
             
             {/* Right Column */}
