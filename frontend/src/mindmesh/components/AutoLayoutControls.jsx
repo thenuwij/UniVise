@@ -1,13 +1,15 @@
-import { useCallback } from "react";
+// src/pages/mindmesh/components/AutoLayoutControls.jsx
+import { useCallback, forwardRef, useImperativeHandle } from "react";
 
-export default function AutoLayoutControls({
+export default forwardRef(function AutoLayoutControls({
   graph,
   setGraph,
   canvasSize,
   graphRef,
   setFrozen,
   className = "",
-}) {
+}, ref) {
+
   const idOf = (n) => (typeof n === "object" ? n.id : n);
   const normalizeLinksToIds = (links) =>
     links.map((l) => ({ ...l, source: idOf(l.source), target: idOf(l.target) }));
@@ -32,7 +34,6 @@ export default function AutoLayoutControls({
     const allNodes = graph.nodes.map((n) => ({ ...n }));
     const links = normalizeLinksToIds(graph.links);
     const idSet = new Set(allNodes.map((n) => n.id));
-
 
     const validLinks = links.filter(l => idSet.has(l.source) && idSet.has(l.target));
     
@@ -82,7 +83,6 @@ export default function AutoLayoutControls({
       }
     }
 
-    // Bucket by level
     const maxLevel = Math.max(0, ...nodes.map((n) => level.get(n.id) ?? base.get(n.id) ?? 0));
     const rows = maxLevel + 1;
     const buckets = Array.from({ length: rows }, () => []);
@@ -129,10 +129,14 @@ export default function AutoLayoutControls({
       });
     });
 
-    setGraph({ nodes, links: validLinks }); // Only use filtered nodes and valid links
+    setGraph({ nodes, links: validLinks });
     setFrozen?.(true);
     requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
   }, [graph, canvasSize, graphRef, setGraph, setFrozen]);
+
+  useImperativeHandle(ref, () => ({
+    autoLayout
+  }));
 
   const resetLayout = useCallback(() => {
     if (!graph?.nodes?.length) return;
@@ -159,7 +163,16 @@ export default function AutoLayoutControls({
     <div className={`flex items-center gap-2 ${className}`}>
       <button
         onClick={autoLayout}
-        className="control-btn"
+        className="px-4 py-2 rounded-lg
+                   bg-gradient-to-b from-white to-slate-50 dark:from-slate-700 dark:to-slate-800
+                   border-2 border-slate-300 dark:border-slate-600
+                   text-slate-700 dark:text-slate-200
+                   font-semibold text-sm
+                   shadow-sm hover:shadow-md
+                   transition-all duration-200
+                   hover:border-slate-400 dark:hover:border-slate-500
+                   hover:scale-105 active:scale-95
+                   disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         disabled={!graph?.nodes?.length}
         title="Automatically arrange courses by level (1→2→3→4)"
       >
@@ -167,7 +180,16 @@ export default function AutoLayoutControls({
       </button>
       <button
         onClick={resetLayout}
-        className="control-btn"
+        className="px-4 py-2 rounded-lg
+                   bg-gradient-to-b from-white to-slate-50 dark:from-slate-700 dark:to-slate-800
+                   border-2 border-slate-300 dark:border-slate-600
+                   text-slate-700 dark:text-slate-200
+                   font-semibold text-sm
+                   shadow-sm hover:shadow-md
+                   transition-all duration-200
+                   hover:border-slate-400 dark:hover:border-slate-500
+                   hover:scale-105 active:scale-95
+                   disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         disabled={!graph?.nodes?.length}
         title="Reset to free-form physics layout"
       >
@@ -175,4 +197,4 @@ export default function AutoLayoutControls({
       </button>
     </div>
   );
-}
+});

@@ -25,6 +25,7 @@ export default function MindMeshGraphPage() {
   const [showWelcome, setShowWelcome] = useState(false);
 
   const graphRef = useRef(null);
+  const controlsRef = useRef(null);
   const containerRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ w: 1200, h: 700 });
   const graphHistoryRef = useRef([]);
@@ -41,14 +42,30 @@ export default function MindMeshGraphPage() {
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const [buttonPos, setButtonPos] = useState(null);
 
-  // Check if first time visiting
-  useEffect(() => {
-    const hasVisited = localStorage.getItem("mindmesh_visited");
-    if (!hasVisited) {
-      setShowWelcome(true);
-      localStorage.setItem("mindmesh_visited", "true");
-    }
-  }, []);
+const isAutoLayoutInProgress = useRef(false);
+const lastGraphSignature = useRef(null); // 🎯 Track which graph we've auto-laid out
+
+useEffect(() => {
+    if (!graph?.nodes?.length) return;
+    if (isAutoLayoutInProgress.current) return;
+    
+    // Create a signature of current graph based on node IDs
+    const currentSignature = graph.nodes.map(n => n.id).sort().join(',');
+    
+    // Only trigger if this is a NEW graph (different nodes than last time)
+    if (lastGraphSignature.current === currentSignature) return;
+
+    const t = setTimeout(() => {
+      isAutoLayoutInProgress.current = true;
+      lastGraphSignature.current = currentSignature; // Remember this graph
+      controlsRef.current?.autoLayout?.();
+      setTimeout(() => {
+        isAutoLayoutInProgress.current = false;
+      }, 500);
+    }, 150);
+
+    return () => clearTimeout(t);
+  }, [graph?.nodes]); // Watch the nodes array
 
   // Resize handling
   useEffect(() => {
@@ -337,6 +354,8 @@ export default function MindMeshGraphPage() {
         focusedNode={focusedNode}         
         handleViewCourse={handleViewCourse}
         onShowHelp={() => setShowWelcome(true)}
+        ref={controlsRef}
+
       />
 
       {/* Graph Canvas */}

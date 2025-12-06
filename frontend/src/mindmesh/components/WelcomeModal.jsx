@@ -82,9 +82,6 @@ export default function WelcomeModal({ isOpen, onClose }) {
                       <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                         Solid Line — <span className="text-blue-600 dark:text-blue-400 font-bold">You MUST complete this prerequisite</span>
                       </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
-                        The left course is required before you can take the right course.
-                      </p>
                     </div>
                   </div>
 
@@ -110,11 +107,9 @@ export default function WelcomeModal({ isOpen, onClose }) {
 
                     <div className="flex-1">
                       <p className="font-bold text-blue-900 dark:text-blue-100 text-sm">
-                        Dashed Line (Same Color) — <span className="font-bold">Choose ANY ONE</span>
+                        Dashed Line —  <span className="text-blue-600 dark:text-blue-400 font-bold">You must complete ONLY ONE of the linked courses as a prerequisite</span>
                       </p>
-                      <p className="text-xs text-blue-800 dark:text-blue-200">
-                        You only need one of the options on the left to unlock the course.
-                      </p>
+
                     </div>
                   </div>
 
@@ -145,11 +140,8 @@ export default function WelcomeModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="flex-1">
-                      <p className="font-bold text-purple-900 dark:text-purple-100 text-sm">
-                        Different Coloured Dashed Lines
-                      </p>
-                      <p className="text-xs text-purple-800 dark:text-purple-200 font-medium">
-                        You must complete <strong>one course from each dashed-line colour group</strong>.
+                      <p className="font-bold text-blue-900 dark:text-blue-100 text-sm">
+                        Different coloured dash lines  —  <span className="text-blue-600 dark:text-blue-400 font-bold">You must complete ONLY ONE course FROM EACH line colour as a prerequisite</span>
                       </p>
                     </div>
                   </div>
@@ -170,7 +162,7 @@ export default function WelcomeModal({ isOpen, onClose }) {
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
                     <MousePointer2 className="h-5 w-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Single Click</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Single Click Course Node</p>
                       <p className="text-sm text-slate-600 dark:text-slate-400">Focus on a course to highlight its prerequisites and unlock "View Course Details"</p>
                     </div>
                   </div>
@@ -178,7 +170,7 @@ export default function WelcomeModal({ isOpen, onClose }) {
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
                     <MousePointerClick className="h-5 w-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Double Click</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">Double Click Course Node</p>
                       <p className="text-sm text-slate-600 dark:text-slate-400">Expand to show ALL courses connected to this course (prerequisites and dependents)</p>
                     </div>
                   </div>

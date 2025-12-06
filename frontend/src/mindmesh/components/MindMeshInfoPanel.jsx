@@ -116,7 +116,7 @@ export default function MindMeshInfoPanel({
         <div key={lvl}>
           <h5
             className={`text-[11px] font-semibold uppercase tracking-wide mb-1 mt-2 ${
-              isLoaded ? "text-sky-600 dark:text-sky-300" : "text-red-600 dark:text-red-400"
+              isLoaded ? "text-cyan-600 dark:text-cyan-300" : "text-red-600 dark:text-red-400"
             }`}
           >
             {lvl === "other" ? "Other" : `Level ${lvl}`}
@@ -128,7 +128,7 @@ export default function MindMeshInfoPanel({
                 onClick={() => handleCourseClick(c)}
                 className={`flex flex-col cursor-pointer ${
                   isLoaded
-                    ? "bg-slate-100 dark:bg-slate-700/40 hover:bg-sky-100 dark:hover:bg-sky-700/30"
+                    ? "bg-slate-100 dark:bg-slate-700/40 hover:bg-cyan-100 dark:hover:bg-cyan-700/30"
                     : "bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30"
                 } px-2.5 py-1.5 rounded-md text-[11px] transition-all duration-200 hover:-translate-y-[1px]`}
               >
@@ -136,7 +136,7 @@ export default function MindMeshInfoPanel({
                   <span
                     className={`font-semibold ${
                       isLoaded
-                        ? "text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-200"
+                        ? "text-cyan-700 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200"
                         : "text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                     }`}
                   >
@@ -180,8 +180,10 @@ export default function MindMeshInfoPanel({
       >
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-         <h2 className="text-lg font-bold text-sky-600 dark:text-sky-300 tracking-wide drop-shadow-sm">
-            Mesh Info
+          <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 
+                         dark:from-blue-400 dark:via-sky-400 dark:to-cyan-400 
+                         bg-clip-text text-transparent tracking-wide drop-shadow-sm">
+            Mesh Information
           </h2>
         </div>
         <button
@@ -204,7 +206,7 @@ export default function MindMeshInfoPanel({
             <div className="space-y-1 text-xs">
               <p className="font-semibold text-slate-700 dark:text-slate-300">
                 Degree:{" "}
-                <span className="text-sky-600 dark:text-sky-300">{programMeta.program_name || programCode}</span>
+                <span className="text-cyan-600 dark:text-cyan-300">{programMeta.program_name || programCode}</span>
               </p>
               {programMeta.degree_code && <p className="text-slate-600 dark:text-slate-400">Code: {programMeta.degree_code}</p>}
               {programMeta.faculty && <p className="text-slate-600 dark:text-slate-400">Faculty: {programMeta.faculty}</p>}
@@ -219,7 +221,7 @@ export default function MindMeshInfoPanel({
 
           {/* Loaded grouped */}
           <div>
-            <h4 className="text-xs font-semibold text-sky-600 dark:text-sky-300 uppercase tracking-wide">Loaded Courses</h4>
+            <h4 className="text-xs font-semibold text-cyan-600 dark:text-cyan-300 uppercase tracking-wide">Loaded Courses</h4>
             {renderGroupedCourses(loadedByLevel, "loaded")}
           </div>
 

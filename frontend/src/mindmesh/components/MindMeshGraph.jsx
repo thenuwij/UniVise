@@ -2,6 +2,7 @@
 import { forwardRef, useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
+
 const MindMeshGraph = forwardRef(function MindMeshGraph(
   {
     graph,
@@ -19,6 +20,8 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
   graphRef
 ) {
   const [bgColor, setBgColor] = useState("rgba(15,23,42,1)");
+
+  
   
   useEffect(() => {
     const updateBgColor = () => {
