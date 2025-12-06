@@ -100,141 +100,123 @@ export default function CapstoneHonours({ data }) {
   ].filter((s) => s.text);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
       {/* CAPSTONE SECTION */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl">
 
         {/* Top Accent Bar */}
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 rounded-t-2xl" />
         
-       {/* Header */}
+       {/* Header - COMPACT */}
         <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
-                        px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
+                        px-6 py-4 -mx-6 -mt-6 mb-5 border-b-2 border-slate-200 dark:border-slate-700
                         rounded-t-2xl">
           
-          {/* Very subtle gradient accent */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
           
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
-              <BookOpen className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <BookOpen className="h-5 w-5 text-slate-50" strokeWidth={2.5} />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                Program Highlights
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                What makes this program distinctive and valuable
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Program Highlights
+            </h2>
           </div>
         </div>
 
         {/* Courses Grid - Only show if valid courses exist */}
         {!loadingCourses && validCourses.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-4">
-              Signature Courses
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Featured Courses
             </h3>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {validCourses.map((course) => (
-                <div
+                <button
                   key={course.id}
                   onClick={() => handleCourseClick(course.id)}
-                  className="group relative p-5 rounded-xl border border-slate-200/70 dark:border-slate-700/70
-                            bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100
-                            dark:bg-gradient-to-br dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
-                            hover:shadow-lg hover:border-slate-400 dark:hover:border-slate-500
-                            hover:bg-gradient-to-br hover:from-white hover:via-blue-50/30 hover:to-slate-50
-                            dark:hover:bg-gradient-to-br dark:hover:from-slate-800/60 dark:hover:via-slate-800/50 dark:hover:to-slate-900/60
-                            hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  className="group relative p-6 rounded-xl border-2 border-slate-300 dark:border-slate-700
+                            bg-white dark:bg-slate-900
+                            shadow-md hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500
+                            hover:-translate-y-1 transition-all duration-200 cursor-pointer
+                            text-left w-full"
                 >
-                  <div className="mb-3">
-                    <p className="text-lg font-bold text-blue-700 dark:text-blue-400 tracking-tight">
+                  <div className="mb-4">
+                    <p className="text-xl font-bold text-blue-700 dark:text-blue-400 tracking-tight mb-2">
                       {course.code}
                     </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-snug line-clamp-2">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug font-medium line-clamp-2">
                       {course.title}
                     </p>
                   </div>
 
-                  <div className="opacity-70 group-hover:opacity-100 transition-opacity duration-150">
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
-                      View Details
-                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  <div className="flex items-center justify-between pt-3 border-t-2 border-slate-200 dark:border-slate-700">
+                    <span className="text-sm text-blue-600 dark:text-blue-400 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                      View Course Details
+                    </span>
+                    <span className="text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform font-bold text-lg">
+                      →
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         )}
 
         {/* Highlights */}
-        <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 
-                      dark:from-slate-800/50 dark:to-slate-800/30 
-                      rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-3">
-            Key Highlights
+        <div className="p-6 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50
+                      dark:from-slate-800/60 dark:via-slate-800/80 dark:to-slate-800/60
+                      rounded-xl border-2 border-slate-300 dark:border-slate-600 shadow-md">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+            What Makes This Program Special
           </h3>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
             {highlights}
           </p>
         </div>
       </div>
 
       {/* HONOURS SECTION */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl">
         {/* Top Accent Bar */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-sky-500 rounded-t-2xl shadow-[0_0_10px_rgba(79,70,229,0.4)]" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 rounded-t-2xl" />
         
-        {/* Header */}
+        {/* Header - COMPACT */}
         <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
-                        px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 border-slate-200 dark:border-slate-700
+                        px-6 py-4 -mx-6 -mt-6 mb-5 border-b-2 border-slate-200 dark:border-slate-700
                         rounded-t-2xl">
           
-          {/* Very subtle gradient accent */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
           
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
-              <Award className="h-6 w-6 text-slate-50" strokeWidth={2.5} />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
+              <Award className="h-5 w-5 text-slate-50" strokeWidth={2.5} />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                Honours Program
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Entry requirements, structure, and grading details for the Honours year.
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Honours Program
+            </h2>
           </div>
         </div>
 
         {/* Overview Sections */}
         {overviewSections.length > 0 && (
-          <div className="space-y-6 mb-8">
+          <div className="space-y-4 mb-6">
             {overviewSections.map((sec, i) => {
               const IconComponent = sec.icon;
               return (
                 <div
                   key={i}
-                  className="p-6 rounded-xl border border-slate-200 dark:border-slate-700
-                          bg-gradient-to-br from-slate-50 via-white to-slate-100/70 
-                          dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/70
-                          shadow-sm transition-colors duration-200"
+                  className="p-6 rounded-xl border-2 border-slate-300 dark:border-slate-700
+                          bg-white dark:bg-slate-900
+                          shadow-md"
                 >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <IconComponent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex-1">
-                      {sec.title}
-                    </h3>
-                  </div>
-                  <div className="text-sm text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed pl-11">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                    {sec.title}
+                  </h3>
+                  <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
                     {formatTextContent(sec.text)}
                   </div>
                 </div>
@@ -245,19 +227,18 @@ export default function CapstoneHonours({ data }) {
 
         {/* Honours Classification */}
         {classes.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-4">
-              Honours Classification
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Honours Classification Grades
             </h3>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-3">
               {classes.map((cls, i) => (
                 <span
                   key={i}
-                  className="px-4 py-2 text-sm font-semibold
-                             bg-gradient-to-r from-blue-50 to-indigo-50 
-                             dark:from-blue-900/20 dark:to-indigo-900/20
-                             border border-blue-200 dark:border-blue-700
-                             rounded-lg text-blue-700 dark:text-blue-300 shadow-sm"
+                  className="px-5 py-3 text-base font-bold
+                             bg-purple-50 dark:bg-purple-900/30
+                             border-2 border-purple-300 dark:border-purple-700
+                             rounded-xl text-purple-700 dark:text-purple-300 shadow-sm"
                 >
                   {cls}
                 </span>
@@ -268,14 +249,14 @@ export default function CapstoneHonours({ data }) {
 
         {/* Awards & Recognition */}
         {awards && (
-          <div className="mb-8 p-6 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 
-                        dark:from-amber-900/10 dark:to-orange-900/10 
-                        border border-amber-200/60 dark:border-amber-800/60">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <div className="mb-6 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50
+                        dark:from-amber-900/20 dark:to-orange-900/20 
+                        border-2 border-amber-300 dark:border-amber-700 shadow-md">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <Star className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               Awards & Recognition
             </h3>
-            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed">
+            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
               {formatTextContent(awards)}
             </div>
           </div>
@@ -283,14 +264,14 @@ export default function CapstoneHonours({ data }) {
 
         {/* Career Outcomes */}
         {careerOutcomes && (
-          <div className="p-6 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 
-                        dark:from-indigo-900/10 dark:to-purple-900/10 
-                        border border-indigo-200/60 dark:border-indigo-700/60">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              Career & Further Study
+          <div className="p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50
+                        dark:from-indigo-900/20 dark:to-purple-900/20 
+                        border-2 border-indigo-300 dark:border-indigo-700 shadow-md">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              Career Paths & Further Study
             </h3>
-            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed">
+            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
               {formatTextContent(careerOutcomes)}
             </div>
           </div>
@@ -298,8 +279,11 @@ export default function CapstoneHonours({ data }) {
 
         {/* No Data Message */}
         {!(overviewSections.length || classes.length || awards || careerOutcomes) && (
-          <div className="text-center py-8 text-slate-500 dark:text-slate-400 italic">
-            No Honours information available for this program.
+          <div className="text-center py-12 px-6 rounded-xl border-2 border-slate-300 dark:border-slate-600
+                        bg-slate-50 dark:bg-slate-800/50">
+            <p className="text-slate-600 dark:text-slate-400 text-base font-medium">
+              No Honours information available for this program.
+            </p>
           </div>
         )}
       </div>
