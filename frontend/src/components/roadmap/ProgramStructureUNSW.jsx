@@ -393,13 +393,13 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
               <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">Quick Guide</h4>
               <div className="space-y-1">
                 <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                  • Click sections below to expand and view courses
+                  • Click sections below to expand and view courses that are in your program structure.
                 </p>
                 <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
                   • Click any course for detailed information
                 </p>
                 <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                  • Click <span className="text-blue-600 dark:text-blue-400 font-bold">'Visualise Courses'</span> above to see how courses connect
+                  • Click <span className="text-blue-600 dark:text-blue-400 font-bold">'Visualise Courses'</span> above to see how courses in the program structure connect. 
                 </p>
               </div>
             </div>
@@ -432,7 +432,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         </div>
       </div>
 
-      {/* Structure Description - SILVER/SLATE THEME */}
+      {/* Structure Description */}
       {structureDescription && (
         <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50
                       dark:from-slate-800/60 dark:via-slate-800/80 dark:to-slate-800/60

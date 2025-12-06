@@ -157,7 +157,7 @@ export default function CareerPathways({ careerPathways }) {
           <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
             <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-              Select a career stage to view typical roles, salaries, and companies hiring for these positions.
+              Select a career stage to view typical roles, salaries, and companies hiring for these positions. Click 'View Listings' to navigate further.
             </p>
           </div>
         </div>
@@ -339,7 +339,7 @@ export default function CareerPathways({ careerPathways }) {
             <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These certifications can strengthen your expertise and open doors to advanced career opportunities.
+                These certifications can strengthen your expertise in this field and open doors to advanced career opportunities.
               </p>
             </div>
           </div>
@@ -422,7 +422,7 @@ export default function CareerPathways({ careerPathways }) {
             <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border-2 border-green-300 dark:border-green-700 shadow-sm">
               <Info className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These companies are actively recruiting graduates across various industry sectors.
+                These companies are actively recruiting graduates from this program across various industry sectors.
               </p>
             </div>
           </div>

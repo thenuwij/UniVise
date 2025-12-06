@@ -665,18 +665,6 @@ export default function RoadmapUNSWPage() {
             </div>
           </GradientCard>
         </div>
-
-        {/* Footer callout */}
-        <div className="mt-10 text-center">
-          <div className="inline-block rounded-xl 
-                          bg-sky-50/80 dark:bg-sky-900/20 
-                          border border-sky-200/50 dark:border-sky-700/40 
-                          px-4 py-3 text-sm font-medium 
-                          text-sky-800 dark:text-sky-300 
-                          shadow-sm backdrop-blur-sm">
-            Tip: Program rules and courses may evolve — always confirm with the official UNSW Handbook.
-          </div>
-        </div>
       </div>
     </div>
   );

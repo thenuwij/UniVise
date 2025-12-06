@@ -31,10 +31,10 @@ export default function IndustryExperience({ industryExperience }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl space-y-8">
       
-      {/* Top Accent Bar */}
+      {/* Top Bar */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-t-2xl" />
       
-      {/* HEADER - COMPACT */}
+      {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-6 py-4 -mx-6 -mt-6 mb-5 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
@@ -406,7 +406,7 @@ export default function IndustryExperience({ industryExperience }) {
             <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These companies regularly recruit graduates and may offer internships, graduate programs, and full-time positions.
+                These companies regularly recruit graduates from this program and may offer internships, graduate programs, and full-time positions.
               </p>
             </div>
           </div>
@@ -442,7 +442,7 @@ export default function IndustryExperience({ industryExperience }) {
                   Career Fairs & Events
                 </h4>
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                  Network with employers and explore opportunities
+                  Network with employers and explore opportunities related to this program.
                 </p>
               </div>
             </div>

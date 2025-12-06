@@ -264,7 +264,7 @@ export default function SocietiesCommunity({ societies }) {
             <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border-2 border-purple-300 dark:border-purple-700 shadow-sm">
               <Info className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
               <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                Explore interests beyond your major and connect with students across different disciplines.
+                Societies across other faculties that will be beneficial.
               </p>
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function SocietiesCommunity({ societies }) {
             <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border-2 border-green-300 dark:border-green-700 shadow-sm mb-5">
               <Info className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                Student chapters and professional associations that can help you develop career-ready skills and industry networks.
+                Student chapters and professional associations that can help develop career-ready skills and industry networks.
               </p>
             </div>
 

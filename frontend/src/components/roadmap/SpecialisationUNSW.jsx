@@ -688,7 +688,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
                 • Click <span className="text-blue-600 dark:text-blue-400 font-bold">'Visualise Courses'</span> to map course connections
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                • Click <span className="text-emerald-600 dark:text-emerald-400 font-bold">'Customise Roadmap'</span> to tailor Societies, Industry & Careers sections
+                • Click <span className="text-emerald-600 dark:text-emerald-400 font-bold">'Customise Roadmap'</span> to regnerate the roadmap and tailor Societies, Industry & Careers sections to your selected specialisations.
               </p>
             </div>
           </div>
