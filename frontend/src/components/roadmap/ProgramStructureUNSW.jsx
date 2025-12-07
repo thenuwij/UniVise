@@ -164,8 +164,15 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
-    localStorage.setItem("programCourses", JSON.stringify(allCourses));
-    navigate(`/planner/mindmesh?program=${degreeCode}`);
+    
+    // Clear any stale data first
+    localStorage.removeItem("programCourses");
+    
+    // Small delay to ensure clear happens
+    setTimeout(() => {
+      localStorage.setItem("programCourses", JSON.stringify(allCourses));
+      navigate(`/planner/mindmesh?program=${degreeCode}`);
+    }, 10);
   };
 
   // Fetch program structure

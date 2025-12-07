@@ -341,10 +341,10 @@ function ProgressPage() {
               <ProgramSetupModal
                 onClose={() => setShowSetupModal(false)}
                 userId={session.user.id}
-                onComplete={(programData) => {
+                onComplete={async (programData) => {
                   setEnrolledProgram(programData);
                   setShowSetupModal(false);
-                  buildCourseStructure(programData, session.user.id);
+                  await refreshData();
                 }}
               />
             )}
