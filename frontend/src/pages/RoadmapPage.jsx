@@ -2,11 +2,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   HiArrowRight,
-  HiChartBar,
-  HiCheckCircle,
   HiSearch,
   HiStar,
-  HiInformationCircle
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
@@ -21,7 +18,6 @@ function RoadmapPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDegreeId, setSelectedDegreeId] = useState(null);
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
-  const [showArrow, setShowArrow] = useState(false);
 
   const { userType, recommendations, loading: isLoadingRecommendations, error: recommendationsError } = useRoadmapData();
 
@@ -30,20 +26,10 @@ function RoadmapPage() {
   const openDrawer = useCallback(() => setIsMenuOpen(true), []);
   const closeDrawer = useCallback(() => setIsMenuOpen(false), []);
 
-  // Scroll to top and show arrow when a degree is selected
+  // Scroll to top when a degree is selected
   useEffect(() => {
     if (selectedDegreeId) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Show arrow indicator
-      setShowArrow(true);
-      
-      // Hide arrow after 8 seconds
-      const timer = setTimeout(() => {
-        setShowArrow(false);
-      }, 8000);
-      
-      return () => clearTimeout(timer);
     }
   }, [selectedDegreeId]);
 
@@ -76,148 +62,78 @@ function RoadmapPage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
-        <div className="flex flex-col h-full px-10 xl:px-20">
+        <div className="flex flex-col h-full mx-20">
 
-          {/* Header - COMPACT */}
-          <div className="mt-6 mb-4">
+          {/* Header - Original Layout with Tag and Button on Right */}
+          <div className="mt-8 mb-8">
             <div className="flex items-start justify-between gap-6">
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm mb-4">
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
                   My Roadmap
                 </div>
 
-                <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+                <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4">
                   Generate Your{" "}
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                     Roadmap
                   </span>
                 </h1>
+
+                <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+                  Select a program from your recommendations or search for a program
+                </p>
               </div>
 
-              {/* Generate Button with Arrow Indicator */}
-              <div className="flex-shrink-0 self-end relative">
-                {showArrow && selectedDegreeId && (
-                  <div className="absolute -left-32 top-1/2 -translate-y-1/2 flex items-center gap-2 animate-pulse">
-                    <div className="px-3 py-2 bg-blue-100 dark:bg-blue-900/40 border-2 border-blue-500 dark:border-blue-400 rounded-lg shadow-lg animate-[wiggle_1s_ease-in-out_infinite]">
-                      <span className="text-sm font-bold text-blue-700 dark:text-blue-300 whitespace-nowrap">
-                        Click here
-                      </span>
-                    </div>
-                    <HiArrowRight className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                )}
-                <GenerateButton onClick={handleProceed} disabled={!selectedDegreeId}>
-                  <span className="flex items-center gap-2">
-                    {selectedDegreeId ? (
-                      <>
-                        Generate Roadmap
-                        <HiArrowRight className="w-5 h-5" />
-                      </>
-                    ) : (
-                      "Select a Degree Below"
-                    )}
-                  </span>
-                </GenerateButton>
+              {/* Generate Button - Right Side with Glow + Arrow + Hover Scale */}
+              <div className="flex-shrink-0 self-end">
+                <div className="relative inline-block transform transition-transform duration-300 ease-out hover:scale-105 active:scale-95">
+                  {/* Subtle glow effect background - only when selected */}
+                  {selectedDegreeId && (
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600 rounded-2xl blur-md opacity-30 animate-pulse-slow pointer-events-none" />
+                  )}
+                  
+                  <GenerateButton 
+                    onClick={handleProceed} 
+                    disabled={!selectedDegreeId}
+                  >
+                    <span className="flex items-center gap-3">
+                      Generate Roadmap
+                      <HiArrowRight className={`w-6 h-6 transition-transform ${selectedDegreeId ? 'animate-slide-right' : ''}`} />
+                    </span>
+                  </GenerateButton>
+                </div>
               </div>
-
-              <style>{`
-                @keyframes wiggle {
-                  0%, 100% { transform: translateX(0px); }
-                  25% { transform: translateX(-4px); }
-                  75% { transform: translateX(4px); }
-                }
-              `}</style>
             </div>
           </div>
 
           {/* Error Message */}
           {recommendationsError && (
-            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
-              <p className="text-red-700 dark:text-red-300 text-sm font-medium">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-700">
+              <p className="text-red-700 dark:text-red-300 text-sm font-medium text-center">
                 Failed to load recommendations. Try again later.
               </p>
             </div>
           )}
 
-          {/* COMPACT Info Card with Integrated Quick Start */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg overflow-hidden mb-5">
+          {/* Selection Grid - Clean Design */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-20">
 
-            {/* Quick Start Banner - INTEGRATED */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700 px-6 py-3">
-              <div className="flex items-center gap-3">
-                <HiInformationCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                <p className="text-sm text-slate-900 dark:text-white font-semibold">
-                  <span className="font-bold">1.</span> Select a degree from your recommendations or search for available UNSW degrees
-                  <span className="mx-2">•</span>
-                  <span className="font-bold">2.</span> Click "Generate Roadmap"
+            {/* Recommendations Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md overflow-hidden transition-all">
+              <div className="bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-8 py-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/40">
+                    <HiStar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                    Your Recommendations
+                  </h2>
+                </div>
+                <p className="text-base text-slate-500 dark:text-slate-400 ml-14">
+                  Click on a degree to select it
                 </p>
               </div>
-            </div>
-
-            {/* Title Header */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 border-b-2 border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700">
-                  <HiChartBar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  What Your Roadmap Includes
-                </h2>
-              </div>
-            </div>
-
-            {/* Content - COMPACT */}
-            <div className="px-6 py-4">
-              {/* Feature Boxes - SMALLER */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                  <HiCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Entry & Structure</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Requirements & breakdown</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                  <HiCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Student Communities</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Societies & networks</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                  <HiCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Industry & Careers</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Internships & pathways</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Selection Grid - CLOSER TO TOP */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
-
-            {/* Left - Recommendations */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-300 dark:border-slate-700 shadow-lg overflow-hidden hover:border-slate-400 dark:hover:border-slate-600 transition-all">
-              {/* HEADER */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b-2 border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700">
-                    <HiStar className="w-7 h-7 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Your Recommendations</h2>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
-                      Click on a degree card to select it
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {/* CONTENT */}
               <div className="p-6">
                 <RecommendedDegrees
                   userType={userType}
@@ -230,23 +146,21 @@ function RoadmapPage() {
               </div>
             </div>
 
-            {/* Right - Search */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-300 dark:border-slate-700 shadow-lg overflow-hidden hover:border-slate-400 dark:hover:border-slate-600 transition-all">
-              {/* HEADER */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b-2 border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700">
-                    <HiSearch className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+            {/* Search Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md overflow-hidden transition-all">
+              <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 px-8 py-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 rounded-xl bg-sky-100 dark:bg-sky-900/40">
+                    <HiSearch className="w-6 h-6 text-sky-600 dark:text-sky-400" />
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Search All UNSW Degrees</h2>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
-                      Search and click on a degree to select it
-                    </p>
-                  </div>
+                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                    Search All UNSW Programs
+                  </h2>
                 </div>
+                <p className="text-base text-slate-500 dark:text-slate-400 ml-14">
+                  Find and select any UNSW degree program
+                </p>
               </div>
-              {/* CONTENT */}
               <div className="p-6">
                 <DegreeSelectorSection
                   selectedDegreeId={selectedDegreeId}

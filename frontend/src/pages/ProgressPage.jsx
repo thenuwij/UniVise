@@ -226,7 +226,7 @@ function ProgressPage() {
             <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
               <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
             </div>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-slate-500 dark:text-slate-400">
               Loading your progress...
             </p>
           </div>
@@ -236,14 +236,7 @@ function ProgressPage() {
   }
 
   return (
-    <div
-      className="
-        min-h-screen 
-        bg-gradient-to-br 
-        from-slate-50 via-slate-50 to-slate-100
-        dark:from-slate-950 dark:via-slate-950 dark:to-slate-900
-      "
-    >
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
@@ -251,144 +244,141 @@ function ProgressPage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
-        {/* SUBTLE INNER GRADIENT — ALSO SOFTENED */}
-        <div className="bg-gradient-to-b from-blue-50/10 via-transparent to-purple-50/10 dark:from-blue-950/5 dark:via-transparent dark:to-purple-950/5">
-          <div className="flex flex-col justify-center h-full px-6 lg:px-10 xl:px-20">
+        <div className="mx-20">
 
-            {/* HEADER */}
-            <div className="mt-6 mb-6">
-             <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* HEADER */}
+          <div className="mt-12 mb-10">
+            <div className="flex items-center justify-between gap-6 flex-wrap">
 
-                <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    Track Progress
-                  </div>
-
-                  <h1 className="text-3xl sm:text-4xl font-bold mt-3 text-slate-900 dark:text-white">
-                    My{" "}
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600">
-                      Academic Progress
-                    </span>
-                  </h1>
-
-                  <p className="text-base font-semibold text-slate-800 dark:text-slate-200 mt-3">
-                    Track your completed courses and monitor your degree progress
-                  </p>
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-sm">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  Track Progress
                 </div>
 
-                {!showGuide && enrolledProgram && (
-                  <button
-                    onClick={() => setShowGuide(true)}
-                    className="flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-sky-600 text-white text-base font-bold hover:from-blue-700 hover:to-sky-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    <HiInformationCircle className="w-5 h-5" />
-                    Show Guide
-                  </button>
-                )}
+                <h1 className="text-4xl sm:text-5xl font-semibold mt-4 text-slate-900 dark:text-white tracking-tight">
+                  My Academic{" "}
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-500">
+                    Progress
+                  </span>
+                </h1>
+
+                <p className="text-lg text-slate-600 dark:text-slate-400 mt-4 max-w-2xl">
+                  Track your completed courses and monitor your degree progress
+                </p>
               </div>
+
+              {!showGuide && enrolledProgram && (
+                <button
+                  onClick={() => setShowGuide(true)}
+                  className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+                >
+                  <HiInformationCircle className="w-5 h-5" />
+                  Show Guide
+                </button>
+              )}
             </div>
+          </div>
 
-            {/* GUIDE */}
-            {enrolledProgram && showGuide && (
-              <div className="mb-4 bg-gradient-to-br from-blue-50/40 to-sky-50/40 dark:from-blue-900/20 dark:to-sky-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800 shadow p-6">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-800/40">
-                      <HiInformationCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100">
-                      How to Use This Page
-                    </h2>
+          {/* GUIDE */}
+          {enrolledProgram && showGuide && (
+            <div className="mb-8 bg-blue-50 dark:bg-blue-950/30 rounded-2xl border border-blue-100 dark:border-blue-900 p-8">
+              <div className="flex items-start justify-between gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50">
+                    <HiInformationCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
-
-                  <button
-                    onClick={() => setShowGuide(false)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-base font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
-                  >
-                    <HiX className="w-5 h-5" />
-                    Hide Guide
-                  </button>
+                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                    How to Use This Page
+                  </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <GuideCard
-                    icon={<HiPencil className="w-6 h-6" />}
-                    title="1. Select Your Program & Specialisations"
-                    description="Click 'Edit Program' to change your program or select majors/minors/honours."
-                  />
-                  <GuideCard
-                    icon={<HiCheckCircle className="w-6 h-6" />}
-                    title="2. Mark Courses as Completed"
-                    description="Click small box inside course cards to mark as completed. Stats auto update."
-                  />
-                  <GuideCard
-                    icon={<HiChartBar className="w-6 h-6" />}
-                    title="3. Add Marks to Calculate WAM"
-                    description="Enter marks on completed courses. Your WAM updates automatically."
-                  />
-                  <GuideCard
-                    icon={<HiSwitchHorizontal className="w-6 h-6" />}
-                    title="4. Compare Programs"
-                    description="Click 'Compare Programs' to compare your completed courses with other UNSW programs."
-                  />
-                </div>
+                <button
+                  onClick={() => setShowGuide(false)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-600 shadow-sm"
+                >
+                  <HiX className="w-5 h-5" />
+                  Hide
+                </button>
               </div>
-            )}
 
-            {/* Setup Modal */}
-            {showSetupModal && (
-              <ProgramSetupModal
-                onClose={() => setShowSetupModal(false)}
-                userId={session.user.id}
-                onComplete={(programData) => {
-                  setEnrolledProgram(programData);
-                  setShowSetupModal(false);
-                  buildCourseStructure(programData, session.user.id);
-                }}
-              />
-            )}
-
-            {/* MAIN CONTENT */}
-            {enrolledProgram && !showSetupModal && (
-              <>
-                {/* SPECIALISATIONS */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-4 mb-6">
-                  <SpecialisationSelectionPanel
-                    enrolledProgram={enrolledProgram}
-                    userId={session.user.id}
-                    onUpdate={refreshData}
-                    onReselectProgram={() => setShowSetupModal(true)}
-                  />
-                </div>
-
-                {/* STATS */}
-                <ProgressStatsOverview stats={progressStats} />
-
-                {/* COMPARE */}
-                <ComparePromoBanner />
-
-                {/* COURSE STRUCTURE */}
-                <CourseStructureDisplay
-                  structure={courseStructure}
-                  completedCourses={completedCourses}
-                  userId={session.user.id}
-                  enrolledProgram={enrolledProgram}
-                  onCourseUpdate={refreshData}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <GuideCard
+                  icon={<HiPencil className="w-5 h-5" />}
+                  title="Select Your Program & Specialisations"
+                  description="Click 'Edit Program' to change your program or select majors/minors/honours."
                 />
-              </>
-            )}
-
-            {/* Back Button */}
-            <div className="my-12">
-              <button
-                onClick={() => navigate("/planner")}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow hover:shadow-lg transition"
-              >
-                <HiArrowRight className="w-5 h-5 rotate-180" />
-                <span>Back to Planner</span>
-              </button>
+                <GuideCard
+                  icon={<HiCheckCircle className="w-5 h-5" />}
+                  title="Mark Courses as Completed"
+                  description="Click the box inside course cards to mark as completed. Stats auto-update."
+                />
+                <GuideCard
+                  icon={<HiChartBar className="w-5 h-5" />}
+                  title="Add Marks to Calculate WAM"
+                  description="Enter marks on completed courses. Your WAM updates automatically."
+                />
+                <GuideCard
+                  icon={<HiSwitchHorizontal className="w-5 h-5" />}
+                  title="Compare Programs"
+                  description="Compare your completed courses with other UNSW programs."
+                />
+              </div>
             </div>
+          )}
+
+          {/* Setup Modal */}
+          {showSetupModal && (
+            <ProgramSetupModal
+              onClose={() => setShowSetupModal(false)}
+              userId={session.user.id}
+              onComplete={async (programData) => {
+                setEnrolledProgram(programData);
+                setShowSetupModal(false);
+                await refreshData();
+              }}
+            />
+          )}
+
+          {/* MAIN CONTENT */}
+          {enrolledProgram && !showSetupModal && (
+            <>
+              {/* SPECIALISATIONS */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
+                <SpecialisationSelectionPanel
+                  enrolledProgram={enrolledProgram}
+                  userId={session.user.id}
+                  onUpdate={refreshData}
+                  onReselectProgram={() => setShowSetupModal(true)}
+                />
+              </div>
+
+              {/* STATS */}
+              <ProgressStatsOverview stats={progressStats} />
+
+              {/* COMPARE */}
+              <ComparePromoBanner />
+
+              {/* COURSE STRUCTURE */}
+              <CourseStructureDisplay
+                structure={courseStructure}
+                completedCourses={completedCourses}
+                userId={session.user.id}
+                enrolledProgram={enrolledProgram}
+                onCourseUpdate={refreshData}
+              />
+            </>
+          )}
+
+          {/* Back Button */}
+          <div className="my-16">
+            <button
+              onClick={() => navigate("/planner")}
+              className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm hover:shadow-md transition-all"
+            >
+              <HiArrowRight className="w-5 h-5 rotate-180" />
+              <span>Back to Planner</span>
+            </button>
           </div>
         </div>
       </div>
@@ -400,16 +390,18 @@ function ProgressPage() {
 
 function GuideCard({ icon, title, description }) {
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md transition">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all">
       <div className="flex items-start gap-4">
-        <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600">
+        <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
           {icon}
         </div>
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-2">
             {title}
           </h3>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{description}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            {description}
+          </p>
         </div>
       </div>
     </div>
@@ -425,12 +417,12 @@ function ProgressStatsOverview({ stats }) {
       : 0;
 
   return (
-    <div className="mt-4 bg-white dark:bg-slate-900 rounded-xl border border-blue-200 dark:border-slate-700 shadow p-5">
-      <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">
+    <div className="mb-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+      <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">
         Progress Overview
       </h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatBox
           label="UOC Completed"
           value={stats.uoc_completed}
@@ -461,14 +453,14 @@ function ProgressStatsOverview({ stats }) {
 
 function StatBox({ label, value, sublabel }) {
   return (
-    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
-      <p className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-bold uppercase tracking-wide">
+    <div className="text-center p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-semibold uppercase tracking-wide">
         {label}
       </p>
-      <p className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
+      <p className="text-3xl font-semibold text-slate-900 dark:text-white">
         {value}
       </p>
-      <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
         {sublabel}
       </p>
     </div>
@@ -479,18 +471,18 @@ function ComparePromoBanner() {
   const navigate = useNavigate();
 
   return (
-    <div className="mt-4 p-6 rounded-xl bg-gradient-to-r from-blue-50/40 to-sky-50/40 dark:from-blue-900/30 dark:to-sky-900/30 border-2 border-blue-200 dark:border-blue-700 shadow hover:shadow-lg transition">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-800/40">
+    <div className="mb-8 p-8 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 hover:shadow-md transition-all">
+      <div className="flex items-center justify-between flex-wrap gap-6">
+        <div className="flex items-start gap-4">
+          <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50">
             <HiAcademicCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
               Thinking about switching programs?
             </h3>
-            <p className="text-blue-700 dark:text-blue-300 text-sm mt-1 font-semibold">
+            <p className="text-slate-600 dark:text-slate-400 max-w-xl">
               Compare your progress with other programs to see how courses transfer
             </p>
           </div>
@@ -498,10 +490,10 @@ function ComparePromoBanner() {
 
         <button
           onClick={() => navigate("/compare")}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white text-base font-bold hover:bg-blue-700 transition shadow hover:shadow-xl"
+          className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md group"
         >
           <span>Compare Programs</span>
-          <HiArrowRight className="w-5 h-5" />
+          <HiArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
     </div>

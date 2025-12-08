@@ -67,11 +67,18 @@ export default function SpecialisationUNSW({ degreeCode }) {
   }, [degreeCodes, selectedHonours, selectedMajor, selectedMinor]);
 
   const handleVisualise = () => {
-    if (!degreeCode || !allCourses.length) return;
-    localStorage.setItem("programCourses", JSON.stringify(allCourses));
-    navigate(`/planner/mindmesh?program=${degreeCode}`);
+  if (!degreeCode || !allCourses.length) return;
+  
+    // Clear any stale data first
+    localStorage.removeItem("programCourses");
+    
+    // Small delay to ensure clear happens
+    setTimeout(() => {
+      localStorage.setItem("programCourses", JSON.stringify(allCourses));
+      navigate(`/planner/mindmesh?program=${degreeCode}`);
+    }, 10);
   };
-
+  
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {

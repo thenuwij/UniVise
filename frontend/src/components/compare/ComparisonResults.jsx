@@ -47,6 +47,13 @@ export default function ComparisonResults({
   // Recommendation styling
   const getRecommendationStyle = () => {
     const styles = {
+      "Not Yet Started": {
+        color: "text-slate-700 dark:text-slate-300",
+        bg: "bg-gradient-to-br from-slate-50/40 to-slate-100/40 dark:from-slate-900/20 dark:to-slate-800/20",
+        border: "border-slate-300 dark:border-slate-700",
+        icon: HiInformationCircle,
+        iconColor: "text-slate-600 dark:text-slate-400"
+      },
       "Easy Transfer": {
         color: "text-emerald-700 dark:text-emerald-300",
         bg: "bg-gradient-to-br from-emerald-50/40 to-teal-50/40 dark:from-emerald-900/20 dark:to-teal-900/20",
@@ -81,6 +88,14 @@ export default function ComparisonResults({
 
   const style = getRecommendationStyle();
   const RecommendationIcon = style.icon;
+
+  // Get appropriate help text based on recommendation
+  const getHelpText = () => {
+    if (recommendation === "Not Yet Started") {
+      return "You haven't marked any courses as completed yet. Complete some courses in your Progress Page to see how they would transfer to this program.";
+    }
+    return "This shows how feasible it is to switch programs based on your completed courses and remaining requirements.";
+  };
 
   const toggleLevel = (level) => {
     setExpandedLevels(prev => ({
@@ -158,134 +173,188 @@ export default function ComparisonResults({
             <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
               <HiInformationCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
               <p className="text-base font-semibold text-slate-800 dark:text-slate-200">
-                This shows how feasible it is to switch programs based on your completed courses and remaining requirements.
+                {getHelpText()}
               </p>
             </div>
           </div>
 
-          <div className="flex items-start justify-between gap-6 flex-wrap lg:flex-nowrap">
-            {/* Left: Assessment */}
-            <div className="flex-1">
-              <p className="text-base text-slate-800 dark:text-slate-200 leading-relaxed mb-6 font-medium">
-                Based on your academic progress, <span className="font-bold text-lg">{summary.courses_transfer} courses</span> 
-                ({summary.uoc_transfer} UOC) will transfer to your target program. You will need to complete 
-                an additional <span className="font-bold text-lg">{summary.courses_needed} courses</span> totaling <span className="font-bold text-lg">{summary.uoc_needed} UOC</span>.
+          {recommendation !== "Not Yet Started" && (
+            <>
+              <div className="flex items-start justify-between gap-6 flex-wrap lg:flex-nowrap">
+                {/* Left: Assessment */}
+                <div className="flex-1">
+                  <p className="text-base text-slate-800 dark:text-slate-200 leading-relaxed mb-6 font-medium">
+                    Based on your academic progress, <span className="font-bold text-lg">{summary.courses_transfer} courses</span> 
+                    ({summary.uoc_transfer} UOC) will transfer to your target program. You will need to complete 
+                    an additional <span className="font-bold text-lg">{summary.courses_needed} courses</span> totaling <span className="font-bold text-lg">{summary.uoc_needed} UOC</span>.
+                  </p>
+
+                  {/* Stats Grid - MUCH LARGER */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Course Transfer Rate</div>
+                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                        {transfer_analysis.transfer_rate}%
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">of completed courses</div>
+                    </div>
+                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Target Program Progress</div>
+                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                        {summary.progress_percentage}%
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">towards completion</div>
+                    </div>
+                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">UOC Remaining</div>
+                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                        {summary.uoc_needed}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">units left to complete</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Timeline - ENHANCED */}
+                <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border-2 border-slate-300 dark:border-slate-600 min-w-[220px] shadow-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <HiClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                      Timeline
+                    </h3>
+                  </div>
+                  
+                  <div className="text-center mb-4">
+                    <div className="text-5xl font-bold text-slate-900 dark:text-white mb-2">
+                      {summary.estimated_terms}
+                    </div>
+                    <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Terms Remaining
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t-2 border-slate-200 dark:border-slate-700">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wide text-center">
+                      Estimated Completion
+                    </div>
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
+                      {summary.estimated_completion}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                  <span>Degree Completion Progress</span>
+                  <span>{summary.progress_percentage}%</span>
+                </div>
+                <div className="h-3 bg-slate-200/50 dark:bg-slate-700/50 rounded-full overflow-hidden backdrop-blur-sm border border-slate-300 dark:border-slate-600">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-emerald-500 transition-all duration-700 ease-out rounded-full"
+                    style={{ width: `${summary.progress_percentage}%` }}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {recommendation === "Not Yet Started" && (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <HiAcademicCap className="w-16 h-16 text-slate-400 dark:text-slate-500 mb-4" />
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
+                Ready to Start Your Journey
               </p>
-
-              {/* Stats Grid - MUCH LARGER */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Course Transfer Rate</div>
-                  <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                    {transfer_analysis.transfer_rate}%
-                  </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">of completed courses</div>
-                </div>
-                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Target Program Progress</div>
-                  <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                    {summary.progress_percentage}%
-                  </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">towards completion</div>
-                </div>
-                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">UOC Remaining</div>
-                  <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                    {summary.uoc_needed}
-                  </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">units left to complete</div>
-                </div>
-              </div>
+              <p className="text-base text-slate-600 dark:text-slate-400 max-w-md">
+                You'll need to complete <span className="font-bold">{summary.courses_needed} courses</span> ({summary.uoc_needed} UOC) for this program. 
+                Mark courses as completed in your Progress Page to see your transfer analysis.
+              </p>
             </div>
-
-            {/* Right: Timeline - ENHANCED */}
-            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border-2 border-slate-300 dark:border-slate-600 min-w-[220px] shadow-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <HiClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                  Timeline
-                </h3>
-              </div>
-              
-              <div className="text-center mb-4">
-                <div className="text-5xl font-bold text-slate-900 dark:text-white mb-2">
-                  {summary.estimated_terms}
-                </div>
-                <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Terms Remaining
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t-2 border-slate-200 dark:border-slate-700">
-                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wide text-center">
-                  Estimated Completion
-                </div>
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
-                  {summary.estimated_completion}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
-              <span>Degree Completion Progress</span>
-              <span>{summary.progress_percentage}%</span>
-            </div>
-            <div className="h-3 bg-slate-200/50 dark:bg-slate-700/50 rounded-full overflow-hidden backdrop-blur-sm border border-slate-300 dark:border-slate-600">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-emerald-500 transition-all duration-700 ease-out rounded-full"
-                style={{ width: `${summary.progress_percentage}%` }}
-              />
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
 
 
       {/* TRANSFER ANALYSIS */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
-        
-        {/* Main heading with integrated help */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <HiTrendingUp className="w-6 h-6 text-slate-700 dark:text-slate-300" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Credit Transfer Analysis
-            </h2>
-          </div>
+      {recommendation !== "Not Yet Started" && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
           
-          {/* Help box - integrated smoothly */}
-          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-            <HiInformationCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-            <p className="text-base font-semibold text-slate-800 dark:text-slate-200">
-              Shows which completed courses will count toward your target program and which won't transfer.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Transferred Courses */}
-          <div>
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
-              <HiCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                Transferring Courses
-              </h3>
-              <span className="ml-auto text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded">
-                {transfer_analysis.transferred_courses.length} courses
-              </span>
+          {/* Main heading with integrated help */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <HiTrendingUp className="w-6 h-6 text-slate-700 dark:text-slate-300" />
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                Credit Transfer Analysis
+              </h2>
             </div>
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-              {transfer_analysis.transferred_courses.map((course) => (
-                <div
-                  key={course.code}
-                  className="p-3 bg-emerald-50/40 dark:bg-emerald-950/10 rounded-lg border border-emerald-200/50 dark:border-emerald-800/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors shadow-sm"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
+            
+            {/* Help box - integrated smoothly */}
+            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <HiInformationCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+              <p className="text-base font-semibold text-slate-800 dark:text-slate-200">
+                Shows which completed courses will count toward your target program and which won't transfer.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Transferred Courses */}
+            <div>
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+                <HiCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                  Transferring Courses
+                </h3>
+                <span className="ml-auto text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded">
+                  {transfer_analysis.transferred_courses.length} courses
+                </span>
+              </div>
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                {transfer_analysis.transferred_courses.map((course) => (
+                  <div
+                    key={course.code}
+                    className="p-3 bg-emerald-50/40 dark:bg-emerald-950/10 rounded-lg border border-emerald-200/50 dark:border-emerald-800/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">
+                          {course.code}
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                          {course.uoc} UOC
+                        </p>
+                      </div>
+                      {course.match_type === "equivalent" && (
+                        <span className="px-2 py-1 rounded-md bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                          EQUIVALENT
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Non-transferring Courses */}
+            <div>
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+                <HiXCircle className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                  Non-Transferring Courses
+                </h3>
+                <span className="ml-auto text-xs font-bold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                  {transfer_analysis.wasted_courses.length} courses
+                </span>
+              </div>
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                {transfer_analysis.wasted_courses.length > 0 ? (
+                  transfer_analysis.wasted_courses.map((course) => (
+                    <div
+                      key={course.code}
+                      className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
+                    >
                       <p className="font-bold text-slate-900 dark:text-white text-sm">
                         {course.code}
                       </p>
@@ -293,58 +362,23 @@ export default function ComparisonResults({
                         {course.uoc} UOC
                       </p>
                     </div>
-                    {course.match_type === "equivalent" && (
-                      <span className="px-2 py-1 rounded-md bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
-                        EQUIVALENT
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Non-transferring Courses */}
-          <div>
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
-              <HiXCircle className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                Non-Transferring Courses
-              </h3>
-              <span className="ml-auto text-xs font-bold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                {transfer_analysis.wasted_courses.length} courses
-              </span>
-            </div>
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-              {transfer_analysis.wasted_courses.length > 0 ? (
-                transfer_analysis.wasted_courses.map((course) => (
-                  <div
-                    key={course.code}
-                    className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
-                  >
-                    <p className="font-bold text-slate-900 dark:text-white text-sm">
-                      {course.code}
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <HiAcademicCap className="w-12 h-12 text-emerald-500 dark:text-emerald-400 mb-2" />
+                    <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                      All courses transfer!
                     </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
-                      {course.uoc} UOC
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Your completed coursework fully applies
                     </p>
                   </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <HiAcademicCap className="w-12 h-12 text-emerald-500 dark:text-emerald-400 mb-2" />
-                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                    All courses transfer!
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Your completed coursework fully applies
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* REQUIRED COURSES */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">

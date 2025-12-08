@@ -21,6 +21,7 @@ import { supabase } from "../supabaseClient";
 
 const DEFAULT_PROGRAM_NAME = "Selected degree";
 const DEFAULT_UAC_CODE = "—";
+
 const KEYBOARD_NAV_KEYS = {
   ARROW_RIGHT: "ArrowRight",
   ARROW_LEFT: "ArrowLeft"
@@ -30,7 +31,6 @@ const KEYBOARD_NAV_KEYS = {
 const extractStepIndexFromUrl = (searchParams) => {
   const stepParam = new URLSearchParams(searchParams).get("step");
   if (!stepParam) return 0;
-  
   const idx = Math.max(0, parseInt(stepParam, 10) - 1);
   return Number.isFinite(idx) ? idx : 0;
 };
@@ -47,7 +47,6 @@ const useDegreeData = (degreeCode) => {
   useEffect(() => {
     const fetchDegree = async () => {
       if (!degreeCode) return;
-
       try {
         const { data: degree, error } = await supabase
           .from("unsw_degrees_final")
@@ -70,20 +69,17 @@ const useDegreeData = (degreeCode) => {
 
 const extractDegreeCode = (degree) => {
   if (!degree) return null;
-  
   const finalCode = degree.code || degree.degree_code || degree.program_code || null;
-  
   if (!finalCode) {
     console.warn("extractDegreeCode: No valid degree code found");
   }
-  
   return finalCode;
 };
 
 const getSelectionRank = (entryRequirements) => {
   return entryRequirements?.selectionRank ?? 
-         entryRequirements?.selection_rank ?? 
-         null;
+    entryRequirements?.selection_rank ?? 
+    null;
 };
 
 const useRoadmapData = (
@@ -131,8 +127,6 @@ const useRoadmapData = (
     fetchByIdIfNeeded();
   }, [preloadedRoadmapId, data]);
 
-
-
   // Polling effect 
   useEffect(() => {
     if (!preloadedRoadmapId) return;
@@ -152,7 +146,6 @@ const useRoadmapData = (
         const newSocieties = row?.payload?.industry_societies;
         const newExperience = row?.payload?.industry_experience;
         const newCareers = row?.payload?.career_pathways;
-
         const existingSocieties = data?.payload?.industry_societies;
         const existingExperience = data?.payload?.industry_experience;
         const existingCareers = data?.payload?.career_pathways;
@@ -230,12 +223,11 @@ const useRoadmapData = (
     };
 
     startPolling();
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [preloadedRoadmapId, isRegenerating, setIsRegenerating]);
-
-
 
   const updateHeader = useCallback((degree) => {
     setHeader({
@@ -260,7 +252,7 @@ const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapI
   // Sync activeIndex to URL (without page reload)
   useEffect(() => {
     if (!hasData || !preloadedRoadmapId) return;
-    
+
     const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}`;
     window.history.replaceState(null, '', newUrl);
   }, [activeIndex, hasData, preloadedRoadmapId]);
@@ -327,7 +319,6 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
 
 // --- Main Component ---
 export default function RoadmapUNSWPage() {
-
   const { state, search } = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(search);
@@ -335,18 +326,18 @@ export default function RoadmapUNSWPage() {
   const degree = state?.degree || null;
   const preloadedPayload = state?.payload || null;
   const preloadedRoadmapId = state?.roadmap_id || searchParams.get('id') || null;
-  
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-  const getUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUserId(user?.id);
-  };
-  getUser();
-}, []);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id);
+    };
+    getUser();
+  }, []);
 
   const { data, loading, error, header, updateHeader } = useRoadmapData(
     preloadedPayload,
@@ -396,7 +387,6 @@ export default function RoadmapUNSWPage() {
               </div>
             );
           }
-          
           return <ProgramStructureUNSW degreeCode={degreeCodeValue} />;
         },
       },
@@ -411,7 +401,6 @@ export default function RoadmapUNSWPage() {
               </div>
             );
           }
-          
           return <SpecialisationUNSW degreeCode={degreeCodeValue} />;
         },
       },
@@ -420,7 +409,6 @@ export default function RoadmapUNSWPage() {
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
       },
-
       {
         key: "flex",
         title: "Flexibility",
@@ -433,12 +421,10 @@ export default function RoadmapUNSWPage() {
           />
         ),
       },
-      
       {
         key: "societies",
         title: "Societies & Community",
         render: () => {
-
           if (isRegenerating) {
             return (
               <GeneratingMessage
@@ -464,7 +450,6 @@ export default function RoadmapUNSWPage() {
         key: "industry_experience",
         title: "Industry Experience & Training",
         render: () => {
-
           if (isRegenerating) {
             return (
               <GeneratingMessage
@@ -473,6 +458,7 @@ export default function RoadmapUNSWPage() {
               />
             );
           }
+
           const experience = data?.payload?.industry_experience;
           if (!experience || Object.keys(experience).length === 0) {
             return (
@@ -521,13 +507,14 @@ export default function RoadmapUNSWPage() {
   );
 
   const sources = normalizeSources(data);
+
   const headerProgramName =
     activeDegree?.degree_name ||
     activeDegree?.program_name ||
     header.program_name ||
     DEFAULT_PROGRAM_NAME;
-  const headerUac = activeDegree?.uac_code ?? header.uac_code ?? DEFAULT_UAC_CODE;
 
+  const headerUac = activeDegree?.uac_code ?? header.uac_code ?? DEFAULT_UAC_CODE;
   const entryRequirements = data?.entry_requirements || {};
   const programStructure = data?.program_structure || {};
 
@@ -536,9 +523,9 @@ export default function RoadmapUNSWPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200
-                dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
-                text-primary transition-colors duration-500">
- 
+                    dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
+                    text-primary transition-colors duration-500">
+      
       {/* background glow */}
       <div aria-hidden>
         <div className="roadmap-glow-top" />
@@ -548,7 +535,8 @@ export default function RoadmapUNSWPage() {
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 
-      <div className="max-w-[1600px] mx-auto pt-20 pb-10 px-4 md:px-6">
+      <div className="mx-20 pt-20 pb-10">
+        
         {/* Back button */}
         <button
           onClick={handleBackClick}
@@ -566,23 +554,21 @@ export default function RoadmapUNSWPage() {
                                  bg-white/80 dark:bg-slate-900/70 
                                  border border-slate-200/70 dark:border-slate-700/60 
                                  backdrop-blur-md">
-                                  
           <div className="relative p-8">
             <div className="absolute inset-x-0 top-0 h-[3px]
-                bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600
-                dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400
-                rounded-t-3xl" />
+                            bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600
+                            dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400
+                            rounded-t-3xl" />
 
             <SectionTitle
               icon={<UniIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
               subtitle="UNSW Mode"
             >
               <span className="font-extrabold text-transparent bg-clip-text
-                 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
-                 dark:from-white dark:via-slate-200 dark:to-white">
+                               bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
+                               dark:from-white dark:via-slate-200 dark:to-white">
                 {headerProgramName}
               </span>
-
             </SectionTitle>
 
             {data && (
@@ -640,7 +626,6 @@ export default function RoadmapUNSWPage() {
                     </Pill>
                   )}
                 </div>
-
               </div>
             )}
           </div>
@@ -652,7 +637,6 @@ export default function RoadmapUNSWPage() {
                                   bg-white/70 dark:bg-slate-900/60 
                                   border border-slate-200/60 dark:border-slate-700/60 
                                   backdrop-blur-sm">
-
             <div className="p-4 md:p-6">
               <ContentSection
                 data={data}
