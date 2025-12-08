@@ -357,7 +357,7 @@ export default function ComparePage() {
   // UI
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="fixed top-0 left-0 right-0 z-50">
           <DashboardNavBar onMenuClick={openDrawer} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
@@ -367,7 +367,7 @@ export default function ComparePage() {
             <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
               <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
             </div>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-slate-500 dark:text-slate-400">
               Loading comparison data...
             </p>
           </div>
@@ -377,7 +377,7 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
@@ -385,100 +385,101 @@ export default function ComparePage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
+        <div className="mx-20">
 
-        <div className="bg-gradient-to-b from-blue-50/10 via-transparent to-purple-50/10 dark:from-blue-950/5 dark:via-transparent dark:to-purple-950/5">
-          <div className="flex flex-col justify-center h-full px-6 lg:px-10 xl:px-20">
-
-            {/* BACK BUTTON */}
-            <div className="mt-6">
-              <button
-                onClick={() => navigate("/progress")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm hover:shadow-md"
-              >
-                <HiArrowRight className="w-5 h-5 rotate-180" />
-                <span>Back to Progress Page</span>
-              </button>
-            </div>
-
-            {/* HEADER */}
-            <div className="mt-6 mb-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
+          {/* HEADER */}
+          <div className="mt-12 mb-10">
+            <div className="flex items-center justify-between gap-6 flex-wrap mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-sm">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-purple-500" />
                 Compare Programs
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-bold mt-3 text-slate-900 dark:text-white">
-                Program{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600">
-                  Comparison
-                </span>
-              </h1>
-
-              <p className="text-base font-semibold text-slate-800 dark:text-slate-200 mt-3">
-                See which courses transfer and what's needed to switch programs
-              </p>
+              <button
+                onClick={() => navigate("/progress")}
+                className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm hover:shadow-md transition-all"
+              >
+                <HiArrowRight className="w-5 h-5 rotate-180" />
+                <span>Back to Progress</span>
+              </button>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50/40 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm shadow">
-                {error}
-              </div>
-            )}
+            <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight">
+              Program{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-purple-500">
+                Comparison
+              </span>
+            </h1>
 
-            {/* Loading */}
-            {loading && (
-              <div className="flex items-center justify-center py-12">
+            <p className="text-lg text-slate-600 dark:text-slate-400 mt-4 max-w-2xl">
+              See which courses transfer and what's needed to switch programs
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-8 p-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-300 shadow-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
                 <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
                   <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
                 </div>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Comparing programs...
+                </p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Program Selector View */}
-            {!loading && viewMode === "selector" && (
-              <ProgramSelector
-                isBase={false}
-                searchValue={searchTarget}
-                setSearchValue={setSearchTarget}
-                filteredPrograms={filteredTargetPrograms}
-                program={targetProgram}
-                onSelectProgram={async (p) => {
-                  if (!p) {
-                    // Clear selection
-                    setTargetProgram(null);
-                    setTargetSelectedSpecs([]);
-                    setTargetSpecsOptions([]);
-                    return;
-                  }
-                  setTargetProgram({ code: p.degree_code, name: p.program_name });
+          {/* Program Selector View */}
+          {!loading && viewMode === "selector" && (
+            <ProgramSelector
+              isBase={false}
+              searchValue={searchTarget}
+              setSearchValue={setSearchTarget}
+              filteredPrograms={filteredTargetPrograms}
+              program={targetProgram}
+              onSelectProgram={async (p) => {
+                if (!p) {
+                  // Clear selection
+                  setTargetProgram(null);
                   setTargetSelectedSpecs([]);
-                  await fetchSpecialisationsForProgram(p.degree_code, false);
-                }}
-                specsOptions={targetSpecsOptions}
-                specsByType={targetSpecsByType}
-                selectedSpecs={targetSelectedSpecs}
-                toggleSpec={toggleSpec}
-                goNext={handleSaveAndCompare}
-                navigate={navigate}
-                baseProgram={baseProgram}
-                baseSpecsOptions={baseSpecsOptions}
-                baseSelectedSpecs={baseSelectedSpecs}
-              />
-            )}
+                  setTargetSpecsOptions([]);
+                  return;
+                }
+                setTargetProgram({ code: p.degree_code, name: p.program_name });
+                setTargetSelectedSpecs([]);
+                await fetchSpecialisationsForProgram(p.degree_code, false);
+              }}
+              specsOptions={targetSpecsOptions}
+              specsByType={targetSpecsByType}
+              selectedSpecs={targetSelectedSpecs}
+              toggleSpec={toggleSpec}
+              goNext={handleSaveAndCompare}
+              navigate={navigate}
+              baseProgram={baseProgram}
+              baseSpecsOptions={baseSpecsOptions}
+              baseSelectedSpecs={baseSelectedSpecs}
+            />
+          )}
 
-            {/* Comparison Results View */}
-            {!loading && viewMode === "results" && comparisonData && (
-              <ComparisonResults
-                comparisonData={comparisonData}
-                onReselect={handleReselectProgram}
-                baseSelectedSpecs={baseSelectedSpecs}
-                targetSelectedSpecs={targetSelectedSpecs}
-                baseSpecsOptions={baseSpecsOptions}
-                targetSpecsOptions={targetSpecsOptions}
-              />
-            )}
-          </div>
+          {/* Comparison Results View */}
+          {!loading && viewMode === "results" && comparisonData && (
+            <ComparisonResults
+              comparisonData={comparisonData}
+              onReselect={handleReselectProgram}
+              baseSelectedSpecs={baseSelectedSpecs}
+              targetSelectedSpecs={targetSelectedSpecs}
+              baseSpecsOptions={baseSpecsOptions}
+              targetSpecsOptions={targetSpecsOptions}
+            />
+          )}
         </div>
       </div>
     </div>
