@@ -233,33 +233,28 @@ async def compare_programs(request: ProgramComparisonRequest):
         )
         critical_issues = [CriticalIssue(**issue) for issue in critical_issues_raw]
 
-        # Prepare all needed courses with level info for difficulty calculation
-        all_needed_courses_with_levels = []
+        # Count prerequisite issues
+        courses_with_prereq_issues = []
         for level_group in requirements_by_level.values():
             for course in level_group.courses:
-                all_needed_courses_with_levels.append({
-                    "code": course.get("code"),
-                    "level": course.get("level", 0),
-                    "has_prereq_issue": course.get("has_prereq_issue", False),
-                    "missing_prerequisites": course.get("missing_prerequisites", [])
-                })
+                if course.get("has_prereq_issue", False):
+                    courses_with_prereq_issues.append({
+                        "code": course.get("code"),
+                        "level": level_group.level,
+                        "missing": course.get("missing_prerequisites", [])
+                    })
 
         # Generate recommendation
-        # Special case: if no courses completed, show different message
-        if len(completed_courses) == 0:
-            can_transfer = True  # Technically they can transfer, they just haven't started
-            recommendation = "Not Yet Started"
-        else:
-            can_transfer, recommendation = calculate_recommendation(
-                uoc_needed,
-                total_uoc_required,
-                transfer_percentage,
-                critical_issues,
-                len([c for c in all_needed_courses_with_levels if c.get("has_prereq_issue")]),
-                len(completed_courses),
-                len(needed_courses),
-                all_needed_courses_with_levels  # Pass ALL courses with level info
-            )
+        can_transfer, recommendation = calculate_recommendation(
+            uoc_needed,
+            total_uoc_required,
+            transfer_percentage,
+            critical_issues,
+            len(courses_with_prereq_issues),
+            len(completed_courses),
+            len(needed_courses),
+            courses_with_prereq_issues
+        )
 
         # Build response
         logger.info(f"Recommendation: {recommendation}, Can transfer: {can_transfer}")

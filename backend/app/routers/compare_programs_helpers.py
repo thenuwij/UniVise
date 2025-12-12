@@ -309,7 +309,6 @@ def group_courses_by_level(courses: List[Dict[str, Any]], completed_codes: set) 
             "name": course["title"],
             "uoc": course["uoc"],
             "category": course.get("category", ""),
-            "level": level,  # Add level to course data for difficulty calculation
             "has_prereq_issue": has_issue,
             "missing_prerequisites": missing_prereqs,
             "prereq_type": prereq_info.get("type", "none")
@@ -394,142 +393,70 @@ def calculate_recommendation(
     """
     Determine transfer feasibility and difficulty from student's perspective.
     Returns (can_transfer, recommendation)
-    
-    Improved scoring system (0-100 points, lower = easier):
-    - 0-25: Easy Transfer
-    - 26-45: Moderate Effort  
-    - 46-65: Significant Commitment
-    - 66-85: Very Difficult
-    - 86+: Nearly Impossible (can_transfer = False)
     """
     
-    logger.info(f"Calculating difficulty (improved algorithm):")
+    logger.info(f"Calculating difficulty (student-focused):")
     logger.info(f"  Transfer rate: {transfer_percentage:.1f}%")
     logger.info(f"  Courses completed: {completed_courses_count}")
     logger.info(f"  Courses needed: {courses_needed_count}")
-    logger.info(f"  UOC needed: {uoc_needed}/{total_uoc_required}")
     
     score = 0
     
-    # 1. OVERALL PROGRESS (0-25 points) - Most important factor
-    # Consider how much of the degree is already complete
-    progress_percentage = ((total_uoc_required - uoc_needed) / max(total_uoc_required, 1)) * 100
-    
-    if progress_percentage >= 75:  # Almost done
-        progress_score = 0
-    elif progress_percentage >= 50:  # Halfway
-        progress_score = 8
-    elif progress_percentage >= 25:  # Quarter done
-        progress_score = 15
-    else:  # Just starting
-        progress_score = 25
-    
-    score += progress_score
-    logger.info(f"  Overall progress: {progress_percentage:.1f}% → +{progress_score} points")
-    
-    # 2. TRANSFER EFFICIENCY (0-20 points) - How well courses transfer
-    if transfer_percentage >= 80:  # Excellent transfer
+    # Transfer Efficiency (0-30 points)
+    if transfer_percentage >= 80:
         transfer_score = 0
-    elif transfer_percentage >= 60:  # Good transfer
-        transfer_score = 5
-    elif transfer_percentage >= 40:  # Moderate transfer
+    elif transfer_percentage >= 60:
         transfer_score = 10
-    elif transfer_percentage >= 20:  # Poor transfer
-        transfer_score = 15
-    else:  # Very poor transfer
+    elif transfer_percentage >= 40:
         transfer_score = 20
+    elif transfer_percentage >= 20:
+        transfer_score = 25
+    else:
+        transfer_score = 30
     
     score += transfer_score
     logger.info(f"  Transfer efficiency: {transfer_percentage:.1f}% → +{transfer_score} points")
     
-    # 3. REMAINING WORKLOAD (0-25 points) - Absolute course count
-    if courses_needed_count <= 8:  # 1 year or less
+    # Remaining Workload (0-40 points)
+    if courses_needed_count <= 6:
         workload_score = 0
-    elif courses_needed_count <= 16:  # ~2 years
-        workload_score = 8
-    elif courses_needed_count <= 24:  # ~3 years
-        workload_score = 15
-    elif courses_needed_count <= 32:  # ~4 years
+    elif courses_needed_count <= 12:
+        workload_score = 10
+    elif courses_needed_count <= 18:
         workload_score = 20
-    else:  # More than 4 years
-        workload_score = 25
+    elif courses_needed_count <= 24:
+        workload_score = 30
+    else:
+        workload_score = 40
     
     score += workload_score
     logger.info(f"  Remaining workload: {courses_needed_count} courses → +{workload_score} points")
     
-    # 4. COURSE LEVEL DIFFICULTY (0-15 points) - Weight by course levels
-    # Level 3-4 courses are significantly harder than Level 1-2
-    level_penalties = {
-        1: 0.3,   # Level 1 is easiest
-        2: 0.5,   # Level 2 moderate
-        3: 1.0,   # Level 3 hard
-        4: 1.5,   # Level 4 hardest
-        0: 0.5    # Unknown level, assume moderate
-    }
-    
-    level_difficulty = 0
-    level_breakdown = {1: 0, 2: 0, 3: 0, 4: 0, 0: 0}
-    
-    for course in courses_with_prereqs:
-        level = course.get("level", 0)
-        level_breakdown[level] = level_breakdown.get(level, 0) + 1
-        level_difficulty += level_penalties.get(level, 0.5)
-    
-    level_score = min(15, level_difficulty * 0.5)  # Cap at 15 points
-    score += level_score
-    logger.info(f"  Course level difficulty: L1={level_breakdown.get(1,0)}, L2={level_breakdown.get(2,0)}, L3={level_breakdown.get(3,0)}, L4={level_breakdown.get(4,0)} → +{level_score:.1f} points")
-    
-    # 5. PREREQUISITE COMPLEXITY (0-15 points)
-    is_early_student = completed_courses_count < 18
-    
-    # Count relevant prerequisite issues
-    relevant_prereq_issues = 0
-    for course_info in courses_with_prereqs:
-        course_level = course_info.get("level", 0)
-        # Early students: ignore Level 3+ prereq issues (they'll handle them later)
-        if is_early_student and course_level >= 3:
-            continue
-        relevant_prereq_issues += 1
-    
-    if relevant_prereq_issues == 0:
-        prereq_score = 0
-    elif relevant_prereq_issues <= 3:
-        prereq_score = 3
-    elif relevant_prereq_issues <= 6:
-        prereq_score = 7
-    elif relevant_prereq_issues <= 10:
-        prereq_score = 11
-    else:
-        prereq_score = 15
-    
-    score += prereq_score
-    logger.info(f"  Prerequisite issues (relevant): {relevant_prereq_issues} → +{prereq_score} points")
-    
-    # 6. TIME TO COMPLETION (0-10 points)
-    estimated_terms = max(1, (uoc_needed + 17) // 18)
-    
-    if estimated_terms <= 2:  # ≤1 year
-        time_score = 0
-    elif estimated_terms <= 4:  # ≤2 years
-        time_score = 3
-    elif estimated_terms <= 6:  # ≤3 years
-        time_score = 6
-    else:  # 3+ years
-        time_score = 10
-    
-    score += time_score
-    logger.info(f"  Time to completion: {estimated_terms} terms → +{time_score} points")
-    
-    # 7. CRITICAL BLOCKERS (0-10 points)
+    # Critical Blockers (0-30 points)
     blocker_score = 0
     
     # Faculty change
     faculty_change_issues = [i for i in critical_issues if (i.type if hasattr(i, 'type') else i.get('type')) == "faculty_change"]
     if faculty_change_issues:
-        blocker_score += 5
-        logger.info(f"  Faculty change detected → +5 points")
+        blocker_score += 15
+        logger.info(f"  Faculty change detected → +15 points")
     
-    # Heavy advanced course load (for non-early students)
+    # Prerequisite issues
+    is_early_student = completed_courses_count < 18
+    
+    level_1_2_prereq_issues = 0
+    for course_info in courses_with_prereqs:
+        course_level = course_info.get("level", 0)
+        if is_early_student and course_level >= 3:
+            continue
+        level_1_2_prereq_issues += 1
+    
+    if level_1_2_prereq_issues > 0:
+        prereq_penalty = min(10, level_1_2_prereq_issues * 0.5)
+        blocker_score += prereq_penalty
+        logger.info(f"  Prereq issues (relevant): {level_1_2_prereq_issues} → +{prereq_penalty:.1f} points")
+    
+    # Heavy advanced course load
     if not is_early_student:
         advanced_issues = [i for i in critical_issues if (i.type if hasattr(i, 'type') else i.get('type')) == "advanced_requirements"]
         if advanced_issues:
@@ -537,32 +464,20 @@ def calculate_recommendation(
             logger.info(f"  Heavy advanced load → +5 points")
     
     score += blocker_score
-    logger.info(f"  Critical blockers: +{blocker_score} points")
+    logger.info(f"  Total blockers: +{blocker_score} points")
+    logger.info(f"  TOTAL SCORE: {score}/100")
     
-    # FINAL SCORE
-    logger.info(f"  ═══════════════════════════════")
-    logger.info(f"  TOTAL SCORE: {score:.1f}/100")
-    logger.info(f"  ═══════════════════════════════")
-    
-    # Determine recommendation with improved thresholds
     can_transfer = True
-    
-    if score <= 25:
+    if score <= 30:
         recommendation = "Easy Transfer"
-        logger.info(f"  → RECOMMENDATION: Easy Transfer (minimal effort required)")
-    elif score <= 45:
+    elif score <= 69:
         recommendation = "Moderate Effort"
-        logger.info(f"  → RECOMMENDATION: Moderate Effort (reasonable commitment)")
-    elif score <= 65:
-        recommendation = "Significant Commitment"
-        logger.info(f"  → RECOMMENDATION: Significant Commitment (substantial work needed)")
-    elif score <= 85:
-        recommendation = "Very Difficult"
-        logger.info(f"  → RECOMMENDATION: Very Difficult (major undertaking)")
     else:
         recommendation = "Very Difficult"
-        can_transfer = False
-        logger.info(f"  → RECOMMENDATION: Very Difficult (nearly impossible, consider alternatives)")
+        if score > 85:
+            can_transfer = False
+    
+    logger.info(f"  → RECOMMENDATION: {recommendation}")
     
     return can_transfer, recommendation
 
