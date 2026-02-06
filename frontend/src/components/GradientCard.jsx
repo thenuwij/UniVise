@@ -1,7 +1,3 @@
-/** @file GradientCard.jsx
- *  Gradient border card shell to ensure consistent framing across pages.
- */
-
 export default function GradientCard({ children, className = "" }) {
   return (
     <div

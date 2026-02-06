@@ -2,24 +2,21 @@
 import { useState } from "react";
 import SaveButton from "../SaveButton";
 
-import { 
-  Briefcase, 
-  Clock,
-  MapPin,
-  CheckCircle2,
+import {
   AlertCircle,
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Building2,
-  TrendingUp,
-  Calendar,
-  DollarSign
+  Clock,
+  TrendingUp
 } from "lucide-react";
 
 export default function IndustrySection({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
 
-  // Backend-aligned fields
   const mandatoryPlacements = industryExperience?.mandatory_placements;
   const internshipPrograms = industryExperience?.internship_programs || [];
   const topCompanies = industryExperience?.top_recruiting_companies || [];

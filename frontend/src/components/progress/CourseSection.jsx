@@ -1,36 +1,52 @@
 // src/components/progress/CourseSection.jsx
-import React from "react";
-import CourseRow from "./CourseRow";
 import { HiPlus } from "react-icons/hi";
+import CourseRow from "./CourseRow";
 
-export default function CourseSection({ section, completedCourses, userId, onCourseUpdate }) {
+export default function CourseSection({ section, completedCourses, userId, onCourseUpdate, colorTheme = "blue" }) {
   const hasCourses = section.courses && section.courses.length > 0;
   
-  // Check if section is for electives or general education
   const isElectiveSection = section.title.toLowerCase().includes("elective") || 
     section.title.toLowerCase().includes("general education");
 
+  const colors = {
+    blue: {
+      border: "border-blue-400 dark:border-blue-600",
+      bg: "bg-gradient-to-r from-blue-50/20 to-transparent dark:from-blue-950/10 dark:to-transparent",
+      badge: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+      button: "border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300",
+      buttonHover: "hover:bg-blue-50 dark:hover:bg-blue-900/30"
+    },
+    purple: {
+      border: "border-purple-400 dark:border-purple-600",
+      bg: "bg-gradient-to-r from-purple-50/20 to-transparent dark:from-purple-950/10 dark:to-transparent",
+      badge: "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+      button: "border-purple-400 dark:border-purple-600 text-purple-700 dark:text-purple-300",
+      buttonHover: "hover:bg-purple-50 dark:hover:bg-purple-900/30"
+    }
+  };
+
+  const theme = colors[colorTheme];
+
   return (
-    <div className="border-l-2 border-blue-400 dark:border-blue-600 pl-3 mb-3">
-      {/* Super Compact Section Header */}
-      <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+    <div className={`border-l-4 ${theme.border} pl-4 mb-4 ${theme.bg} rounded-r-lg py-3`}>
+      
+      <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">
           {section.title}
         </h3>
         {section.uoc && (
-          <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+          <span className={`text-xs font-bold px-2 py-1 rounded-md ${theme.badge} border`}>
             {section.uoc} UOC
           </span>
         )}
       </div>
 
-      {/* Compact Description & Notes */}
       {(section.description || section.notes) && (
-        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 space-y-0.5">
+        <div className="text-xs text-slate-600 dark:text-slate-400 mb-3 space-y-1 font-medium">
           {section.description && <p>{section.description}</p>}
           {section.notes && (
-            <p className="text-amber-600 dark:text-amber-400">
-              <span className="font-semibold">Note:</span> {section.notes}
+            <p className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded border-l-2 border-amber-500">
+              <span className="font-bold">Note:</span> {section.notes}
             </p>
           )}
         </div>
@@ -38,8 +54,7 @@ export default function CourseSection({ section, completedCourses, userId, onCou
 
       {hasCourses ? (
         <>
-          {/* 2-COLUMN GRID LAYOUT FOR COURSES */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
             {section.courses.map((course) => {
               const completed = completedCourses.find((c) => c.course_code === course.code);
               return (
@@ -55,41 +70,39 @@ export default function CourseSection({ section, completedCourses, userId, onCou
             })}
           </div>
 
-          {/* Show Add Course button for elective sections */}
           {isElectiveSection && (
             <button
               onClick={() => {
                 window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-blue-400 dark:border-blue-600 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed ${theme.button} text-sm font-bold ${theme.buttonHover} transition-all`}
             >
-              <HiPlus className="w-3.5 h-3.5" />
-              <span>Add More</span>
+              <HiPlus className="w-4 h-4" />
+              <span>Add More Courses</span>
             </button>
           )}
         </>
       ) : (
-        // No courses - show compact version
         <>
           {isElectiveSection ? (
-            <div className="p-2.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                No predefined courses. Add from course detail pages.
+            <div className="p-4 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 font-medium">
+                No predefined courses. Add courses from the course explorer.
               </p>
               <button
                 onClick={() => {
                   window.location.href = `/explore-by-course?section=${encodeURIComponent(section.title)}`;
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
               >
-                <HiPlus className="w-3.5 h-3.5" />
+                <HiPlus className="w-4 h-4" />
                 <span>Add Course</span>
               </button>
             </div>
           ) : (
-            <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Courses vary by specialisation. Select above to see requirements.
+            <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                Courses vary by specialisation. Select your specialisation above to see requirements.
               </p>
             </div>
           )}

@@ -1,9 +1,8 @@
 // src/components/CourseRow.jsx
-import React, { useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { useState } from "react";
 import { HiCheckCircle, HiPencil } from "react-icons/hi";
+import { supabase } from "../../supabaseClient";
 
-// Helper function to recalculate stats
 async function recalculateStats(userId) {
   const { data: courses } = await supabase
     .from("user_completed_courses")
@@ -52,7 +51,7 @@ export default function CourseRow({
   completed, 
   userId, 
   category, 
-  courseSource,  // NEW: { source_type, source_code }
+  courseSource, 
   onUpdate 
 }) {
   const [isCompleted, setIsCompleted] = useState(!!completed?.is_completed);
@@ -92,10 +91,14 @@ export default function CourseRow({
       return;
     }
 
+    // AUTO-COMPLETE: When entering a mark, automatically mark course as completed
     if (completed) {
       await supabase
         .from("user_completed_courses")
-        .update({ mark: markValue })
+        .update({ 
+          mark: markValue,
+          is_completed: true  // AUTO-MARK AS COMPLETED
+        })
         .eq("id", completed.id);
     } else {
       await supabase.from("user_completed_courses").insert({
@@ -104,42 +107,48 @@ export default function CourseRow({
         course_name: course.name,
         uoc: course.uoc,
         mark: markValue,
+        is_completed: true,  // AUTO-MARK AS COMPLETED
         category: category,
         source_type: courseSource?.source_type || 'program',
         source_code: courseSource?.source_code || null,
       });
     }
 
+    // Update local state to reflect completion
+    setIsCompleted(true);
     setEditingMark(false);
+    
     await recalculateStats(userId);
     onUpdate();
   };
 
   return (
     <div
-      className={`flex items-center justify-between p-3 rounded-lg border-2 transition ${
+      className={`flex items-center justify-between p-3 rounded-lg border transition-all shadow-sm ${
         isCompleted
-          ? "border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700"
-          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+          ? "border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 dark:border-green-600"
+          : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md"
       }`}
     >
       <div className="flex items-center gap-3 flex-1">
         <button
           onClick={handleToggleComplete}
-          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
+          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
             isCompleted
               ? "bg-green-500 border-green-500"
-              : "border-gray-300 dark:border-gray-600 hover:border-green-500"
+              : "border-slate-400 dark:border-slate-500 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
           }`}
         >
           {isCompleted && <HiCheckCircle className="w-4 h-4 text-white" />}
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+          <p className="font-bold text-sm text-slate-900 dark:text-white">
             {course.code} - {course.name}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400">{course.uoc} UOC</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
+            {course.uoc} UOC
+          </p>
         </div>
       </div>
 
@@ -154,17 +163,17 @@ export default function CourseRow({
               value={mark}
               onChange={(e) => setMark(e.target.value)}
               placeholder="Mark"
-              className="w-20 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-sm"
+              className="w-20 px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 outline-none"
             />
             <button
               onClick={handleMarkSave}
-              className="px-3 py-1 rounded bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition"
+              className="px-3 py-1 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition"
             >
               Save
             </button>
             <button
               onClick={() => setEditingMark(false)}
-              className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+              className="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition"
             >
               Cancel
             </button>
@@ -172,24 +181,24 @@ export default function CourseRow({
         ) : (
           <>
             {completed?.mark ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                  Mark: {completed.mark}
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700">
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                  {completed.mark}
                 </span>
                 <button
                   onClick={() => {
                     setMark(completed.mark);
                     setEditingMark(true);
                   }}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
+                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded transition"
                 >
-                  <HiPencil className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <HiPencil className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setEditingMark(true)}
-                className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                className="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition"
               >
                 Add Mark
               </button>

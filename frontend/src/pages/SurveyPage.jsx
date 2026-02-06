@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { UserAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'flowbite-react';
-import { supabase } from '../supabaseClient';
-import SurveyForm from '../components/SurveyForm';
-import Logo from '../components/Logo';
-import { useSurvey } from '../context/SurveyContext';
 import { Header } from '../components/Header';
+import SurveyForm from '../components/SurveyForm';
+import { UserAuth } from '../context/AuthContext';
+import { useSurvey } from '../context/SurveyContext';
+import { supabase } from '../supabaseClient';
 
 function SurveyPage() {
   const { session, signOut } = UserAuth();

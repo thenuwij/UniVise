@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../../supabaseClient";
 import { Graph } from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "../../supabaseClient";
 
 export default function useMindMeshData({ isProgramView, session, programCode }) {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
@@ -10,7 +10,7 @@ export default function useMindMeshData({ isProgramView, session, programCode })
   const [programMeta, setProgramMeta] = useState(null);
 
   const fetchGraph = useCallback(async () => {
-    // -------- PROGRAM VIEW --------
+    // Program view
     if (isProgramView) {
       // Fetch program metadata
       if (programCode) {
@@ -37,7 +37,7 @@ export default function useMindMeshData({ isProgramView, session, programCode })
 
       const allowed = new Set(programCoursesCodes);
 
-      // ✅ Fetch course metadata
+      // Fetch course metadata
       try {
         const { data: courseData, error: courseError } = await supabase
           .from("unsw_courses")
@@ -62,11 +62,6 @@ export default function useMindMeshData({ isProgramView, session, programCode })
         setProgramCourses([]);
       }
 
-      // ✅ Fetch edges with comprehensive debugging
-      console.log("=== MINDMESH EDGES DEBUG START ===");
-      console.log("1. Program courses:", programCoursesCodes);
-      console.log("2. Allowed courses set size:", allowed.size);
-
       const [{ data: edgesFrom }, { data: edgesTo }] = await Promise.all([
         supabase
           .from("mindmesh_edges_global")
@@ -78,30 +73,17 @@ export default function useMindMeshData({ isProgramView, session, programCode })
           .in("to_key", programCoursesCodes),
       ]);
 
-      console.log("3. Edges fetched from DB:");
-      console.log("   - edgesFrom count:", edgesFrom?.length || 0);
-      console.log("   - edgesTo count:", edgesTo?.length || 0);
-      console.log("   - Sample edgesFrom:", edgesFrom?.slice(0, 3));
-      console.log("   - Sample edgesTo:", edgesTo?.slice(0, 3));
-
       const allEdges = [...(edgesFrom || []), ...(edgesTo || [])];
-      console.log("4. Combined edges before filter:", allEdges.length);
-      console.log("   - Sample combined:", allEdges.slice(0, 5));
 
       const edges = allEdges.filter(
         (e) => allowed.has(e.from_key) && allowed.has(e.to_key)
       );
-      console.log("5. Edges after filter (both nodes in program):", edges.length);
-      console.log("   - Sample filtered edges:", edges.slice(0, 5));
 
-      // ✅ Fetch nodes
+      // Fetch nodes
       const { data: nodesData } = await supabase
         .from("mindmesh_nodes_global")
         .select("key,label,uoc,faculty,school,level")
         .in("key", programCoursesCodes);
-
-      console.log("6. Nodes fetched from DB:", nodesData?.length || 0);
-      console.log("   - Sample nodes:", nodesData?.slice(0, 3));
 
       const nodes = (nodesData || [])
         .filter((n) => allowed.has(n.key))
@@ -117,9 +99,6 @@ export default function useMindMeshData({ isProgramView, session, programCode })
           },
         }));
 
-      console.log("7. Nodes after mapping:", nodes.length);
-      console.log("   - Node IDs:", nodes.map(n => n.id).slice(0, 10));
-
       const builtGraph = {
         nodes,
         links: edges.map((e) => ({
@@ -132,17 +111,11 @@ export default function useMindMeshData({ isProgramView, session, programCode })
         })),
       };
 
-      console.log("8. Built graph BEFORE layout:");
-      console.log("   - Nodes:", builtGraph.nodes.length);
-      console.log("   - Links:", builtGraph.links.length);
-      console.log("   - Sample links:", builtGraph.links.slice(0, 5));
-
       try {
         const G = new Graph({ type: "undirected", allowSelfLoops: false });
         
         builtGraph.nodes.forEach((n) => !G.hasNode(n.id) && G.addNode(n.id));
         
-        console.log("9. Adding edges to graphology Graph:");
         let edgesAdded = 0;
         let edgesSkipped = 0;
         const validLinks = []; 
@@ -158,10 +131,6 @@ export default function useMindMeshData({ isProgramView, session, programCode })
             edgesSkipped++;
           }
         });
-        
-        console.log(`   - Edges added to Graph: ${edgesAdded}`);
-        console.log(`   - Edges skipped: ${edgesSkipped}`);
-        console.log(`   - Total edges in Graph: ${G.edges().length}`);
 
         builtGraph.nodes.forEach((n) => {
           const labelLength = (n.label || n.id).length;
@@ -184,11 +153,6 @@ export default function useMindMeshData({ isProgramView, session, programCode })
           y: G.getNodeAttribute(n.id, "y") ?? Math.random() * 500,
         }));
 
-        console.log("10. Final graph being set:");
-        console.log("    - Nodes:", laidOutNodes.length);
-        console.log("    - Links:", validLinks.length); 
-        console.log("=== MINDMESH EDGES DEBUG END ===");
-
         setGraph({ 
           nodes: laidOutNodes, 
           links: validLinks  
@@ -201,11 +165,9 @@ export default function useMindMeshData({ isProgramView, session, programCode })
       setDebugInfo({ programCourses: programCoursesCodes, nodes, edges });
       return;
     }
-
-    // -------- USER MINDMESH VIEW --------
+    
     const userId = session?.user?.id;
     if (!userId) return;
-    // (rest unchanged)
   }, [isProgramView, session?.user?.id, programCode]);
 
   useEffect(() => {

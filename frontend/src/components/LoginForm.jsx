@@ -1,9 +1,9 @@
 
-import { Button, Checkbox, Label, TextInput } from "flowbite-react";
-import { useState, useEffect } from "react";
-import { UserAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Button, Label, TextInput } from "flowbite-react";
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
 

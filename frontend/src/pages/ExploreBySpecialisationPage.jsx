@@ -1,18 +1,18 @@
 // src/pages/ExploreBySpecialisationPage.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  HiAcademicCap,
+  HiArrowLeft,
+  HiArrowRight,
+  HiChevronLeft,
+  HiCollection,
+  HiSearch,
+  HiStar,
+} from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  HiSearch,
-  HiAcademicCap,
-  HiStar,
-  HiChevronLeft,
-  HiArrowRight,
-  HiArrowLeft,
-  HiCollection,
-} from "react-icons/hi";
 
 function ExploreBySpecialisationPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +21,6 @@ function ExploreBySpecialisationPage() {
   const [facultyFilter, setFacultyFilter] = useState("");
   const [faculties, setFaculties] = useState([]);
   const [results, setResults] = useState([]);
-
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
   const navigate = useNavigate();
@@ -79,7 +78,6 @@ function ExploreBySpecialisationPage() {
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
-          {/* ENTRY PAGE */}
           {!selectedType && (
             <>
               {/* Back Button */}
@@ -99,14 +97,14 @@ function ExploreBySpecialisationPage() {
                 </div>
               </div>
 
-              {/* Type Selection Cards - Bigger & Better */}
+              {/* Type Selection Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
 
                 {[
                   {
                     type: "Major",
                     icon: <HiStar className="w-7 h-7" />,
-                    gradient: "from-blue-500 to-sky-500",
+                    gradient: "from-indigo-500 to-purple-600",
                     desc: "Primary area of expertise forming the core of your academic focus.",
                   },
                   {
@@ -118,7 +116,7 @@ function ExploreBySpecialisationPage() {
                   {
                     type: "Honours",
                     icon: <HiAcademicCap className="w-7 h-7" />,
-                    gradient: "from-purple-500 to-pink-600",
+                    gradient: "from-indigo-500 to-purple-600",
                     desc: "Advanced research year showcasing your academic excellence.",
                   },
                 ].map(({ type, icon, gradient, desc }) => (
@@ -146,7 +144,7 @@ function ExploreBySpecialisationPage() {
                     <button
                       className={`w-full px-5 py-3 rounded-lg bg-gradient-to-r ${gradient} hover:opacity-90 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2`}
                     >
-                      <span>Explore {type}s</span>
+                      <span>Explore {type === "Honours" ? "Honours" : `${type}s`}</span>
                       <HiArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -192,7 +190,7 @@ function ExploreBySpecialisationPage() {
                     <HiSearch className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                    Search {selectedType}s
+                    Search {selectedType === "Honours" ? "Honours" : `${selectedType}s`}
                   </h2>
                 </div>
 
@@ -202,7 +200,7 @@ function ExploreBySpecialisationPage() {
                     <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
                       type="text"
-                      placeholder={`Search ${selectedType.toLowerCase()}s...`}
+                      placeholder={`Search ${selectedType === "Honours" ? "honours" : `${selectedType.toLowerCase()}s`}...`}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all outline-none"
@@ -268,7 +266,7 @@ function ExploreBySpecialisationPage() {
                     <HiSearch className="w-8 h-8 text-slate-400" />
                   </div>
                   <p className="text-slate-500 dark:text-slate-400 text-base">
-                    No {selectedType.toLowerCase()}s found. Try another search.
+                    No {selectedType === "Honours" ? "honours" : `${selectedType.toLowerCase()}s`} found. Try another search.
                   </p>
                 </div>
               )}

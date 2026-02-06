@@ -1,5 +1,5 @@
-import React from "react";
-import { ChevronLeft, Search, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { HiCheckCircle, HiChevronLeft, HiInformationCircle, HiSearch, HiX } from "react-icons/hi";
 
 export default function ProgramSelector({
   isBase,
@@ -14,274 +14,227 @@ export default function ProgramSelector({
   toggleSpec,
   goNext,
   navigate,
-  userEnrolledProgram,
-  handleUseCurrentProgram,
+  baseProgram,
+  baseSpecsOptions,
+  baseSelectedSpecs,
 }) {
-  const title = isBase
-    ? "Select Your Base Program"
-    : "Select Target Program";
+  const selectedProgramRef = useRef(null);
+  const compareButtonRef = useRef(null);
+  const [showArrow, setShowArrow] = useState(false);
 
-  const subtitle = isBase
-    ? "This is your current degree. We'll check which courses can transfer to your target program."
-    : "This is the program you're considering switching to. We'll show you what transfers and what's needed.";
+  useEffect(() => {
+    if (program && selectedProgramRef.current) {
+      setTimeout(() => {
+        selectedProgramRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start'
+        });
+      }, 100);
+    }
+  }, [program]);
+
+  // Auto-scroll to top and show arrow when specialisation is selected
+  useEffect(() => {
+    if (selectedSpecs.length > 0 && compareButtonRef.current) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setShowArrow(true);
+      
+      // Hide arrow after 3 seconds
+      const timer = setTimeout(() => {
+        setShowArrow(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selectedSpecs]);
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header with clear visual hierarchy */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 px-3 py-1 text-xs font-medium mb-3">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
-          {isBase ? "Step 1 of 2" : "Step 1 of 2"}
+    <div className="space-y-6 pb-12">
+      
+      {/* TOP BAR WITH HEADING AND COMPARE BUTTON */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            Select Target Program
+          </h2>
+
+          {/* COMPARE BUTTON - TOP RIGHT */}
+          <div className="relative">
+            <button
+              ref={compareButtonRef}
+              onClick={goNext}
+              disabled={!program}
+              className={`
+                relative flex items-center gap-3 px-8 py-3.5 whitespace-nowrap
+                bg-gradient-to-r from-blue-600 via-blue-500 to-sky-600 
+                text-white text-base font-bold rounded-xl
+                transition-all duration-300
+                ${program 
+                  ? 'hover:from-blue-700 hover:via-blue-600 hover:to-sky-700 shadow-xl hover:shadow-2xl hover:scale-105 cursor-pointer' 
+                  : 'from-slate-300 to-slate-300 dark:from-slate-700 dark:to-slate-700 text-slate-500 cursor-not-allowed opacity-50'
+                }
+              `}
+              style={program ? {
+                animation: 'glow 2s ease-in-out infinite',
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
+              } : {}}
+            >
+              <span>Compare Programs</span>
+              <HiChevronLeft className="w-5 h-5 rotate-180" />
+            </button>
+
+            {/* ARROW INDICATOR - Points from left to button */}
+            {showArrow && program && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full flex items-center gap-2 animate-bounce pr-4">
+                <span className="text-blue-600 dark:text-blue-400 font-bold text-sm bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg shadow-lg border-2 border-blue-400 whitespace-nowrap">
+                  Click here!
+                </span>
+                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+          </div>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {title}
-        </h2>
-        <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl">
-          {subtitle}
-        </p>
+        
+        {/* SEARCH INPUT */}
+        <div className="relative">
+          <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search programs..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+          />
+        </div>
+
+        {/* PROGRAM LIST OR SELECTED PROGRAM */}
+        <div className="mt-4">
+          {!program ? (
+            /* Program List */
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+              {filteredPrograms.length === 0 ? (
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
+                  No programs found
+                </div>
+              ) : (
+                filteredPrograms.map((p) => (
+                  <button
+                    key={p.degree_code}
+                    onClick={() => onSelectProgram(p)}
+                    className="w-full text-left px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-800 bg-white dark:bg-slate-800 transition-all"
+                  >
+                    <div className="font-bold text-sm text-slate-900 dark:text-white">
+                      {p.program_name}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                      {p.degree_code}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : (
+            /* Selected Program Badge */
+            <div ref={selectedProgramRef} className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+              <div className="flex items-center gap-3">
+                <HiCheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">
+                    {program.name}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+                    {program.code}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => onSelectProgram(null)}
+                className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold"
+              >
+                <HiX className="w-4 h-4" />
+                Change
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Quick Start - More prominent */}
-      {isBase && userEnrolledProgram && (
-        <div className="mb-8 p-5 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl shadow-sm">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 mt-1">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                Already enrolled? Use your current program
-              </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                We'll automatically load your enrolled degree and specialisations
-              </p>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="text-sm text-gray-900 dark:text-white">
-                  <span className="font-bold">
-                    {userEnrolledProgram.program_name}
-                  </span>
-                  <span className="ml-2 text-gray-500 dark:text-gray-400">
-                    ({userEnrolledProgram.degree_code})
-                  </span>
+      {/* SPECIALISATIONS (Only show if program selected) */}
+      {program && specsOptions.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Specialisations (Optional)
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-5">
+            Select one from each category if applicable
+          </p>
+          
+          <div className="space-y-5">
+            {Object.entries(specsByType).map(([type, specs]) => (
+              <div key={type}>
+                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 uppercase tracking-wide">
+                  {type} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">(Select one)</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {specs.map((spec) => {
+                    const isSelected = selectedSpecs.includes(spec.major_code);
+                    return (
+                      <button
+                        key={spec.major_code}
+                        onClick={() => toggleSpec(spec.major_code, isBase)}
+                        className={`text-left p-4 rounded-lg border-2 transition-all ${
+                          isSelected
+                            ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 shadow-md"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <span className="font-bold text-sm text-slate-900 dark:text-white flex-1">
+                            {spec.major_name}
+                          </span>
+                          {isSelected && (
+                            <HiCheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          {spec.major_code}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={handleUseCurrentProgram}
-                  className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
-                >
-                  Use This Program
-                </button>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Main Selection Area */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        {/* Search with icon and better spacing */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            {isBase
-              ? "Or search for a different program"
-              : "Search for your target program"}
-          </label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Type program name or code (e.g., Computer Science, 3778)..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            />
-          </div>
-          {searchValue && (
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Found {filteredPrograms.length} program
-              {filteredPrograms.length !== 1 ? "s" : ""}
+      {/* NO SPECIALISATIONS MESSAGE */}
+      {program && specsOptions.length === 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
+          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+            <HiInformationCircle className="w-6 h-6 flex-shrink-0" />
+            <p className="text-base font-medium">
+              No specialisations found for this program. You can proceed to compare directly.
             </p>
-          )}
-        </div>
-
-        {/* Two column layout with better visual balance */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Left: Program list with better visual feedback */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-              Available Programs
-            </h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-              {filteredPrograms.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No programs found matching "{searchValue}"
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    Try a different search term
-                  </p>
-                </div>
-              ) : (
-                filteredPrograms.map((p) => {
-                  const isSelected = program?.code === p.degree_code;
-                  return (
-                    <button
-                      key={p.degree_code}
-                      onClick={() => onSelectProgram(p)}
-                      className={`w-full text-left px-4 py-3.5 rounded-lg border-2 transition-all ${
-                        isSelected
-                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 shadow-md"
-                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-slate-800"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2">
-                            {p.program_name}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">
-                            {p.degree_code}
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Right: Selected program summary with clearer structure */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-            {!program ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                  No Program Selected
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
-                  Select a program from the list to see details and choose
-                  specialisations
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Selected program card */}
-                <div className="mb-5 p-4 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        Selected Program
-                      </p>
-                      <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                        {program.name}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">
-                        {program.code}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Specialisations section with better hierarchy */}
-                {specsOptions.length > 0 ? (
-                  <div>
-                    <div className="mb-3">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                        Specialisations (Optional)
-                      </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Select any majors, minors or honours to include in the
-                        comparison
-                      </p>
-                    </div>
-                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                      {Object.entries(specsByType).map(([type, specs]) => (
-                        <div key={type}>
-                          <div className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 flex items-center gap-2">
-                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-                            <span>{type}</span>
-                            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-                          </div>
-                          <div className="space-y-1.5">
-                            {specs.map((spec) => {
-                              const isSelected = selectedSpecs.includes(
-                                spec.major_code
-                              );
-                              return (
-                                <button
-                                  key={spec.major_code}
-                                  onClick={() =>
-                                    toggleSpec(spec.major_code, isBase)
-                                  }
-                                  className={`w-full text-left px-3 py-2.5 rounded-lg text-xs border transition-all ${
-                                    isSelected
-                                      ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-900 dark:text-blue-100 shadow-sm"
-                                      : "bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                  }`}
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="font-medium flex-1">
-                                      {spec.major_name}
-                                    </span>
-                                    {isSelected && (
-                                      <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                                    )}
-                                  </div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
-                                    {spec.major_code}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 px-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      No specialisations available for this program
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom navigation - more prominent */}
-      <div className="mt-8 flex items-center justify-between">
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          {isBase ? "Back to Progress" : "Back to Base Program"}
-        </button>
-
-        <button
-          onClick={goNext}
-          disabled={!program}
-          className="px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-        >
-          {isBase ? "Continue to Target Program" : "Compare Programs"}
-          <ChevronLeft className="w-4 h-4 rotate-180" />
-        </button>
-      </div>
+      {/* Glow animation keyframes */}
+      <style jsx>{`
+        @keyframes glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 50px rgba(59, 130, 246, 0.5);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,3 @@
-/** @file InlineIcons.jsx
- *  Small dependency-free SVG icons used across Roadmap pages.
- *  Keep these presentational (no state) for easy reuse and tree-shaking.
- */
 
 /** @param {React.SVGProps<SVGSVGElement>} props */
 export const ArrowLeft = (props) => (

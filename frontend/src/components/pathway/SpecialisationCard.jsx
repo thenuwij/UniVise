@@ -1,9 +1,7 @@
 // src/components/pathway/SpecialisationCard.jsx
-import React from "react";
-import { GraduationCap, BookOpen, Award } from "lucide-react";
+import { Award, BookOpen, GraduationCap } from "lucide-react";
 
 function SpecialisationCard({ data, itemType }) {
-  // Determine the type (Honours, Major, Minor)
   const getSpecType = () => {
     if (data.specialisation_type) return data.specialisation_type;
     if (itemType === "major") return "Major";
@@ -13,43 +11,12 @@ function SpecialisationCard({ data, itemType }) {
 
   const specType = getSpecType();
 
-  // Color scheme based on type
-  const getColorScheme = () => {
-    if (specType === "Honours") {
-      return {
-        bg: "bg-amber-50 dark:bg-amber-900/20",
-        border: "border-amber-200 dark:border-amber-700",
-        text: "text-amber-700 dark:text-amber-300",
-        badge: "bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700",
-        icon: "text-amber-600 dark:text-amber-400"
-      };
-    }
-    if (specType === "Major") {
-      return {
-        bg: "bg-blue-50 dark:bg-blue-900/20",
-        border: "border-blue-200 dark:border-blue-700",
-        text: "text-blue-700 dark:text-blue-300",
-        badge: "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700",
-        icon: "text-blue-600 dark:text-blue-400"
-      };
-    }
-    // Minor
-    return {
-      bg: "bg-purple-50 dark:bg-purple-900/20",
-      border: "border-purple-200 dark:border-purple-700",
-      text: "text-purple-700 dark:text-purple-300",
-      badge: "bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700",
-      icon: "text-purple-600 dark:text-purple-400"
-    };
-  };
-
-  const colors = getColorScheme();
-
   return (
     <div className="space-y-4">
-      {/* TYPE BADGE */}
+
+      {/* Type Badge */}
       <div className="flex items-center gap-2">
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg ${colors.badge} border`}>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300">
           {specType === "Honours" ? (
             <Award className="h-3 w-3" />
           ) : (
@@ -59,61 +26,61 @@ function SpecialisationCard({ data, itemType }) {
         </span>
       </div>
 
-      {/* FACULTY */}
+      {/* Faculty */}
       {data.faculty && (
-        <div className={`p-3 rounded-lg ${colors.bg} border ${colors.border}`}>
+        <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800">
           <p className="text-xs text-slate-700 dark:text-slate-300">
-            <strong className={colors.text}>Faculty: </strong>
+            <strong className="text-sky-700 dark:text-sky-300">Faculty: </strong>
             {data.faculty}
           </p>
         </div>
       )}
 
-      {/* DETAILS GRID */}
+      {/* Details Grid */}
       <div className="space-y-2 text-sm">
         {(data.major_code || data.minor_code || data.honours_code) && (
           <p className="text-slate-700 dark:text-slate-300">
-            <strong>Code: </strong>
+            <strong className="text-slate-900 dark:text-white">Code: </strong>
             {data.major_code || data.minor_code || data.honours_code}
           </p>
         )}
 
         {data.uoc_required && (
           <p className="text-slate-700 dark:text-slate-300">
-            <strong>UOC Required: </strong>
+            <strong className="text-slate-900 dark:text-white">UOC Required: </strong>
             {data.uoc_required}
           </p>
         )}
 
         {data.duration && (
           <p className="text-slate-700 dark:text-slate-300">
-            <strong>Duration: </strong>
+            <strong className="text-slate-900 dark:text-white">Duration: </strong>
             {data.duration}
           </p>
         )}
       </div>
 
-      {/* DESCRIPTION */}
+      {/* Description */}
       {data.description && (
         <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           {data.description}
         </p>
       )}
 
-      {/* REQUIREMENTS */}
+      {/* Requirements */}
       {data.requirements && (
-        <div className={`p-3 rounded-lg ${colors.bg} border ${colors.border}`}>
+        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
           <p className="text-xs text-slate-700 dark:text-slate-300">
-            <strong className={colors.text}>Requirements: </strong>
+            <strong className="text-slate-900 dark:text-white">Requirements: </strong>
             {data.requirements}
           </p>
         </div>
       )}
 
-      {/* CORE COURSES */}
+      {/* Core Courses */}
       {data.core_courses && data.core_courses.length > 0 && (
         <div>
-          <p className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+          <p className="text-xs uppercase font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5 tracking-wide">
             <BookOpen className="h-3 w-3" />
             Core Courses
           </p>
@@ -121,7 +88,7 @@ function SpecialisationCard({ data, itemType }) {
             {data.core_courses.map((course, i) => (
               <span
                 key={i}
-                className={`px-2.5 py-1 rounded-md ${colors.badge} border text-xs font-semibold`}
+                className="px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-900/30 text-xs font-medium text-sky-700 dark:text-sky-300"
               >
                 {course}
               </span>
@@ -130,11 +97,11 @@ function SpecialisationCard({ data, itemType }) {
         </div>
       )}
 
-      {/* CAREER PATHWAYS */}
+      {/* Career Pathways */}
       {data.career_pathways && (
-        <div className={`p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700`}>
+        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
           <p className="text-xs text-slate-700 dark:text-slate-300">
-            <strong>Career Pathways: </strong>
+            <strong className="text-slate-900 dark:text-white">Career Pathways: </strong>
             {data.career_pathways}
           </p>
         </div>

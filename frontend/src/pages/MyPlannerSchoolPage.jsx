@@ -1,19 +1,18 @@
 // src/pages/MyPlannerSchoolPage.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
+import { useState } from "react";
 import {
-  HiCollection,
-  HiClipboard,
-  HiUsers,
+  HiAcademicCap,
   HiArrowRight,
   HiBookmark,
   HiCheckCircle,
+  HiClipboard,
+  HiCollection,
   HiUserGroup,
-  HiBriefcase,
-  HiAcademicCap,
+  HiUsers
 } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { MenuBar } from "../components/MenuBar";
 
 function MyPlannerSchoolPage() {
   const navigate = useNavigate();

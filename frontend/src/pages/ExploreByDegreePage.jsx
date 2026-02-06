@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import { supabase } from "../supabaseClient";
+import { useState } from "react";
 import { HiAcademicCap, HiArrowLeft } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
+import { DashboardNavBar } from "../components/DashboardNavBar";
 import DegreeSearchPlanner from "../components/DegreeSearchPlanner";
+import { MenuBar } from "../components/MenuBar";
 
 
 function ExploreByDegreePage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedDegree, setSelectedDegree] = useState(null);
-
+  const [setSelectedDegree] = useState(null);
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
   const navigate = useNavigate();
   
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       
@@ -27,7 +24,6 @@ function ExploreByDegreePage() {
 
       <div className="pt-16 sm:pt-20">
         
-        {/* PAGE CONTAINER */}
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
           {/* Back Button */}
@@ -39,7 +35,6 @@ function ExploreByDegreePage() {
             <span>Back to My Planner</span>
           </button>
 
-          {/* HEADER */}
           <div className="mb-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
@@ -47,7 +42,6 @@ function ExploreByDegreePage() {
             </div>
           </div>
 
-          {/* SEARCH SECTION */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-16">
             
             {/* Header */}
@@ -63,13 +57,6 @@ function ExploreByDegreePage() {
             {/* Search Component */}
             <DegreeSearchPlanner onSelectDegree={setSelectedDegree} />
           </div>
-
-          {/* Optional: Degree Detail Card */}
-          {/* {selectedDegree && (
-            <div className="mb-16">
-              <DegreeDetailCard degree={selectedDegree} />
-            </div>
-          )} */}
 
         </div>
       </div>

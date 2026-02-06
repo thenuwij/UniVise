@@ -1,39 +1,31 @@
 // src/pages/HonoursDetailPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import SaveButton from "../components/SaveButton";
-
 import {
-  HiArrowLeft,
   HiAcademicCap,
-  HiInformationCircle,
-  HiChartBar,
+  HiArrowLeft,
   HiBookOpen,
+  HiChartBar,
   HiDocumentText,
+  HiInformationCircle,
 } from "react-icons/hi";
 
 function HonoursDetailPage() {
-  const { id } = useParams(); // specialisation row UUID
+  const { id } = useParams(); 
   const navigate = useNavigate();
-
   const [honours, setHonours] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
-
-  // lookup maps
   const [degreeDetailsByCode, setDegreeDetailsByCode] = useState({});
   const [courseDetailsByCode, setCourseDetailsByCode] = useState({});
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // ───────────────────────────────────────────
-  // 1. Fetch honours specialisation
-  // ───────────────────────────────────────────
   useEffect(() => {
     let alive = true;
 
@@ -87,15 +79,12 @@ function HonoursDetailPage() {
     };
   }, [id]);
 
-  // ───────────────────────────────────────────
-  // 2. Fetch degree + course metadata
-  // ───────────────────────────────────────────
   useEffect(() => {
     if (!honours) return;
 
     const fetchMeta = async () => {
       try {
-        // DEGREE METADATA
+        // Degree metadata
         if (honours.related_degrees?.length > 0) {
           const degreeCodes = Array.from(
             new Set(
@@ -117,7 +106,7 @@ function HonoursDetailPage() {
           }
         }
 
-        // COURSE METADATA
+        // Course metadata
         if (honours.sections?.length > 0) {
           const allCodes = new Set();
           honours.sections.forEach((sec) => {
@@ -147,8 +136,6 @@ function HonoursDetailPage() {
     fetchMeta();
   }, [honours]);
 
-  // ───────────────────────────────────────────
-
   if (!honours) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-950 dark:to-slate-900">
@@ -168,7 +155,6 @@ function HonoursDetailPage() {
 
       <main className="max-w-[1600px] mx-auto px-6 py-16">
 
-        {/* BACK */}
         <button
           onClick={goBack}
           className="group flex items-center gap-2 mb-10 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 
@@ -181,7 +167,6 @@ function HonoursDetailPage() {
         {/* HEADER CARD */}
         <div className="relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-12">
 
-          {/* TOP RIGHT TAGS */}
           <div className="absolute top-6 right-6 flex flex-wrap gap-4">
             {honours.specialisation_type && (
               <span className="px-6 py-2 text-base font-bold rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200">
@@ -202,7 +187,7 @@ function HonoursDetailPage() {
             )}
           </div>
 
-          {/* SAVE BUTTON - Below tags */}
+          {/* SAVE BUTTON */}
           <div className="absolute top-20 right-6">
             <SaveButton
               itemType="specialisation"
@@ -218,7 +203,7 @@ function HonoursDetailPage() {
             />
           </div>
 
-          {/* NAME + ICON */}
+          {/* NAME AND ICON */}
           <div className="flex items-start gap-6">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 shadow-md">
               <HiAcademicCap className="w-12 h-12 text-purple-600 dark:text-purple-300" />
@@ -391,9 +376,7 @@ function HonoursDetailPage() {
   );
 }
 
-// ───────────────────────────────────────────
-// SECTION WRAPPER
-// ───────────────────────────────────────────
+// SECTION WRAPPER 
 function Section({ title, icon, children }) {
   return (
     <div className="mb-14">

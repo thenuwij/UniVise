@@ -1,25 +1,21 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { MenuBar } from '../components/MenuBar'
-import { DashboardNavBar } from '../components/DashboardNavBar'
-import { supabase } from '../supabaseClient';
-import { UserAuth } from '../context/AuthContext';
-import { Accordion, AccordionContent, AccordionPanel, AccordionTitle, Button, TextInput } from "flowbite-react";
-import { TbAugmentedReality } from "react-icons/tb";
-import { LuScanSearch } from "react-icons/lu";
-import { TbPalette } from "react-icons/tb";
-import { GrGroup } from "react-icons/gr";
-import { TbBriefcase } from "react-icons/tb";
-import { TbClipboardList } from "react-icons/tb";
-import { Doughnut } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
   ArcElement,
-  Tooltip,
-  Legend
+  Chart as ChartJS,
+  Legend,
+  Tooltip
 } from 'chart.js';
+import { Accordion, AccordionContent, AccordionPanel, AccordionTitle, Button } from "flowbite-react";
+import { useEffect, useState } from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import { GrGroup } from "react-icons/gr";
+import { LuScanSearch } from "react-icons/lu";
+import { TbAugmentedReality, TbBriefcase, TbClipboardList, TbPalette } from "react-icons/tb";
+import { useNavigate } from 'react-router-dom';
+import { DashboardNavBar } from '../components/DashboardNavBar';
+import { MenuBar } from '../components/MenuBar';
+import { UserAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 
-import { TraitsMatcher } from '../components/TraitsMatcher'
 
 
 const isDarkMode = document.documentElement.classList.contains('dark');
@@ -303,14 +299,7 @@ function TraitsPage() {
               </div>
             </div>
           </div>
-          {/* <div className='card-glass-spotlight mt-6 p-6'>
-            <p>Match your Trait with your career!</p>
-            <TraitsMatcher
-              RIASEC={result?.result_summary}
-              userType={userType}
-              traitScore={result?.trait_scores}
-            />
-          </div> */}
+          
           <div className='card-glass-spotlight mt-6 p-6'>
             <p className=" text-2xl font-semibold ">
               Why the RIASEC model?

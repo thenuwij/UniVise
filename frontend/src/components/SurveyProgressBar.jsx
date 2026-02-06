@@ -1,4 +1,3 @@
-import React from "react";
 
 const SurveyProgressBar = ({ step, totalSteps }) => {
   const progress = (step / totalSteps) * 100;

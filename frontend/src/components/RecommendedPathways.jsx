@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
 import { Button } from "flowbite-react";
+import { useEffect, useState } from "react";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 const RecommendedPathways = ({ onSelect }) => {
   const { session } = UserAuth();

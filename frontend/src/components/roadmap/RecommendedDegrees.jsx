@@ -80,6 +80,7 @@ function RecommendedDegrees({
 
             {/* Content */}
             <div className="pr-20">
+              
               {/* Header with Icon and Degree Name */}
               <div className="flex items-start gap-2 mb-2">
                 <div className="flex-shrink-0 p-1.5 rounded-md bg-sky-100 dark:bg-sky-900/40 mt-0.5">

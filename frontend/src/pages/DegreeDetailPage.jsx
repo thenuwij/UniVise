@@ -1,25 +1,25 @@
 // src/pages/DegreeDetailPage.jsx
-import React, { useEffect, useState, useRef } from "react";
-import { UserAuth } from "../context/AuthContext";
-import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { useEffect, useRef, useState } from "react";
+import {
+  HiAcademicCap,
+  HiArrowLeft,
+  HiBookOpen,
+  HiBriefcase,
+  HiChartBar,
+  HiClock,
+  HiCollection,
+  HiDocumentText,
+  HiInformationCircle,
+  HiLightBulb,
+  HiLocationMarker,
+  HiSparkles,
+} from "react-icons/hi";
+import { useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import SaveButton from "../components/SaveButton";
-import {
-  HiArrowLeft,
-  HiAcademicCap,
-  HiClock,
-  HiDocumentText,
-  HiLightBulb,
-  HiLocationMarker,
-  HiChartBar,
-  HiBookOpen,
-  HiBriefcase,
-  HiSparkles,
-  HiInformationCircle,
-  HiCollection,
-} from "react-icons/hi";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 function DegreeDetailPage() {
   const { session } = UserAuth();
@@ -142,7 +142,6 @@ function DegreeDetailPage() {
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      {/* 🔥 Updated to match Majors/Minors/Honours */}
       <main className="max-w-[1600px] mx-auto px-6 py-16">
 
         {/* Back Button */}

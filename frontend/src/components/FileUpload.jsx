@@ -14,7 +14,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
 
     setLoading(true)
     try {
-      // 1. build a unique path
+      // build a unique path
       const path = `${reportType}/${fileName}`
       
       const { data: uploadData, error } = await supabase
@@ -28,7 +28,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
         console.log("Uploaded Successfully to bucket")
       }
 
-      // 4. persist in your table
+      // persist in your table
       const { error: dbErr } = await supabase
         .from(table)
         .update({ [column]: path })
@@ -39,7 +39,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
 
       const uploadTime = new Date().toISOString() // or Date.now() for timestamp
 
-      // 5. notify parent with public URL
+      // notify parent with public URL
       const { data: publicUrlData } = await supabase.storage.from(bucket).getPublicUrl(path)
       
       onUpload({

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
-
+import { supabase } from "../supabaseClient";
 
 const LoadingPersonalityPage = () => {
   const navigate = useNavigate();
@@ -16,10 +15,8 @@ const LoadingPersonalityPage = () => {
         const { data: user } = await supabase.auth.getUser();
         const studentType = user.user.user_metadata?.student_type;
 
-        //await generateRecommendations(session); 
-
         setStatus("Ready! Launching your quiz...");
-        setTimeout(() => navigate("/quiz"), 1500); // slight delay for smoothness
+        setTimeout(() => navigate("/quiz"), 1500); 
       } catch (err) {
         console.error(err);
         setStatus("Something went wrong. Please try again.");

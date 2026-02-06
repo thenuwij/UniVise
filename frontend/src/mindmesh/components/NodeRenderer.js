@@ -1,7 +1,7 @@
 // src/components/mindmesh/NodeRenderer.js
 import { roundRect, getLevelColor } from "../utils";
 
-// ----- Color helpers -----
+// Color helpers 
 function lighten(hex, percent) {
   const num = parseInt(hex.replace("#", ""), 16);
   const amt = Math.round(2.55 * percent);
@@ -24,9 +24,6 @@ function darken(hex, percent) {
   return lighten(hex, -percent);
 }
 
-/**
- * Draws a MindMesh node (course, degree, etc.)
- */
 export function nodeCanvasObject(node, ctx, state) {
   const { focusedNode, getDirectNeighbours, colorFor } = state;
 
@@ -40,7 +37,7 @@ export function nodeCanvasObject(node, ctx, state) {
     (node.id?.match(/\d/) ? parseInt(node.id.match(/\d/)[0]) : null);
   let color = getLevelColor(level) || colorFor(node.type);
 
-  // --- Focus highlight ---
+  // Focus highlight
   if (focusedNode) {
     if (node.id === focusedNode.id) {
       color = lighten(getLevelColor(level), 18);
@@ -87,12 +84,10 @@ export function nodeCanvasObject(node, ctx, state) {
   roundRect(ctx, node.x - w / 2, node.y - h / 2, w, h, radius);
   ctx.fill();
 
-  // ---- Text ----
   ctx.shadowBlur = 0;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // Clean, crisp text (no stroke, strong dark shadow for contrast)
   ctx.font = `600 ${titleSize}px Inter, system-ui, -apple-system`;
   ctx.fillStyle = "white";
   ctx.shadowColor = "rgba(0,0,0,0.45)";
@@ -101,7 +96,7 @@ export function nodeCanvasObject(node, ctx, state) {
   const titleY = node.y - (sub ? (subSize + gapY) / 2 : 0);
   ctx.fillText(code, node.x, titleY);
 
-  // Subtext (UOC)
+  // Subtext
   if (sub) {
     ctx.font = `500 ${subSize}px Inter, system-ui, -apple-system`;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
@@ -115,9 +110,8 @@ export function nodeCanvasObject(node, ctx, state) {
   ctx.restore();
 }
 
-/**
- * Draws the invisible pointer hit area for interaction detection.
- */
+
+// Draws the invisible pointer hit area for interaction detection.
 export function nodePointerAreaPaint(node, color, ctx) {
   const code = node.id;
   const sub = node.metadata?.uoc ? `${node.metadata.uoc} UOC` : "";

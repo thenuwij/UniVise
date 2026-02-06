@@ -1,20 +1,18 @@
 // src/components/roadmap/CareersSection.jsx
+import {
+  Award,
+  BarChart3,
+  Crown,
+  DollarSign,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap
+} from "lucide-react";
 import { useState } from "react";
 import SaveButton from "../SaveButton";
-import {
-  TrendingUp,
-  Award,
-  Building2,
-  DollarSign,
-  CheckCircle2,
-  Target,
-  BarChart3,
-  Sparkles,
-  Zap,
-  Crown,
-} from "lucide-react";
 
-export default function CareersSection({ careerPathways = {}, sources = [] }) {
+export default function CareersSection({ careerPathways = {}, sources = [], isLoading = false }) {
   const [activeTab, setActiveTab] = useState("entry");
   const [showAllCerts, setShowAllCerts] = useState(false);
 
@@ -40,6 +38,16 @@ export default function CareersSection({ careerPathways = {}, sources = [] }) {
     entry || mid || senior || certifications.length > 0 || marketInsights || employmentStats;
 
   if (!hasAnything) {
+    if (isLoading) {
+      return (
+        <div className="p-10 flex flex-col items-center justify-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Loading career information please wait this section may take few extra seconds...
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="p-10 text-center text-slate-500 dark:text-slate-400 italic">
         No career information available for this program.
@@ -132,7 +140,7 @@ export default function CareersSection({ careerPathways = {}, sources = [] }) {
             >
               <div className="flex items-start justify-between gap-6 mb-4 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
 
-                {/* LEFT SIDE — TITLE + DESCRIPTION */}
+                {/* LEFT SIDE — TITLE AND DESCRIPTION */}
                 <div className="flex-1">
                   <h4 className="text-xl font-bold mb-2
                               bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 

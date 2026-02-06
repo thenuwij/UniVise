@@ -1,28 +1,26 @@
-import { FileUpload } from '../components/FileUpload'
-import { useEffect, useState, useMemo } from "react";
-import { MenuBar } from "../components/MenuBar";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { supabase } from "../supabaseClient";
 import {
+  Avatar,
+  Badge,
   Button,
   Dropdown,
   DropdownItem,
   Label,
-  TextInput,
-  Avatar,
-  Badge,
-  Select
+  Select,
+  TextInput
 } from "flowbite-react";
-import { HiX, HiOutlineAcademicCap, HiOutlineUserCircle, HiExternalLink } from "react-icons/hi";
-import { HiOutlineIdentification, HiOutlineDocumentText } from "react-icons/hi2";
+import { useEffect, useMemo, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
+import { HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineIdentification } from "react-icons/hi2";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { FileUpload } from '../components/FileUpload';
+import { MenuBar } from "../components/MenuBar";
+import { supabase } from "../supabaseClient";
 
 
-// ---------- UI helpers ----------
 function AuraPanel({ title, icon: Icon, children, hint }) {
   return (
     <div className="card-glass-spotlight">
-      {/* soft spotlight aura */}
       <div />
       <div className="relative p-6 md:p-7">
         <div className="flex items-center gap-2">
@@ -59,7 +57,7 @@ function LoadingCard() {
   );
 }
 
-// Improved TagInput with better hit targets + keyboard UX
+// Improved TagInput with better hit targets and keyboard UX
 function TagInput({ values, setValues, placeholder }) {
   const [next, setNext] = useState("");
 
@@ -115,7 +113,7 @@ function TagInput({ values, setValues, placeholder }) {
 }
 
 function ProfilePage() {
-  // --- state
+
   const [firstName, setFirstName] = useState("Not Specified");
   const [lastName, setLastName] = useState("Not Specified");
   const [email, setEmail] = useState("Not Specified");
@@ -146,7 +144,7 @@ function ProfilePage() {
 
   const isHS = useMemo(() => studentType === "High School" || studentType === "high_school", [studentType]);
 
-  // --- save
+  // save
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -302,7 +300,7 @@ function ProfilePage() {
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      {/* Header + sticky actions */}
+      {/* Header and sticky actions */}
       <header className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-2">
         <div className="flex items-start justify-between">
           <div>
@@ -358,7 +356,7 @@ function ProfilePage() {
                     <Label htmlFor="email" value="Email" />
                     <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
-                  {/* DOB + Gender on the same row */}
+                  {/* DOB + Gender */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="dob" value="Date of Birth" />
@@ -554,8 +552,7 @@ function ProfilePage() {
                 icon={HiOutlineDocumentText}
                 hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
               >
-                {/* Keep your existing FileUpload wiring here */}
-                {/* Example (unchanged): */}
+
                 {isHS ? (
                       <FileUpload
                         userId={userId}
@@ -600,7 +597,7 @@ function ProfilePage() {
             </div>
           </form>
         ) : (
-          // -------- Read-only view --------
+          // Read-only view 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <AuraPanel title="About Me" icon={HiOutlineUserCircle}>

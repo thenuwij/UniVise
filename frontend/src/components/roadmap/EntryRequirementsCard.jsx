@@ -28,9 +28,10 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
         </div>
       </div>
 
-      {/* ---------- REQUIREMENT STATS ---------- */}
+      {/* REQUIREMENT STATS */}
       <div className="p-8">
         <div className="grid sm:grid-cols-3 gap-4">
+          
           {/* ATAR */}
           <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
                           bg-gradient-to-br from-blue-50/70 via-sky-50/70 to-indigo-50/70 

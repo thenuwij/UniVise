@@ -1,8 +1,8 @@
 // src/components/DegreeSearchPlanner.jsx
-import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { useEffect, useState } from "react";
+import { HiSearch } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { HiSearch, HiAcademicCap } from "react-icons/hi";
+import { supabase } from "../supabaseClient";
 
 function DegreeSearchPlanner() {
   const [query, setQuery] = useState("");

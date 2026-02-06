@@ -55,10 +55,10 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
         "5. **Format your entire response in Markdown** (headings, bold text, bullet lists, etc.) so it renders beautifully in the frontend.\n"
     )
 
-    # 1. Kick off the streaming API call
+    # Kick off the streaming API call
     stream = ask_chat_completion_stream(history, prompt)
 
-    # 2. Define a generator that yields each token as it comes
+    # Define a generator that yields each token as it comes
     async def event_generator():
         full_response = ""
         for chunk in stream:
@@ -68,7 +68,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             full_response += token
             if token:  # only yield when there’s new text
                 yield token
-        # 3. Once done, persist the full bot message
+        # Once done, persist the full bot message
         supabase.table("conversation_messages").insert(
             {
                 "conversation_id": conv_id,
@@ -77,7 +77,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             }
         ).execute()
 
-    # 4. Return a text/event-stream so the browser can process it
+    # Return a text/event-stream so the browser can process it
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",

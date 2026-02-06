@@ -1,8 +1,8 @@
 // src/mindmesh/components/MindMeshInfoPanel.jsx
-import { useEffect, useRef, useState, useMemo } from "react";
+import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { GripVertical, ChevronDown, ChevronRight } from "lucide-react";
 
 export default function MindMeshInfoPanel({
   graph,
@@ -16,7 +16,7 @@ export default function MindMeshInfoPanel({
   const [missing, setMissing] = useState([]);
   const [collapsed, setCollapsed] = useState(false);
 
-  // ----- derive loaded/missing -----
+  // derive loaded/missing
   useEffect(() => {
     if (!isProgramView || !programCourses.length || !graph?.nodes?.length) return;
     const nodeSet = new Set(graph.nodes.map((n) => n.id));
@@ -26,7 +26,7 @@ export default function MindMeshInfoPanel({
 
   if (!isProgramView) return null;
 
-  // ----- draggable setup -----
+  // draggable setup 
   const panelRef = useRef(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragStart = useRef({ x: 0, y: 0 });
@@ -90,7 +90,7 @@ export default function MindMeshInfoPanel({
   const loadedByLevel = useMemo(() => groupByLevel(loaded), [loaded]);
   const missingByLevel = useMemo(() => groupByLevel(missing), [missing]);
 
-  // --- handle course click (same as ProgramStructure) ---
+  // handle course click 
   const handleCourseClick = async (course) => {
     if (!course?.code) return;
     try {
@@ -106,7 +106,7 @@ export default function MindMeshInfoPanel({
     }
   };
 
-  // --- render grouped courses ---
+  // render grouped courses 
   const renderGroupedCourses = (grouped, variant = "loaded") => {
     const blocks = Object.entries(grouped).filter(([, list]) => list.length);
     const isLoaded = variant === "loaded";
@@ -116,7 +116,7 @@ export default function MindMeshInfoPanel({
         <div key={lvl}>
           <h5
             className={`text-[11px] font-semibold uppercase tracking-wide mb-1 mt-2 ${
-              isLoaded ? "text-sky-300" : "text-red-400"
+              isLoaded ? "text-cyan-600 dark:text-cyan-300" : "text-red-600 dark:text-red-400"
             }`}
           >
             {lvl === "other" ? "Other" : `Level ${lvl}`}
@@ -128,26 +128,26 @@ export default function MindMeshInfoPanel({
                 onClick={() => handleCourseClick(c)}
                 className={`flex flex-col cursor-pointer ${
                   isLoaded
-                    ? "bg-slate-700/40 hover:bg-sky-700/30"
-                    : "bg-red-900/30 hover:bg-red-800/30"
+                    ? "bg-slate-100 dark:bg-slate-700/40 hover:bg-cyan-100 dark:hover:bg-cyan-700/30"
+                    : "bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30"
                 } px-2.5 py-1.5 rounded-md text-[11px] transition-all duration-200 hover:-translate-y-[1px]`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`font-semibold ${
                       isLoaded
-                        ? "text-sky-300 hover:text-sky-200"
-                        : "text-red-400 hover:text-red-300"
+                        ? "text-cyan-700 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200"
+                        : "text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                     }`}
                   >
                     {c.code}
                   </span>
-                  <span className={isLoaded ? "text-slate-400" : "text-red-300"}>
+                  <span className={isLoaded ? "text-slate-600 dark:text-slate-400" : "text-red-600 dark:text-red-300"}>
                     {c.uoc ? `${c.uoc} UOC` : ""}
                   </span>
                 </div>
                 <span
-                  className={isLoaded ? "truncate text-slate-200" : "truncate text-red-200"}
+                  className={isLoaded ? "truncate text-slate-700 dark:text-slate-200" : "truncate text-red-700 dark:text-red-200"}
                 >
                   {c.name}
                 </span>
@@ -157,7 +157,7 @@ export default function MindMeshInfoPanel({
         </div>
       ))
     ) : (
-      <p className="text-xs text-slate-500 italic">None.</p>
+      <p className="text-xs text-slate-500 dark:text-slate-500 italic">None.</p>
     );
   };
 
@@ -167,65 +167,67 @@ export default function MindMeshInfoPanel({
       onPointerDown={onPointerDown}
       style={{
         position: "absolute",
-        top: 24,
-        right: 24,
+        top: 0,
+        left: 24,
         transform: `translate(${pos.x}px, ${pos.y}px)`,
       }}
-      className="z-30 w-80 bg-slate-900/85 text-slate-200 rounded-2xl shadow-xl border border-slate-700 backdrop-blur-lg select-none"
+      className="z-30 w-80 bg-white/95 dark:bg-slate-900/85 text-slate-900 dark:text-slate-200 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 backdrop-blur-lg select-none"
     >
       {/* Header */}
       <div
-        className="drag-handle flex items-center justify-between px-4 py-3 border-b border-slate-700 cursor-grab active:cursor-grabbing"
+        className="drag-handle flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-grab active:cursor-grabbing"
         onDoubleClick={() => setCollapsed((v) => !v)}
       >
         <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-slate-400" />
-          <h2 className="text-lg font-bold text-sky-300 tracking-wide drop-shadow-sm">
-            Mesh Info
+          <GripVertical className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+          <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 
+                         dark:from-blue-400 dark:via-sky-400 dark:to-cyan-400 
+                         bg-clip-text text-transparent tracking-wide drop-shadow-sm">
+            Mesh Information
           </h2>
         </div>
         <button
           onClick={() => setCollapsed((v) => !v)}
-          className="ml-2 p-1 hover:bg-slate-700/50 rounded-md transition-colors"
+          className="ml-2 p-1 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-md transition-colors"
         >
           {collapsed ? (
-            <ChevronRight className="h-4 w-4 text-slate-400" />
+            <ChevronRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           )}
         </button>
       </div>
 
       {/* Collapsible content */}
       {!collapsed && (
-        <div className="p-3 space-y-4 max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900/30">
+        <div className="p-3 space-y-4 max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-slate-100 dark:scrollbar-track-slate-900/30">
           {/* Program info */}
           {programMeta && (
             <div className="space-y-1 text-xs">
-              <p className="font-semibold text-slate-300">
+              <p className="font-semibold text-slate-700 dark:text-slate-300">
                 Degree:{" "}
-                <span className="text-sky-300">{programMeta.program_name || programCode}</span>
+                <span className="text-cyan-600 dark:text-cyan-300">{programMeta.program_name || programCode}</span>
               </p>
-              {programMeta.degree_code && <p className="text-slate-400">Code: {programMeta.degree_code}</p>}
-              {programMeta.faculty && <p className="text-slate-400">Faculty: {programMeta.faculty}</p>}
+              {programMeta.degree_code && <p className="text-slate-600 dark:text-slate-400">Code: {programMeta.degree_code}</p>}
+              {programMeta.faculty && <p className="text-slate-600 dark:text-slate-400">Faculty: {programMeta.faculty}</p>}
             </div>
           )}
 
           {/* Graph stats */}
-          <div className="text-xs text-slate-400 space-y-0.5">
-            <p><span className="text-slate-300 font-semibold">Loaded Courses:</span> {loaded.length}</p>
-            <p><span className="text-slate-300 font-semibold">Missing Courses:</span> {missing.length}</p>
+          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+            <p><span className="text-slate-700 dark:text-slate-300 font-semibold">Loaded Courses:</span> {loaded.length}</p>
+            <p><span className="text-slate-700 dark:text-slate-300 font-semibold">Missing Courses:</span> {missing.length}</p>
           </div>
 
           {/* Loaded grouped */}
           <div>
-            <h4 className="text-xs font-semibold text-sky-300 uppercase tracking-wide">Loaded Courses</h4>
+            <h4 className="text-xs font-semibold text-cyan-600 dark:text-cyan-300 uppercase tracking-wide">Loaded Courses</h4>
             {renderGroupedCourses(loadedByLevel, "loaded")}
           </div>
 
           {/* Missing grouped */}
           <div>
-            <h4 className="text-xs font-semibold text-red-400 uppercase tracking-wide">Missing Courses</h4>
+            <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide">Missing Courses</h4>
             {renderGroupedCourses(missingByLevel, "missing")}
           </div>
         </div>

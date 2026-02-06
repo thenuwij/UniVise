@@ -8,21 +8,16 @@ import {
   SidebarItems,
   TextInput,
 } from "flowbite-react";
-import { useState, useEffect } from "react";
-import {
-  HiClipboard,
-  HiCollection,
-  HiSearch,
-  HiUsers,
-  HiChevronDown,
-  HiChevronRight,
-  HiBriefcase,
-} from "react-icons/hi";
-import { TbMessageChatbotFilled } from "react-icons/tb";
-import { MdDashboard } from "react-icons/md";
+import { useEffect, useState } from "react";
 import { FaFingerprint } from "react-icons/fa";
+import {
+  HiBriefcase,
+  HiSearch
+} from "react-icons/hi";
+import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
-import { useNavigate, useLocation } from "react-router-dom";
+import { TbMessageChatbotFilled } from "react-icons/tb";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 export function MenuBar({ isOpen, handleClose }) {

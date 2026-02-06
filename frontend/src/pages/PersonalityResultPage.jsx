@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { HiSparkles, HiArrowRight, HiOutlineLightBulb } from "react-icons/hi";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
 import { Button } from "flowbite-react";
+import { useEffect, useState } from "react";
+import { HiArrowRight, HiOutlineLightBulb } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
-  const api_url = import.meta.env.VITE_API_URL
+const api_url = import.meta.env.VITE_API_URL
 
 const personalityDescriptions = {
   Realistic: {
@@ -37,7 +35,6 @@ const personalityDescriptions = {
   },
 };
 
-// ---------- tiny helpers ----------
 const cap = (s) => (typeof s === "string" && s.length ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s);
 
 const toPercent = (v) => {
@@ -50,11 +47,9 @@ const toPercent = (v) => {
   return 0;
 };
 
-// ---------- UI atoms ----------
 function AuraShell({ children }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200  backdrop-blur-xl shadow-sm">
-      {/* soft spotlight aura */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-6 sm:p-8">{children}</div>
     </div>
@@ -71,16 +66,15 @@ function Chip({ children }) {
 }
 
 function TraitBar({ label, value }) {
-  // value is the raw sum (0–25)
   const pct = Math.round((value / 25) * 100);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
       <div className="flex items-center justify-between mb-2">
-        {/* Label + raw score */}
         <span className="text-slate-700 font-medium capitalize">
           {label}
         </span>
+
         {/* Percentage */}
         <span className="text-slate-600 text-sm">{pct}%</span>
       </div>
@@ -113,7 +107,7 @@ function TypeCard({ typeKey }) {
   );
 }
 
-// ---------- Page ----------
+// Page
 const PersonalityResultPage = () => {
   const navigate = useNavigate();
   const { session } = UserAuth();
@@ -181,6 +175,7 @@ const PersonalityResultPage = () => {
       <Header />
         <div className="flex-1 p-4 sm:p-6">
         <AuraShell>
+
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
@@ -199,7 +194,6 @@ const PersonalityResultPage = () => {
             type.
           </p>
 
-          {/* Top types chips */}
           {Array.isArray(top_types) && top_types.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               {top_types.map((t) => (
@@ -242,7 +236,6 @@ const PersonalityResultPage = () => {
           </div>
         )}
 
-        {/* CTA row */}
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
           <Button
             onClick={() => navigate("/quiz")}
@@ -263,7 +256,6 @@ const PersonalityResultPage = () => {
           </Button>
         </div>
 
-        {/* Subtle tip */}
         <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-00">
           Tip: Your recommendations and roadmap will adapt to these traits.
         </p>

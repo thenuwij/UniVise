@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { HiAcademicCap, HiArrowRight } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 import { DashboardNavBar } from "../components/DashboardNavBar";
-import ProgramSelector from "../components/compare/ProgramSelector";
-import ComparisonResults from "../components/compare/ComparisonResults";
-import { HiArrowPath } from "react-icons/hi2";
 import { MenuBar } from "../components/MenuBar";
+import ComparisonResults from "../components/compare/ComparisonResults";
+import ProgramSelector from "../components/compare/ProgramSelector";
 
 export default function ComparePage() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function ComparePage() {
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
-  // View mode: 'selector' or 'results'
+  // View mode 'selector' or 'results'
   const [viewMode, setViewMode] = useState("selector");
 
   // User
@@ -33,7 +33,7 @@ export default function ComparePage() {
   const [availablePrograms, setAvailablePrograms] = useState([]);
   const [searchTarget, setSearchTarget] = useState("");
 
-  // Base program (always from user's enrolled program)
+  // Base program 
   const [baseProgram, setBaseProgram] = useState(null);
   const [baseSpecsOptions, setBaseSpecsOptions] = useState([]);
   const [baseSelectedSpecs, setBaseSelectedSpecs] = useState([]);
@@ -46,14 +46,10 @@ export default function ComparePage() {
   // Results
   const [comparisonData, setComparisonData] = useState(null);
 
-  // ---------------------------------------------------------------------------
-  // Load user + check for saved target
-  // ---------------------------------------------------------------------------
-
+  // load user and check for saved target 
   useEffect(() => {
     if (!session?.user?.id) return;
     initializePage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const initializePage = async () => {
@@ -62,7 +58,7 @@ export default function ComparePage() {
       const userId = session?.user?.id;
       if (!userId) return;
 
-      // 1. Fetch user's enrolled program (this is always the base program)
+      // Fetch user's enrolled program (this is always the base program)
       const { data: programData } = await supabase
         .from("user_enrolled_program")
         .select("*")
@@ -76,11 +72,12 @@ export default function ComparePage() {
           name: programData.program_name,
         });
         setBaseSelectedSpecs(programData.specialisation_codes || []);
+
         // Fetch base program specialisations to show their names
         await fetchSpecialisationsForProgram(programData.degree_code, true);
       }
 
-      // 2. Fetch completed courses
+      // Fetch completed courses
       const { data: completed } = await supabase
         .from("user_completed_courses")
         .select("*")
@@ -89,7 +86,7 @@ export default function ComparePage() {
 
       setCompletedCourses(completed || []);
 
-      // 3. Check if user has a saved comparison target
+      // Check if user has a saved comparison target
       const { data: savedTarget } = await supabase
         .from("user_comparison_target")
         .select("*")
@@ -97,7 +94,7 @@ export default function ComparePage() {
         .single();
 
       if (savedTarget) {
-        // User has a saved target - load it and show comparison
+        // User has a saved target, load it and show comparison
         setTargetProgram({
           code: savedTarget.target_program_code,
           name: savedTarget.target_program_name || "",
@@ -120,11 +117,11 @@ export default function ComparePage() {
 
         setViewMode("results");
       } else {
-        // No saved target - show selector
+        // No saved target, so show selector
         setViewMode("selector");
       }
 
-      // 4. Fetch available programs for selector
+      // Fetch available programs for selector
       await fetchAvailablePrograms();
     } catch (err) {
       setError("Failed to load your data");
@@ -147,13 +144,9 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Specialisations
-  // ---------------------------------------------------------------------------
-
   const fetchSpecialisationsForProgram = async (degreeCode, isBase = true) => {
     try {
-      // Check if this is a double degree
+      // Check if this is a double degree and get both degree codes
       let codesToMatch = [degreeCode];
 
       const { data: degreeData } = await supabase
@@ -163,7 +156,6 @@ export default function ComparePage() {
         .single();
 
       if (degreeData?.program_name?.includes("/")) {
-        // It's a double degree - get individual program codes
         const programNames = degreeData.program_name
           .split("/")
           .map((n) => n.trim());
@@ -211,10 +203,7 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
   // Fetch comparison results
-  // ---------------------------------------------------------------------------
-
   const fetchComparisonResults = async (
     baseProgramCode,
     baseSpecs,
@@ -254,10 +243,6 @@ export default function ComparePage() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Derived lists
-  // ---------------------------------------------------------------------------
-
   const filteredTargetPrograms = useMemo(
     () =>
       availablePrograms.filter(
@@ -285,15 +270,32 @@ export default function ComparePage() {
     [targetSpecsOptions]
   );
 
-  // ---------------------------------------------------------------------------
   // Actions
-  // ---------------------------------------------------------------------------
-
   const toggleSpec = (code, isBase = true) => {
     if (!isBase) {
-      setTargetSelectedSpecs((prev) =>
-        prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
-      );
+      // Find the type of the clicked spec
+      const clickedSpec = targetSpecsOptions.find(s => s.major_code === code);
+      if (!clickedSpec) return;
+
+      const clickedType = clickedSpec.specialisation_type;
+
+      // Get all specs of the same type
+      const specsOfSameType = targetSpecsOptions
+        .filter(s => s.specialisation_type === clickedType)
+        .map(s => s.major_code);
+
+      setTargetSelectedSpecs((prev) => {
+        // Remove all specs of the same type
+        const withoutSameType = prev.filter(c => !specsOfSameType.includes(c));
+        
+        // If the clicked spec was already selected, just remove it (deselect)
+        if (prev.includes(code)) {
+          return withoutSameType;
+        }
+        
+        // Otherwise, add the clicked spec (select new one)
+        return [...withoutSameType, code];
+      });
     }
   };
 
@@ -306,7 +308,7 @@ export default function ComparePage() {
     setError(null);
 
     try {
-      // 1. Save target to database (upsert)
+      // Save target to database (upsert)
       const { error: saveError } = await supabase
         .from("user_comparison_target")
         .upsert(
@@ -324,7 +326,7 @@ export default function ComparePage() {
 
       if (saveError) throw saveError;
 
-      // 2. Fetch comparison results
+      // Fetch comparison results
       await fetchComparisonResults(
         baseProgram.code,
         baseSelectedSpecs,
@@ -332,7 +334,7 @@ export default function ComparePage() {
         targetSelectedSpecs
       );
 
-      // 3. Switch to results view
+      // Switch to results view
       setViewMode("results");
     } catch (err) {
       console.error(err);
@@ -352,85 +354,133 @@ export default function ComparePage() {
     setError(null);
   };
 
-  // ---------------------------------------------------------------------------
   // UI
-  // ---------------------------------------------------------------------------
-
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="fixed top-0 left-0 right-0 z-50">
           <DashboardNavBar onMenuClick={openDrawer} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
         </div>
-        <div className="pt-16 sm:pt-20 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
+        <div className="pt-16 sm:pt-20 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+              <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400">
+              Loading comparison data...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 dark:text-slate-100">
-      {/* Dashboard Navbar - Fixed positioning ensures hamburger menu is clickable */}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
-      <div className="max-w-7xl mx-auto py-8 px-4 pt-24 sm:pt-28">
-        {/* Error */}
-        {error && (
-          <div
-            className="max-w-3xl mx-auto mb-6 p-4 
-            bg-red-50 dark:bg-red-900/30 
-            border border-red-200 dark:border-red-800 
-            rounded-lg text-red-700 dark:text-red-300 text-sm"
-          >
-            {error}
+      <div className="pt-16 sm:pt-20">
+        <div className="mx-20">
+
+          {/* HEADER */}
+          <div className="mt-12 mb-10">
+            <div className="flex items-center justify-between gap-6 flex-wrap mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-sm">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-purple-500" />
+                Compare Programs
+              </div>
+
+              <button
+                onClick={() => navigate("/progress")}
+                className="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm hover:shadow-md transition-all"
+              >
+                <HiArrowRight className="w-5 h-5 rotate-180" />
+                <span>Back to Progress</span>
+              </button>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight">
+              Program{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-purple-500">
+                Comparison
+              </span>
+            </h1>
+
+            <p className="text-lg text-slate-600 dark:text-slate-400 mt-4 max-w-2xl">
+              See which courses transfer and what's needed to switch programs
+            </p>
           </div>
-        )}
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
-          </div>
-        )}
+          {/* Error */}
+          {error && (
+            <div className="mb-8 p-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-300 shadow-sm">
+              {error}
+            </div>
+          )}
 
-        {/* Program Selector View */}
-        {!loading && viewMode === "selector" && (
-          <ProgramSelector
-            isBase={false}
-            searchValue={searchTarget}
-            setSearchValue={setSearchTarget}
-            filteredPrograms={filteredTargetPrograms}
-            program={targetProgram}
-            onSelectProgram={async (p) => {
-              setTargetProgram({ code: p.degree_code, name: p.program_name });
-              setTargetSelectedSpecs([]);
-              await fetchSpecialisationsForProgram(p.degree_code, false);
-            }}
-            specsOptions={targetSpecsOptions}
-            specsByType={targetSpecsByType}
-            selectedSpecs={targetSelectedSpecs}
-            toggleSpec={toggleSpec}
-            goNext={handleSaveAndCompare}
-            navigate={navigate}
-          />
-        )}
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                  <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
+                </div>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Comparing programs...
+                </p>
+              </div>
+            </div>
+          )}
 
-        {/* Comparison Results View */}
-        {!loading && viewMode === "results" && comparisonData && (
-          <ComparisonResults
-            comparisonData={comparisonData}
-            onReselect={handleReselectProgram}
-            baseSelectedSpecs={baseSelectedSpecs}
-            targetSelectedSpecs={targetSelectedSpecs}
-            baseSpecsOptions={baseSpecsOptions}
-            targetSpecsOptions={targetSpecsOptions}
-          />
-        )}
+          {/* Program Selector View */}
+          {!loading && viewMode === "selector" && (
+            <ProgramSelector
+              isBase={false}
+              searchValue={searchTarget}
+              setSearchValue={setSearchTarget}
+              filteredPrograms={filteredTargetPrograms}
+              program={targetProgram}
+              onSelectProgram={async (p) => {
+                if (!p) {
+                  // Clear selection
+                  setTargetProgram(null);
+                  setTargetSelectedSpecs([]);
+                  setTargetSpecsOptions([]);
+                  return;
+                }
+                setTargetProgram({ code: p.degree_code, name: p.program_name });
+                setTargetSelectedSpecs([]);
+                await fetchSpecialisationsForProgram(p.degree_code, false);
+              }}
+              specsOptions={targetSpecsOptions}
+              specsByType={targetSpecsByType}
+              selectedSpecs={targetSelectedSpecs}
+              toggleSpec={toggleSpec}
+              goNext={handleSaveAndCompare}
+              navigate={navigate}
+              baseProgram={baseProgram}
+              baseSpecsOptions={baseSpecsOptions}
+              baseSelectedSpecs={baseSelectedSpecs}
+            />
+          )}
+
+          {/* Comparison Results View */}
+          {!loading && viewMode === "results" && comparisonData && (
+            <ComparisonResults
+              comparisonData={comparisonData}
+              onReselect={handleReselectProgram}
+              baseSelectedSpecs={baseSelectedSpecs}
+              targetSelectedSpecs={targetSelectedSpecs}
+              baseSpecsOptions={baseSpecsOptions}
+              targetSpecsOptions={targetSpecsOptions}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,4 @@
-/** @file Pill.jsx
- *  Small rounded label used for inline meta facts.
- */
 
-/**
- * @param {{ children: React.ReactNode }} props
- */
 export default function Pill({ children }) {
   return (
     <span

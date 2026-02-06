@@ -1,9 +1,3 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { MenuBar } from "../components/MenuBar";
-import { DashboardNavBar } from "../components/DashboardNavBar";
 import {
   Badge,
   Button,
@@ -11,10 +5,15 @@ import {
   ListGroupItem,
   Tooltip,
 } from "flowbite-react";
+import { useEffect, useMemo, useState } from "react";
+import { HiCheckCircle, HiExternalLink, HiMap } from "react-icons/hi";
 import { IoChevronBackCircleSharp } from "react-icons/io5";
-import { HiExternalLink, HiMap, HiCheckCircle } from "react-icons/hi";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { DashboardNavBar } from "../components/DashboardNavBar";
+import { MenuBar } from "../components/MenuBar";
+import { UserAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
-// -------------------- Shared Aura wrapper --------------------
 function AuraCard({ children, className = "" }) {
   return (
     <div className={`card-glass-spotlight ${className}`}>
@@ -24,7 +23,6 @@ function AuraCard({ children, className = "" }) {
   );
 }
 
-// -------------------- UI Subcomponents --------------------
 function ErrorBanner({ message }) {
   if (!message) return null;
   return (
@@ -134,7 +132,6 @@ function ScoreCard({ scores = {}, userType }) {
     <AuraCard>
       <h3 className="text-xl font-semibold">Score Breakdown</h3>
       <p className="text-sm text-slate-500 dark:text-slate-400">Why this recommendation fits you</p>
-
       <div className="mt-4 space-y-4">
         {items.map(({ key, label }) => {
           const val = toPercent(scores[key]);
@@ -162,7 +159,6 @@ function ScoreCard({ scores = {}, userType }) {
 
 function NextStepsTimeline({ steps = [] }) {
   if (!Array.isArray(steps) || steps.length === 0) return null;
-
   return (
     <AuraCard>
       <h3 className="text-xl font-semibold">Next Steps</h3>
@@ -232,6 +228,7 @@ function RoadmapCard({ userType, onClick }) {
 
 function ChipGrid({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
+
   return (
     <AuraCard>
       <h3 className="text-xl font-semibold">{title}</h3>
@@ -251,6 +248,7 @@ function ChipGrid({ title, items = [] }) {
 
 function SimpleListCard({ title, items = [] }) {
   if (!Array.isArray(items) || items.length === 0) return null;
+
   return (
     <AuraCard>
       <h3 className="text-xl font-semibold">{title}</h3>
@@ -281,7 +279,7 @@ function ResourcesCard({ resources = [] }) {
       return url;
     }
   };
-
+  
   return (
     <AuraCard>
       <h3 className="text-xl font-semibold ">Resources</h3>
@@ -309,7 +307,7 @@ function ResourcesCard({ resources = [] }) {
   );
 }
 
-// -------------------- Page Component --------------------
+// Page
 function RecommendationPage() {
   const [isOpen, setIsOpen] = useState(false);
   const openDrawer = () => setIsOpen(true);
@@ -319,10 +317,8 @@ function RecommendationPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const userType = session?.user?.user_metadata?.student_type;
-
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [explanation, setExplanation] = useState("");
   const [scoreBreakdown, setScoreBreakdown] = useState({});
   const [specialisations, setSpecialisations] = useState([]);
@@ -333,7 +329,6 @@ function RecommendationPage() {
   const [resources, setResources] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [jobOpp, setJobOpp] = useState([]);
-
   const location = useLocation();
   const { rec } = location.state || {};
 
@@ -457,7 +452,7 @@ function RecommendationPage() {
           )}
         </section>
 
-        {/* RIGHT COLUMN (sticky sidebar) */}
+        {/* RIGHT COLUMN */}
         <aside className="lg:col-span-5 space-y-6 lg:sticky lg:top-20 self-start">
           {loading ? (
             <>
@@ -466,7 +461,7 @@ function RecommendationPage() {
             </>
           ) : (
             <>
-              {/* Pass userType so the correct score labels render */}
+              {/* Pass userType */}
               <ScoreCard scores={scoreBreakdown} userType={userType} />
 
               <RoadmapCard userType={userType} onClick={() => navigate('/roadmap-entryload')} />

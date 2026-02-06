@@ -1,13 +1,11 @@
 // src/pages/DashboardPage.jsx
-import React, { useState } from 'react'
-import { UserAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { useState } from 'react';
 import { DashboardNavBar } from '../components/DashboardNavBar';
-import { MenuBar } from '../components/MenuBar';
-import { RecommendationTable } from '../components/RecommendationTable';
-import MyPlannerCard from '../components/MyPlannerCard.jsx';
 import EuniceChatCard from '../components/EuniceChatCard.jsx';
+import { MenuBar } from '../components/MenuBar';
+import MyPlannerCard from '../components/MyPlannerCard.jsx';
+import { RecommendationTable } from '../components/RecommendationTable';
+import { UserAuth } from '../context/AuthContext';
 
 
 function DashboardPage() {
@@ -55,7 +53,7 @@ function DashboardPage() {
               {today} • Your recommendations, Planner, and Roadmap in one place.
             </p>
           </div>
-         {/* Promo row — right aligned, two cards side-by-side on large screens */}
+
           <div className="mt-7 flex gap-4">
             <EuniceChatCard userType={session?.user?.user_metadata?.student_type} />
             <MyPlannerCard />
