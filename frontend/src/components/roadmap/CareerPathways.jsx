@@ -141,7 +141,7 @@ export default function CareerPathways({ careerPathways }) {
       {/* CAREER STAGES SECTION */}
       <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
         <div className="mb-5 pb-5 border-b-2 border-slate-200 dark:border-slate-700">
-          <div className="flex items-start gap-4 mb-3">
+          <div className="flex items-start gap-4">
             <div className="p-3 rounded-xl bg-blue-600 dark:bg-blue-600 shadow-md flex-shrink-0">
               <TrendingUp className="h-6 w-6 text-white" strokeWidth={2.5} />
             </div>
@@ -153,12 +153,6 @@ export default function CareerPathways({ careerPathways }) {
                 Explore roles at different stages of your career
               </p>
             </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-              Select a career stage to view typical roles, salaries, and companies hiring for these positions. Click 'View Listings' to navigate further.
-            </p>
           </div>
         </div>
 
@@ -323,7 +317,7 @@ export default function CareerPathways({ careerPathways }) {
       {certifications.length > 0 && (
         <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
           <div className="mb-5 pb-5 border-b-2 border-slate-200 dark:border-slate-700">
-            <div className="flex items-start gap-4 mb-3">
+            <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-blue-600 dark:bg-blue-600 shadow-md flex-shrink-0">
                 <Award className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
@@ -335,12 +329,6 @@ export default function CareerPathways({ careerPathways }) {
                   Credentials to enhance your qualifications
                 </p>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These certifications can strengthen your expertise in this field and open doors to advanced career opportunities.
-              </p>
             </div>
           </div>
 
@@ -406,7 +394,7 @@ export default function CareerPathways({ careerPathways }) {
       {Object.keys(topEmployers).length > 0 && (
         <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
           <div className="mb-5 pb-5 border-b-2 border-slate-200 dark:border-slate-700">
-            <div className="flex items-start gap-4 mb-3">
+            <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-green-600 dark:bg-green-600 shadow-md flex-shrink-0">
                 <Building2 className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
@@ -418,12 +406,6 @@ export default function CareerPathways({ careerPathways }) {
                   Leading organizations across different industries
                 </p>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border-2 border-green-300 dark:border-green-700 shadow-sm">
-              <Info className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These companies are actively recruiting graduates from this program across various industry sectors.
-              </p>
             </div>
           </div>
 

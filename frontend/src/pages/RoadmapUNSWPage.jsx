@@ -10,7 +10,6 @@ import CareerPathways from "../components/roadmap/CareerPathways";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
 import GeneratingMessage from "../components/roadmap/GeneratingMessage";
 import IndustryExperience from "../components/roadmap/IndustryExperience";
-import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
 import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
 import RoadmapFlow from "../components/roadmap/RoadmapFlow";
 import SkeletonCard from "../components/roadmap/SkeletonCard";
@@ -435,18 +434,6 @@ export default function RoadmapUNSWPage() {
         key: "capstone",
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
-      },
-      {
-        key: "flex",
-        title: "Flexibility",
-        render: () => (
-          <ProgramFlexibility
-            flexibility={data?.payload?.flexibility_detailed}
-            roadmapId={preloadedRoadmapId}
-            degreeCode={degreeCodeValue}  
-            userId={userId}
-          />
-        ),
       },
       {
         key: "societies",
