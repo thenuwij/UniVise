@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SaveButton from "../SaveButton";
 
 import {
@@ -14,19 +14,70 @@ import {
   TrendingUp
 } from "lucide-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
+  const [companyUrls, setCompanyUrls] = useState({});
+  const [loadingUrls, setLoadingUrls] = useState(false);
   
   const mandatoryPlacements = industryExperience?.mandatory_placements;
   const internshipPrograms = industryExperience?.internship_programs || [];
   const topCompanies = industryExperience?.top_recruiting_companies || [];
   const careerFairs = industryExperience?.career_fairs;
 
+  // Fetch company careers URLs when component mounts
+  useEffect(() => {
+    const fetchCompanyUrls = async () => {
+      if (!internshipPrograms.length) return;
+      
+      setLoadingUrls(true);
+      try {
+        const companyNames = internshipPrograms.map(program => program.company);
+        const uniqueCompanies = [...new Set(companyNames)];
+        
+        console.log(`[SerpAPI] Fetching URLs for ${uniqueCompanies.length} companies:`, uniqueCompanies);
+        
+        const response = await fetch(`${API_BASE_URL}/api/jobs/multiple-company-urls`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ company_names: uniqueCompanies }),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCompanyUrls(data.urls);
+          
+          // Log success/failure stats
+          const successful = Object.values(data.urls).filter(url => url !== null).length;
+          const failed = uniqueCompanies.length - successful;
+          console.log(`[SerpAPI] ✓ ${successful} URLs fetched, ✗ ${failed} failed`);
+          
+          // Log which companies failed
+          const failedCompanies = uniqueCompanies.filter(company => !data.urls[company]);
+          if (failedCompanies.length > 0) {
+            console.warn('[SerpAPI] Failed to fetch URLs for:', failedCompanies);
+          }
+        } else {
+          console.error('[SerpAPI] API request failed:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('[SerpAPI] Failed to fetch company URLs:', error);
+      } finally {
+        setLoadingUrls(false);
+      }
+    };
+    
+    fetchCompanyUrls();
+  }, [internshipPrograms]);
+
   if (!mandatoryPlacements && !internshipPrograms.length && !topCompanies.length) {
     return null;
   }
 
-  const displayedPrograms = showAllPrograms ? internshipPrograms : internshipPrograms.slice(0, 3);
+  const displayedPrograms = showAllPrograms ? internshipPrograms : internshipPrograms.slice(0, 2);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl space-y-8">
@@ -107,13 +158,6 @@ export default function IndustryExperience({ industryExperience }) {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm mb-5">
-          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-            Access job boards, internship listings, and career guidance through these official UNSW platforms.
-          </p>
-        </div>
-
         <div className="grid sm:grid-cols-2 gap-4">
           {/* UNSWConnect */}
           <a
@@ -132,7 +176,7 @@ export default function IndustryExperience({ industryExperience }) {
                 <h5 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
                   UNSWConnect
                 </h5>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   Find internships, part-time jobs, and graduate opportunities
                 </p>
               </div>
@@ -150,21 +194,6 @@ export default function IndustryExperience({ industryExperience }) {
                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                 />
               </svg>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700
-                            text-slate-800 dark:text-slate-200
-                            border-2 border-slate-300 dark:border-slate-600
-                            text-sm font-semibold rounded-lg">
-                Job Board
-              </span>
-              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700
-                            text-slate-800 dark:text-slate-200
-                            border-2 border-slate-300 dark:border-slate-600
-                            text-sm font-semibold rounded-lg">
-                Internships
-              </span>
             </div>
           </a>
 
@@ -185,7 +214,7 @@ export default function IndustryExperience({ industryExperience }) {
                 <h5 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
                   UNSW Prosple
                 </h5>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   Explore graduate programs and early career opportunities
                 </p>
               </div>
@@ -204,21 +233,6 @@ export default function IndustryExperience({ industryExperience }) {
                 />
               </svg>
             </div>
-
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700
-                            text-slate-800 dark:text-slate-200
-                            border-2 border-slate-300 dark:border-slate-600
-                            text-sm font-semibold rounded-lg">
-                Grad Programs
-              </span>
-              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700
-                            text-slate-800 dark:text-slate-200
-                            border-2 border-slate-300 dark:border-slate-600
-                            text-sm font-semibold rounded-lg">
-                Career Advice
-              </span>
-            </div>
           </a>
         </div>
       </div>
@@ -227,7 +241,7 @@ export default function IndustryExperience({ industryExperience }) {
       {internshipPrograms.length > 0 && (
         <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
           <div className="mb-5 pb-5 border-b-2 border-slate-200 dark:border-slate-700">
-            <div className="flex items-start gap-4 mb-3">
+            <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-blue-600 dark:bg-blue-600 shadow-md flex-shrink-0">
                 <TrendingUp className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
@@ -239,12 +253,6 @@ export default function IndustryExperience({ industryExperience }) {
                   Structured opportunities with leading organizations
                 </p>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                Apply directly through these internship programs to gain hands-on industry experience.
-              </p>
             </div>
           </div>
 
@@ -333,9 +341,9 @@ export default function IndustryExperience({ industryExperience }) {
                 )}
 
                 {/* Apply URL Link */}
-                {program.apply_url && (
+                {(companyUrls[program.company] || program.apply_url) && (
                   <a
-                    href={program.apply_url}
+                    href={companyUrls[program.company] || program.apply_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-3
@@ -344,7 +352,7 @@ export default function IndustryExperience({ industryExperience }) {
                               text-white text-base font-bold rounded-xl
                               shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                   >
-                    <span>Apply Now</span>
+                    <span>{loadingUrls ? 'Loading...' : 'Apply Now'}</span>
                     <svg
                       className="h-5 w-5"
                       fill="none"
@@ -365,7 +373,7 @@ export default function IndustryExperience({ industryExperience }) {
           </div>
 
           {/* Show More/Less Button */}
-          {internshipPrograms.length > 3 && (
+          {internshipPrograms.length > 2 && (
             <button
               onClick={() => setShowAllPrograms(!showAllPrograms)}
               className="mt-5 w-full py-4 text-base font-bold 
@@ -379,7 +387,7 @@ export default function IndustryExperience({ industryExperience }) {
               {showAllPrograms ? (
                 <>Show Less <ChevronUp className="h-5 w-5" /></>
               ) : (
-                <>Show {internshipPrograms.length - 3} More {internshipPrograms.length === 4 ? 'Program' : 'Programs'} <ChevronDown className="h-5 w-5" /></>
+                <>Show {internshipPrograms.length - 2} More {internshipPrograms.length === 3 ? 'Program' : 'Programs'} <ChevronDown className="h-5 w-5" /></>
               )}
             </button>
           )}
@@ -390,7 +398,7 @@ export default function IndustryExperience({ industryExperience }) {
       {topCompanies.length > 0 && (
         <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
           <div className="mb-5 pb-5 border-b-2 border-slate-200 dark:border-slate-700">
-            <div className="flex items-start gap-4 mb-3">
+            <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-blue-600 dark:bg-blue-600 shadow-md flex-shrink-0">
                 <Building2 className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
@@ -402,12 +410,6 @@ export default function IndustryExperience({ industryExperience }) {
                   Organizations actively hiring from this program
                 </p>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                These companies regularly recruit graduates from this program and may offer internships, graduate programs, and full-time positions.
-              </p>
             </div>
           </div>
 
@@ -425,30 +427,6 @@ export default function IndustryExperience({ industryExperience }) {
                 {company}
               </span>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* CAREER FAIRS & EVENTS SECTION */}
-      {careerFairs && careerFairs !== "Information temporarily unavailable" && (
-        <div className="pt-6 border-t-4 border-slate-200 dark:border-slate-700">
-          <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-2xl border-2 border-green-300 dark:border-green-700 shadow-md">
-            <div className="flex items-start gap-4 mb-4 pb-4 border-b-2 border-green-200 dark:border-green-600">
-              <div className="p-3 rounded-xl bg-green-600 dark:bg-green-600 shadow-md flex-shrink-0">
-                <Calendar className="h-6 w-6 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Career Fairs & Events
-                </h4>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                  Network with employers and explore opportunities related to this program.
-                </p>
-              </div>
-            </div>
-            <p className="text-base text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
-              {careerFairs}
-            </p>
           </div>
         </div>
       )}

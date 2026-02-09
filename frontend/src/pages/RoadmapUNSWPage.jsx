@@ -10,7 +10,6 @@ import CareerPathways from "../components/roadmap/CareerPathways";
 import EntryRequirementsCardUnsw from "../components/roadmap/EntryRequirementsUnsw";
 import GeneratingMessage from "../components/roadmap/GeneratingMessage";
 import IndustryExperience from "../components/roadmap/IndustryExperience";
-import ProgramFlexibility from "../components/roadmap/ProgramFlexibility";
 import ProgramStructureUNSW from "../components/roadmap/ProgramStructureUNSW";
 import RoadmapFlow from "../components/roadmap/RoadmapFlow";
 import SkeletonCard from "../components/roadmap/SkeletonCard";
@@ -97,6 +96,31 @@ const useRoadmapData = (
     degree_code: null, 
   });
 
+  const mergePayloadPreserveMandatoryPlacements = (prevPayload, nextPayload) => {
+    const prev = prevPayload || {};
+    const next = nextPayload || {};
+
+    const prevIE = prev?.industry_experience || {};
+    const nextIE = next?.industry_experience || {};
+
+    // Mandatory placements only change based on main degree program
+    const preservedMandatoryPlacements =
+      prevIE?.mandatory_placements ?? nextIE?.mandatory_placements ?? null;
+
+    return {
+      ...prev,
+      ...next,
+      industry_experience: {
+        ...prevIE,
+        ...nextIE,
+        ...(preservedMandatoryPlacements
+          ? { mandatory_placements: preservedMandatoryPlacements }
+          : {}),
+      },
+    };
+  };
+  
+
   useEffect(() => {
     const fetchByIdIfNeeded = async () => {
       if (data || !preloadedRoadmapId) return;
@@ -157,9 +181,10 @@ const useRoadmapData = (
           (newFlex && !existingFlex)
         ) {
           setData((prev) => ({
-            ...prev,
-            payload: { ...prev?.payload, ...row.payload },
+            ...(prev || {}),
+            payload: mergePayloadPreserveMandatoryPlacements(prev?.payload, row.payload),
           }));
+
         }
       } catch (err) {
         console.warn("[Polling] Error:", err.message);
@@ -204,8 +229,9 @@ const useRoadmapData = (
               // Merge latest payload each time a new bump is detected
               setData((prev) => ({
                 ...(prev || {}),
-                payload: { ...prev?.payload, ...row.payload },
+                payload: mergePayloadPreserveMandatoryPlacements(prev?.payload, row.payload),
               }));
+
             }
 
             // Stop after 3 bumps (all threads done)
@@ -408,18 +434,6 @@ export default function RoadmapUNSWPage() {
         key: "capstone",
         title: "Capstone & Honours",
         render: () => <CapstoneHonours data={data} />,
-      },
-      {
-        key: "flex",
-        title: "Flexibility",
-        render: () => (
-          <ProgramFlexibility
-            flexibility={data?.payload?.flexibility_detailed}
-            roadmapId={preloadedRoadmapId}
-            degreeCode={degreeCodeValue}  
-            userId={userId}
-          />
-        ),
       },
       {
         key: "societies",

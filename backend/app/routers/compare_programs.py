@@ -69,11 +69,11 @@ class ProgramComparisonResponse(BaseModel):
 @router.post("/compare", response_model=ProgramComparisonResponse)
 async def compare_programs(request: ProgramComparisonRequest):
     """Clear, actionable program comparison"""
-    logger.info("="*80)
+    logger.info("=" * 80)
     logger.info(f"Starting program comparison for user: {request.user_id}")
     logger.info(f"Base program: {request.base_program_code}, Target: {request.target_program_code}")
-    logger.info("="*80)
-    
+    logger.info("=" * 80)
+
     try:
         # Get user's completed courses
         completed_response = (
@@ -87,6 +87,14 @@ async def compare_programs(request: ProgramComparisonRequest):
         completed_course_codes = [c["course_code"] for c in completed_courses]
         completed_set = set(completed_course_codes)
         logger.info(f"Found {len(completed_courses)} completed courses")
+
+        # NEW: completed UOC total (safe int)
+        completed_uoc_total = 0
+        for c in completed_courses:
+            try:
+                completed_uoc_total += int(c.get("uoc") or 0)
+            except Exception:
+                pass
 
         # Get base & target programs
         base_program_resp = (
@@ -109,7 +117,7 @@ async def compare_programs(request: ProgramComparisonRequest):
 
         if not base_program or not target_program:
             raise HTTPException(status_code=404, detail="Program not found")
-        
+
         logger.info(f"Base: {base_program['program_name']}, Target: {target_program['program_name']}")
 
         # Extract target courses
@@ -142,7 +150,7 @@ async def compare_programs(request: ProgramComparisonRequest):
 
         target_courses_full = list(all_target_courses_map.values())
         logger.info(f"Total unique target courses: {len(target_courses_full)}")
-        
+
         # Enrich with prerequisites
         target_courses_full = enrich_courses_with_conditions(target_courses_full)
 
@@ -150,13 +158,14 @@ async def compare_programs(request: ProgramComparisonRequest):
         transferred_courses = []
         wasted_courses = []
         uoc_transferred = 0
+        wasted_uoc = 0
         matched_target_codes = set()
         target_by_code = {c["code"]: c for c in target_courses_full}
 
         for completed in completed_courses:
             c_code = completed["course_code"]
             c_uoc = completed.get("uoc") or 0
-            
+
             match_type = None
             matched_code = None
 
@@ -175,12 +184,15 @@ async def compare_programs(request: ProgramComparisonRequest):
                 transferred_courses.append({
                     "code": c_code,
                     "name": completed.get("course_name", ""),
-                    "uoc": c_uoc,
+                    "uoc": int(c_uoc or 0),
                     "match_type": match_type
                 })
-                if c_uoc > 0:
-                    uoc_transferred += c_uoc
-                
+                if c_uoc:
+                    try:
+                        uoc_transferred += int(c_uoc)
+                    except Exception:
+                        pass
+
                 if matched_code:
                     matched_target_codes.add(matched_code)
                     for equiv in get_equivalent_codes(matched_code):
@@ -190,9 +202,14 @@ async def compare_programs(request: ProgramComparisonRequest):
                 wasted_courses.append({
                     "code": c_code,
                     "name": completed.get("course_name", ""),
-                    "uoc": c_uoc
+                    "uoc": int(c_uoc or 0)
                 })
-        
+                if c_uoc:
+                    try:
+                        wasted_uoc += int(c_uoc)
+                    except Exception:
+                        pass
+
         logger.info(f"Transfer: {len(transferred_courses)} courses, {uoc_transferred} UOC")
 
         # Courses needed
@@ -204,7 +221,7 @@ async def compare_programs(request: ProgramComparisonRequest):
 
         # Group by level
         grouped_raw = group_courses_by_level(needed_courses, completed_set)
-        
+
         # Convert to LevelGroup models
         requirements_by_level = {}
         for level, data in grouped_raw.items():
@@ -220,8 +237,9 @@ async def compare_programs(request: ProgramComparisonRequest):
         # Calculate metrics
         total_uoc_required = int(target_program.get("minimum_uoc") or 144)
         uoc_needed = max(0, total_uoc_required - uoc_transferred)
-        
+
         total_completed = len(completed_courses)
+        # Course-based transfer rate (correct denominator)
         transfer_percentage = (len(transferred_courses) / max(total_completed, 1)) * 100
 
         estimated_terms = max(1, (uoc_needed + 17) // 18)
@@ -256,26 +274,52 @@ async def compare_programs(request: ProgramComparisonRequest):
             courses_with_prereq_issues
         )
 
-        # Build response
         logger.info(f"Recommendation: {recommendation}, Can transfer: {can_transfer}")
-        logger.info("="*80)
-        
+        logger.info("=" * 80)
+
         return ProgramComparisonResponse(
             can_transfer=can_transfer,
             recommendation=recommendation,
             summary={
+                # NEW: stable denominators
+                "completed_courses_count": total_completed,
+                "completed_uoc": completed_uoc_total,
+
                 "courses_transfer": len(transferred_courses),
                 "uoc_transfer": uoc_transferred,
+                "courses_wasted": len(wasted_courses),
+                "uoc_wasted": wasted_uoc,
+
                 "courses_needed": len(needed_courses),
                 "uoc_needed": uoc_needed,
                 "estimated_terms": estimated_terms,
                 "estimated_completion": completion_date,
-                "progress_percentage": round((uoc_transferred / max(total_uoc_required, 1)) * 100, 1)
+                "progress_percentage": round((uoc_transferred / max(total_uoc_required, 1)) * 100, 1),
+
+                # NEW: explicit rates
+                "transfer_rate_courses": round(transfer_percentage, 1),
+                "transfer_rate_uoc": round((uoc_transferred / max(completed_uoc_total, 1)) * 100, 1) if completed_uoc_total else 0,
             },
             transfer_analysis={
+                # keep your original key
                 "transferred_courses": transferred_courses,
                 "wasted_courses": wasted_courses,
-                "transfer_rate": round(transfer_percentage, 1)
+
+                # NEW: aliases so switch_advisor can read correctly
+                "non_transferable_courses": wasted_courses,
+
+                # NEW: explicit totals + counts for denominators
+                "total_completed_courses": total_completed,
+                "transferred_count": len(transferred_courses),
+                "wasted_count": len(wasted_courses),
+
+                # NEW: UOC totals
+                "completed_uoc": completed_uoc_total,
+                "transferred_uoc": uoc_transferred,
+                "wasted_uoc": wasted_uoc,
+
+                # Course transfer rate (correct)
+                "transfer_rate": round(transfer_percentage, 1),
             },
             requirements_by_level=requirements_by_level,
             critical_issues=critical_issues,
@@ -290,7 +334,7 @@ async def compare_programs(request: ProgramComparisonRequest):
                     "name": target_program["program_name"],
                     "faculty": target_program.get("faculty"),
                     "total_uoc": total_uoc_required
-                }
+                },
             }
         )
 

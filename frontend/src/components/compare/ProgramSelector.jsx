@@ -19,8 +19,6 @@ export default function ProgramSelector({
   baseSelectedSpecs,
 }) {
   const selectedProgramRef = useRef(null);
-  const compareButtonRef = useRef(null);
-  const [showArrow, setShowArrow] = useState(false);
 
   useEffect(() => {
     if (program && selectedProgramRef.current) {
@@ -33,69 +31,13 @@ export default function ProgramSelector({
     }
   }, [program]);
 
-  // Auto-scroll to top and show arrow when specialisation is selected
-  useEffect(() => {
-    if (selectedSpecs.length > 0 && compareButtonRef.current) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setShowArrow(true);
-      
-      // Hide arrow after 3 seconds
-      const timer = setTimeout(() => {
-        setShowArrow(false);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [selectedSpecs]);
+  
 
   return (
     <div className="space-y-6 pb-12">
       
       {/* TOP BAR WITH HEADING AND COMPARE BUTTON */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            Select Target Program
-          </h2>
-
-          {/* COMPARE BUTTON - TOP RIGHT */}
-          <div className="relative">
-            <button
-              ref={compareButtonRef}
-              onClick={goNext}
-              disabled={!program}
-              className={`
-                relative flex items-center gap-3 px-8 py-3.5 whitespace-nowrap
-                bg-gradient-to-r from-blue-600 via-blue-500 to-sky-600 
-                text-white text-base font-bold rounded-xl
-                transition-all duration-300
-                ${program 
-                  ? 'hover:from-blue-700 hover:via-blue-600 hover:to-sky-700 shadow-xl hover:shadow-2xl hover:scale-105 cursor-pointer' 
-                  : 'from-slate-300 to-slate-300 dark:from-slate-700 dark:to-slate-700 text-slate-500 cursor-not-allowed opacity-50'
-                }
-              `}
-              style={program ? {
-                animation: 'glow 2s ease-in-out infinite',
-                boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
-              } : {}}
-            >
-              <span>Compare Programs</span>
-              <HiChevronLeft className="w-5 h-5 rotate-180" />
-            </button>
-
-            {/* ARROW INDICATOR - Points from left to button */}
-            {showArrow && program && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full flex items-center gap-2 animate-bounce pr-4">
-                <span className="text-blue-600 dark:text-blue-400 font-bold text-sm bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg shadow-lg border-2 border-blue-400 whitespace-nowrap">
-                  Click here!
-                </span>
-                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
-          </div>
-        </div>
         
         {/* SEARCH INPUT */}
         <div className="relative">
