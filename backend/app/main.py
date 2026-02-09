@@ -8,6 +8,7 @@ from app.routers.ai_advisor import router as smart_summary_router
 from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
+from app.routers import switch_advisor
 
 app = FastAPI()
 load_dotenv()
@@ -41,4 +42,4 @@ app.include_router(smart_related.router)
 app.include_router(traits.router, prefix="/traits", tags=["Traits"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(compare_programs.router)
-
+app.include_router(switch_advisor.router)
