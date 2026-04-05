@@ -69,155 +69,153 @@ function RegisterForm() {
     };
 
     return (
-    <form className="flex w-100 flex-col gap-3">
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor='firstName'>First Name</Label>
-        </div>
-        <TextInput 
-          id="firstName" 
-          type="text" 
-          placeholder="Enter First Name" 
-          required 
-          shadow 
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          />
+    <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 flex flex-col gap-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h1>
       </div>
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor='lastName'>Last Name</Label>
-        </div>
-        <TextInput 
-          id="lastName" 
-          type="text" 
-          placeholder="Enter Last Name" 
-          required 
-          shadow 
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-        />
+
+      {/* Google Sign-Up — top, matching LoginForm */}
+      <Button
+        onClick={handleGoogleSignUp}
+        size="lg"
+        color="light"
+        className="w-full border border-gray-300 dark:border-gray-600"
+        type="button"
+      >
+        <FcGoogle className="mr-2 h-5 w-5" />
+        Continue with Google
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+        <span className="text-sm text-gray-400">or</span>
+        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
       </div>
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor="email2">Your Email</Label>
+
+      <form onSubmit={handleRegister} className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="firstName" value="First Name" className="mb-1 block" />
+            <TextInput
+              id="firstName"
+              type="text"
+              placeholder="First name"
+              required
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="lastName" value="Last Name" className="mb-1 block" />
+            <TextInput
+              id="lastName"
+              type="text"
+              placeholder="Last name"
+              required
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
         </div>
-        <TextInput 
-          id="email2" 
-          type="email" 
-          placeholder="email@domain.com" 
-          required 
-          shadow 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor='dob'>Date of Birth</Label>
-        </div>
-        <TextInput 
-          id="dob" 
-          type="date" 
-          required 
-          shadow 
-          value={dob}
-          onChange={(e) => setDob(e.target.value)}
-          />
-      </div>
-      <div>
         <div>
-          <Label className="mb-2 block" htmlFor="gender">Gender</Label>
+          <Label htmlFor="email2" value="Email" className="mb-1 block" />
+          <TextInput
+            id="email2"
+            type="email"
+            placeholder="you@email.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-          <Select 
-            id="gender" 
-            name="gender" 
-            value={gender} 
-            onChange={(e) => setGender(e.target.value)}
-          >
-            <option value="">Select…</option>
-            <option value="Male">Male</option>
-            <option value="Femal">Female</option>
-            <option value="Other">Other</option>
-          </Select>
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor="password2">Your Password</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="dob" value="Date of Birth" className="mb-1 block" />
+            <TextInput
+              id="dob"
+              type="date"
+              required
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="gender" value="Gender" className="mb-1 block" />
+            <Select
+              id="gender"
+              name="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+            >
+              <option value="">Select…</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </Select>
+          </div>
         </div>
-        <TextInput 
-          id="password2" 
-          type="password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required 
-          shadow 
-        />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <Label htmlFor="repeat-password">Confirm Password</Label>
+        <div>
+          <Label htmlFor="password2" value="Password" className="mb-1 block" />
+          <TextInput
+            id="password2"
+            type="password"
+            placeholder="••••••••"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
-        <TextInput 
-        id="repeat-password" 
-        type="password" 
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        required 
-        shadow 
-        />
-      </div>
-      <div className="flex items-center gap-2 mt-4">
-        <Checkbox 
-        id="agree"
-        checked={agreed}
-        onChange={(e) => setAgreed(e.target.checked)}
-        />
-        <Label htmlFor="agree" className="flex">
-          I agree with the&nbsp;
-          <button
-            type="button"
-            className="text-blue-500 hover:underline"
-            onClick={() => setOpenModal(true)}
-          >
-            terms and conditions
-          </button>
-        </Label>
-        <Modal show={openModal} onClose={() => setOpenModal(false)}>
-          <ModalHeader>Terms & Conditions</ModalHeader>
+        <div>
+          <Label htmlFor="repeat-password" value="Confirm Password" className="mb-1 block" />
+          <TextInput
+            id="repeat-password"
+            type="password"
+            placeholder="••••••••"
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="agree"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+          />
+          <Label htmlFor="agree" className="flex text-sm">
+            I agree with the&nbsp;
+            <button
+              type="button"
+              className="text-blue-500 hover:underline"
+              onClick={() => setOpenModal(true)}
+            >
+              terms and conditions
+            </button>
+          </Label>
+          <Modal show={openModal} onClose={() => setOpenModal(false)}>
+            <ModalHeader>Terms & Conditions</ModalHeader>
             <ModalBody>
-              <TermsText/>
-          </ModalBody>
-        </Modal>
-      </div>
-      <div className="flex justify-center mb-7">
-        <Link>
-          <Button onClick={handleRegister} size="xl" pill type="submit">Register new account</Button>
-        </Link>  
-      </div>
+              <TermsText />
+            </ModalBody>
+          </Modal>
+        </div>
 
-      {/* Divider */}
-      <div className="flex items-center w-full my-2">
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-        <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">or</span>
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-      </div>
+        {error && (
+          <p className="text-sm text-red-500 dark:text-red-400 text-center">{error}</p>
+        )}
 
-      {/* Google Sign-Up Button */}
-      <div className="flex justify-center mb-7">
-        <Button 
-          onClick={handleGoogleSignUp} 
-          size="xl" 
-          pill 
-          color="gray"
-          type="button"
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          isProcessing={loading}
+          disabled={loading}
         >
-          <FcGoogle className="mr-2 h-5 w-5" />
-          Sign up with Google
+          Create Account
         </Button>
-      </div>
-
-    </form>
+      </form>
+    </div>
   );
 }
 

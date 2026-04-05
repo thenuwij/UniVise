@@ -99,7 +99,7 @@
 body {
   background: var(--bg-light);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
   margin: 0;
   padding: 0;
@@ -164,10 +164,14 @@ body {
 
 /* Glass card with spotlight effect */
 .card-glass-spotlight {
-  @apply relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm;
+  @apply relative overflow-hidden rounded-3xl backdrop-blur-xl;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12), 0 2px 8px rgba(0,0,0,0.08);
 }
 .dark .card-glass-spotlight {
   @apply border-slate-700 bg-slate-800/70;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.15), 0 1px 4px rgba(0,0,0,0.2);
 }
 
 /* The spotlight aura overlay */
@@ -241,7 +245,7 @@ body {
 }
 
 .page-button-disabled {
-  @apply bg-gradient-to-br from-purple-300 to-blue-300 text-white cursor-not-allowed;
+  @apply bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none;
 }
 
 

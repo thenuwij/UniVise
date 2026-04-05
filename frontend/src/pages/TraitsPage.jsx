@@ -18,7 +18,6 @@ import { supabase } from '../supabaseClient';
 
 
 
-const isDarkMode = document.documentElement.classList.contains('dark');
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const personalityDescriptions = {
@@ -95,8 +94,17 @@ function TraitsPage() {
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
   const { session } = UserAuth();
   const userType = session?.user?.user_metadata?.student_type;
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -113,7 +121,6 @@ function TraitsPage() {
         navigate("/quiz");
       } else {
         setResult(data);
-        console.log("Fetched result:", data);
       }
       setLoading(false);
     };
@@ -184,7 +191,7 @@ function TraitsPage() {
 
   // Main content when data is loaded
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
@@ -198,52 +205,40 @@ function TraitsPage() {
             </div>
 
             <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
-              You are a{" "}
-              <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-                {result?.result_summary || 'Unknown'}
-              </span>{" "}
-              type.
+              Here's what makes you, <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">you.</span>
             </h1>
-            {result?.top_types && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold mb-2">Your Top Traits:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {result.top_types.map((trait) => (
-                    <span 
-                      key={trait} 
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                    >
-                      {personalityDescriptions[trait]?.name || trait}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <p className="mt-2 text-slate-500 dark:text-slate-400">
+              Based on your quiz, here's a breakdown of your personality and what it means for your future.
+            </p>
 
           </div>
           <div className='flex justify-evenly  gap-6 mt-6'>
             <div className='card-glass-spotlight mt-6 p-6 w-2/3'>
-              {/* Content goes here */}
-              <p className="mt-2 text-xl">
-                What is a {" "}
-                <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-                  {result?.result_summary || 'Unknown'}
-                </span>{" "}
-                type ?
+              <p className="text-xl font-semibold text-slate-800 dark:text-white">
+                What this means for you
               </p>
-              <p className="mt-4 ">
+              <p className="mt-3">
+                {result?.description || "No further details available."}
+              </p>
+
+              <hr className="my-5 border-slate-200 dark:border-slate-700" />
+
+              <p className="text-base font-semibold text-slate-600 dark:text-slate-400">
+                Your personality type: <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">{result?.result_summary || 'Unknown'}</span>
+              </p>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 {personalityResults[result?.result_summary] || "No description available."}
               </p>
 
-              <p className="mt-6 mb-2">
-                What does this
-                <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"> mean for you </span>
-                ?
-              </p>
-
-              <p>
-                {result?.description || "No further details available."}
-              </p>
+              {result?.top_types && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {result.top_types.map((trait) => (
+                    <span key={trait} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm">
+                      {personalityDescriptions[trait]?.name || trait}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
 
@@ -290,7 +285,7 @@ function TraitsPage() {
                           font: {
                             size: 12,
                           },
-                          color: '#6b7280',
+                          color: isDarkMode ? '#e2e8f0' : '#6b7280',
                         }
                       }
                     }
@@ -301,11 +296,9 @@ function TraitsPage() {
           </div>
           
           <div className='card-glass-spotlight mt-6 p-6'>
-            <p className=" text-2xl font-semibold ">
-              Why the RIASEC model?
-            </p>
-            <p className="mt-2 text-gray-700 dark:text-gray-300 mb-4">
-              The RIASEC model, developed by John Holland, is one of the most widely used frameworks for understanding personality and career interests. It categorises individuals into six primary types: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. By identifying your top personality traits using this model, we can provide more tailored recommendations for your educational and career paths. This helps ensure that the suggestions align with your natural preferences and strengths, ultimately leading to greater satisfaction and success in your future endeavors.
+            <p className="text-2xl font-semibold">Want to understand each type?</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 mb-4">
+              The quiz uses the RIASEC model — a widely used framework that groups personality into six types. Tap any to learn more.
             </p>
                 <Accordion collapseAll>
                   <AccordionPanel>

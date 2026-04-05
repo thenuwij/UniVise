@@ -464,7 +464,7 @@ function ProgressPage() {
   const nav = navConfig[currentStep] || {};
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-28">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-28">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />

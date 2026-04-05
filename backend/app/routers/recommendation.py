@@ -223,7 +223,7 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
         .select("analysis")
         .eq("user_id", user.id)
         .single()
-        .execute
+        .execute()
     )
 
     if not report:

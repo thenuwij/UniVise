@@ -20,7 +20,7 @@ function MyPlannerPage() {
   const closeDrawer = () => setIsOpen(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
@@ -28,14 +28,14 @@ function MyPlannerPage() {
 
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full mx-20">
-          {/* HEADER - WITH MY PLANNER TAG */}
-          <div className="mt-12 mb-12">
+          {/* HEADER */}
+          <div className="mt-6 mb-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm mb-4">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
               My Planner
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                 Plan
               </span>{" "}
@@ -43,168 +43,92 @@ function MyPlannerPage() {
             </h1>
 
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-              Track your progress, view saved items, or explore degree options at UNSW
+              Analyse program transfers, view your saved items, or explore the UNSW handbook
             </p>
           </div>
 
-          {/* TOP TWO CARDS - IMPROVED MINIMAL DESIGN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
-            {/* PROGRAM TRANSFER ANALYSIS */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg p-8 transition-all duration-200 group">
-              <div className="flex items-center gap-4 mb-7">
-                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 shadow-md group-hover:shadow-lg transition-all">
-                  <HiSwitchHorizontal className="w-9 h-9 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                    Program Transfer Analysis
-                  </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-                    Compare programs and see what transfers
-                  </p>
-                </div>
-              </div>
+          {/* Two main actions */}
+          <div className="flex flex-col gap-3 mb-10">
 
-              <ul className="space-y-3.5 mb-8">
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>Select a target program to compare</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>See transferable vs non-transferable courses</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>Get remaining requirements and prereq checks</span>
-                </li>
-              </ul>
+            {/* View Saved - Full width button */}
+            <button
+              onClick={() => navigate("/mypathway")}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-sm hover:shadow-md transition-all duration-200 group"
+            >
+              <HiBookmark className="w-5 h-5" />
+              <span className="font-semibold">View Saved Items</span>
+            </button>
 
-              <button
-                onClick={() => navigate("/progress")}
-                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <span>Run Transfer Analysis</span>
-                <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* SAVED ITEMS */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg p-8 transition-all duration-200 group">
-              <div className="flex items-center gap-4 mb-7">
-                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md group-hover:shadow-lg transition-all">
-                  <HiBookmark className="w-9 h-9 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                    Your Saved Items
-                  </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-                    Access all your bookmarked content
-                  </p>
-                </div>
-              </div>
-
-              <ul className="space-y-3.5 mb-8">
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>Programs & Specialisations</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>Courses & Communities</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span>Industry & Career Paths</span>
-                </li>
-              </ul>
-
-              <button
-                onClick={() => navigate("/mypathway")}
-                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <span>View Saved Items</span>
-                <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-
-          {/* SECTION HEADER */}
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-              Explore Academic Options
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
-              Browse degrees, specialisations, and courses
-            </p>
-          </div>
-
-          {/* EXPLORE CARDS - SUBTLE IMPROVEMENTS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-7 mb-20">
-            {/* Explore Degrees */}
+            {/* Program Transfer Analysis */}
             <div
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg p-7 group transition-all duration-200 cursor-pointer"
+              onClick={() => navigate("/progress")}
+              className="w-full flex items-center justify-between gap-6 px-10 py-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-lg cursor-pointer transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-5">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex-shrink-0 shadow-sm">
+                  <HiSwitchHorizontal className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">Thinking of switching degrees?</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    See exactly what carries over — and what doesn't — before you decide.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-base font-bold text-blue-600 dark:text-blue-400 hidden md:block">Run Analysis</span>
+                <HiArrowRight className="w-5 h-5 text-blue-500 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* UNSW Handbook */}
+          <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-4">Explore UNSW Handbook</p>
+
+          <div className="grid grid-cols-3 gap-4 mb-20">
+            <div
               onClick={() => navigate("/explore-by-degree")}
+              className="flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] cursor-pointer transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                  <HiCollection className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                  <HiCollection className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Degrees</h3>
-              </div>
-
-              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                Browse UNSW degree programs, view structures and entry requirements
-              </p>
-
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-3 transition-all">
-                <span>Explore</span>
-                <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white">Degrees</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Browse all UNSW degree programs, structures and entry requirements</p>
+                </div>
               </div>
             </div>
 
-            {/* Explore Specialisations */}
             <div
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg p-7 group transition-all duration-200 cursor-pointer"
               onClick={() => navigate("/explore-by-specialisation")}
+              className="flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] cursor-pointer transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                  <HiUsers className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                  <HiUsers className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Specialisations</h3>
-              </div>
-
-              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                Review majors, minors and honours pathways
-              </p>
-
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-3 transition-all">
-                <span>Explore</span>
-                <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white">Specialisations</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Explore majors, minors and honours pathways available at UNSW</p>
+                </div>
               </div>
             </div>
 
-            {/* Explore Courses */}
             <div
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg p-7 group transition-all duration-200 cursor-pointer"
               onClick={() => navigate("/explore-by-course")}
+              className="flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] cursor-pointer transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                  <HiClipboard className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                  <HiClipboard className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Courses</h3>
-              </div>
-
-              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                Search courses, check prerequisites and see how they fit your plan
-              </p>
-
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-3 transition-all">
-                <span>Explore</span>
-                <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white">Courses</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Search individual courses, check prerequisites and see how they fit your plan</p>
+                </div>
               </div>
             </div>
           </div>

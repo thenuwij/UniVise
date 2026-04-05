@@ -39,26 +39,22 @@ export const AuthContextProvider = ({ children }) => {
       return { success: false, error: error.message };
     }
     setSession(data.session);
-    console.log("Signed in, session now:", data.session);
     return { success: true, data };
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      console.log("Initial Session:", session?.access_token);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      console.log("Auth Changed Session:", session?.access_token);
     });
   }, []);
 
   
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    console.log("Signed out", session)
     if (error) {
       console.error("Sign out had an error");
     }

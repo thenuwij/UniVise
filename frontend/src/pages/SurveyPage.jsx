@@ -61,7 +61,7 @@ function SurveyPage() {
   };
 
   return (
-    <div className="min-h-screen  flex flex-col  relative"
+    <div className="min-h-screen flex flex-col relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Sign Out Button top-right */}

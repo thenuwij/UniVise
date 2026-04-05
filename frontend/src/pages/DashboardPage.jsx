@@ -15,7 +15,10 @@ function DashboardPage() {
   const closeDrawer = () => setIsOpen(false);
 
   // Name fallback
-  const firstNameRaw = session?.user?.user_metadata?.first_name;
+  const firstNameRaw =
+    session?.user?.user_metadata?.first_name ||
+    session?.user?.user_metadata?.full_name?.split(" ")[0] ||
+    session?.user?.user_metadata?.name?.split(" ")[0];
   const displayName =
     (firstNameRaw && firstNameRaw.trim()) ||
     session?.user?.email?.split("@")[0] ||
@@ -31,7 +34,7 @@ function DashboardPage() {
   }).format(new Date());
 
   return (
-    <div className="min-h-screen bg-gradient-to-br">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={openDrawer} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />

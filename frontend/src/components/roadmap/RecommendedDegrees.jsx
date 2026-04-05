@@ -67,7 +67,7 @@ function RecommendedDegrees({
               ${
                 isSelected
                   ? "border-sky-500 bg-sky-50 dark:bg-sky-900/40 shadow-md"
-                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700"
+                  : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 shadow-md hover:shadow-lg hover:border-sky-300 dark:hover:border-sky-700"
               }`}
           >
             {/* Selection Badge */}

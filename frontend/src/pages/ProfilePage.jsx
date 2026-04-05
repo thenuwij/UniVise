@@ -10,25 +10,25 @@ import {
 } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
-import { HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
+import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
 import { HiOutlineDocumentText, HiOutlineIdentification } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { FileUpload } from '../components/FileUpload';
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 
-
-function AuraPanel({ title, icon: Icon, children, hint }) {
+function Panel({ title, icon: Icon, children, hint }) {
   return (
     <div className="card-glass-spotlight">
       <div />
-      <div className="relative p-6 md:p-7">
-        <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-6 w-6 " />}
-          <h2 className="text-2xl font-semibold ">{title}</h2>
+      <div className="relative p-6">
+        <div className="flex items-center gap-2 mb-1">
+          {Icon && <Icon className="h-5 w-5 text-slate-500" />}
+          <h2 className="text-lg font-semibold">{title}</h2>
         </div>
-        {hint && <p className="mt-1 text-sm">{hint}</p>}
-        <div className="mt-4">{children}</div>
+        {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{hint}</p>}
+        <div className="mt-3">{children}</div>
       </div>
     </div>
   );
@@ -37,30 +37,27 @@ function AuraPanel({ title, icon: Icon, children, hint }) {
 function KeyValue({ label, value }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">{label}</p>
-      <p className="mt-1">{value || "Not specified"}</p>
+      <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400">{label}</p>
+      <p className="mt-0.5 text-sm font-medium">{value || "Not specified"}</p>
     </div>
   );
 }
 
-function LoadingCard() {
+function TagList({ items }) {
+  if (!items?.length) return <span className="text-sm text-slate-400">None specified</span>;
   return (
-    <div className="rounded-3xl border p-6 backdrop-blur-xl shadow-sm animate-pulse">
-      <div className="h-6 w-40 rounded" />
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <div className="h-10  rounded" />
-        <div className="h-10  rounded" />
-        <div className="h-10 rounded" />
-        <div className="h-10 rounded" />
-      </div>
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {items.map((item, i) => (
+        <span key={item + i} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
+          {item}
+        </span>
+      ))}
     </div>
   );
 }
 
-// Improved TagInput with better hit targets and keyboard UX
 function TagInput({ values, setValues, placeholder }) {
   const [next, setNext] = useState("");
-
   const addTag = () => {
     const t = next.trim();
     if (t && !values.includes(t)) setValues([...values, t]);
@@ -68,42 +65,21 @@ function TagInput({ values, setValues, placeholder }) {
   };
   const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
   const onKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTag();
-    } else if (e.key === "Backspace" && !next && values.length) {
-      removeTag(values.length - 1);
-    }
+    if (e.key === "Enter") { e.preventDefault(); addTag(); }
+    else if (e.key === "Backspace" && !next && values.length) removeTag(values.length - 1);
   };
-
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <TextInput
-          placeholder={placeholder}
-          value={next}
-          onChange={(e) => setNext(e.target.value)}
-          onKeyDown={onKeyDown}
-          className="w-full"
-        />
-        <Button onClick={addTag} disabled={!next.trim()}>
-          Add
-        </Button>
+        <TextInput placeholder={placeholder} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
+        <Button onClick={addTag} disabled={!next.trim()}>Add</Button>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {values.map((tag, i) => (
-          <span
-            key={tag + i}
-            className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm "
-          >
+          <span key={tag + i} className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs">
             {tag}
-            <button
-              type="button"
-              onClick={() => removeTag(i)}
-              className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/60 hover:bg-white transition"
-              aria-label={`Remove ${tag}`}
-            >
-              <HiX className="h-3.5 w-3.5 text-slate-600" />
+            <button type="button" onClick={() => removeTag(i)} className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-slate-200 transition" aria-label={`Remove ${tag}`}>
+              <HiX className="h-3 w-3 text-slate-500" />
             </button>
           </span>
         ))}
@@ -112,88 +88,72 @@ function TagInput({ values, setValues, placeholder }) {
   );
 }
 
-function ProfilePage() {
+function LoadingCard() {
+  return (
+    <div className="animate-pulse space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {[...Array(4)].map((_, i) => <div key={i} className="h-8 rounded bg-slate-100 dark:bg-slate-700" />)}
+      </div>
+    </div>
+  );
+}
 
-  const [firstName, setFirstName] = useState("Not Specified");
-  const [lastName, setLastName] = useState("Not Specified");
-  const [email, setEmail] = useState("Not Specified");
-  const [dob, setDob] = useState("Not Specified");
+function ProfilePage() {
+  const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [dob, setDob] = useState("");
   const [gender, setGender] = useState("Not Specified");
-  const [studentType, setStudentType] = useState("Not Specified");
+  const [studentType, setStudentType] = useState("");
   const [careerInterests, setCareerInterests] = useState([]);
   const [degreeInterests, setDegreeInterests] = useState([]);
-  const [year, setYear] = useState("Not Specified");
+  const [year, setYear] = useState("");
   const [academicStrengths, setAcademicStrengths] = useState([]);
   const [confidence, setConfidence] = useState("Not Specified");
   const [hobbies, setHobbies] = useState([]);
-  const [university, setUniversity] = useState("Not Specified");
   const [isEditing, setIsEditing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [atar, setAtar] = useState("Not Specified");
-  const [degreeStage, setDegreeStage] = useState();
-  const [degreeField, setDegreeField] = useState("Not Specified");
-  const [wam, setWam] = useState();
+  const [atar, setAtar] = useState("");
+  const [degreeStage, setDegreeStage] = useState("");
+  const [degreeField, setDegreeField] = useState("");
+  const [wam, setWam] = useState("");
   const [reportPath, setReportPath] = useState(null);
   const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
-  const [fileName, setFileName] = useState('')
-
+  const [fileName, setFileName] = useState("");
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
-
   const isHS = useMemo(() => studentType === "High School" || studentType === "high_school", [studentType]);
 
-  // save
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      // update email first
       const { error: emailError } = await supabase.auth.updateUser({ email });
-      if (emailError) {
-        console.error("Error updating email:", emailError);
-        return;
-      }
-      // update auth metadata
-      const { data: authData, error: authError } = await supabase.auth.updateUser({
+      if (emailError) { console.error("Error updating email:", emailError); return; }
+
+      const { error: authError } = await supabase.auth.updateUser({
         data: { first_name: firstName, last_name: lastName, email, dob, gender },
       });
-      if (authError) {
-        console.error("Error updating auth metadata:", authError);
-        return;
-      }
+      if (authError) { console.error("Error updating auth metadata:", authError); return; }
 
       if (isHS) {
         const { data: { user } } = await supabase.auth.getUser();
-        await supabase
-          .from("student_school_data")
-          .update({
-            hobbies,
-            academic_strengths: academicStrengths,
-            degree_interest: degreeInterests,
-            career_interests: careerInterests,
-            confidence,
-          })
-          .eq("user_id", user.id);
+        await supabase.from("student_school_data").update({
+          hobbies, academic_strengths: academicStrengths,
+          degree_interest: degreeInterests, career_interests: careerInterests, confidence,
+        }).eq("user_id", user.id);
       } else if (studentType === "University") {
         const { data: { user } } = await supabase.auth.getUser();
-        await supabase
-          .from("student_uni_data")
-          .update({
-            wam,
-            degree_field: degreeField,
-            degree_stage: degreeStage,
-            interest_areas: careerInterests,
-            hobbies,
-            confidence,
-            academic_year: year,
-          })
-          .eq("user_id", user.id);
+        await supabase.from("student_uni_data").update({
+          wam, degree_field: degreeField, degree_stage: degreeStage,
+          interest_areas: careerInterests, hobbies, confidence, academic_year: year,
+        }).eq("user_id", user.id);
       }
-
       setIsEditing(false);
     } catch (error) {
-      console.log(error);
+      console.error("Error saving profile:", error);
     }
   };
 
@@ -205,86 +165,48 @@ function ProfilePage() {
         if (error) throw error;
         if (!user) return;
 
-        const fn = user.user_metadata.first_name || "";
-        const ln = user.user_metadata.last_name || "";
-        const em = user.email || "";
-        const db = user.user_metadata.dob || "";
-        const st = user.user_metadata.student_type || "";
-        const gd = user.user_metadata.gender || "";
-
+        const fn = user.user_metadata.first_name || user.user_metadata.full_name?.split(" ")[0] || "";
+        const ln = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || "";
         setUserId(user.id);
         setFirstName(fn);
         setLastName(ln);
-        setEmail(em);
-        setGender(gd);
-        setDob(db);
+        setEmail(user.email || "");
+        setGender(user.user_metadata.gender || "Not Specified");
+        setDob(user.user_metadata.dob || "");
+
+        const st = user.user_metadata.student_type || "";
 
         if (st === "high_school") {
-          const { data } = await supabase
-            .from("student_school_data")
-            .select("*")
-            .eq("user_id", user.id)
-            .single();
-
-          setAtar(data?.atar ?? "Not Specified");
-          setYear(data?.year ?? "Not Specified");
-
-          const arrStrengths = Array.isArray(data?.academic_strengths)
-            ? data.academic_strengths
-            : typeof data?.academic_strengths === "string"
-            ? data.academic_strengths.split(",").map((h) => h.trim()).filter(Boolean)
-            : [];
-          setAcademicStrengths(arrStrengths);
-
-          const arrCareerInterests = Array.isArray(data?.career_interests)
-            ? data.career_interests
-            : typeof data?.career_interests === "string"
-            ? data.career_interests.split(",").map((h) => h.trim()).filter(Boolean)
-            : [];
-          setCareerInterests(arrCareerInterests);
-
-          const arrDegreeInterest = Array.isArray(data?.degree_interests)
-            ? data.degree_interests
-            : typeof data?.degree_interests === "string"
-            ? data.degree_interests.split(",").map((h) => h.trim()).filter(Boolean)
-            : [];
-          setDegreeInterests(arrDegreeInterest);
-
-          const arrHobbies = Array.isArray(data?.hobbies)
-            ? data.hobbies
-            : typeof data?.hobbies === "string"
-            ? data.hobbies.split(",").map((h) => h.trim()).filter(Boolean)
-            : [];
-          setHobbies(arrHobbies);
-          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
-          console.log(publicUrlData.publicUrl)
-          setReportPath(publicUrlData.publicUrl)
-          setFileName(data?.report_path.split('/').pop())
-
-          setConfidence(data?.confidence ?? "Not Specified");
+          const { data } = await supabase.from("student_school_data").select("*").eq("user_id", user.id).single();
           setStudentType("High School");
+          setAtar(data?.atar ?? "");
+          setYear(data?.year ?? "");
+          setConfidence(data?.confidence ?? "Not Specified");
+          const toArr = (v) => Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
+          setAcademicStrengths(toArr(data?.academic_strengths));
+          setCareerInterests(toArr(data?.career_interests));
+          setDegreeInterests(toArr(data?.degree_interests));
+          setHobbies(toArr(data?.hobbies));
+          if (data?.report_path) {
+            const { data: urlData } = await supabase.storage.from("reports").getPublicUrl(data.report_path);
+            setReportPath(urlData.publicUrl);
+            setFileName(data.report_path.split("/").pop());
+          }
         } else if (st === "university") {
-          const { data } = await supabase
-            .from("student_uni_data")
-            .select("*")
-            .eq("user_id", user.id)
-            .single();
-
+          const { data } = await supabase.from("student_uni_data").select("*").eq("user_id", user.id).single();
           setStudentType("University");
           setWam(data?.wam ?? "");
-          setDegreeField(data?.degree_field ?? "Not Specified");
+          setDegreeField(data?.degree_field ?? "");
           setDegreeStage(data?.degree_stage ?? "");
           setCareerInterests(data?.interest_areas ?? []);
           setHobbies(data?.hobbies ?? []);
           setConfidence(data?.confidence ?? "Not Specified");
-          setYear(data?.academic_year ?? "Not Specified");
-          
-          const { data: publicUrlData } = await supabase.storage.from('reports').getPublicUrl(data?.report_path)
-          console.log(publicUrlData.publicUrl)
-          setReportPath(publicUrlData.publicUrl)
-          setFileName(data?.report_path.split('/').pop())
-
-
+          setYear(data?.academic_year ?? "");
+          if (data?.report_path) {
+            const { data: urlData } = await supabase.storage.from("reports").getPublicUrl(data.report_path);
+            setReportPath(urlData.publicUrl);
+            setFileName(data.report_path.split("/").pop());
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -295,55 +217,50 @@ function ProfilePage() {
     fetchUserInfo();
   }, []);
 
+  const fileUploadProps = isHS
+    ? { reportType: "highschool_reports", bucket: "reports", table: "student_school_data", column: "report_path" }
+    : { reportType: "uni_transcripts", bucket: "reports", table: "student_uni_data", column: "report_path" };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br ">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <DashboardNavBar onMenuClick={openDrawer} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      {/* Header and sticky actions */}
-      <header className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium ">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500 text-slate-800 dark:text-slate-300" />
-              Profile
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">My Account</h1>
-            <p className="mt-1">
-              View and update your details. Changes sync to your recommendations.
-            </p>
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-16">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              <HiArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </button>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <h1 className="text-xl font-bold">My Account</h1>
           </div>
 
-          <div className="sticky top-3 z-10">
+          <div>
             {isEditing ? (
               <div className="flex gap-2">
-                <Button pill color="light" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-                {/* attaches to the form below by id */}
-                <Button pill type="submit" form="profileForm">
-                  Save
-                </Button>
+                <Button pill size="sm" color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
+                <Button pill size="sm" type="submit" form="profileForm">Save changes</Button>
               </div>
             ) : (
-              <Button 
-                size='sm'
-                className='border-0 button-primary'
-                onClick={() => setIsEditing(true)}>
-                <FaRegEdit className='w-5 h-5'/>
+              <Button size="sm" className="button-primary border-0" onClick={() => setIsEditing(true)}>
+                <FaRegEdit className="mr-1.5 h-4 w-4" />
+                Edit
               </Button>
             )}
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 pb-16">
         {isEditing ? (
-          <form id="profileForm" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left span 2: About + Academic */}
-            <div className="lg:col-span-2 space-y-6">
-              <AuraPanel title="About Me" icon={HiOutlineUserCircle}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form id="profileForm" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 space-y-5">
+              <Panel title="About Me" icon={HiOutlineUserCircle}>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName" value="First Name" />
                     <TextInput id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -352,440 +269,241 @@ function ProfilePage() {
                     <Label htmlFor="lastName" value="Last Name" />
                     <TextInput id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="col-span-2">
                     <Label htmlFor="email" value="Email" />
                     <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
-                  {/* DOB + Gender */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="dob" value="Date of Birth" />
-                      <TextInput
-                        id="dob"
-                        type="date"
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="gender" value="Gender" />
-                      <Select
-                        id="gender"
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value)}
-                        className="w-full"
-                      >
-                        {/* Keep “Not Specified” so the initial value renders */}
-                        <option value="Not Specified">Not Specified</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
-                      </Select>
-                    </div>
+                  <div>
+                    <Label htmlFor="dob" value="Date of Birth" />
+                    <TextInput id="dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                   </div>
-                  <div className="md:col-span-2">
+                  <div>
+                    <Label htmlFor="gender" value="Gender" />
+                    <Select id="gender" value={gender} onChange={(e) => setGender(e.target.value)}>
+                      <option value="Not Specified">Not Specified</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
                     <Label value="Hobbies" />
-                    <TagInput values={hobbies} setValues={setHobbies} placeholder="Type hobby and press Add" />
+                    <TagInput values={hobbies} setValues={setHobbies} placeholder="Type a hobby and press Add" />
                   </div>
                 </div>
-              </AuraPanel>
+              </Panel>
 
-              <AuraPanel title="Academic Information" icon={HiOutlineAcademicCap}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Panel title="Academic Information" icon={HiOutlineAcademicCap}>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="studentType" value="School Type" />
-                    <Select
-                      id="studentType"
-                      value={isHS ? "High School" : "University"}
-                      disabled
-                      className="w-full"
-                    >
+                    <Label htmlFor="studentType" value="Student Type" />
+                    <Select id="studentType" value={isHS ? "High School" : "University"} disabled>
                       <option>High School</option>
                       <option>University</option>
                     </Select>
-                    <p className="mt-1 text-xs">This cannot be changed.</p>
+                    <p className="mt-1 text-xs text-slate-400">Cannot be changed.</p>
                   </div>
-                  {/* Year */}
                   <div>
                     <Label htmlFor="year" value="Year" />
-                    <Select
-                      id="year"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      className="w-full"
-                    >
+                    <Select id="year" value={year} onChange={(e) => setYear(e.target.value)}>
                       {isHS ? (
-                        <>
-                          <option value="Not Specified">Not Specified</option>
-                          <option value="Year 10">Year 10</option>
-                          <option value="Year 11">Year 11</option>
-                          <option value="Year 12">Year 12</option>
-                        </>
+                        ["Not Specified","Year 10","Year 11","Year 12"].map(v => <option key={v} value={v}>{v}</option>)
                       ) : (
-                        <>
-                          <option value="Not Specified">Not Specified</option>
-                          <option value="Year 1">Year 1</option>
-                          <option value="Year 2">Year 2</option>
-                          <option value="Year 3">Year 3</option>
-                          <option value="Year 4">Year 4</option>
-                          <option value="Year 5+">Year 5+</option>
-                          <option value="Postgraduate/Other">Postgraduate/Other</option>
-                        </>
+                        ["Not Specified","Year 1","Year 2","Year 3","Year 4","Year 5+","Postgraduate/Other"].map(v => <option key={v} value={v}>{v}</option>)
                       )}
                     </Select>
                   </div>
-
-                  {!isHS && (
-                    <>
-                      <div>
-                        <div>
-                          <Label htmlFor="degreeStage" value="Degree Stage" />
-                          <Select
-                            id="degreeStage"
-                            value={degreeStage || "Not Specified"}
-                            onChange={(e) => setDegreeStage(e.target.value)}
-                            className="w-full"
-                          >
-                            <option value="Not Specified">Not Specified</option>
-                            <option value="Bachelors Degree">Bachelors Degree</option>
-                            <option value="Masters Degree">Masters Degree</option>
-                            <option value="PhD or Doctoral Program">PhD or Doctoral Program</option>
-                            <option value="Other">Other</option>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="degreeField" value="Degree Field" />
-                        <TextInput
-                          id="degreeField"
-                          value={degreeField}
-                          onChange={(e) => setDegreeField(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
 
                   {isHS ? (
                     <>
                       <div>
                         <Label htmlFor="atar" value="ATAR" />
-                        <TextInput
-                          id="atar"
-                          type="number"
-                          value={atar}
-                          onChange={(e) => setAtar(e.target.value)}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label value="Academic Strengths" />
-                        <TagInput
-                          values={academicStrengths}
-                          setValues={setAcademicStrengths}
-                          placeholder="Type academic strengths and press Add"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label value="Degree Interests" />
-                        <TagInput
-                          values={degreeInterests}
-                          setValues={setDegreeInterests}
-                          placeholder="Type degree interests and press Add"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label value="Career Interests" />
-                        <TagInput
-                          values={careerInterests}
-                          setValues={setCareerInterests}
-                          placeholder="Type career interests and press Add"
-                        />
+                        <TextInput id="atar" type="number" value={atar} onChange={(e) => setAtar(e.target.value)} />
                       </div>
                       <div>
                         <Label value="Confidence Level" />
-                        <Dropdown label={confidence} className="bg-white">
-                          <DropdownItem onClick={() => setConfidence("Very confident - I know what I want")}>
-                            Very confident - I know what I want
-                          </DropdownItem>
-                          <DropdownItem onClick={() => setConfidence("Somewhat confident - I have ideas but unsure")}>
-                            Somewhat confident - I have ideas but unsure
-                          </DropdownItem>
-                          <DropdownItem onClick={() => setConfidence("Not confident - I need help figuring out")}>
-                            Not confident - I need help figuring out
-                          </DropdownItem>
+                        <Dropdown label={confidence || "Select…"} className="bg-white">
+                          {["Very confident - I know what I want","Somewhat confident - I have ideas but unsure","Not confident - I need help figuring out"].map(v => (
+                            <DropdownItem key={v} onClick={() => setConfidence(v)}>{v}</DropdownItem>
+                          ))}
                         </Dropdown>
+                      </div>
+                      <div className="col-span-2">
+                        <Label value="Academic Strengths" />
+                        <TagInput values={academicStrengths} setValues={setAcademicStrengths} placeholder="Add a strength" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label value="Degree Interests" />
+                        <TagInput values={degreeInterests} setValues={setDegreeInterests} placeholder="Add a degree interest" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label value="Career Interests" />
+                        <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <Label htmlFor="wam" value="Weighted Average Mark (WAM)" />
+                        <Label htmlFor="degreeStage" value="Degree Stage" />
+                        <Select id="degreeStage" value={degreeStage || "Not Specified"} onChange={(e) => setDegreeStage(e.target.value)}>
+                          {["Not Specified","Bachelors Degree","Masters Degree","PhD or Doctoral Program","Other"].map(v => <option key={v} value={v}>{v}</option>)}
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="degreeField" value="Degree Field" />
+                        <TextInput id="degreeField" value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label htmlFor="wam" value="WAM" />
                         <TextInput id="wam" type="number" value={wam ?? ""} onChange={(e) => setWam(e.target.value)} />
                       </div>
-                      <div className="md:col-span-2">
+                      <div className="col-span-2">
                         <Label value="Career Interests" />
-                        <TagInput
-                          values={careerInterests}
-                          setValues={setCareerInterests}
-                          placeholder="Type career interests and press Add"
-                        />
+                        <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
                       </div>
                     </>
                   )}
                 </div>
-              </AuraPanel>
+              </Panel>
             </div>
 
-            {/* Right sidebar: avatar + upload */}
-            <div className="space-y-6">
-              <AuraPanel title="Profile Picture" icon={HiOutlineIdentification}>
-                <div className="flex items-center gap-4">
-                  <Avatar rounded size="xl" className="py-2" />
-                  <div className="text-sm">Add a picture so Eunice recognises you faster.</div>
+            <div className="space-y-5">
+              <Panel title="Profile Picture" icon={HiOutlineIdentification}>
+                <div className="flex flex-col items-center gap-3 py-2">
+                  <Avatar rounded size="xl" />
+                  <p className="text-xs text-slate-400 text-center">Upload a profile picture.</p>
                 </div>
-              </AuraPanel>
+              </Panel>
 
-              <AuraPanel
-                title={isHS ? "School Report" : "Transcript"}
-                icon={HiOutlineDocumentText}
-                hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
-              >
-
-                {isHS ? (
-                      <FileUpload
-                        userId={userId}
-                        reportType={"highschool_reports"}
-                        bucket="reports"
-                        table="student_school_data"
-                        column="report_path"
-                        onUpload={(data) => {
-                          setReportPath(data.url)
-                          setFileName(data.fileName)
-                        }}
-                      />
-                    ) : (
-                      <FileUpload
-                        userId={userId}
-                        reportType={"uni_transcripts"}
-                        bucket="reports"
-                        table="student_uni_data"
-                        column="report_path"
-                        onUpload={(data) => {
-                          setReportPath(data.url)
-                          setFileName(data.fileName)
-                        }}
-                      />
-                    )
-                }
-                
+              <Panel title={isHS ? "School Report" : "Transcript"} icon={HiOutlineDocumentText}
+                hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}>
+                <FileUpload userId={userId} {...fileUploadProps}
+                  onUpload={(data) => { setReportPath(data.url); setFileName(data.fileName); }} />
                 {reportPath && (
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
-                    <a 
-                      href={reportPath} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline text-sm"
-                    >
-                      View uploaded document
-                    </a>
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-700 font-medium mb-1">{fileName}</p>
+                    <a href={reportPath} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View document</a>
                   </div>
                 )}
-              </AuraPanel>
+              </Panel>
             </div>
           </form>
         ) : (
-          // Read-only view 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <AuraPanel title="About Me" icon={HiOutlineUserCircle}>
-                {loading ? (
-                  <LoadingCard />
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-lg">
-                    <KeyValue label="First Name" value={firstName} />
-                    <KeyValue label="Last Name" value={lastName} />
-                    <KeyValue label="Email" value={email} />
-                    <KeyValue label="Gender" value={gender} />
-                    <KeyValue label="Date of Birth" value={dob} />
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Hobbies</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {hobbies?.length ? (
-                          hobbies.map((h, i) => (
-                            <span
-                              key={h + i}
-                              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-                            >
-                              {h}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-slate-500">None specified</span>
-                        )}
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Left: About Me + Academic Information merged */}
+            <div className="lg:col-span-2">
+              <div className="card-glass-spotlight">
+                <div />
+                <div className="relative p-6">
+                  {/* About Me section */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <HiOutlineUserCircle className="h-5 w-5 text-slate-500" />
+                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">About Me</h2>
                   </div>
-                )}
-              </AuraPanel>
-
-              <AuraPanel title="Academic Information" icon={HiOutlineAcademicCap}>
-                {loading ? (
-                  <LoadingCard />
-                ) : (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge color="info">{studentType}</Badge>
-                      {year && <Badge color="purple">{year}</Badge>}
-                      {confidence && <Badge color="success">{confidence}</Badge>}
-                    </div>
-
-                    {isHS ? (
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-                        <KeyValue label="ATAR" value={atar} />
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">Academic Strengths</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {academicStrengths?.length ? (
-                              academicStrengths.map((s, i) => (
-                                <span
-                                  key={s + i}
-                                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-                                >
-                                  {s}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-slate-500">None specified</span>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">Career Interests</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {careerInterests?.length ? (
-                              careerInterests.map((c, i) => (
-                                <span
-                                  key={c + i}
-                                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-                                >
-                                  {c}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-slate-500">None specified</span>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">Degree Interests</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {degreeInterests?.length ? (
-                              degreeInterests.map((d, i) => (
-                                <span
-                                  key={d + i}
-                                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-                                >
-                                  {d}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-slate-500">None specified</span>
-                            )}
-                          </div>
-                        </div>
+                  {loading ? <LoadingCard /> : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <KeyValue label="First Name" value={firstName} />
+                      <KeyValue label="Last Name" value={lastName} />
+                      <KeyValue label="Email" value={email} />
+                      <KeyValue label="Gender" value={gender} />
+                      <KeyValue label="Date of Birth" value={dob} />
+                      <div className="col-span-2 md:col-span-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-400">Hobbies</p>
+                        <TagList items={hobbies} />
                       </div>
-                    ) : (
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-                        <KeyValue label="Degree Stage" value={degreeStage} />
-                        <KeyValue label="Degree Field" value={degreeField} />
-                        <KeyValue label="WAM" value={wam} />
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-500">Career Interests</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {careerInterests?.length ? (
-                              careerInterests.map((c, i) => (
-                                <span
-                                  key={c + i}
-                                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-                                >
-                                  {c}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-slate-500">None specified</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </AuraPanel>
-            </div>
-
-            <div className="space-y-4">
-              <AuraPanel title="Profile Picture" icon={HiOutlineIdentification}>
-                <div className="flex items-center gap-3">
-                  <Avatar rounded size="xl" className="py-1" />
-                  <div className="text-sm text-slate-500 dark:text-slate-300">Add a picture so Eunice recognises you faster.</div>
-                </div>
-              </AuraPanel>
-
-              <AuraPanel
-                title={isHS ? "School Report" : "Transcript"}
-                icon={HiOutlineDocumentText}
-                hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
-              >
-                {!reportPath ? (
-                    isHS ? (
-                      <FileUpload
-                        userId={userId}
-                        reportType={"highschool_reports"}
-                        bucket="reports"
-                        table="student_school_data"
-                        column="report_path"
-                        onUpload={(data) => {
-                          setReportPath(data.url)
-                          setFileName(data.fileName)
-                        }}
-                      />
-                    ) : (
-                      <FileUpload
-                        userId={userId}
-                        reportType={"uni_transcripts"}
-                        bucket="reports"
-                        table="student_uni_data"
-                        column="report_path"
-                        onUpload={(data) => {
-                          setReportPath(data.url)
-                          setFileName(data.fileName)
-                        }}
-                      />
-                    )
-                  ) : (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm text-green-800 mb-2">File Uploaded: {fileName}</p>
-                      <a 
-                        href={reportPath} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline text-sm"
-                      >
-                        View uploaded document
-                      </a>
                     </div>
                   )}
-              </AuraPanel>
+
+                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
+
+                  {/* Academic Information section */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <HiOutlineAcademicCap className="h-5 w-5 text-slate-500" />
+                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Academic Information</h2>
+                  </div>
+                  {loading ? <LoadingCard /> : (
+                    <>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {studentType && <Badge color="info">{studentType}</Badge>}
+                        {year && <Badge color="purple">{year}</Badge>}
+                        {confidence && confidence !== "Not Specified" && <Badge color="success">{confidence}</Badge>}
+                      </div>
+                      {isHS ? (
+                        <div className="grid grid-cols-2 gap-4">
+                          <KeyValue label="ATAR" value={atar} />
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Academic Strengths</p>
+                            <TagList items={academicStrengths} />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Career Interests</p>
+                            <TagList items={careerInterests} />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Degree Interests</p>
+                            <TagList items={degreeInterests} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          <KeyValue label="Degree Stage" value={degreeStage} />
+                          <KeyValue label="Degree Field" value={degreeField} />
+                          <KeyValue label="WAM" value={wam} />
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Career Interests</p>
+                            <TagList items={careerInterests} />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Profile Picture + Transcript merged */}
+            <div>
+              <div className="card-glass-spotlight">
+                <div />
+                <div className="relative p-6">
+                  {/* Profile Picture section */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <HiOutlineIdentification className="h-5 w-5 text-slate-500" />
+                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Profile Picture</h2>
+                  </div>
+                  <div className="flex flex-col items-center gap-3 py-2">
+                    <Avatar rounded size="xl" />
+                    <p className="text-xs text-slate-400 text-center">Upload a profile picture.</p>
+                  </div>
+
+                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
+
+                  {/* Transcript / School Report section */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <HiOutlineDocumentText className="h-5 w-5 text-slate-500" />
+                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">{isHS ? "School Report" : "Transcript"}</h2>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                    {isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
+                  </p>
+                  {!reportPath ? (
+                    <FileUpload userId={userId} {...fileUploadProps}
+                      onUpload={(data) => { setReportPath(data.url); setFileName(data.fileName); }} />
+                  ) : (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-xs text-green-700 font-medium mb-1">{fileName}</p>
+                      <a href={reportPath} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View document</a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
 
 export default ProfilePage;
-
