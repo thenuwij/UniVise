@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import GradientCard from "../components/GradientCard";
-import { ArrowLeft, UniIcon } from "../components/icons/InlineIcons";
+import { ArrowLeft } from "../components/icons/InlineIcons";
 import { MenuBar } from "../components/MenuBar";
 import Pill from "../components/Pill";
 import CapstoneHonours from "../components/roadmap/CapstoneHonours";
@@ -354,6 +354,7 @@ export default function RoadmapUNSWPage() {
   const preloadedRoadmapId = state?.roadmap_id || searchParams.get('id') || null;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [userId, setUserId] = useState(null);
 
@@ -389,7 +390,7 @@ export default function RoadmapUNSWPage() {
     return [
       {
         key: "entry",
-        title: "Entry Requirements",
+        title: "Requirements",
         render: () => (
           <EntryRequirementsCardUnsw 
             atar={activeDegree?.lowest_atar ?? data?.entry_requirements?.atar}
@@ -404,7 +405,7 @@ export default function RoadmapUNSWPage() {
       }, 
       {
         key: "structure",
-        title: "Program Structure",
+        title: "Structure",
         render: () => {
           if (!degreeCodeValue) {
             return (
@@ -432,12 +433,12 @@ export default function RoadmapUNSWPage() {
       },
       {
         key: "capstone",
-        title: "Capstone & Honours",
+        title: "Highlights",
         render: () => <CapstoneHonours data={data} />,
       },
       {
         key: "societies",
-        title: "Societies & Community",
+        title: "Societies",
         render: () => {
           if (isRegenerating) {
             return (
@@ -462,7 +463,7 @@ export default function RoadmapUNSWPage() {
       },
       {
         key: "industry_experience",
-        title: "Industry Experience & Training",
+        title: "Internships",
         render: () => {
           if (isRegenerating) {
             return (
@@ -487,7 +488,7 @@ export default function RoadmapUNSWPage() {
       },
       {
         key: "career_pathways",
-        title: "Career Pathways & Outcomes",
+        title: "Careers",
         render: () => {
           if (isRegenerating) {
             return (
@@ -549,7 +550,7 @@ export default function RoadmapUNSWPage() {
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 
-      <div className="mx-20 pt-20 pb-10">
+      <div className="mx-20 pt-14 pb-10">
         
         {/* Back button */}
         <button
@@ -564,39 +565,14 @@ export default function RoadmapUNSWPage() {
         </button>
 
         {/* Hero section */}
-        <GradientCard className="w-full mt-6 shadow-lg 
-                                 bg-white/80 dark:bg-slate-900/70 
-                                 border border-slate-200/70 dark:border-slate-700/60 
+        <GradientCard seamless className="w-full mt-3 shadow-sm
+                                 bg-white/60 dark:bg-slate-900/40
+                                 border border-slate-200/30 dark:border-slate-700/25
                                  backdrop-blur-md">
-          <div className="relative p-8">
-            <div className="absolute inset-x-0 top-0 h-[3px]
-                            bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600
-                            dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400
-                            rounded-t-3xl" />
-
+          <div className="relative p-5">
             <SectionTitle
-              icon={<UniIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
-              subtitle="UNSW Mode"
-            >
-              <span className="font-extrabold text-transparent bg-clip-text
-                               bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
-                               dark:from-white dark:via-slate-200 dark:to-white">
-                {headerProgramName}
-              </span>
-            </SectionTitle>
-
-            {data && (
-              <div className="mt-6 space-y-4 text-slate-700 dark:text-slate-300">
-                <p className="text-base leading-relaxed">
-                  {activeDegree?.overview_description || data?.summary || "—"}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {/* Mode always first */}
-                  <Pill>
-                    Mode: <span className="ml-1 font-medium">UNSW</span>
-                  </Pill>
-
+              tags={data && (
+                <>
                   {/* Faculty */}
                   {activeDegree?.faculty && (
                     <Pill>
@@ -639,18 +615,35 @@ export default function RoadmapUNSWPage() {
                       Code: <span className="ml-1 font-medium">{activeDegree.degree_code}</span>
                     </Pill>
                   )}
-                </div>
+                </>
+              )}
+            >
+              <span className="font-extrabold text-transparent bg-clip-text
+                               bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
+                               dark:from-white dark:via-slate-200 dark:to-white">
+                {headerProgramName}
+              </span>
+            </SectionTitle>
+
+            {data && (
+              <div className="mt-3 text-slate-700 dark:text-slate-300">
+                <p className={`text-base leading-relaxed transition-all duration-200 ${descExpanded ? "" : "line-clamp-4"}`}>
+                  {activeDegree?.overview_description || data?.summary || "—"}
+                </p>
+                <button
+                  onClick={() => setDescExpanded(prev => !prev)}
+                  className="mt-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {descExpanded ? "Show less" : "Read more"}
+                </button>
               </div>
             )}
           </div>
         </GradientCard>
 
         {/* Content */}
-        <div className="mt-8">
-          <GradientCard className="w-full shadow-lg 
-                                  bg-white/70 dark:bg-slate-900/60 
-                                  border border-slate-200/60 dark:border-slate-700/60 
-                                  backdrop-blur-sm">
+        <div className="mt-4">
+          <GradientCard seamless className="w-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm">
             <div className="p-4 md:p-6">
               <ContentSection
                 data={data}

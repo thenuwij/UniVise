@@ -1,15 +1,18 @@
 
-export default function SectionTitle({ icon, subtitle, children }) {
+export default function SectionTitle({ icon, subtitle, tags, children }) {
   return (
     <div>
-      {/* Top row: icon and subtitle pill */}
-      <div className="flex items-center gap-2 text-xs font-medium text-secondary">
-        {icon}
-        {subtitle && (
-          <span className="px-2 py-0.5 rounded-full bg-accent text-primary border border-border-light dark:border-border-medium">
-            {subtitle}
-          </span>
-        )}
+      {/* Top row: icon, subtitle pill, and optional tags */}
+      <div className="flex items-center justify-between gap-2 text-xs font-medium text-secondary">
+        <div className="flex items-center gap-2">
+          {icon}
+          {subtitle && (
+            <span className="px-2 py-0.5 rounded-full bg-accent text-primary border border-border-light dark:border-border-medium">
+              {subtitle}
+            </span>
+          )}
+        </div>
+        {tags && <div className="flex flex-wrap gap-2">{tags}</div>}
       </div>
 
       {/* Main heading */}

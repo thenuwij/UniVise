@@ -1,72 +1,63 @@
 import os
-from openai import OpenAI
+import anthropic
+from typing import List, Dict, AsyncGenerator
 from dotenv import load_dotenv
-from typing import List, Dict, Optional
 
 load_dotenv()
 
-openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-gemini = OpenAI(
-    api_key=os.getenv("GEMINI_API_KEY"),
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-)
+if not os.getenv("ANTHROPIC_API_KEY"):
+    raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
+
+_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_async_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+_MODEL = "claude-sonnet-4-6"
+_SYSTEM = "You are a helpful expert career advisor."
 
 
-def ask_openai(prompt: str) -> str:
+def ask_openai(prompt: str, max_tokens: int = 3000) -> str:
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful expert career advisor.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.7,
-            max_tokens=3000,
+        response = _client.messages.create(
+            model=_MODEL,
+            system=_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=1,
+            max_tokens=max_tokens,
         )
-        return response.choices[0].message.content.strip()
+        return response.content[0].text.strip()
     except Exception as e:
-        print("OpenAI API error:", e)
+        print("Claude API error (ask_openai):", e)
         return "Sorry, I couldn't process your request."
 
 
 def ask_gemini(prompt: str) -> str:
     try:
-        response = gemini.chat.completions.create(
-            model="gemini-2.5-flash-lite-preview-06-17",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful expert career advisor.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.3,
+        response = _client.messages.create(
+            model=_MODEL,
+            system=_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=1,
             max_tokens=2048,
         )
-        print(response.choices[0].message.content)
-        return response.choices[0].message.content.strip()
-
+        return response.content[0].text.strip()
     except Exception as e:
-        print("Gemini API error:", e)
-        return "Sorry could process Gemini request"
+        print("Claude API error (ask_gemini):", e)
+        return "Sorry, I couldn't process your request."
 
 
-def ask_chat_completion_stream(
+async def ask_chat_completion_stream(
     history: List[Dict[str, str]],
     system_prompt: str,
-    model: str = "gpt-4o-mini",
-    temperature: float = 0.6,
+    model: str = _MODEL,
+    temperature: float = 1,
     max_tokens: int = 500,
-):
-    messages = [{"role": "system", "content": system_prompt}] + history
-    # ask OpenAI to stream
-    return openai.chat.completions.create(
+) -> AsyncGenerator[str, None]:
+    async with _async_client.messages.stream(
         model=model,
-        messages=messages,
+        system=system_prompt,
+        messages=history,
         temperature=temperature,
         max_tokens=max_tokens,
-        stream=True,
-    )
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text

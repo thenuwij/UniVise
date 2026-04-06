@@ -19,12 +19,11 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
-                    dark:border-slate-700/60 p-8 shadow-xl space-y-8">
+    <div className="p-6 space-y-6">
 
       {/* HEADER */}
-      <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
-                      px-8 py-6 -mx-8 -mt-8 mb-6 border-b-2 border-slate-200 dark:border-slate-700
+      <div className="relative bg-slate-50/80 dark:bg-slate-800/60
+                      px-6 py-4 -mx-6 -mt-6 mb-6 border-b-2 border-slate-200 dark:border-slate-700
                       rounded-t-2xl">
         
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
@@ -37,7 +36,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Entry Requirements
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-base text-slate-600 dark:text-slate-400 mt-1">
               Check the latest UNSW Handbook or UAC website for complete admission criteria
             </p>
           </div>
@@ -48,7 +47,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
       <div className="grid sm:grid-cols-3 gap-4">
 
         {/* ATAR */}
-        <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+        <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                         bg-gradient-to-br from-blue-50/70 via-sky-50/70 to-indigo-50/70 
                         dark:from-blue-900/20 dark:via-sky-900/20 dark:to-indigo-900/20
                         shadow-sm transition-colors duration-200">
@@ -78,7 +77,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         </div>
 
         {/* Selection Rank */}
-        <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+        <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                         bg-gradient-to-br from-indigo-50/70 via-blue-50/70 to-sky-50/70 
                         dark:from-indigo-900/20 dark:via-blue-900/20 dark:to-sky-900/20
                         shadow-sm transition-colors duration-200">
@@ -108,7 +107,7 @@ export default function EntryRequirementsCardUnsw({ atar, selectionRank, subject
         </div>
 
         {/* Assumed Knowledge */}
-        <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+        <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                         bg-gradient-to-br from-sky-50/70 via-blue-50/70 to-indigo-50/70 
                         dark:from-sky-900/20 dark:via-blue-900/20 dark:to-indigo-900/20
                         shadow-sm transition-colors duration-200">

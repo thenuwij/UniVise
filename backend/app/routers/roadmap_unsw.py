@@ -162,7 +162,9 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     print(f"Stage 1 prompt size: ~{prompt_est_tokens} tokens")
 
     # Build AI prompt for general info
-    prompt = f"""You are a UNSW academic advisor. Using official UNSW sources (Handbook, progression plans, etc.), provide comprehensive information for {program_name} ({uac_code}).
+    prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes in any part of your response. Rewrite any sentence that would use an em dash as two separate sentences or rephrase using a comma, colon, or conjunction instead.
+
+You are a UNSW academic advisor. Using official UNSW sources (Handbook, progression plans, etc.), provide comprehensive information for {program_name} ({uac_code}).
 
 {core_courses_text}
 
@@ -209,13 +211,13 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
   "entry_requirements": {{
     "atar": "Output ONLY a number (no words). If ATAR_provided is a number, use it exactly. If it is null, output a realistic UNSW ATAR cutoff as a pure integer or float.",
     "selectionRank": "Output ONLY a number (no words). If SelectionRank_provided is a number, use it exactly. If it is null, output a realistic UNSW selection rank cutoff as a pure integer or float.",
-    "subjects": ["List 2-3 assumed knowledge or recommended HSC subjects"],
+    "subjects": ["EXACT HSC subject names only — 2 or 3 items maximum. Use the official NSW HSC subject name and nothing else. No qualifiers, no brackets, no notes, no 'recommended' labels. Examples of correct format: 'Mathematics Advanced', 'Chemistry', 'Physics', 'Software Design and Development', 'Economics'. Never add anything after the subject name."],
     "notes": "Mention adjustment factors or pathways"
   }},
 
   "capstone": {{
     "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
-    "highlights": "Write 2-3 sentences with SPECIFIC, CONCRETE details about opportunities, partnerships, facilities, outcomes, and career advantages. Include real company names, actual numbers, and tangible benefits."
+    "highlights": "Write exactly 2-3 sentences maximum about what makes this program special. Be specific and concise — no more than 60 words total."
   }},
   "flexibility": {{
     "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]

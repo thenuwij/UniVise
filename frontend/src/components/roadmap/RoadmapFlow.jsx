@@ -46,27 +46,26 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
 
             {/* Circles with Path */}
             <div className="relative flex-1">
-              {/* Blue line on top */}
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full" />
-              
               {/* SVG path */}
-              <svg className="w-full h-16" viewBox="0 0 100 16" preserveAspectRatio="none">
+              <svg className="w-full h-20" viewBox="0 0 100 20" preserveAspectRatio="none">
                 <path
-                  d="M2,8 L98,8"
+                  d="M2,10 L98,10"
                   className="stroke-slate-300 dark:stroke-slate-700"
-                  strokeWidth="0.8"
+                  strokeWidth="1"
+                  strokeLinecap="round"
                   fill="none"
                 />
                 <path
-                  d={`M2,8 L${2 + (96 * (activeIndex / (Math.max(steps.length - 1, 1))))},8`}
+                  d={`M2,10 L${2 + (96 * (activeIndex / (Math.max(steps.length - 1, 1))))},10`}
                   className="stroke-blue-600 dark:stroke-blue-400"
-                  strokeWidth="1.2"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
                   fill="none"
                 />
               </svg>
 
               {/* Nodes */}
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-0 -mt-12">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-0 -mt-16">
                 {steps.map((s, i) => {
                   const active = i === activeIndex;
                   const completed = i < activeIndex;
@@ -79,17 +78,30 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
                     >
                       <div
                         className={[
-                          "h-5 w-5 rounded-full border-2 transition-all duration-200 cursor-pointer",
+                          "h-6 w-6 rounded-full border-2 transition-all duration-200 cursor-pointer",
                           "hover:scale-125 hover:shadow-lg",
                           active
-                            ? "bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 scale-110 shadow-md"
+                            ? "bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 scale-110 shadow-md ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-slate-900"
                             : completed
-                            ? "bg-blue-400 dark:bg-blue-600 border-blue-400 dark:border-blue-600"
+                            ? "bg-blue-400 dark:bg-blue-600 border-blue-400 dark:border-blue-600 flex items-center justify-center"
                             : "bg-white dark:bg-slate-800 border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-400"
                         ].join(" ")}
                         title={s.title}
-                      />
-                      <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-medium">
+                      >
+                        {completed && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className={[
+                        "mt-2 text-[11px] text-center leading-tight max-w-[80px] mx-auto transition-colors font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                        active
+                          ? "text-blue-600 dark:text-blue-400 font-semibold"
+                          : completed
+                          ? "text-blue-500 dark:text-blue-500"
+                          : "text-slate-600 dark:text-slate-400"
+                      ].join(" ")}>
                         {s.title}
                       </div>
                     </button>

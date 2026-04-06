@@ -3,7 +3,7 @@ import { Layers, Info, Sparkles } from "lucide-react";
 
 function YearSchool({ y }) {
   return (
-    <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60
+    <div className="rounded-xl border border-slate-200/30 dark:border-slate-700/30
                     bg-gradient-to-br from-white to-slate-50/30
                     dark:from-slate-900 dark:to-slate-800/50
                     shadow-sm hover:shadow-md transition-all duration-200 p-5">

@@ -134,7 +134,7 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
       )}
 
       <span className="text-sm font-semibold">
-        {isSaved ? "Saved to Planner" : "Save to Planner"}
+        {isSaved ? "Saved" : "Save"}
       </span>
     </button>
   );

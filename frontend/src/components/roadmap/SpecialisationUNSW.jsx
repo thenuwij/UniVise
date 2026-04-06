@@ -1,4 +1,4 @@
-import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, RefreshCw, X } from "lucide-react";
+import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveButton from "../../components/SaveButton";
@@ -236,6 +236,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
       await saveSelection("minor", spec?.id || null, forDegreeCode);
     }
     setOpenType(null);
+    setTimeout(() => triggerCustomise(), 300);
   };
 
   const handleCourseClick = async (course) => {
@@ -402,8 +403,8 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
           {/* Overview */}
           {spec.overview_description && (
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4 
-                        p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 
+            <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed mb-4
+                        p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40
                         border-2 border-slate-200 dark:border-slate-700">
               {spec.overview_description}
             </p>
@@ -459,7 +460,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
                       {sec.title}
                     </h5>
                     {sec.description && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed font-medium">
+                      <p className="text-base text-slate-600 dark:text-slate-400 mb-4 leading-relaxed font-medium">
                         {sec.description}
                       </p>
                     )}
@@ -584,13 +585,32 @@ export default function SpecialisationUNSW({ degreeCode }) {
       </p>
     );
 
+  const triggerCustomise = async () => {
+    if (!userId || !degreeCode) return;
+    try {
+      const { data: degreeData, error } = await supabase
+        .from("unsw_degrees_final")
+        .select("*")
+        .eq("degree_code", degreeCode)
+        .single();
+      if (error || !degreeData) return;
+      navigate("/roadmap-loading", {
+        state: {
+          type: "unsw",
+          degree: { ...degreeData, degree_id: degreeData.id },
+          isRegeneration: true,
+        },
+        replace: true,
+      });
+    } catch (err) {
+      console.error("Error:", err.message);
+    }
+  };
+
   // Final Render
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 
-                    dark:border-slate-700/60 p-6 shadow-xl space-y-6">
-      {/* Top Accent Bar */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-t-2xl pointer-events-none" />
-      
+    <div className="p-6 space-y-6">
+
      {/* Header - COMPACT */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
                       px-6 py-4 -mx-6 -mt-6 mb-4 border-b-2 border-slate-200 dark:border-slate-700
@@ -609,65 +629,10 @@ export default function SpecialisationUNSW({ degreeCode }) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              disabled={!hasAnySelection()}
-              onClick={async () => {
-                console.log("CUSTOMISE BUTTON CLICKED");
-                
-                if (!userId || !degreeCode) {
-                  console.log("Missing userId or degreeCode:", { userId, degreeCode });
-                  return;
-                }
-                
-                try {
-                  console.log("Fetching degree with code:", degreeCode);
-                  
-                  const { data: degreeData, error } = await supabase
-                    .from("unsw_degrees_final")
-                    .select("*")
-                    .eq("degree_code", degreeCode)
-                    .single();
-
-                  if (error || !degreeData) {
-                    console.error("Could not fetch degree:", error?.message);
-                    return;
-                  }
-                  
-                  const stateToPass = { 
-                    type: "unsw", 
-                    degree: {
-                      ...degreeData,
-                      degree_id: degreeData.id,
-                    },
-                    isRegeneration: true,
-                  };
-                  
-                  console.log("NAVIGATING WITH STATE:", stateToPass);
-                  console.log("isRegeneration:", stateToPass.isRegeneration);
-                  
-                  navigate("/roadmap-loading", {
-                    state: stateToPass,
-                    replace: true,
-                  });
-
-                } catch (err) {
-                  console.error("Error:", err.message);
-                }
-              }}
-              id="customise-btn"
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-200
-                ${hasAnySelection()
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 hover:scale-105"
-                  : "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-70"}`}
-            >
-              <RefreshCw className="h-5 w-5" />
-              Customise Roadmap to Specialisation
-            </button>
-
-            <button
               onClick={handleVisualise}
               disabled={!allCourses.length}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-200
-                        bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 
+                        bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
                         hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 hover:scale-105
                         disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
@@ -679,26 +644,10 @@ export default function SpecialisationUNSW({ degreeCode }) {
       </div>
 
       {/* QUICK GUIDE - COMPACT */}
-      <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-md">
-        <div className="flex items-start gap-3">
-          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">Quick Guide</h4>
-            <div className="space-y-1">
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                • Select specialisations from the dropdowns below (auto-saved)
-              </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                • Expand cards to view structure and click courses for details
-              </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                • Click <span className="text-blue-600 dark:text-blue-400 font-bold">'Visualise Courses'</span> to map course connections
-              </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                • Click <span className="text-emerald-600 dark:text-emerald-400 font-bold">'Customise Roadmap'</span> to regnerate the roadmap and tailor Societies, Industry & Careers sections to your selected specialisations.
-              </p>
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <Info className="h-4 w-4 flex-shrink-0 text-blue-500" />
+          <span>Select specialisations below (auto-saved) · Expand cards to view courses · Personalises your Societies, Industry &amp; Career sections</span>
         </div>
       </div>
 

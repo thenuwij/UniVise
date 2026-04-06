@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional, Any, Dict, List
 import json, re
+from app.utils.parse_llm import extract_json
 
 # Request and Response models
 class SchoolReq(BaseModel):
@@ -42,11 +43,10 @@ def clean_openai_response(raw: str) -> str:
     return cleaned
 
 def parse_json_or_500(raw: str) -> Dict[str, Any]:
-    cleaned = clean_openai_response(raw)
     try:
-        return json.loads(cleaned)
+        return extract_json(raw)
     except Exception as e:
-        raise HTTPException(500, detail=f"Failed to parse OpenAI JSON: {e}\nRaw:\n{cleaned}")
+        raise HTTPException(500, detail=f"Failed to parse AI JSON: {e}")
 
 def assert_keys(payload: Dict[str, Any], required: List[str], where: str):
     missing = [k for k in required if k not in payload]

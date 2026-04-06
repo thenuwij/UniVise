@@ -1,5 +1,6 @@
 from app.utils.database import supabase
 from app.utils.openai_client import ask_openai
+from app.utils.parse_llm import extract_json
 import json
 import uuid
 import re
@@ -94,7 +95,7 @@ async def generate_final_plan(user_id: str):
     result = clean_openai_response(result_raw)
 
     try:
-        degrees = json.loads(result)
+        degrees = extract_json(result)
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 

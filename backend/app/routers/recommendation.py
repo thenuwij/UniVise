@@ -6,6 +6,7 @@ from .user import get_user_info, get_student_type
 from app.utils.openai_client import ask_openai
 from app.models.schemas import ExplainRequest
 
+from app.utils.parse_llm import extract_json
 import json
 import uuid
 import re
@@ -101,14 +102,8 @@ async def get_recommendation_prompts(
     recommendation = ask_openai(prompt)
 
     if student_type == "high_school":
-        cleaned = recommendation.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(
-                r"^```json|^```|```$", "", cleaned, flags=re.MULTILINE
-            ).strip()
-
         try:
-            parsed = json.loads(cleaned)
+            parsed = extract_json(recommendation)
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -145,14 +140,8 @@ async def get_recommendation_prompts(
 
         return {"status": "success", "recommendations": rows}
     elif student_type == "university":
-        cleaned = recommendation.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(
-                r"^```json|^```|```$", "", cleaned, flags=re.MULTILINE
-            ).strip()
-
         try:
-            parsed = json.loads(cleaned)
+            parsed = extract_json(recommendation)
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -380,13 +369,8 @@ async def explain_rec(rec_id: str, user=Depends(get_current_user)):
 
     raw_response = ask_openai(prompt)
 
-    cleaned_response = raw_response.strip()
-    if cleaned_response.startswith("```"):
-        cleaned_response = re.sub(
-            r"^```json|^```|```$", "", cleaned_response, flags=re.MULTILINE
-        ).strip()
     try:
-        parsed = json.loads(cleaned_response)
+        parsed = extract_json(raw_response)
     except Exception as e:
         raise HTTPException(
             status_code=500,

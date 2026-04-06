@@ -3,6 +3,7 @@ from dependencies import get_current_user
 from app.utils.database import supabase
 from .user import get_user_info, get_student_type
 from app.utils.openai_client import ask_openai, ask_gemini
+from app.utils.parse_llm import extract_json
 from pydantic import BaseModel
 
 
@@ -141,15 +142,11 @@ async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current
         """
 
     ai_output_str = ask_gemini(prompt)
-    text = ai_output_str.strip()
-    if text.startswith("```"):
-        # remove ```json or ``` at top/bottom
-        text = text.strip("```json").strip("```").strip()
 
     # Parse it into a native dict
     try:
-        ai_output = json.loads(text)
-    except json.JSONDecodeError as e:
+        ai_output = extract_json(ai_output_str)
+    except Exception as e:
         raise HTTPException(500, f"Could not parse LLM output as JSON: {e}")
 
     # Upsert in one go (avoids having to check update vs insert yourself)

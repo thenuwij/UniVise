@@ -1,6 +1,6 @@
 export default function GeneratingMessage({ title, message }) {
   return (
-    <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+    <div className="rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                     bg-white/70 dark:bg-slate-900/60 
                     p-6 text-center shadow-sm backdrop-blur-sm">
       <div className="flex items-center justify-center gap-3 text-slate-700 dark:text-slate-300">

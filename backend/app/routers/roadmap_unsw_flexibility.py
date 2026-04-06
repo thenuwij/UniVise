@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 from app.utils.database import supabase
 from app.utils.openai_client import ask_openai
+from app.utils.parse_llm import extract_json
 from .roadmap_common import parse_json_or_500, assert_keys
 from .roadmap_unsw_helpers import format_candidates_for_ai
 from .flexibility_filtering import pre_filter_similar_degrees
@@ -163,17 +164,7 @@ async def ai_generate_flexibility_info(context: Dict[str, Any]) -> Dict[str, Any
         ranking_raw = ask_openai(ranking_prompt)
         print(f"Stage 3a response received: {len(ranking_raw)} characters")
 
-        # Clean and parse ranking response
-        ranking_stripped = ranking_raw.strip()
-        first_brace = ranking_stripped.find('{')
-        last_brace = ranking_stripped.rfind('}')
-
-        if first_brace != -1 and last_brace != -1:
-            ranking_json = ranking_stripped[first_brace:last_brace + 1]
-        else:
-            ranking_json = ranking_stripped
-
-        ranking_result = parse_json_or_500(ranking_json)
+        ranking_result = extract_json(ranking_raw)
         assert_keys(ranking_result, ["top_5_programs"], "ranking")
 
         top_5_selections = ranking_result["top_5_programs"]
@@ -281,49 +272,11 @@ async def ai_generate_flexibility_info(context: Dict[str, Any]) -> Dict[str, Any
         detail_raw = ask_openai(detail_prompt)
         print(f"Stage 3b response received: {len(detail_raw)} characters")
 
-        # Clean response - extract JSON
-        detail_stripped = detail_raw.strip()
-        first_brace = detail_stripped.find('{')
-        last_brace = detail_stripped.rfind('}')
-
-        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
-            json_only = detail_stripped[first_brace:last_brace + 1]
-            print(f"Extracted JSON from position {first_brace} to {last_brace + 1}")
-        else:
-            json_only = detail_stripped
-            print("No JSON extraction needed")
-
-        # multi-stage JSON parse
         try:
-            draft = parse_json_or_500(json_only)
+            draft = extract_json(detail_raw)
         except Exception as e:
-            print(f"[Flexibility JSON Parse] Primary parse failed: {e}")
-            import re
-
-            # Basic cleanup
-            cleaned = re.sub(r",(\s*[}\]])", r"\1", json_only)   # remove trailing commas
-            cleaned = cleaned.replace("None", "null")            #  and pythonic nulls
-
-            # Close any missing braces/brackets (for truncated outputs)
-            open_braces = cleaned.count("{")
-            close_braces = cleaned.count("}")
-            open_brackets = cleaned.count("[")
-            close_brackets = cleaned.count("]")
-            
-            while close_braces < open_braces:
-                cleaned += "}"
-                close_braces += 1
-            while close_brackets < open_brackets:
-                cleaned += "]"
-                close_brackets += 1
-
-            # Try parsing again
-            try:
-                draft = json.loads(cleaned)
-                print("Fallback parse succeeded after auto-repair")
-            except Exception as e2:
-                print(f"Fallback failed: {e2}")
-                draft = {"easy_switches": [], "error": "Malformed or truncated JSON"}
+            print(f"[Flexibility JSON Parse] Failed: {e}")
+            draft = {"easy_switches": [], "error": "Malformed or truncated JSON"}
 
         # Guarantee schema key exists
         if "easy_switches" not in draft:

@@ -101,9 +101,6 @@ export function MenuBar({ isOpen, handleClose }) {
                   <SidebarItem onClick={() => { navigate("/dashboard"); handleClose(); }} icon={MdDashboard} active={isActive("/dashboard")} className={isActive("/dashboard") ? activeClass : ""}>
                     <span className={isActive("/dashboard") ? "font-semibold" : ""}>Dashboard</span>
                   </SidebarItem>
-                  <SidebarItem onClick={() => { navigate("/chat"); handleClose(); }} icon={TbMessageChatbotFilled} active={isActive("/chat")} className={isActive("/chat") ? activeClass : ""}>
-                    <span className={isActive("/chat") ? "font-semibold" : ""}>Ask Eunice</span>
-                  </SidebarItem>
                   <SidebarItem onClick={() => { navigate("/roadmap-entryload"); handleClose(); }} icon={RiGuideFill} active={isActive("/roadmap-entryload")} className={isActive("/roadmap-entryload") ? activeClass : ""}>
                     <span className={isActive("/roadmap-entryload") ? "font-semibold" : ""}>My Roadmap</span>
                   </SidebarItem>
@@ -112,6 +109,12 @@ export function MenuBar({ isOpen, handleClose }) {
                   </SidebarItem>
                   <SidebarItem onClick={() => { navigate("/traits"); handleClose(); }} icon={FaFingerprint} active={isActive("/traits")} className={isActive("/traits") ? activeClass : ""}>
                     <span className={isActive("/traits") ? "font-semibold" : ""}>My Traits</span>
+                  </SidebarItem>
+                </SidebarItemGroup>
+
+                <SidebarItemGroup>
+                  <SidebarItem onClick={() => { navigate("/chat"); handleClose(); }} icon={TbMessageChatbotFilled} active={isActive("/chat")} className={isActive("/chat") ? activeClass : ""}>
+                    <span className={isActive("/chat") ? "font-semibold" : ""}>Ask Eunice</span>
                   </SidebarItem>
                 </SidebarItemGroup>
 

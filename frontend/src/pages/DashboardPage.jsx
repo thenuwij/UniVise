@@ -53,7 +53,7 @@ function DashboardPage() {
             </h1>
 
             <p className="mt-2">
-              {today} • Your recommendations, Planner, and Roadmap in one place.
+              {today} • Your personalised academic and career hub.
             </p>
           </div>
 

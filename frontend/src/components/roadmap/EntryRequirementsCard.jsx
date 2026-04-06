@@ -21,7 +21,7 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Entry Requirements
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-base text-slate-600 dark:text-slate-400 mt-1">
               Check the latest university handbook for complete admission criteria
             </p>
           </div>
@@ -33,7 +33,7 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
         <div className="grid sm:grid-cols-3 gap-4">
           
           {/* ATAR */}
-          <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+          <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                           bg-gradient-to-br from-blue-50/70 via-sky-50/70 to-indigo-50/70 
                           dark:from-blue-900/20 dark:via-sky-900/20 dark:to-indigo-900/20
                           shadow-sm hover:shadow-md transition-all duration-200">
@@ -63,7 +63,7 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
           </div>
 
           {/* Selection Rank */}
-          <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+          <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                           bg-gradient-to-br from-indigo-50/70 via-blue-50/70 to-sky-50/70 
                           dark:from-indigo-900/20 dark:via-blue-900/20 dark:to-sky-900/20
                           shadow-sm hover:shadow-md transition-all duration-200">
@@ -93,7 +93,7 @@ export default function EntryRequirementsCard({ atar, selectionRank, subjects = 
           </div>
 
           {/* Assumed Knowledge */}
-          <div className="group p-5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 
+          <div className="group p-5 rounded-xl border border-slate-200/30 dark:border-slate-700/30 
                           bg-gradient-to-br from-sky-50/70 via-blue-50/70 to-indigo-50/70 
                           dark:from-sky-900/20 dark:via-blue-900/20 dark:to-indigo-900/20
                           shadow-sm hover:shadow-md transition-all duration-200">

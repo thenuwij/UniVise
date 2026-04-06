@@ -119,7 +119,7 @@ export default function IndustrySection({ industryExperience }) {
             {displayedPrograms.map((program, idx) => (
               <div 
                 key={idx}
-                className="p-6 rounded-xl border border-slate-200/60 dark:border-slate-700/60
+                className="p-6 rounded-xl border border-slate-200/30 dark:border-slate-700/30
                           bg-gradient-to-br from-slate-50 via-white to-slate-100/50
                           dark:from-slate-800/50 dark:via-slate-800/40 dark:to-slate-900/50
                           shadow-sm"
@@ -316,7 +316,7 @@ export default function IndustrySection({ industryExperience }) {
       {wilOpportunities && (
         <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 
                       dark:from-slate-800/50 dark:to-slate-800/30 
-                      rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                      rounded-xl border border-slate-200/30 dark:border-slate-700/30 shadow-sm">
           <h4 className="text-base font-bold flex items-center gap-2.5">
             <CheckCircle2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
             Work Integrated Learning

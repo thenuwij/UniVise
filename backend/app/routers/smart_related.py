@@ -7,7 +7,8 @@ import re
 
 from dependencies import get_current_user
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai  
+from app.utils.openai_client import ask_openai
+from app.utils.parse_llm import extract_json
 
 router = APIRouter(prefix="/smart-related", tags=["Smart Related"])
 
@@ -67,19 +68,9 @@ Output ONLY the JSON object above. No explanations, no prose, no markdown.
 # Parse AI response JSON, with fallback for incorret output
 def _safe_json_choices(text: str) -> List[Dict[str, Any]]:
     try:
-        obj = json.loads(text)
+        obj = extract_json(text)
         if isinstance(obj, dict) and isinstance(obj.get("choices"), list):
             return obj["choices"]
-    except Exception:
-        pass
-
-    # try largest JSON object fallback
-    try:
-        start, end = text.find("{"), text.rfind("}")
-        if start != -1 and end > start:
-            obj = json.loads(text[start:end+1])
-            if isinstance(obj, dict) and isinstance(obj.get("choices"), list):
-                return obj["choices"]
     except Exception:
         pass
     return []

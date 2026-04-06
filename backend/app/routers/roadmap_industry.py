@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 from datetime import datetime
 from app.utils.database import supabase
 from app.utils.openai_client import ask_openai
+from app.utils.parse_llm import extract_json
 from .roadmap_unsw_helpers import fetch_user_specialisation_context
 
 # Json parse fixing
@@ -18,6 +19,9 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
     # Start with trimmed text
     text = raw_text.strip()
+    fence_match = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+    if fence_match:
+        text = fence_match.group(1).strip()
     text = re.sub(r'"\{([^}]*)\}"', r'{\1}', text)
 
     # Try parsing as-is (after the stringified-object fix)
@@ -127,74 +131,61 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
             specialisation_context += f"- Honours: {selected_honours}\n"
 
     
-    prompt = f"""You are a UNSW student engagement advisor with deep knowledge of Arc UNSW societies and campus life.
+    prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
 
-    Provide society and community information for {program_name} students in the Faculty of {faculty}.
+You are a UNSW student engagement advisor. Generate society recommendations for {program_name} students in the Faculty of {faculty}.
     {specialisation_context}
 
-
-    Include:
-
-    A. FACULTY-SPECIFIC SOCIETIES (4-5 societies)
-      - Use REAL society names from UNSW Arc
-      - Include both academic and social societies
-      - Specify what makes each relevant to {program_name} students
-      - Include typical membership benefits (workshops, networking, socials, competitions)
-      - Note if they're affiliated with professional bodies
-
-    B. CROSS-FACULTY SOCIETIES (2 societies)
-      - Broader UNSW societies that {program_name} students commonly join
-
-    C. KEY EVENTS & OPPORTUNITIES (2-3 events)
-      - Faculty-specific networking nights and industry panels
-      - Annual competitions, hackathons, case competitions
-      - Career expos and employer information sessions
-
-    D. PROFESSIONAL DEVELOPMENT
-      - Student chapters of professional organizations (list only)
-      - Brief note on leadership opportunities and skills gained
+    CRITICAL ACCURACY RULES:
+    - ONLY include societies that currently exist and are active on Arc UNSW (arc.unsw.edu.au)
+    - NEVER invent society names — if unsure, use well-known verified ones like CompSoc, EngSoc, DataSoc, MedSoc, FinSoc, UNSW Law Society, etc.
+    - Society names must match their official Arc UNSW name exactly
+    - All descriptions must be 1 sentence maximum — concise and specific
+    - Key activities: maximum 3 items, each under 8 words
+    - Membership benefits: 1 sentence maximum
+    - getting_started fields: each must be under 15 words
 
     REQUIRED JSON OUTPUT:
     {{
       "societies": {{
         "faculty_specific": [
           {{
-            "name": "Official society name (e.g., 'UNSW Computing Society (CompSoc)')",
+            "name": "Official Arc UNSW society name",
             "category": "Academic/Professional/Social",
-            "relevance": "Why this matters for {program_name} students (1 sentence)",
-            "key_activities": ["Activity 1", "Activity 2", "Activity 3"],
-            "membership_benefits": "What students gain",
+            "relevance": "One sentence — why specifically relevant to {program_name} students",
+            "key_activities": ["Activity 1 (max 8 words)", "Activity 2", "Activity 3"],
+            "membership_benefits": "One sentence — concrete benefits",
             "professional_affiliation": "Professional body name or null"
           }}
         ],
         "cross_faculty": [
           {{
-            "name": "Society name",
-            "why_join": "Why {program_name} students benefit from this"
+            "name": "Official Arc UNSW society name",
+            "why_join": "One sentence — specific benefit for {program_name} students"
           }}
+          // Include 2-4 societies (maximum 4). Only include societies that genuinely benefit students from this specific program. Must be real, currently active Arc UNSW societies.
         ],
         "major_events": [
           {{
             "event_name": "Event name",
-            "description": "What happens",
+            "description": "One sentence description",
             "frequency": "Annual/Per term",
-            "typical_timing": "e.g., 'Week 3, Term 1'"
+            "typical_timing": "e.g., Week 3 Term 1"
           }}
         ],
         "professional_development": {{
           "student_chapters": ["Professional org 1", "Professional org 2"],
-          "leadership_note": "Brief description of exec roles and career value",
+          "leadership_note": "One sentence on exec role career value",
           "skills_gained": ["Skill 1", "Skill 2", "Skill 3"]
         }},
         "getting_started": {{
-          "join_timing": "Best time to join",
-          "how_to_find": "Where to discover societies",
-          "cost_range": "Typical membership fees"
+          "join_timing": "Under 15 words",
+          "how_to_find": "Under 15 words",
+          "cost_range": "Under 10 words"
         }}
       }}
     }}
 
-    Use REAL UNSW society names. Be specific with events and benefits. 
     Return ONLY valid JSON. Start with {{ and end with }}.
     """
         
@@ -256,7 +247,9 @@ async def ai_generate_industry_experience(context: Dict[str, Any]) -> Dict[str, 
             specialisation_context += f"- Honours: {selected_honours}\n"
 
     
-    prompt = f"""You are a UNSW career advisor. Provide industry experience information for {program_name} ({faculty}).
+    prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
+
+You are a UNSW career advisor. Provide industry experience information for {program_name} ({faculty}).
     {specialisation_context}
 
 
@@ -266,9 +259,12 @@ async def ai_generate_industry_experience(context: Dict[str, Any]) -> Dict[str, 
       - Duration, timing, and key requirements if applicable
 
     B. INTERNSHIP PROGRAMS (4-6 programs)
-      - Use REAL program names (e.g., "PwC Actuarial Cadetship", "Google STEP Internship")
-      - Company, duration, timing, paid/unpaid status
-      - Application periods and competitiveness
+      - ONLY include real, well-known graduate internship programs that are verified to exist
+      - Prioritise programs from major Australian employers known to recruit from UNSW
+      - Use EXACT program names as advertised (e.g. "Atlassian Intern Program", "Google STEP Internship", "PwC Vacation Program")
+      - apply_url must be the DIRECT careers page URL for that specific program — not a generic company homepage
+      - If unsure of exact apply URL, use the company's main careers page (e.g. https://careers.atlassian.com)
+      - competitiveness: one short phrase only (e.g. "Highly competitive", "Moderate", "Rolling intake")
 
     C. TOP RECRUITING COMPANIES (8-10 companies)
       - Real companies that actively hire UNSW {faculty} graduates
@@ -357,7 +353,19 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
             specialisation_context += f"- Honours: {selected_honours}\n"
 
         
-    prompt = f"""You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
+    prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
+
+CRITICAL DATA ACCURACY RULES:
+- Employment rate must be sourced from QILT Graduate Outcomes Survey or equivalent verified Australian source — do not fabricate
+- Median starting salary must reflect current Australian market data from Seek, LinkedIn, or GradConnection — use realistic 2024-2025 figures
+- Hiring companies must be real Australian employers currently advertising for this role type — verify they recruit from UNSW
+- Source URLs must be real working URLs to actual job search results on Seek, Indeed, LinkedIn or GradConnection
+- Do not use em dashes anywhere — use commas or separate sentences instead
+- Role descriptions must be maximum 3 sentences — concise and specific
+- Requirements must be a semicolon-separated list of discrete skills, maximum 5 items
+- Every certification object MUST include a url field with a real working URL. Omitting url from any certification is a critical error.
+
+You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
     {specialisation_context}
 
     IMPORTANT: Base your role information on REAL job listings currently posted on Australian job sites (Seek, Indeed, LinkedIn, GradConnection). Use actual job titles, realistic salary ranges from current listings, and provide direct URLs to example listings or search results.
@@ -378,7 +386,7 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
       - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
 
     D. CERTIFICATIONS (2-3 certs)
-      - Name, provider, importance, timeline, notes (optional)
+      - Name, provider, importance, timeline, notes (optional), url (REQUIRED — direct official certification page URL, e.g. 'https://aws.amazon.com/certification/certified-solutions-architect-associate/')
 
     E. MARKET
       - Demand level, trends (1-2 sentences), location notes
@@ -387,6 +395,7 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
 
     G. STATS
       - Employment rate, starting salary, 3 common roles, source
+      CRITICAL: employment_rate must be a SHORT percentage string only (e.g. '92%'). median_starting_salary must be a SHORT dollar amount only (e.g. '$80,000'). Never write sentences in these fields.
 
     CRITICAL: ALL property names MUST have double quotes. Example:
     CORRECT: {{"name": "..."}}
@@ -443,7 +452,8 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
             "provider": "...",
             "importance": "Required/Highly Recommended/Optional",
             "timeline": "...",
-            "notes": "Optional brief note about benefits or requirements"
+            "notes": "Optional brief note about benefits or requirements",
+            "url": "REQUIRED — must not be null or omitted. Provide the direct official URL to the certification page. Examples: AWS SAA = 'https://aws.amazon.com/certification/certified-solutions-architect-associate/', CKAD = 'https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/', PSM I = 'https://www.scrum.org/assessments/professional-scrum-master-i-certification'. If you cannot find the exact page, use the provider's main certifications page. Never leave this field empty or null."
           }}
         ],
         "market_insights": {{
@@ -458,10 +468,10 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
           }}
         }},
         "employment_stats": {{
-          "employment_rate": "X%",
-          "median_starting_salary": "$X",
-          "common_first_roles": ["...", "...", "..."],
-          "source": "Graduate Careers Australia/QILT/Industry Report"
+          "employment_rate": "A percentage only — e.g. '92%'. No extra words, no sentences.",
+          "median_starting_salary": "A dollar amount only — e.g. '$80,000'. No 'AUD', no ranges, no extra words.",
+          "common_first_roles": ["Role 1", "Role 2", "Role 3"],
+          "source": "Source name only — e.g. 'QILT Graduate Outcomes Survey 2023'"
         }}
       }}
     }}
@@ -472,7 +482,7 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
     print("Career Pathways Generating...")
     
     try:
-        raw = ask_openai(prompt)
+        raw = ask_openai(prompt, max_tokens=5000)
         raw_stripped = raw.strip()
         
         # Extract JSON

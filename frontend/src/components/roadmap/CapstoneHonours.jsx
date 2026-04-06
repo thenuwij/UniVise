@@ -1,5 +1,6 @@
 import { Award, BookOpen, CheckCircle2, Star, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 
@@ -8,6 +9,7 @@ export default function CapstoneHonours({ data }) {
   const navigate = useNavigate();
   const [validCourses, setValidCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
 
   // Fetch and validate courses on mount
   useEffect(() => {
@@ -99,14 +101,33 @@ export default function CapstoneHonours({ data }) {
     { title: "Progression Rules", text: progressionRules, icon: CheckCircle2 },
   ].filter((s) => s.text);
 
+  const honoursTabs = [
+    {
+      label: "Overview",
+      sections: overviewSections.filter(s => ["Entry Criteria", "Program Structure"].includes(s.title))
+    },
+    {
+      label: "Grades & Calculation",
+      sections: overviewSections.filter(s => ["Honours Calculation", "WAM & Eligibility Rules"].includes(s.title)),
+      extra: "classes"
+    },
+    {
+      label: "Requirements",
+      sections: overviewSections.filter(s => ["Academic Requirements", "Progression Rules"].includes(s.title))
+    },
+    {
+      label: "Awards & Careers",
+      sections: [],
+      extra: "awards"
+    }
+  ].filter(tab => tab.sections.length > 0 || tab.extra);
+
   return (
-    <div className="space-y-6">
+    <>
 
       {/* CAPSTONE SECTION */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6">
 
-        {/* Top Accent Bar */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 rounded-t-2xl" />
         
        {/* Header - COMPACT */}
         <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
@@ -137,17 +158,19 @@ export default function CapstoneHonours({ data }) {
                 <button
                   key={course.id}
                   onClick={() => handleCourseClick(course.id)}
-                  className="group relative p-6 rounded-xl border-2 border-slate-300 dark:border-slate-700
+                  className="group relative p-4 rounded-xl border-2 border-slate-300 dark:border-slate-700
                             bg-white dark:bg-slate-900
+                            hover:bg-gradient-to-br hover:from-blue-100/80 hover:to-indigo-100/60
+                            dark:hover:from-blue-900/30 dark:hover:to-indigo-900/20
                             shadow-md hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500
                             hover:-translate-y-1 transition-all duration-200 cursor-pointer
                             text-left w-full"
                 >
                   <div className="mb-4">
-                    <p className="text-xl font-bold text-blue-700 dark:text-blue-400 tracking-tight mb-2">
+                    <p className="text-lg font-bold text-blue-700 dark:text-blue-400 tracking-tight mb-2">
                       {course.code}
                     </p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug font-medium line-clamp-2">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-snug font-medium line-clamp-2">
                       {course.title}
                     </p>
                   </div>
@@ -167,22 +190,18 @@ export default function CapstoneHonours({ data }) {
         )}
 
         {/* Highlights */}
-        <div className="p-6 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50
-                      dark:from-slate-800/60 dark:via-slate-800/80 dark:to-slate-800/60
-                      rounded-xl border-2 border-slate-300 dark:border-slate-600 shadow-md">
+        <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl">
           <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             What Makes This Program Special
           </h3>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+          <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-4">
             {highlights}
           </p>
         </div>
       </div>
 
       {/* HONOURS SECTION */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 shadow-xl">
-        {/* Top Accent Bar */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 rounded-t-2xl" />
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6">
         
         {/* Header - COMPACT */}
         <div className="relative bg-slate-50/80 dark:bg-slate-800/60 
@@ -201,81 +220,70 @@ export default function CapstoneHonours({ data }) {
           </div>
         </div>
 
-        {/* Overview Sections */}
-        {overviewSections.length > 0 && (
-          <div className="space-y-4 mb-6">
-            {overviewSections.map((sec, i) => {
-              const IconComponent = sec.icon;
-              return (
-                <div
-                  key={i}
-                  className="p-6 rounded-xl border-2 border-slate-300 dark:border-slate-700
-                          bg-white dark:bg-slate-900
-                          shadow-md"
-                >
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                    {sec.title}
+        {/* Tab Nav */}
+        <div className="flex gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-5 border border-slate-200 dark:border-slate-700">
+          {honoursTabs.map((tab, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveTab(i)}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border ${
+                activeTab === i
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md border-blue-500"
+                  : "text-slate-600 dark:text-slate-300 border-blue-700 dark:border-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/20 hover:text-slate-800 dark:hover:text-slate-100"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="space-y-4">
+          {honoursTabs[activeTab]?.sections.map((sec, i) => (
+            <div key={i} className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">{sec.title}</h3>
+              <div className="text-base text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed">
+                {formatTextContent(sec.text)}
+              </div>
+            </div>
+          ))}
+
+          {honoursTabs[activeTab]?.extra === "classes" && classes.length > 0 && (
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3">Classification Grades</h3>
+              <div className="flex flex-wrap gap-2">
+                {classes.map((cls, i) => (
+                  <span key={i} className="px-4 py-2 text-sm font-semibold bg-purple-50 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 rounded-xl text-purple-700 dark:text-purple-300">
+                    {cls}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {honoursTabs[activeTab]?.extra === "awards" && (
+            <div className="space-y-4">
+              {awards && (
+                <div className="p-5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                    <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    Awards & Recognition
                   </h3>
-                  <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
-                    {formatTextContent(sec.text)}
-                  </div>
+                  <div className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">{formatTextContent(awards)}</div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Honours Classification */}
-        {classes.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-              Honours Classification Grades
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {classes.map((cls, i) => (
-                <span
-                  key={i}
-                  className="px-5 py-3 text-base font-bold
-                             bg-purple-50 dark:bg-purple-900/30
-                             border-2 border-purple-300 dark:border-purple-700
-                             rounded-xl text-purple-700 dark:text-purple-300 shadow-sm"
-                >
-                  {cls}
-                </span>
-              ))}
+              )}
+              {careerOutcomes && (
+                <div className="p-5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-300 dark:border-indigo-700">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    Career Paths & Further Study
+                  </h3>
+                  <div className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">{formatTextContent(careerOutcomes)}</div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Awards & Recognition */}
-        {awards && (
-          <div className="mb-6 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50
-                        dark:from-amber-900/20 dark:to-orange-900/20 
-                        border-2 border-amber-300 dark:border-amber-700 shadow-md">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <Star className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-              Awards & Recognition
-            </h3>
-            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
-              {formatTextContent(awards)}
-            </div>
-          </div>
-        )}
-
-        {/* Career Outcomes */}
-        {careerOutcomes && (
-          <div className="p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50
-                        dark:from-indigo-900/20 dark:to-purple-900/20 
-                        border-2 border-indigo-300 dark:border-indigo-700 shadow-md">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-              Career Paths & Further Study
-            </h3>
-            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed font-medium">
-              {formatTextContent(careerOutcomes)}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* No Data Message */}
         {!(overviewSections.length || classes.length || awards || careerOutcomes) && (
@@ -287,6 +295,6 @@ export default function CapstoneHonours({ data }) {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

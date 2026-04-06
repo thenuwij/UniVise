@@ -56,7 +56,7 @@ export default function CareersSection({ careerPathways = {}, sources = [], isLo
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-xl">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/30 dark:border-slate-700/30 p-8 shadow-xl">
 
       {/* HEADER */}
       <div className="relative bg-slate-50/80 dark:bg-slate-800/60 px-8 py-6 -mx-8 -mt-8 mb-8 border-b-2 rounded-t-2xl border-slate-200 dark:border-slate-700">

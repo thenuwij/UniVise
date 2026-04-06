@@ -6,14 +6,15 @@
 import os
 import json
 import logging
+import anthropic
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from openai import OpenAI
+from app.utils.parse_llm import extract_json
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
 # ─── Request / Response Models ───────────────────────────────────
@@ -55,19 +56,14 @@ async def get_switch_advice(request: SwitchAdvisorRequest):
         system_prompt = build_system_prompt()
         user_prompt = build_user_prompt(context)
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.7,
+        response = _client.messages.create(
+            model="claude-sonnet-4-6",
+            system=build_system_prompt(),
+            messages=[{"role": "user", "content": user_prompt}],
             max_tokens=2000,
-            response_format={"type": "json_object"},
         )
 
-        raw = response.choices[0].message.content
-        result = json.loads(raw)
+        result = extract_json(response.content[0].text)
 
         return SwitchAdvisorResponse(
             verdict=result.get("verdict", "conditional"),
@@ -81,7 +77,7 @@ async def get_switch_advice(request: SwitchAdvisorRequest):
         )
 
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse OpenAI response: {e}")
+        logger.error(f"Failed to parse Claude response: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
     except Exception as e:
         logger.error(f"Switch advisor error: {e}")

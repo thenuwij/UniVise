@@ -42,6 +42,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
         history.append({"role": role, "content": row["content"]})
 
     prompt = (
+        "Important: Do not use emojis anywhere in your responses. Use plain text only.\n\n"
         f"You are an experienced and friendly career advisor—think of yourself as a trusted school counselor.\n\n"
         f"## Student Profile\n"
         f"- **Background:** {user_info}\n"
@@ -56,17 +57,14 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
     )
 
     # Kick off the streaming API call
-    stream = ask_chat_completion_stream(history, prompt)
+    token_stream = ask_chat_completion_stream(history, prompt)
 
     # Define a generator that yields each token as it comes
     async def event_generator():
         full_response = ""
-        for chunk in stream:
-            # Safely read the `.content` attribute
-            delta = chunk.choices[0].delta
-            token = delta.content or ""
+        async for token in token_stream:
             full_response += token
-            if token:  # only yield when there’s new text
+            if token:
                 yield token
         # Once done, persist the full bot message
         supabase.table("conversation_messages").insert(
