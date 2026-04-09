@@ -1,278 +1,223 @@
 // src/pages/ExploreBySpecialisationPage.jsx
 import { useEffect, useState } from "react";
-import {
-  HiAcademicCap,
-  HiArrowLeft,
-  HiArrowRight,
-  HiChevronLeft,
-  HiCollection,
-  HiSearch,
-  HiStar,
-} from "react-icons/hi";
+import { HiArrowLeft, HiSearch, HiX } from "react-icons/hi";
 import { Link, useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 
+const TYPES = ["All", "Major", "Minor", "Honours"];
+
 function ExploreBySpecialisationPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [facultyFilter, setFacultyFilter] = useState("");
+  const [allSpecs, setAllSpecs] = useState([]);
   const [faculties, setFaculties] = useState([]);
-  const [results, setResults] = useState([]);
-  const openDrawer = () => setIsOpen(true);
-  const closeDrawer = () => setIsOpen(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchFaculties = async () => {
+    const fetch = async () => {
+      setLoading(true);
       try {
         const { data, error } = await supabase
           .from("unsw_specialisations")
-          .select("faculty")
-          .neq("faculty", "");
+          .select("id, major_name, specialisation_type, faculty, uoc_required, major_code");
         if (error) throw error;
-        const unique = [...new Set(data.map((d) => d.faculty))];
+        setAllSpecs(data || []);
+        const unique = [...new Set(data.map((d) => d.faculty).filter(Boolean))].sort();
         setFaculties(unique);
-      } catch (err) {
-        console.error("Faculty fetch error:", err.message);
-      }
-    };
-    fetchFaculties();
-  }, []);
-
-  useEffect(() => {
-    const fetchSpecialisations = async () => {
-      if (!selectedType) return;
-
-      try {
-        let builder = supabase
-          .from("unsw_specialisations")
-          .select("*")
-          .eq("specialisation_type", selectedType);
-
-        if (query.length >= 2) builder = builder.ilike("major_name", `%${query}%`);
-        if (facultyFilter) builder = builder.eq("faculty", facultyFilter);
-
-        const { data, error } = await builder;
-        if (error) throw error;
-        setResults(data || []);
       } catch (err) {
         console.error("Specialisation fetch error:", err.message);
       }
+      setLoading(false);
     };
+    fetch();
+  }, []);
 
-    fetchSpecialisations();
-  }, [selectedType, query, facultyFilter]);
+  const filtered = allSpecs.filter((s) => {
+    const matchesType = typeFilter === "All" || s.specialisation_type === typeFilter;
+    const matchesQuery =
+      query.length === 0 || s.major_name?.toLowerCase().includes(query.toLowerCase());
+    const matchesFaculty = !facultyFilter || s.faculty === facultyFilter;
+    return matchesType && matchesQuery && matchesFaculty;
+  });
+
+  const hasFilters = query.length > 0 || facultyFilter !== "" || typeFilter !== "All";
+
+  const clearAll = () => {
+    setQuery("");
+    setFacultyFilter("");
+    setTypeFilter("All");
+  };
+
+  const getRoute = (spec) => {
+    if (spec.specialisation_type === "Major") return `/specialisation/major/${spec.id}`;
+    if (spec.specialisation_type === "Minor") return `/specialisation/minor/${spec.id}`;
+    return `/specialisation/honours/${spec.id}`;
+  };
+
+  const typeColour = (type) => {
+    if (type === "Major") return "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300";
+    if (type === "Minor") return "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300";
+    return "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300";
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
 
-      {/* Fixed Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
-        <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+        <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
+        <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
       </div>
 
       <div className="pt-16 sm:pt-20">
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
-          {!selectedType && (
-            <>
-              {/* Back Button */}
+        {/* Back */}
+        <button
+          onClick={() => navigate("/planner")}
+          className="group inline-flex items-center gap-2 mt-8 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 shadow-sm transition-all"
+        >
+          <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          Back to My Planner
+        </button>
+
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-16">
+
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
+            Search Specialisations
+          </h2>
+
+          {/* Search bar */}
+          <div className="relative mb-3">
+            <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by name…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:border-sky-500 dark:focus:border-sky-500 transition-colors outline-none text-sm"
+            />
+            {query && (
               <button
-                onClick={() => navigate("/planner")}
-                className="group flex items-center gap-2 mb-8 mt-8 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200"
+                onClick={() => setQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               >
-                <HiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-                <span>Back to My Planner</span>
+                <HiX className="w-4 h-4" />
               </button>
+            )}
+          </div>
 
-              {/* Header */}
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-                  Explore Specialisations
-                </div>
-              </div>
+          {/* Type tabs + Faculty filter row */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            {/* Type pills */}
+            <div className="flex gap-2">
+              {TYPES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    typeFilter === t
+                      ? "bg-sky-600 text-white border-sky-600"
+                      : "bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-700 hover:bg-sky-100 dark:hover:bg-sky-900/40 hover:border-sky-400"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
 
-              {/* Type Selection Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Faculty dropdown */}
+            <select
+              value={facultyFilter}
+              onChange={(e) => setFacultyFilter(e.target.value)}
+              className={`sm:w-80 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 outline-none transition-all cursor-pointer shadow-sm ${
+                facultyFilter
+                  ? "bg-sky-600 text-white border-sky-600"
+                  : "bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-700 hover:bg-sky-100 dark:hover:bg-sky-900/40 hover:border-sky-400"
+              }`}
+            >
+              <option value="">All Faculties</option>
+              {faculties.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
 
-                {[
-                  {
-                    type: "Major",
-                    icon: <HiStar className="w-7 h-7" />,
-                    gradient: "from-indigo-500 to-purple-600",
-                    desc: "Primary area of expertise forming the core of your academic focus.",
-                  },
-                  {
-                    type: "Minor",
-                    icon: <HiCollection className="w-7 h-7" />,
-                    gradient: "from-indigo-500 to-purple-600",
-                    desc: "Complementary areas that broaden your studies and skillset.",
-                  },
-                  {
-                    type: "Honours",
-                    icon: <HiAcademicCap className="w-7 h-7" />,
-                    gradient: "from-indigo-500 to-purple-600",
-                    desc: "Advanced research year showcasing your academic excellence.",
-                  },
-                ].map(({ type, icon, gradient, desc }) => (
-                  <div
-                    key={type}
-                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg hover:shadow-xl p-8 transition-all duration-200 cursor-pointer hover:-translate-y-1"
-                    onClick={() => setSelectedType(type)}
-                  >
-                    {/* Icon & Title */}
-                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
-                      <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
-                        <div className="text-slate-700 dark:text-slate-300">{icon}</div>
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                        {type}
-                      </h3>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 leading-relaxed min-h-[60px]">
-                      {desc}
-                    </p>
-
-                    {/* Button */}
-                    <button
-                      className={`w-full px-5 py-3 rounded-lg bg-gradient-to-r ${gradient} hover:opacity-90 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2`}
-                    >
-                      <span>Explore {type === "Honours" ? "Honours" : `${type}s`}</span>
-                      <HiArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* RESULTS PAGE */}
-          {selectedType && (
-            <>
-              {/* Back Button */}
+          {/* Result count + clear */}
+          <div className="flex items-center justify-between mt-5 mb-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {loading ? "Loading…" : filtered.length === allSpecs.length
+                ? `${allSpecs.length} specialisations`
+                : `${filtered.length} of ${allSpecs.length} specialisations`}
+            </p>
+            {hasFilters && (
               <button
-                onClick={() => {
-                  setSelectedType("");
-                  setQuery("");
-                  setFacultyFilter("");
-                  setResults([]);
-                }}
-                className="group flex items-center gap-2 mb-10 mt-8 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200"
+                onClick={clearAll}
+                className="text-xs font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 transition-colors flex items-center gap-1"
               >
-                <HiChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-                <span>Back</span>
+                <HiX className="w-3 h-3" />
+                Clear filters
               </button>
+            )}
+          </div>
 
-              {/* Header */}
-              <div className="mb-6">
-                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
-                    Explore
-                  </span>{" "}
-                  {selectedType === "Honours" ? "Honours" : `${selectedType}s`}
-                </h1>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                  Search and filter to find the perfect {selectedType.toLowerCase()} for your degree.
-                </p>
+          {/* Results */}
+          {!loading && filtered.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+              {filtered.map((spec) => (
+                <Link
+                  to={getRoute(spec)}
+                  key={spec.id}
+                  className="group flex flex-col gap-3 p-5 rounded-xl bg-gradient-to-br from-white to-sky-50/50 dark:from-slate-800/60 dark:to-sky-900/10 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:to-sky-50/80 hover:shadow-md transition-all"
+                >
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white leading-snug group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">
+                    {spec.major_name}
+                  </h3>
+
+                  <div className="flex flex-wrap gap-2">
+                    {spec.specialisation_type && (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${typeColour(spec.specialisation_type)}`}>
+                        {spec.specialisation_type}
+                      </span>
+                    )}
+                    {spec.faculty && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        {spec.faculty}
+                      </span>
+                    )}
+                    {spec.major_code && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">
+                        {spec.major_code}
+                      </span>
+                    )}
+                    {spec.uoc_required && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        {spec.uoc_required} UOC
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : !loading ? (
+            <div className="text-center py-16">
+              <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                <HiSearch className="w-8 h-8 text-slate-400" />
               </div>
-
-              {/* Search Section */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-8">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30">
-                    <HiSearch className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                    Search {selectedType === "Honours" ? "Honours" : `${selectedType}s`}
-                  </h2>
-                </div>
-
-                <div className="flex flex-col lg:flex-row items-center gap-4">
-                  {/* Search input */}
-                  <div className="relative flex-1 w-full">
-                    <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input
-                      type="text"
-                      placeholder={`Search ${selectedType === "Honours" ? "honours" : `${selectedType.toLowerCase()}s`}...`}
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all outline-none"
-                    />
-                  </div>
-
-                  {/* Faculty filter */}
-                  <select
-                    value={facultyFilter}
-                    onChange={(e) => setFacultyFilter(e.target.value)}
-                    className="w-full lg:w-64 px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all outline-none"
-                  >
-                    <option value="">All Faculties</option>
-                    {faculties.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Results */}
-              {results.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-                  {results.map((spec) => (
-                    <Link
-                      to={
-                        spec.specialisation_type === "Major"
-                          ? `/specialisation/major/${spec.id}`
-                          : spec.specialisation_type === "Minor"
-                          ? `/specialisation/minor/${spec.id}`
-                          : `/specialisation/honours/${spec.id}`
-                      }
-                      key={spec.id}
-                      className="group rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg transition-all hover:-translate-y-1"
-                    >
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
-                        {spec.major_name}
-                      </h3>
-
-                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                        {spec.overview_description?.slice(0, 120) || "No description available."}
-                      </p>
-
-                      <div className="flex gap-2 flex-wrap">
-                        <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                          {spec.faculty}
-                        </span>
-
-                        {spec.uoc_required && (
-                          <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                            {spec.uoc_required}
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 mb-16">
-                  <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-                    <HiSearch className="w-8 h-8 text-slate-400" />
-                  </div>
-                  <p className="text-slate-500 dark:text-slate-400 text-base">
-                    No {selectedType === "Honours" ? "honours" : `${selectedType.toLowerCase()}s`} found. Try another search.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                No specialisations found
+                {query && <> for <span className="font-medium text-slate-700 dark:text-slate-300">"{query}"</span></>}
+              </p>
+              <button onClick={clearAll} className="mt-3 text-sm text-sky-600 dark:text-sky-400 hover:underline">
+                Clear filters
+              </button>
+            </div>
+          ) : null}
+        </div>
         </div>
       </div>
     </div>

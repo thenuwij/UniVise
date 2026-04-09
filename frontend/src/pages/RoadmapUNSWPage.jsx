@@ -18,7 +18,7 @@ import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
 import SectionTitle from "../components/SectionTitle";
 import { supabase } from "../supabaseClient";
 
-const DEFAULT_PROGRAM_NAME = "Selected degree";
+const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 
 const KEYBOARD_NAV_KEYS = {
@@ -56,7 +56,7 @@ const useDegreeData = (degreeCode) => {
         if (error) throw error;
         setDegreeData(degree);
       } catch (err) {
-        console.warn("Failed to fetch degree:", err.message);
+        // degree fetch failed — component renders without degree data
       }
     };
 
@@ -70,7 +70,7 @@ const extractDegreeCode = (degree) => {
   if (!degree) return null;
   const finalCode = degree.code || degree.degree_code || degree.program_code || null;
   if (!finalCode) {
-    console.warn("extractDegreeCode: No valid degree code found");
+    // no degree code available — caller handles null return
   }
   return finalCode;
 };
@@ -165,8 +165,6 @@ const useRoadmapData = (
 
         if (error) throw error;
 
-        const newFlex = row?.payload?.flexibility_detailed;
-        const existingFlex = data?.payload?.flexibility_detailed;
         const newSocieties = row?.payload?.industry_societies;
         const newExperience = row?.payload?.industry_experience;
         const newCareers = row?.payload?.career_pathways;
@@ -177,8 +175,7 @@ const useRoadmapData = (
         if (
           (newSocieties && !existingSocieties) ||
           (newExperience && !existingExperience) ||
-          (newCareers && !existingCareers) ||
-          (newFlex && !existingFlex)
+          (newCareers && !existingCareers)
         ) {
           setData((prev) => ({
             ...(prev || {}),
@@ -187,7 +184,7 @@ const useRoadmapData = (
 
         }
       } catch (err) {
-        console.warn("[Polling] Error:", err.message);
+        // polling error — will retry on next interval
       }
     }, 5000);
 
@@ -240,11 +237,11 @@ const useRoadmapData = (
               clearInterval(intervalId);
             }
           } catch (err) {
-            console.warn("[Polling Error]:", err.message);
+            // polling error — will retry on next interval
           }
         }, 3000);
       } catch (err) {
-        console.warn("[Polling Init Error]:", err.message);
+        // polling init failed — regeneration not started
       }
     };
 
@@ -537,9 +534,7 @@ export default function RoadmapUNSWPage() {
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200
-                    dark:from-slate-950 dark:via-slate-900 dark:to-slate-950
-                    text-primary transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 text-primary transition-colors duration-500">
       
       {/* background glow */}
       <div aria-hidden>
@@ -547,7 +542,7 @@ export default function RoadmapUNSWPage() {
         <div className="roadmap-glow-bottom" />
       </div>
 
-      <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} />
+      <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 
       <div className="mx-20 pt-14 pb-10">
@@ -618,11 +613,15 @@ export default function RoadmapUNSWPage() {
                 </>
               )}
             >
-              <span className="font-extrabold text-transparent bg-clip-text
-                               bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
-                               dark:from-white dark:via-slate-200 dark:to-white">
-                {headerProgramName}
-              </span>
+              {headerProgramName ? (
+                <span className="font-extrabold text-transparent bg-clip-text
+                                 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
+                                 dark:from-white dark:via-slate-200 dark:to-white">
+                  <span className="font-extrabold">{headerProgramName}</span>
+                </span>
+              ) : (
+                <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
+              )}
             </SectionTitle>
 
             {data && (

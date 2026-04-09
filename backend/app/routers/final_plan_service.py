@@ -1,5 +1,5 @@
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt, ask_gpt_async
 from app.utils.parse_llm import extract_json
 import json
 import uuid
@@ -91,7 +91,7 @@ async def generate_final_plan(user_id: str):
     """
 
     # Call OpenAi and clean response
-    result_raw = ask_openai(prompt)         
+    result_raw = await ask_gpt_async(prompt)
     result = clean_openai_response(result_raw)
 
     try:

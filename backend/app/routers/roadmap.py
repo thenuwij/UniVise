@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 from app.utils.database import supabase
 from dependencies import get_current_user
+
+logger = logging.getLogger(__name__)
 
 from .roadmap_common import (
     SchoolReq, UNSWReq, RoadmapResp,
@@ -8,7 +12,6 @@ from .roadmap_common import (
 )
 from .roadmap_school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
-from .roadmap_unsw_flexibility import generate_and_update_flexibility
 from .roadmap_industry import generate_and_update_industry_careers
 from .roadmap_industry import generate_and_update_societies
 
@@ -30,8 +33,10 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+    if not ins.data:
+        raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
-    
+
     # Trigger background task for careers
     asyncio.create_task(generate_and_update_school_careers(rec["id"], ctx))
     
@@ -41,7 +46,6 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
 @router.post("/unsw", response_model=RoadmapResp)
 async def create_unsw(
     body: UNSWReq,
-    background_tasks: BackgroundTasks,  
     user=Depends(get_current_user)
 ):
     import time
@@ -74,38 +78,26 @@ async def create_unsw(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
-    
+
     print(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
 
+    if not ins.data:
+        raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
 
-    # Trigger BOTH background tasks in parallel 
+    # Trigger background tasks for societies and industry/careers
     try:
         import asyncio
-        
-        # Check if degree has courses for flexibility generation
-        degree_code = ctx.get("degree_code")
-        core_courses = ctx.get("core_courses", [])
 
-        # Also check for specialization courses
-        honours_courses = ctx.get("selected_honours_courses", [])
-        major_courses = ctx.get("selected_major_courses", [])
-        minor_courses = ctx.get("selected_minor_courses", [])
+        def handle_task_exception(task):
+            if not task.cancelled() and task.exception():
+                logger.error(f"Background task failed: {task.exception()}")
 
-        total_courses = len(core_courses) + len(honours_courses) + len(major_courses) + len(minor_courses)
+        societies_task = asyncio.create_task(generate_and_update_societies(rec["id"], rec))
+        societies_task.add_done_callback(handle_task_exception)
 
-        print(f"[FLEXIBILITY] degree_code={degree_code}, core={len(core_courses)}, honours={len(honours_courses)}, major={len(major_courses)}, minor={len(minor_courses)}, total={total_courses}")
-
-        if total_courses > 0:
-            print(f"[Background] Launching flexibility (has {total_courses} total courses)")
-            asyncio.create_task(generate_and_update_flexibility(rec["id"], rec))
-        else:
-            print(f"[Background] Skipping flexibility - no courses found for degree {degree_code}")
-        
-        # Always generate societies and industry/careers
-        asyncio.create_task(generate_and_update_societies(rec["id"], rec))
-        asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
-            
+        careers_task = asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
+        careers_task.add_done_callback(handle_task_exception)
     except Exception as e:
         print(f"[Background] Failed to schedule tasks: {e}")
 
@@ -114,50 +106,7 @@ async def create_unsw(
     # Return immediate response to frontend
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
-# Manually trigger flexibility generation for an existing roadmap
-@router.post("/unsw/{roadmap_id}/flexibility")
-async def generate_flexibility(
-    roadmap_id: str,
-    background_tasks: BackgroundTasks,
-    user=Depends(get_current_user)
-):
-    
-    # Verify roadmap exists and belongs to user
-    try:
-        roadmap_response = supabase.table("unsw_roadmap")\
-            .select("*")\
-            .eq("id", roadmap_id)\
-            .eq("user_id", user.id)\
-            .single()\
-            .execute()
-    except Exception as e:
-        raise HTTPException(status_code=404, detail="Roadmap not found")
-    
-    if not roadmap_response.data:
-        raise HTTPException(status_code=404, detail="Roadmap not found")
-    
-    roadmap_data = roadmap_response.data
-    
-    # Check if flexibility already exists
-    if roadmap_data.get("payload", {}).get("flexibility_detailed"):
-        return {
-            "status": "already_exists",
-            "message": "Flexibility recommendations already exist for this roadmap"
-        }
-    
-    # Schedule background task to generate flexibility
-    background_tasks.add_task(
-        generate_and_update_flexibility,
-        roadmap_id,
-        roadmap_data
-    )
-    
-    return {
-        "status": "generating",
-        "message": "Flexibility recommendations are being generated in the background"
-    }
-
-# Get user's most recent roadmap by mode 
+# Get user's most recent roadmap by mode
 @router.get("/{mode}", response_model=RoadmapResp)
 async def get_latest(mode: str, user=Depends(get_current_user)):
     table = table_for_mode(mode)

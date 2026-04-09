@@ -1,6 +1,5 @@
 import {
   Avatar,
-  DarkThemeToggle,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -9,18 +8,36 @@ import {
   NavbarBrand
 } from "flowbite-react";
 import { useEffect, useState } from "react";
+import { HiMoon, HiSun } from "react-icons/hi";
 import { LuMenu } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
-export function DashboardNavBar({ onMenuClick }) {
+export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
 
   const [displayName, setDisplayName] = useState("");
   const [displayEmail, setDisplayEmail] = useState("");
   const { signOut } = UserAuth();
   const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(
+    localStorage.getItem("color-theme") === "dark" ||
+    document.documentElement.classList.contains("dark")
+  );
+
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    if (html.classList.contains("dark")) {
+      html.classList.remove("dark");
+      localStorage.setItem("color-theme", "light");
+      setIsDark(false);
+    } else {
+      html.classList.add("dark");
+      localStorage.setItem("color-theme", "dark");
+      setIsDark(true);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,7 +65,7 @@ export function DashboardNavBar({ onMenuClick }) {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 dark:via-blue-500/30 to-transparent" />
       <Navbar fluid className="h-16 border-b border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm">
         <button onClick={onMenuClick} className="flex items-center gap-1.5 ml-4 mb-4 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all duration-200">
-          <LuMenu className="w-10 h-10" />
+          <LuMenu className={`w-10 h-10 transition-transform duration-300 ${isMenuOpen ? "rotate-90" : "rotate-0"}`} />
           <span>Menu</span>
         </button>
         <NavbarBrand
@@ -59,10 +76,16 @@ export function DashboardNavBar({ onMenuClick }) {
           <span className="self-center whitespace-nowrap text-4xl mb-3" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em' }}>Univise</span>
         </NavbarBrand>
         <div className="flex items-center gap-4">
-          <div className="flex flex-col items-center mb-4 mr-2">
-            <DarkThemeToggle className="transition-all duration-300 ease-in-out hover:scale-105 text-slate-700 dark:text-slate-200"/>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Theme</span>
-          </div>
+          <button
+            onClick={toggleTheme}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 transition-all duration-200 mb-4 flex-shrink-0"
+          >
+            {isDark
+              ? <HiSun className="w-5 h-5 text-amber-500" />
+              : <HiMoon className="w-5 h-5 text-blue-700" />
+            }
+          </button>
           <Dropdown
             arrowIcon={false}
             inline

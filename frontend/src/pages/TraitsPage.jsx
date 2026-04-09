@@ -133,7 +133,7 @@ function TraitsPage() {
     return (
       <div>
         <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardNavBar onMenuClick={openDrawer} />
+          <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
         </div>
         <div className="pt-16 sm:pt-20">
@@ -143,7 +143,7 @@ function TraitsPage() {
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
                 My Traits
               </div>
-              <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+              <h1 className="mt-3 text-3xl sm:text-4xl font-bold">
                 Loading your traits...
               </h1>
               <p className="mt-2">
@@ -160,7 +160,7 @@ function TraitsPage() {
     return (
       <div>
         <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardNavBar onMenuClick={openDrawer} />
+          <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
         </div>
         <div className="pt-16 sm:pt-20">
@@ -170,7 +170,7 @@ function TraitsPage() {
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
                 My Traits
               </div>
-              <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+              <h1 className="mt-3 text-3xl sm:text-4xl font-bold">
                 No traits found
               </h1>
               <p className="mt-2">
@@ -193,7 +193,7 @@ function TraitsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
       <div className="pt-16 sm:pt-20">
@@ -204,7 +204,7 @@ function TraitsPage() {
               My Traits
             </div>
 
-            <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+            <h1 className="mt-3 text-3xl sm:text-4xl font-bold">
               Here's what makes you, <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">you.</span>
             </h1>
             <p className="mt-2 text-slate-500 dark:text-slate-400">
@@ -212,90 +212,92 @@ function TraitsPage() {
             </p>
 
           </div>
-          <div className='flex justify-evenly  gap-6 mt-6'>
-            <div className='card-glass-spotlight mt-6 p-6 w-2/3'>
-              <p className="text-xl font-semibold text-slate-800 dark:text-white">
-                What this means for you
-              </p>
-              <p className="mt-3">
-                {result?.description || "No further details available."}
-              </p>
+          <div className='card-glass-spotlight borderless mt-6 overflow-hidden'>
+            <div className="flex divide-x divide-slate-100 dark:divide-slate-700/50">
 
-              <hr className="my-5 border-slate-200 dark:border-slate-700" />
+              {/* Left — What this means for you */}
+              <div className="p-6 flex-1 min-w-0">
+                <p className="text-xl font-semibold text-slate-800 dark:text-white">
+                  What this means for you
+                </p>
+                <p className="mt-3">
+                  {result?.description || "No further details available."}
+                </p>
 
-              <p className="text-base font-semibold text-slate-600 dark:text-slate-400">
-                Your personality type: <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">{result?.result_summary || 'Unknown'}</span>
-              </p>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                {personalityResults[result?.result_summary] || "No description available."}
-              </p>
+                <hr className="my-5 border-slate-200 dark:border-slate-700" />
 
-              {result?.top_types && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {result.top_types.map((trait) => (
-                    <span key={trait} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm">
-                      {personalityDescriptions[trait]?.name || trait}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+                <p className="text-base font-semibold text-slate-600 dark:text-slate-400">
+                  Your personality type: <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">{result?.result_summary || 'Unknown'}</span>
+                </p>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  {personalityResults[result?.result_summary] || "No description available."}
+                </p>
 
+                {result?.top_types && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {result.top_types.map((trait) => (
+                      <span key={trait} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm">
+                        {personalityDescriptions[trait]?.name || trait}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className='card-glass-spotlight mt-6 p-6 w-1/3'>
-            
-              <p className=" text-3xl font-semibold ">
-                RIASEC Summary
-              </p>
-              <div className="mt-14">
-                <Doughnut 
-                  data={{
-                    labels: Object.keys(result?.trait_scores || {}),
-                    datasets: [{
-                      label: 'Trait Scores (%)',
-                      data: Object.values(result?.trait_scores || {}),
-                      backgroundColor: [
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(153, 102, 255, 0.6)',
-                        'rgba(255, 159, 64, 0.6)',
-                      ],
-                      borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                      ],
-                    }],
-                  }} 
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                      legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                          padding: 20,
-                          usePointStyle: true,
-                          font: {
-                            size: 12,
-                          },
-                          color: isDarkMode ? '#e2e8f0' : '#6b7280',
+              {/* Right — RIASEC Summary */}
+              <div className="p-6 w-80 flex-shrink-0 flex flex-col">
+                <p className="text-xl font-semibold text-slate-800 dark:text-white">
+                  RIASEC Summary
+                </p>
+                <div className="mt-6 flex-1 flex items-center">
+                  <Doughnut
+                    data={{
+                      labels: Object.keys(result?.trait_scores || {}),
+                      datasets: [{
+                        label: 'Trait Scores (%)',
+                        data: Object.values(result?.trait_scores || {}),
+                        backgroundColor: [
+                          'rgba(255, 99, 132, 0.6)',
+                          'rgba(54, 162, 235, 0.6)',
+                          'rgba(255, 206, 86, 0.6)',
+                          'rgba(75, 192, 192, 0.6)',
+                          'rgba(153, 102, 255, 0.6)',
+                          'rgba(255, 159, 64, 0.6)',
+                        ],
+                        borderColor: [
+                          'rgba(255, 99, 132, 1)',
+                          'rgba(54, 162, 235, 1)',
+                          'rgba(255, 206, 86, 1)',
+                          'rgba(75, 192, 192, 1)',
+                          'rgba(153, 102, 255, 1)',
+                          'rgba(255, 159, 64, 1)',
+                        ],
+                      }],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: true,
+                      plugins: {
+                        legend: {
+                          display: true,
+                          position: 'bottom',
+                          labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: { size: 12 },
+                            color: isDarkMode ? '#e2e8f0' : '#6b7280',
+                          }
                         }
                       }
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </div>
               </div>
+
             </div>
           </div>
           
-          <div className='card-glass-spotlight mt-6 p-6'>
+          <div className='card-glass-spotlight borderless mt-6 p-6'>
             <p className="text-2xl font-semibold">Want to understand each type?</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 mb-4">
               The quiz uses the RIASEC model — a widely used framework that groups personality into six types. Tap any to learn more.

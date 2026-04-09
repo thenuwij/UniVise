@@ -117,7 +117,7 @@ export default function ComparisonResults({
                 Current Program
               </div>
               <div className="font-bold text-slate-900 dark:text-white">
-                {detailed_breakdown.base_program.name}
+                {detailed_breakdown?.base_program?.name}
               </div>
               {baseSpecNames.length > 0 && (
                 <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
@@ -133,7 +133,7 @@ export default function ComparisonResults({
                 Target Program
               </div>
               <div className="font-bold text-slate-900 dark:text-white">
-                {detailed_breakdown.target_program.name}
+                {detailed_breakdown?.target_program?.name}
               </div>
               {targetSpecNames.length > 0 && (
                 <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
@@ -156,126 +156,132 @@ export default function ComparisonResults({
         </div>
       </div>
 
-      {/* ASSESSMENT CARD */}
-      <div className={`${style.bg} rounded-xl border-2 ${style.border} shadow-sm overflow-hidden`}>
-        <div className="p-6">
-          
-          {/* Main heading with icon */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-3">
+      {/* HERO SECTION — Key Metrics at a Glance */}
+      {recommendation !== "Not Yet Started" && (
+        <div className={`${style.bg} rounded-2xl border-2 ${style.border} shadow-lg overflow-hidden`}>
+          <div className="p-6 sm:p-8">
+            {/* Verdict Banner */}
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <RecommendationIcon className={`w-10 h-10 ${style.iconColor}`} />
+              <h1 className={`text-4xl sm:text-5xl font-bold ${style.color}`}>
+                {recommendation}
+              </h1>
+            </div>
+
+            {/* Three Key Metrics */}
+            <div className="grid grid-cols-3 gap-4 sm:gap-6">
+              {/* Transfer Rate */}
+              <div className="text-center p-4 sm:p-6 bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="text-4xl sm:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {transfer_analysis.transfer_rate}%
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  Courses Transfer
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                  {summary.courses_transfer} of {summary.completed_courses_count} courses
+                </div>
+              </div>
+
+              {/* UOC Remaining */}
+              <div className="text-center p-4 sm:p-6 bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-2">
+                  {summary.uoc_needed}
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  UOC Remaining
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                  {summary.courses_needed} courses to complete
+                </div>
+              </div>
+
+              {/* Time to Complete */}
+              <div className="text-center p-4 sm:p-6 bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="text-4xl sm:text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                  {summary.estimated_terms}
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  Terms Left
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                  Est. completion {summary.estimated_completion}
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                <span>Progress Toward Target Degree</span>
+                <span>{summary.progress_percentage}%</span>
+              </div>
+              <div className="h-3 bg-slate-200/50 dark:bg-slate-700/50 rounded-full overflow-hidden border border-slate-300 dark:border-slate-600">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-emerald-500 transition-all duration-700 ease-out rounded-full"
+                  style={{ width: `${summary.progress_percentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NOT YET STARTED STATE */}
+      {recommendation === "Not Yet Started" && (
+        <div className={`${style.bg} rounded-xl border-2 ${style.border} shadow-sm overflow-hidden`}>
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
               <RecommendationIcon className={`w-8 h-8 ${style.iconColor}`} />
               <h1 className={`text-3xl font-bold ${style.color}`}>
                 {recommendation}
               </h1>
             </div>
-            
-            {/* Help box - integrated smoothly */}
-            <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+            <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/50 dark:border-slate-700/50 mb-6">
               <HiInformationCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
               <p className="text-base font-semibold text-slate-800 dark:text-slate-200">
                 {getHelpText()}
               </p>
             </div>
-          </div>
-
-          {recommendation !== "Not Yet Started" && (
-            <>
-              <div className="flex items-start justify-between gap-6 flex-wrap lg:flex-nowrap">
-                {/* Left: Assessment */}
-                <div className="flex-1">
-                  <p className="text-base text-slate-800 dark:text-slate-200 leading-relaxed mb-6 font-medium">
-                    Based on your academic progress, <span className="font-bold text-lg">{summary.courses_transfer} courses</span> 
-                    ({summary.uoc_transfer} UOC) will transfer to your target program. You will need to complete 
-                    an additional <span className="font-bold text-lg">{summary.courses_needed} courses</span> totaling <span className="font-bold text-lg">{summary.uoc_needed} UOC</span>.
-                  </p>
-
-                  {/* Stats Grid - MUCH LARGER */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Course Transfer Rate</div>
-                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                        {transfer_analysis.transfer_rate}%
-                      </div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">of completed courses</div>
-                    </div>
-                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">Target Program Progress</div>
-                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                        {summary.progress_percentage}%
-                      </div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">towards completion</div>
-                    </div>
-                    <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-5 border-2 border-slate-200 dark:border-slate-700 shadow-md">
-                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">UOC Remaining</div>
-                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                        {summary.uoc_needed}
-                      </div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">units left to complete</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: Timeline - ENHANCED */}
-                <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border-2 border-slate-300 dark:border-slate-600 min-w-[220px] shadow-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <HiClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                      Timeline
-                    </h3>
-                  </div>
-                  
-                  <div className="text-center mb-4">
-                    <div className="text-5xl font-bold text-slate-900 dark:text-white mb-2">
-                      {summary.estimated_terms}
-                    </div>
-                    <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                      Terms Remaining
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4 border-t-2 border-slate-200 dark:border-slate-700">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wide text-center">
-                      Estimated Completion
-                    </div>
-                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
-                      {summary.estimated_completion}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                  <span>Degree Completion Progress</span>
-                  <span>{summary.progress_percentage}%</span>
-                </div>
-                <div className="h-3 bg-slate-200/50 dark:bg-slate-700/50 rounded-full overflow-hidden backdrop-blur-sm border border-slate-300 dark:border-slate-600">
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-emerald-500 transition-all duration-700 ease-out rounded-full"
-                    style={{ width: `${summary.progress_percentage}%` }}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          {recommendation === "Not Yet Started" && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <HiAcademicCap className="w-16 h-16 text-slate-400 dark:text-slate-500 mb-4" />
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                 Ready to Start Your Journey
               </p>
               <p className="text-base text-slate-600 dark:text-slate-400 max-w-md">
-                You'll need to complete <span className="font-bold">{summary.courses_needed} courses</span> ({summary.uoc_needed} UOC) for this program. 
+                You'll need to complete <span className="font-bold">{summary.courses_needed} courses</span> ({summary.uoc_needed} UOC) for this program.
                 Mark courses as completed in your Progress Page to see your transfer analysis.
               </p>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* DETAILED BREAKDOWN — Secondary info */}
+      {recommendation !== "Not Yet Started" && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
+          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 mb-6">
+            <HiInformationCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              Based on your academic progress, <span className="font-bold">{summary.courses_transfer} courses</span> ({summary.uoc_transfer} UOC) will transfer to your target program.
+              You will need to complete an additional <span className="font-bold">{summary.courses_needed} courses</span> totaling <span className="font-bold">{summary.uoc_needed} UOC</span>.
+            </p>
+          </div>
 
+          {/* Timeline Card */}
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 mb-3">
+              <HiClock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                Estimated Timeline
+              </h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              At a standard full-time load of 18 UOC per term, you would complete the target program in approximately <span className="font-bold text-slate-900 dark:text-white">{summary.estimated_terms} terms</span>, finishing around <span className="font-bold text-blue-600 dark:text-blue-400">{summary.estimated_completion}</span>.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* TRANSFER ANALYSIS */}
       {recommendation !== "Not Yet Started" && (

@@ -6,29 +6,37 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          navigate('/login');
-          return;
-        }
-
-        const hasStudentType = session.user.user_metadata?.student_type;
-        
-        if (!hasStudentType) {
-          navigate('/survey', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
-      } catch (error) {
-        console.error("Auth callback error:", error);
-        navigate('/login');
-      }
+    const redirect = (session) => {
+      const hasStudentType = session.user.user_metadata?.student_type;
+      navigate(hasStudentType ? '/dashboard' : '/survey', { replace: true });
     };
 
-    handleCallback();
+    // Try getSession first (works if token exchange already completed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        redirect(session);
+        return;
+      }
+
+      // PKCE flow: session not ready yet — wait for onAuthStateChange
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          subscription.unsubscribe();
+          redirect(session);
+        }
+      });
+
+      // Fallback: if nothing happens in 8s, go back to login
+      const timeout = setTimeout(() => {
+        subscription.unsubscribe();
+        navigate('/login', { replace: true });
+      }, 8000);
+
+      return () => {
+        subscription.unsubscribe();
+        clearTimeout(timeout);
+      };
+    });
   }, [navigate]);
 
   return (

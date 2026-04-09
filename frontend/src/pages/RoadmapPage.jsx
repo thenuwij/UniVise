@@ -50,7 +50,7 @@ function RoadmapPage() {
 
       {/* Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isMenuOpen} />
         <MenuBar isOpen={isMenuOpen} handleClose={closeDrawer} />
       </div>
 
@@ -66,7 +66,7 @@ function RoadmapPage() {
                   My Roadmap
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                   Generate Your{" "}
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                     Roadmap

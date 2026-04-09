@@ -13,7 +13,7 @@ const LoadingPersonalityPage = () => {
       try {
         // Fetch user details
         const { data: user } = await supabase.auth.getUser();
-        const studentType = user.user.user_metadata?.student_type;
+        const studentType = user?.user?.user_metadata?.student_type;
 
         setStatus("Ready! Launching your quiz...");
         setTimeout(() => navigate("/quiz"), 1500); 
@@ -27,11 +27,11 @@ const LoadingPersonalityPage = () => {
   }, [navigate, session]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-white via-sky-100 to-indigo-200">
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 text-center">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 text-center">
         Let’s find out your personality!
       </h1>
-      <p className="text-lg text-gray-700 mt-2 text-center animate-pulse">
+      <p className="text-base text-slate-600 dark:text-slate-400 mt-2 text-center animate-pulse">
         {status}
       </p>
     </div>

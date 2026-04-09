@@ -182,6 +182,16 @@ body {
               radial-gradient(480px 220px at 0% -10%, rgba(99,102,241,0.16), transparent);
 }
 
+/* Borderless variant — same glass effect without the border */
+.card-glass-spotlight.borderless {
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08), 0 2px 8px rgba(0,0,0,0.05);
+}
+.dark .card-glass-spotlight.borderless {
+  border: none !important;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.10), 0 1px 4px rgba(0,0,0,0.15);
+}
+
 /* Standard solid card */
 .card-solid {
   @apply relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm;

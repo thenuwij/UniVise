@@ -20,7 +20,7 @@ function DegreeSearch() {
       const { data } = await supabase
         .from("final_degree_recommendations")
         .select(
-          "degree_name, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
+          "degree_name, degree_code, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
         )
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
@@ -28,6 +28,7 @@ function DegreeSearch() {
       if (data?.length > 0) {
         const formatted = data.map((deg) => ({
           degreeName: deg.degree_name,
+          degree_code: deg.degree_code,
           reason: deg.reason,
           specialisations: deg.specialisations,
           courseBreakdown: {
@@ -115,7 +116,7 @@ function DegreeSearch() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {recommended.map((degree, idx) => (
               <Link
-                to={`/degrees/${degree.id}`}
+                to={`/degrees/${degree.degree_code}`}
                 key={idx}
                 className="group relative rounded-2xl overflow-hidden
                          bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50

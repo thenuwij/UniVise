@@ -7,6 +7,7 @@ export async function handleRoadmapGeneration({
   navigate,
   supabase,
   setProgress,
+  returnToStep,
 }) {
   try {
     if (type === "school") {
@@ -105,12 +106,15 @@ export async function handleRoadmapGeneration({
 
       // Navigate to roadmap
       setProgress(100);
-      navigate("/roadmap/unsw", {
+      const destination = returnToStep
+        ? `/roadmap/unsw?step=${returnToStep}`
+        : "/roadmap/unsw";
+      navigate(destination, {
         state: {
           degree,
           payload: finalPayload,
           roadmap_id: roadmapId,
-          backgroundLoading: true, // Flag to indicate background sections are still loading
+          backgroundLoading: true,
         },
         replace: true,
       });

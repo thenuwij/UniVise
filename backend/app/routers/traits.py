@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from dependencies import get_current_user
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt
 from postgrest.exceptions import APIError  # catch DB errors
 
 router = APIRouter()
@@ -51,7 +51,7 @@ def result_description(user=Depends(get_current_user)):
     Consider studying subjects like fine arts, computer science, psychology, or engineering to further develop your skills and interests.
     """
 
-    resp_text = ask_openai(prompt)
+    resp_text = ask_gpt(prompt)
 
     # 3) Update description for this row
     try:

@@ -8,7 +8,7 @@ import {
   HiChartBar,
   HiCheckCircle,
   HiClipboardList,
-  HiCollection
+  HiCollection,
 } from "react-icons/hi";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
@@ -23,19 +23,14 @@ function CourseDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { session } = UserAuth();
-  
-  // Get section from URL parameter
+
   const sectionName = searchParams.get("section");
-  const goDegree = (degreeId) => navigate(`/degrees/${degreeId}`);
 
   const [course, setCourse] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
   const [addingToProgress, setAddingToProgress] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
-
-  const openDrawer = () => setIsOpen(true);
-  const closeDrawer = () => setIsOpen(false);
 
   useEffect(() => {
     let alive = true;
@@ -48,18 +43,11 @@ function CourseDetailPage() {
         .single();
 
       if (!alive) return;
-
-      if (error) {
-        console.error("Failed to fetch course:", error.message);
-        setLoadErr(error.message);
-      } else {
-        setCourse(data);
-      }
+      if (error) { setLoadErr(error.message); }
+      else { setCourse(data); }
     };
     fetchCourse();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [courseId]);
 
   const handleAddToProgress = async () => {
@@ -67,14 +55,9 @@ function CourseDetailPage() {
       alert("Unable to add course. Please ensure you're logged in and came from a progress section.");
       return;
     }
-
     setAddingToProgress(true);
-
     try {
-      // Extract UOC number from string 
       const uocNumber = course.uoc ? parseInt(course.uoc.match(/\d+/)?.[0] || 0) : 0;
-
-      // Insert into user_custom_courses table
       const { error } = await supabase
         .from("user_custom_courses")
         .insert({
@@ -90,9 +73,7 @@ function CourseDetailPage() {
         alert("Failed to add course to progress. It may already be added.");
       } else {
         setAddedSuccess(true);
-        setTimeout(() => {
-          navigate("/progress");
-        }, 1500);
+        setTimeout(() => { navigate("/progress"); }, 1500);
       }
     } catch (err) {
       console.error("Error:", err);
@@ -104,7 +85,7 @@ function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400/40 dark:from-slate-950 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
             <HiBookOpen className="w-12 h-12 text-slate-400 animate-pulse" />
@@ -117,41 +98,34 @@ function CourseDetailPage() {
     );
   }
 
-  // Normalize terms
   const normalizedTerms = Array.isArray(course.offering_terms)
     ? course.offering_terms.join(", ")
     : typeof course.offering_terms === "string"
     ? course.offering_terms
-    : "N/A";
-
-  const goBack = () => navigate(-1);
+    : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 to-slate-400/40 dark:from-slate-950 dark:to-slate-900">
-      <DashboardNavBar onMenuClick={openDrawer} />
-      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
+      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <main className="max-w-[1600px] mx-auto px-6 py-16">
+      <main className="max-w-[1400px] mx-auto px-6 py-10">
 
-        {/* Back Button */}
+        {/* Back */}
         <button
-          onClick={goBack}
-          className="group flex items-center gap-2 mb-12 px-4 py-2 rounded-xl
-                     bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600
-                     text-slate-700 dark:text-slate-300 font-semibold
-                     hover:bg-slate-50 dark:hover:bg-slate-800
-                     shadow-md hover:shadow-lg transition-all duration-200"
+          onClick={() => navigate(-1)}
+          className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
         >
-          <HiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Back
         </button>
 
         {/* Success Message */}
         {addedSuccess && (
-          <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-700">
+          <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
             <div className="flex items-center gap-3">
-              <HiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-              <p className="text-green-800 dark:text-green-200 font-semibold">
+              <HiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <p className="text-green-800 dark:text-green-200 font-semibold text-sm">
                 Course added to progress! Redirecting...
               </p>
             </div>
@@ -160,74 +134,65 @@ function CourseDetailPage() {
 
         {/* Section Info Banner */}
         {sectionName && !addedSuccess && (
-          <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 dark:border-blue-700">
-            <p className="text-blue-800 dark:text-blue-200 font-semibold">
-              Adding course to: <span className="font-bold">{sectionName}</span>
+          <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+            <p className="text-blue-800 dark:text-blue-200 text-sm font-medium">
+              Adding to: <span className="font-bold">{sectionName}</span>
             </p>
           </div>
         )}
 
-        {/* Header Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl p-10 mb-14">
-
-          <div className="flex items-start gap-6 mb-6">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-md">
-              <HiBookOpen className="w-12 h-12 text-blue-600 dark:text-blue-400" />
-            </div>
-
+        {/* Header */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 mb-6">
+          <div className="flex items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
-              <h1 className="text-4xl md:text-5xl font-bold text-black dark:text-white mb-4 leading-tight">
+              <p className="text-sm font-bold text-sky-600 dark:text-sky-400 mb-1">{course.code}</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
                 {course.title}
               </h1>
-
-              <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 font-semibold mb-2">
-                {course.code}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div className="flex flex-wrap gap-2">
                 {course.faculty && (
-                  <Tag>{course.faculty}</Tag>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {course.faculty}
+                  </span>
                 )}
-
                 {course.school && (
-                  <Tag>{course.school}</Tag>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {course.school}
+                  </span>
                 )}
-
                 {course.study_level && (
-                  <Tag blue>{course.study_level}</Tag>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700">
+                    {course.study_level}
+                  </span>
                 )}
               </div>
             </div>
 
-            {/* Action Buttons*/}
             <div className="flex-shrink-0 flex gap-3">
-              {/* Add to Progress Button */}
               {sectionName && (
                 <button
                   onClick={handleAddToProgress}
                   disabled={addingToProgress || addedSuccess}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addingToProgress ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Adding...</span>
                     </>
                   ) : addedSuccess ? (
                     <>
-                      <HiCheckCircle className="w-5 h-5" />
+                      <HiCheckCircle className="w-4 h-4" />
                       <span>Added!</span>
                     </>
                   ) : (
                     <>
-                      <HiAcademicCap className="w-5 h-5" />
+                      <HiAcademicCap className="w-4 h-4" />
                       <span>Add to Progress</span>
                     </>
                   )}
                 </button>
               )}
-
-              {/* Save Button */}
               <SaveButton
                 itemType="course"
                 itemId={course.code}
@@ -243,111 +208,94 @@ function CourseDetailPage() {
             </div>
           </div>
 
-          {/* Overview */}
           {course.overview && (
-            <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-              <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300">
+            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 {course.overview}
               </p>
             </div>
           )}
         </div>
 
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
-          {course.uoc && (
-            <InfoCard
-              icon={<HiChartBar className="w-6 h-6" />}
-              label="Units of Credit"
-              value={`${course.uoc} UOC`}
-            />
-          )}
+        {/* Two-column layout */}
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-          {normalizedTerms && normalizedTerms !== "N/A" && (
-            <InfoCard
-              icon={<HiCalendar className="w-6 h-6" />}
-              label="Offered In"
-              value={normalizedTerms}
-            />
-          )}
+          {/* ── Left: main content ── */}
+          <div className="flex-1 min-w-0 space-y-0">
 
-          {course.field_of_education && (
-            <InfoCard
-              icon={<HiCollection className="w-6 h-6" />}
-              label="Field of Education"
-              value={course.field_of_education}
-            />
-          )}
-        </div>
+            {/* Enrolment Requirements */}
+            {course.conditions_for_enrolment && (
+              <FlatSection title="Enrolment Requirements" icon={<HiClipboardList className="w-4 h-4" />}>
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                    {course.conditions_for_enrolment}
+                  </p>
+                </div>
+              </FlatSection>
+            )}
 
-        {/* Enrolment Requirements */}
-        {course.conditions_for_enrolment && (
-          <Section title="Enrolment Requirements" icon={<HiClipboardList className="w-6 h-6" />}>
-            <div className="p-6 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700">
-              <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                {course.conditions_for_enrolment}
-              </p>
+            {/* Related Degrees */}
+            <FlatSection title="Related Programs" icon={<HiAcademicCap className="w-4 h-4" />}>
+              <CourseRelatedDegrees
+                courseId={course.id}
+                courseCode={course.code}
+              />
+            </FlatSection>
+
+          </div>
+
+          {/* ── Right: sticky sidebar ── */}
+          <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 space-y-4 lg:sticky lg:top-24">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
+                At a Glance
+              </h3>
+              <div className="space-y-3">
+                {course.uoc && (
+                  <StatRow icon={<HiChartBar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Units of Credit" value={`${course.uoc} UOC`} />
+                )}
+                {normalizedTerms && (
+                  <StatRow icon={<HiCalendar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Offered In" value={normalizedTerms} />
+                )}
+                {course.field_of_education && (
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Field of Education</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{course.field_of_education}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </Section>
-        )}
+          </div>
 
-        {/* Related Degrees */}
-        <CourseRelatedDegrees
-          courseId={course.id}
-          courseCode={course.code}
-          onNavigateDegree={goDegree}
-        />
+        </div>
       </main>
     </div>
   );
 }
 
-// Components
-function Section({ title, icon, children }) {
+function FlatSection({ title, icon, children }) {
   return (
-    <div className="mb-14">
-      <div className="flex items-center gap-3 mb-6 pb-3 border-b-2 border-slate-300 dark:border-slate-700">
-        <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+    <div className="py-7 border-b border-slate-200 dark:border-slate-800 last:border-0">
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="p-1.5 rounded-md bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
           {icon}
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          {title}
-        </h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
       </div>
       {children}
     </div>
   );
 }
 
-function InfoCard({ icon, label, value }) {
+function StatRow({ icon, label, value }) {
   return (
-    <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 
-                     dark:from-blue-900/20 dark:to-indigo-900/20
-                     border border-slate-200 dark:border-slate-700
-                     shadow-md hover:shadow-lg transition-all duration-200">
-      <div className="flex items-center gap-3 mb-3">
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 min-w-0">
         {icon}
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-          {label}
-        </p>
+        <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
-      <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{value}</p>
+      <span className="text-sm font-semibold text-slate-900 dark:text-white flex-shrink-0">{value}</span>
     </div>
-  );
-}
-
-function Tag({ children, blue }) {
-  return (
-    <span
-      className={`px-4 py-1.5 rounded-lg font-semibold border
-        ${blue
-          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700"
-          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-        }
-      `}
-    >
-      {children}
-    </span>
   );
 }
 

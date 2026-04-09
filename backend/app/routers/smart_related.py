@@ -7,7 +7,7 @@ import re
 
 from dependencies import get_current_user
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt_async
 from app.utils.parse_llm import extract_json
 
 router = APIRouter(prefix="/smart-related", tags=["Smart Related"])
@@ -163,11 +163,11 @@ async def degrees_for_course(req: CourseToDegreesReq, user=Depends(get_current_u
     )
 
     try:
-        raw = await ask_openai(
+        raw = await ask_gpt_async(
             prompt=user_prompt,
-            system_prompt=SYSTEM_PROMPT,
             temperature=0.1,
             max_tokens=800,
+            system_prompt=SYSTEM_PROMPT,
         )
     except Exception:
         raw = ""

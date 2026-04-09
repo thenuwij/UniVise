@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
-import { HiCheckCircle, HiChevronDown, HiChevronUp, HiPencil } from "react-icons/hi";
+import { HiCheckCircle, HiChevronDown, HiChevronUp, HiInformationCircle, HiPencil } from "react-icons/hi";
 import { supabase } from "../../supabaseClient";
 
-export default function SpecialisationSelectionPanel({ 
-  enrolledProgram, 
-  userId, 
+export default function SpecialisationSelectionPanel({
+  enrolledProgram,
+  userId,
   onUpdate,
-  onReselectProgram 
+  onReselectProgram,
 }) {
   const [availableSpecialisations, setAvailableSpecialisations] = useState([]);
   const [confirmedSpecs, setConfirmedSpecs] = useState({});
-  const [selectingType, setSelectingType] = useState(null);
-  const [tempSelection, setTempSelection] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedType, setExpandedType] = useState(null);
 
   useEffect(() => {
     const fetchSpecialisations = async () => {
@@ -28,15 +26,13 @@ export default function SpecialisationSelectionPanel({
         .single();
 
       if (degreeData?.program_name?.includes("/")) {
-        const programNames = degreeData.program_name.split("/").map(n => n.trim());
+        const programNames = degreeData.program_name.split("/").map((n) => n.trim());
         const { data: individualDegrees } = await supabase
           .from("unsw_degrees_final")
           .select("degree_code, program_name")
           .in("program_name", programNames);
-
-        if (individualDegrees?.length > 0) {
-          codesToMatch = individualDegrees.map(d => d.degree_code);
-        }
+        if (individualDegrees?.length > 0)
+          codesToMatch = individualDegrees.map((d) => d.degree_code);
       }
 
       const { data } = await supabase
@@ -44,25 +40,26 @@ export default function SpecialisationSelectionPanel({
         .select("major_code, major_name, specialisation_type, faculty, sections_degrees")
         .order("major_name");
 
-      const filtered = data?.filter((spec) => {
-        if (!spec.sections_degrees) return false;
-        let degrees = [];
-        try {
-          degrees = typeof spec.sections_degrees === "string" 
-            ? JSON.parse(spec.sections_degrees) 
-            : spec.sections_degrees;
-        } catch {
-          return false;
-        }
-        return degrees.some((d) => codesToMatch.includes(d.degree_code));
-      }) || [];
+      const filtered =
+        data?.filter((spec) => {
+          if (!spec.sections_degrees) return false;
+          try {
+            const degrees =
+              typeof spec.sections_degrees === "string"
+                ? JSON.parse(spec.sections_degrees)
+                : spec.sections_degrees;
+            return degrees.some((d) => codesToMatch.includes(d.degree_code));
+          } catch {
+            return false;
+          }
+        }) || [];
 
       setAvailableSpecialisations(filtered);
 
       const confirmed = {};
       if (enrolledProgram.specialisation_codes?.length > 0) {
         enrolledProgram.specialisation_codes.forEach((code) => {
-          const spec = filtered.find(s => s.major_code === code);
+          const spec = filtered.find((s) => s.major_code === code);
           if (spec) confirmed[spec.specialisation_type] = spec;
         });
       }
@@ -72,267 +69,231 @@ export default function SpecialisationSelectionPanel({
     fetchSpecialisations();
   }, [enrolledProgram]);
 
+  // Build specsByType from availableSpecialisations
   const specsByType = {};
-  availableSpecialisations.forEach(spec => {
-    if (!specsByType[spec.specialisation_type]) {
-      specsByType[spec.specialisation_type] = [];
-    }
+  availableSpecialisations.forEach((spec) => {
+    if (!specsByType[spec.specialisation_type]) specsByType[spec.specialisation_type] = [];
     specsByType[spec.specialisation_type].push(spec);
   });
+  const specTypes = Object.keys(specsByType);
 
-  const handleConfirm = async () => {
-    if (!tempSelection) return;
+  const isSingleType = specTypes.length === 1;
 
-    const proceed = window.confirm(
-      `Changing your ${selectingType} will reset existing progress for this area. Continue?`
-    );
-    if (!proceed) {
-      setSelectingType(null);
-      setTempSelection(null);
-      return;
+  const advanceToNext = (currentType) => {
+    const idx = specTypes.indexOf(currentType);
+    setExpandedType(idx < specTypes.length - 1 ? specTypes[idx + 1] : null);
+  };
+
+  const handleSelectSpec = async (type, spec) => {
+    if (loading) return;
+
+    const isSelected = confirmedSpecs[type]?.major_code === spec.major_code;
+
+    // Optimistic UI update immediately — no waiting
+    if (isSelected) {
+      setConfirmedSpecs((prev) => { const n = { ...prev }; delete n[type]; return n; });
+    } else {
+      setConfirmedSpecs((prev) => ({ ...prev, [type]: spec }));
+      advanceToNext(type); // smooth instant collapse + open next
     }
 
     setLoading(true);
-
     try {
       const currentCodes = enrolledProgram.specialisation_codes || [];
       const currentNames = enrolledProgram.specialisation_names || [];
 
-      const oldSpecCode = currentCodes.find((code) => {
-        const s = availableSpecialisations.find(sp => sp.major_code === code);
-        return s && s.specialisation_type === selectingType;
-      });
-
-      const filteredCodes = currentCodes.filter((code) => {
-        const s = availableSpecialisations.find(sp => sp.major_code === code);
-        return s && s.specialisation_type !== selectingType;
-      });
-      const filteredNames = currentNames.filter((name) => {
-        const s = availableSpecialisations.find(sp => sp.major_name === name);
-        return s && s.specialisation_type !== selectingType;
-      });
-
-      const newCodes = [...filteredCodes, tempSelection.major_code];
-      const newNames = [...filteredNames, tempSelection.major_name];
-
-      await supabase
-        .from("user_enrolled_program")
-        .update({
-          specialisation_codes: newCodes,
-          specialisation_names: newNames,
-        })
-        .eq("user_id", userId);
-
-      if (oldSpecCode) {
-        const sourceType = selectingType.toLowerCase();
+      if (isSelected) {
         await supabase
-          .from("user_completed_courses")
-          .delete()
-          .eq("user_id", userId)
-          .eq("source_type", sourceType)
-          .eq("source_code", oldSpecCode);
-      }
-
-      setConfirmedSpecs(prev => ({
-        ...prev,
-        [selectingType]: tempSelection
-      }));
-
-      const selectedSpecName = tempSelection.major_name;
-      
-      setSelectingType(null);
-      setTempSelection(null);
-      setLoading(false);
-      
-      // Trigger update first
-      await onUpdate();
-
-      // Auto-scroll to the newly added specialisation section after a short delay
-      setTimeout(() => {
-        // Look for the specialisation heading in the page
-        const headings = document.querySelectorAll('h2');
-        let targetHeading = null;
-        
-        headings.forEach(heading => {
-          if (heading.textContent.includes(selectedSpecName)) {
-            targetHeading = heading;
-          }
+          .from("user_enrolled_program")
+          .update({
+            specialisation_codes: currentCodes.filter((c) => c !== spec.major_code),
+            specialisation_names: currentNames.filter((n) => n !== spec.major_name),
+          })
+          .eq("user_id", userId);
+      } else {
+        const oldSpecCode = currentCodes.find((code) => {
+          const s = availableSpecialisations.find((sp) => sp.major_code === code);
+          return s && s.specialisation_type === type;
+        });
+        const filteredCodes = currentCodes.filter((code) => {
+          const s = availableSpecialisations.find((sp) => sp.major_code === code);
+          return s && s.specialisation_type !== type;
+        });
+        const filteredNames = currentNames.filter((name) => {
+          const s = availableSpecialisations.find((sp) => sp.major_name === name);
+          return s && s.specialisation_type !== type;
         });
 
-        if (targetHeading) {
-          // Scroll to the specialisation with smooth behavior
-          targetHeading.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center'
-          });
-          
-          // Add a brief highlight effect
-          const parentCard = targetHeading.closest('.rounded-xl');
-          if (parentCard) {
-            parentCard.style.transition = 'box-shadow 0.3s ease';
-            parentCard.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
-            setTimeout(() => {
-              parentCard.style.boxShadow = '';
-            }, 2000);
-          }
-        }
-      }, 500); // Wait 500ms for the UI to update
+        await supabase
+          .from("user_enrolled_program")
+          .update({
+            specialisation_codes: [...filteredCodes, spec.major_code],
+            specialisation_names: [...filteredNames, spec.major_name],
+          })
+          .eq("user_id", userId);
 
+        if (oldSpecCode) {
+          await supabase
+            .from("user_completed_courses")
+            .delete()
+            .eq("user_id", userId)
+            .eq("source_type", type.toLowerCase())
+            .eq("source_code", oldSpecCode);
+        }
+      }
+      // Sync parent in background after a short delay so the component
+      // stays stable — avoids unmount/remount resetting accordion state
+      setTimeout(() => onUpdate(), 800);
     } catch {
+      if (isSelected) {
+        setConfirmedSpecs((prev) => ({ ...prev, [type]: spec }));
+      } else {
+        setConfirmedSpecs((prev) => { const n = { ...prev }; delete n[type]; return n; });
+      }
       alert("Failed to update. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-10 bg-gradient-to-r from-blue-500 to-sky-500 rounded-full" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              {enrolledProgram?.program_name}
-            </h2>
-          </div>
-
-          {Object.entries(confirmedSpecs).map(([type, spec]) => (
-            <div key={type} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 shadow-sm">
-              <HiCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                {type}:
-              </span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
+  const renderSpecCards = (type, specs) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {specs.map((spec) => {
+        const isSelected = confirmedSpecs[type]?.major_code === spec.major_code;
+        return (
+          <button
+            key={spec.major_code}
+            onClick={() => handleSelectSpec(type, spec)}
+            disabled={loading}
+            className={`w-full text-left p-3 rounded-lg border-2 transition-all disabled:opacity-50 ${
+              isSelected
+                ? "bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600 shadow-md"
+                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <span className="font-semibold text-xs text-slate-900 dark:text-white flex-1">
                 {spec.major_name}
               </span>
+              {isSelected && (
+                <HiCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+              )}
             </div>
-          ))}
-        </div>
+            {isSelected && (
+              <span className="mt-1 inline-block text-[11px] font-semibold text-green-600 dark:text-green-400">
+                Selected
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 
+  return (
+    <div className="space-y-6">
+
+      {/* Enrolled program badge — sits directly in parent card */}
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-300 dark:border-green-700">
+        <div className="flex items-center gap-3">
+          <HiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+          <div>
+            <div className="text-sm font-bold text-slate-900 dark:text-white">
+              {enrolledProgram?.program_name}
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+              {enrolledProgram?.degree_code}
+            </div>
+          </div>
+        </div>
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-6 py-3.5 text-base rounded-xl 
-                   bg-gradient-to-r from-blue-600 to-indigo-600 
-                   hover:from-blue-700 hover:to-indigo-700 
-                   text-white font-bold 
-                   shadow-lg hover:shadow-xl 
-                   hover:scale-105 transition-all duration-200
-                   border-2 border-blue-400/50"
+          onClick={onReselectProgram}
+          className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-bold"
         >
-          <HiPencil className="w-5 h-5" />
-          {isExpanded ? "Close" : "Edit Program"}
-          {isExpanded ? <HiChevronUp className="w-5 h-5" /> : <HiChevronDown className="w-5 h-5" />}
+          <HiPencil className="w-3.5 h-3.5" />
+          Change
         </button>
       </div>
 
-      {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Manage Your Program
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Change your program or update specialisations
-              </p>
+      {/* Specialisations */}
+      {availableSpecialisations.length > 0 && (
+        <div className="mt-2">
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Specialisations (Optional)
+            </h2>
+            <div className="relative group inline-flex items-center">
+              <HiInformationCircle className="w-4 h-4 text-slate-400 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center leading-relaxed">
+                A Major is your primary area of focus within your degree. A Minor is a secondary area of study. These are optional — skip if you are unsure.
+              </div>
             </div>
-            <button
-              onClick={onReselectProgram}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg border-2 border-red-500 dark:border-red-500 text-red-600 dark:text-red-400 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition shadow-sm"
-            >
-              <HiPencil className="w-4 h-4" />
-              Change Program
-            </button>
           </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            Select one from each category if applicable
+          </p>
 
-          {Object.keys(specsByType).length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {Object.entries(specsByType).map(([type, specs]) => {
-                const isConfirmed = confirmedSpecs[type];
-                const isSelecting = selectingType === type;
+          {isSingleType ? (
+            /* ── Single type: no accordion ── */
+            <div>
+              {renderSpecCards(specTypes[0], specsByType[specTypes[0]])}
+            </div>
+          ) : (
+            /* ── Multiple types: accordion ── */
+            <div className="space-y-2">
+              {specTypes.map((type) => {
+                const specs = specsByType[type];
+                const isExpanded = expandedType === type;
+                const selectedSpec = confirmedSpecs[type] ?? null;
 
                 return (
                   <div
                     key={type}
-                    className={`rounded-xl overflow-hidden transition-all border-2 ${
-                      isSelecting
-                        ? "border-blue-500 shadow-md"
-                        : "border-slate-200 dark:border-slate-700 shadow-sm"
+                    className={`rounded-xl overflow-hidden border-2 transition-all ${
+                      selectedSpec
+                        ? "border-green-300 dark:border-green-700"
+                        : "border-blue-300 dark:border-blue-700"
                     }`}
                   >
-                    {!isSelecting && (
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800/40">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">
-                            {type}
+                    {/* Accordion header */}
+                    <div
+                      className={`flex items-center justify-between px-5 py-4 ${
+                        selectedSpec
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40"
+                          : "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40"
+                      }`}
+                    >
+                      <button
+                        onClick={() => setExpandedType(isExpanded ? null : type)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                      >
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0">
+                          {type}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                          {specs.length} options
+                        </span>
+                        {selectedSpec ? (
+                          <span className="text-xs font-semibold text-green-700 dark:text-green-400 truncate">
+                            {selectedSpec.major_name}
                           </span>
-
-                          <button
-                            onClick={() => {
-                              setSelectingType(type);
-                              setTempSelection(isConfirmed || null);
-                            }}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
-                          >
-                            {isConfirmed ? "Change" : "Select"}
-                          </button>
-                        </div>
-
-                        {isConfirmed ? (
-                          <div className="flex items-center gap-1.5 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
-                            <HiCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                              {isConfirmed.major_name}
-                            </p>
-                          </div>
                         ) : (
-                          <p className="text-xs text-slate-500 dark:text-slate-400 italic text-center p-2">
-                            Not selected yet
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {isSelecting && (
-                      <div className="p-3 bg-blue-50 dark:bg-blue-900/30">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">
-                            Select {type}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 flex-shrink-0">
+                            Not selected
                           </span>
+                        )}
+                      </button>
+                      <button onClick={() => setExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0">
+                        {isExpanded
+                          ? <HiChevronUp className="w-5 h-5 text-slate-500" />
+                          : <HiChevronDown className="w-5 h-5 text-slate-500" />}
+                      </button>
+                    </div>
 
-                          <button
-                            onClick={() => {
-                              setSelectingType(null);
-                              setTempSelection(null);
-                            }}
-                            className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                          >
-                            <HiChevronUp className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        <select
-                          value={tempSelection?.major_code || ""}
-                          onChange={(e) => {
-                            const spec = specs.find(s => s.major_code === e.target.value);
-                            setTempSelection(spec || null);
-                          }}
-                          className="w-full px-3 py-2.5 text-sm rounded-lg border-2 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 mb-3 transition"
-                        >
-                          <option value="">{`Choose a ${type}...`}</option>
-                          {specs.map(spec => (
-                            <option key={spec.major_code} value={spec.major_code}>
-                              {spec.major_name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <button
-                          onClick={handleConfirm}
-                          disabled={!tempSelection || loading}
-                          className="w-full px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow"
-                        >
-                          {loading ? "Saving..." : "Save Selection"}
-                        </button>
+                    {/* Accordion body */}
+                    {isExpanded && (
+                      <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+                        {renderSpecCards(type, specs)}
                       </div>
                     )}
                   </div>
@@ -340,6 +301,18 @@ export default function SpecialisationSelectionPanel({
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* No specialisations */}
+      {availableSpecialisations.length === 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm p-6">
+          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+            <HiInformationCircle className="w-6 h-6 flex-shrink-0" />
+            <p className="text-base font-medium">
+              No specialisations found for this program. You can proceed to the next step.
+            </p>
+          </div>
         </div>
       )}
     </div>

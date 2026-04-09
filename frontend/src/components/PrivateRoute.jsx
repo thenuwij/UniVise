@@ -5,7 +5,6 @@ const PrivateRoute = ({ children }) => {
   const { session } = UserAuth();
 
   if (session === undefined) {
-    console.log(session)
     return <div>Loading...</div>;
   }
 

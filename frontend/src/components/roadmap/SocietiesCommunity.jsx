@@ -334,15 +334,3 @@ export default function SocietiesCommunity({ societies }) {
   );
 }
 
-function Fact({ label, value }) {
-  return (
-    <div>
-      <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-2">
-        {label}
-      </span>
-      <span className="text-base text-slate-900 dark:text-slate-100 font-bold">
-        {value || "—"}
-      </span>
-    </div>
-  );
-}

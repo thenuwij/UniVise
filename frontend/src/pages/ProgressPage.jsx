@@ -15,14 +15,17 @@ import {
   HiCheckCircle,
   HiCheck,
   HiSwitchHorizontal,
-  HiInformationCircle,
   HiX,
+  HiSearch,
+  HiPlus,
+  HiPencil,
+  HiChevronDown,
+  HiChevronUp,
 } from "react-icons/hi";
 
 import CourseStructureDisplay from "../components/progress/CourseStructureDisplay";
 import ProgramSetupModal from "../components/progress/ProgramSetupModal";
 import SpecialisationSelectionPanel from "../components/progress/SpecialisationSelectionPanel";
-import ProgramSelector from "../components/compare/ProgramSelector";
 import AdvisorReport from "../components/advisor/AdvisorReport";
 
 // ─── Steps ──────────────────────────────────────────────────────
@@ -45,7 +48,7 @@ function ProgressPage() {
   // Progress state
   const [enrolledProgram, setEnrolledProgram] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
-  const [progressStats, setProgressStats] = useState(null);
+
   const [completedCourses, setCompletedCourses] = useState([]);
   const [courseStructure, setCourseStructure] = useState([]);
 
@@ -58,6 +61,14 @@ function ProgressPage() {
   const [targetProgram, setTargetProgram] = useState(null);
   const [targetSpecsOptions, setTargetSpecsOptions] = useState([]);
   const [targetSelectedSpecs, setTargetSelectedSpecs] = useState([]);
+  const [targetExpandedType, setTargetExpandedType] = useState(null);
+
+  const [wamInput, setWamInput] = useState("");
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseQuery, setCourseQuery] = useState("");
+  const [courseResults, setCourseResults] = useState([]);
+  const [courseSearchLoading, setCourseSearchLoading] = useState(false);
+  const [extraCourses, setExtraCourses] = useState([]);
 
   // Report state
   const [comparisonData, setComparisonData] = useState(null);
@@ -71,6 +82,20 @@ function ProgressPage() {
   useEffect(() => {
     contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [currentStep]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "ArrowRight" && currentStep < 4 && canProceedFromStep(currentStep)) {
+        currentStep === 3 ? resetAndGoStep4() : goNext();
+      }
+      if (e.key === "ArrowLeft") {
+        currentStep > 1 ? goBack() : navigate("/planner");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentStep, enrolledProgram, targetProgram]);
 
   // ─── INIT ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -104,10 +129,10 @@ function ProgressPage() {
 
       const { data: statsData } = await supabase
         .from("user_progress_stats")
-        .select("*")
+        .select("current_wam")
         .eq("user_id", session.user.id)
         .single();
-      setProgressStats(statsData);
+      if (statsData?.current_wam) setWamInput(statsData.current_wam.toFixed(1));
 
       const { data: coursesData } = await supabase
         .from("user_completed_courses")
@@ -116,11 +141,18 @@ function ProgressPage() {
         .order("category", { ascending: true });
       setCompletedCourses(coursesData || []);
 
+      const { data: extraData } = await supabase
+        .from("user_completed_courses")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("category", "extra");
+      setExtraCourses(extraData || []);
+
       await buildCourseStructure(programData, session.user.id);
 
       const { data: programs } = await supabase
         .from("unsw_degrees_final")
-        .select("degree_code, program_name")
+        .select("degree_code, program_name, faculty")
         .order("program_name");
       setAvailablePrograms(programs || []);
       setProgramsLoading(false);
@@ -238,18 +270,64 @@ function ProgressPage() {
     setEnrolledProgram(programData);
     setBaseSelectedSpecs(programData?.specialisation_codes || []);
     await buildCourseStructure(programData, userId);
-    const { data: statsData } = await supabase
-      .from("user_progress_stats")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-    setProgressStats(statsData);
     const { data: coursesData } = await supabase
       .from("user_completed_courses")
       .select("*")
       .eq("user_id", userId);
     setCompletedCourses(coursesData || []);
   };
+
+  const searchCourses = async (q) => {
+    setCourseQuery(q);
+    if (q.length < 2) { setCourseResults([]); return; }
+    setCourseSearchLoading(true);
+    const { data } = await supabase
+      .from("unsw_courses")
+      .select("id, code, title, uoc")
+      .or(`code.ilike.%${q}%,title.ilike.%${q}%`)
+      .limit(6);
+    setCourseResults(data || []);
+    setCourseSearchLoading(false);
+  };
+
+  const addExtraCourse = async (course) => {
+    const alreadyExists = extraCourses.find(c => c.course_code === course.code);
+    if (alreadyExists) return;
+    const { data } = await supabase
+      .from("user_completed_courses")
+      .insert({
+        user_id: session.user.id,
+        course_code: course.code,
+        course_name: course.title,
+        uoc: parseInt(course.uoc) || 6,
+        is_completed: true,
+        category: "extra",
+        source_type: "program",
+        source_code: null,
+      })
+      .select()
+      .single();
+    if (data) setExtraCourses(prev => [...prev, data]);
+  };
+
+  const removeExtraCourse = async (id) => {
+    await supabase.from("user_completed_courses").delete().eq("id", id);
+    setExtraCourses(prev => prev.filter(c => c.id !== id));
+  };
+
+  const saveWam = async (value) => {
+    const parsed = parseFloat(value);
+    if (isNaN(parsed) || parsed < 0 || parsed > 100) return;
+    await supabase.from("user_progress_stats").update({ current_wam: parsed }).eq("user_id", session.user.id);
+  };
+
+  // Auto-open first accordion type when target specs load
+  useEffect(() => {
+    if (targetSpecsOptions.length > 0) {
+      const firstType = targetSpecsOptions[0].specialisation_type ?? null;
+      setTargetExpandedType(firstType);
+    }
+  }, [targetSpecsOptions]);
 
   // ─── COMPARE HELPERS ──────────────────────────────────────────
   const fetchSpecialisationsForProgram = async (degreeCode, isBase = true) => {
@@ -325,11 +403,18 @@ function ProgressPage() {
       const specsOfSameType = targetSpecsOptions
         .filter((s) => s.specialisation_type === clickedType)
         .map((s) => s.major_code);
+      const isDeselecting = targetSelectedSpecs.includes(code);
       setTargetSelectedSpecs((prev) => {
         const withoutSameType = prev.filter((c) => !specsOfSameType.includes(c));
-        if (prev.includes(code)) return withoutSameType;
+        if (isDeselecting) return withoutSameType;
         return [...withoutSameType, code];
       });
+      if (!isDeselecting) {
+        // Auto-advance to next type, mirroring step 1 accordion behaviour
+        const specTypes = Object.keys(targetSpecsByType);
+        const idx = specTypes.indexOf(clickedType);
+        setTargetExpandedType(idx < specTypes.length - 1 ? specTypes[idx + 1] : null);
+      }
     }
   };
 
@@ -394,7 +479,7 @@ function ProgressPage() {
   // ─── NAVIGATION ───────────────────────────────────────────────
   const canProceedFromStep = (step) => {
     switch (step) {
-      case 1: return !!enrolledProgram;
+      case 1: return true;
       case 2: return true;
       case 3: return !!targetProgram;
       default: return false;
@@ -435,7 +520,7 @@ function ProgressPage() {
     return (
       <div>
         <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardNavBar onMenuClick={openDrawer} />
+          <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
           <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
         </div>
         <div className="pt-16 sm:pt-20 flex items-center justify-center min-h-screen">
@@ -458,120 +543,45 @@ function ProgressPage() {
   const navConfig = {
     1: { next: "Continue to Your Progress", back: null },
     2: { next: "Continue to Target Program", back: "Back to Current Program" },
-    3: { next: "Generate Transfer Recommendation", back: "Back to Your Progress", gradient: true },
+    3: { next: "Run Analysis", back: "Back to Your Progress", gradient: true },
     4: { next: null, back: "Back to Target Program" },
   };
   const nav = navConfig[currentStep] || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-28">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
       <div className="pt-16 sm:pt-20">
-        <div className="mx-6 sm:mx-12 lg:mx-20" ref={contentRef}>
-          {/* ═══ PAGE HEADER ══════════════════════════════════════ */}
-          <div className="mt-10 mb-8">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-sm">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
-              Program Switch Advisor
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-semibold mt-4 text-slate-900 dark:text-white tracking-tight">
-              Program{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-700">
-                Switch Advisor
-              </span>
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 mt-3 max-w-2xl">
-              Follow the steps below to get a transfer recommendation for switching programs.
-            </p>
-          </div>
-
+        <div className="" ref={contentRef}>
           {/* ═══ STEP INDICATOR ═══════════════════════════════════ */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 sm:p-6 mb-8">
-            <div className="flex items-center">
-              {STEPS.map((step, idx) => {
-                const isActive = step.id === currentStep;
-                const isCompleted = step.id < currentStep;
-                const isClickable = step.id <= currentStep;
-
-                return (
-                  <div key={step.id} className="flex items-center flex-1">
-                    <button
-                      onClick={() => isClickable && goToStep(step.id)}
-                      disabled={!isClickable}
-                      className={`flex items-center gap-3 transition-all ${
-                        isClickable ? "cursor-pointer" : "cursor-default"
-                      }`}
-                    >
-                      {/* Circle */}
-                      <div className="relative flex-shrink-0">
-                        <div
-                          className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                            isActive
-                              ? "bg-blue-600 text-white shadow-lg shadow-blue-300/40 dark:shadow-blue-900/60 ring-[3px] ring-blue-200 dark:ring-blue-800"
-                              : isCompleted
-                              ? "bg-emerald-500 text-white"
-                              : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
-                          }`}
-                        >
-                          {isCompleted ? <HiCheck className="w-5 h-5" /> : step.id}
-                        </div>
-                        {isActive && (
-                          <div className="absolute -inset-1 rounded-full border-2 border-blue-400/30 dark:border-blue-500/20 animate-pulse" />
-                        )}
-                      </div>
-
-                      {/* Label */}
-                      <div className="hidden sm:block text-left min-w-0">
-                        <p
-                          className={`text-sm font-bold leading-tight ${
-                            isActive
-                              ? "text-blue-600 dark:text-blue-400"
-                              : isCompleted
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-slate-400 dark:text-slate-500"
-                          }`}
-                        >
-                          {step.label}
-                        </p>
-                        {isActive && (
-                          <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
-                            Current Step
-                          </span>
-                        )}
-                        {isCompleted && (
-                          <p className="text-[11px] text-emerald-500 dark:text-emerald-400 mt-0.5 font-medium">
-                            ✓ Completed
-                          </p>
-                        )}
-                      </div>
-                    </button>
-
-                    {/* Connector */}
-                    {idx < STEPS.length - 1 && (
-                      <div className="flex-1 mx-3 lg:mx-5">
-                        <div
-                          className={`h-0.5 rounded-full transition-all ${
-                            step.id < currentStep
-                              ? "bg-emerald-400"
-                              : step.id === currentStep
-                              ? "bg-gradient-to-r from-blue-400 to-slate-200 dark:to-slate-700"
-                              : "bg-slate-200 dark:bg-slate-700"
-                          }`}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <div className="bg-gradient-to-r from-slate-300 via-slate-200 to-slate-300 dark:from-slate-600 dark:via-slate-700 dark:to-slate-600 border-b border-slate-400 dark:border-slate-500 px-6 py-5 mb-2 flex items-center">
+            {currentStep > 1 && currentStep < 4 && (
+              <button
+                onClick={goBack}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              >
+                <HiArrowLeft className="w-4 h-4" /> Back
+              </button>
+            )}
+            {currentStep === 4 && (
+              <button
+                onClick={() => setCurrentStep(3)}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              >
+                <HiArrowLeft className="w-4 h-4" /> Back to Planner
+              </button>
+            )}
+            <span className="ml-auto text-slate-500 dark:text-slate-400 text-xs font-semibold tracking-widest uppercase">
+              {currentStep < 4 ? `Step ${currentStep} of 3` : "Your Analysis"}
+            </span>
           </div>
 
           {/* ═══ STEP CONTENT ════════════════════════════════════= */}
-          <div className="mb-8">
+          <div className="max-w-6xl mx-auto px-6 mb-8">
             {showSetupModal && (
               <ProgramSetupModal
                 onClose={() => setShowSetupModal(false)}
@@ -586,129 +596,361 @@ function ProgressPage() {
 
             {/* STEP 1 */}
             {currentStep === 1 && enrolledProgram && !showSetupModal && (
-              <div className="space-y-6">
+              <div className="max-w-6xl mx-auto mt-10 px-4 space-y-4">
                 <StepHeader
                   stepNum={1}
-                  title="Confirm Your Current Program"
-                  subtitle="Make sure your enrolled program and specialisations are correct before proceeding."
+                  title="What's your current program?"
+                  subtitle=""
                 />
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                  <SpecialisationSelectionPanel
-                    enrolledProgram={enrolledProgram}
-                    userId={session.user.id}
-                    onUpdate={refreshData}
-                    onReselectProgram={() => setShowSetupModal(true)}
-                  />
-                </div>
-                {progressStats && (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">
-                      Your Current Progress
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <MiniStat label="UOC Done" value={progressStats.uoc_completed} />
-                      <MiniStat label="UOC Required" value={progressStats.total_uoc_required} />
-                      <MiniStat label="Courses Done" value={progressStats.courses_completed_count} />
-                      <MiniStat
-                        label="WAM"
-                        value={progressStats.current_wam ? progressStats.current_wam.toFixed(1) : "N/A"}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3">
+                    <SpecialisationSelectionPanel
+                      enrolledProgram={enrolledProgram}
+                      userId={session.user.id}
+                      onUpdate={refreshData}
+                      onReselectProgram={() => setShowSetupModal(true)}
+                    />
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-slate-800 px-5 py-3 flex items-center gap-6">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 shrink-0">
+                      Current WAM <span className="text-slate-400 font-normal">(optional)</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number" min="0" max="100" step="0.1"
+                        value={wamInput}
+                        onChange={(e) => setWamInput(e.target.value)}
+                        onBlur={(e) => saveWam(e.target.value)}
+                        placeholder="e.g. 75.5"
+                        className="w-28 px-3 py-2 text-base font-semibold rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-0 outline-none transition-colors"
                       />
+                      <span className="text-sm text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2 */}
+            {currentStep === 2 && enrolledProgram && (
+              <div className="space-y-4">
+                <StepHeader
+                  stepNum={2}
+                  title="Which courses have you completed?"
+                  subtitle=""
+                />
+                <div className="max-w-5xl mx-auto px-4">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Tick each course you've completed
+                      </p>
+                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2.5 py-1 rounded-full">
+                        {completedCourses.length} completed
+                      </span>
+                    </div>
+                    <div className="px-5 py-4 max-h-96 overflow-y-auto">
+                      <CourseStructureDisplay
+                        structure={courseStructure}
+                        completedCourses={completedCourses}
+                        userId={session.user.id}
+                        enrolledProgram={enrolledProgram}
+                        onCourseUpdate={refreshData}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add extra courses button */}
+                <div className="max-w-5xl mx-auto px-4 mb-4">
+                  <button
+                    onClick={() => setShowCourseModal(true)}
+                    className="w-full py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold text-base"
+                  >
+                    <HiPlus className="w-5 h-5" />
+                    Add other completed courses
+                  </button>
+                </div>
+
+                {/* Extra courses display */}
+                {extraCourses.length > 0 && (
+                  <div className="max-w-5xl mx-auto px-4 border-l-4 border-emerald-400 dark:border-emerald-600 pl-4 rounded-r-lg py-3 bg-gradient-to-r from-emerald-50/20 to-transparent dark:from-emerald-950/10">
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">Other Completed Courses</h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {extraCourses.map((course) => (
+                        <div
+                          key={course.id}
+                          className="flex items-center p-2.5 rounded-lg border border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 dark:border-green-600 shadow-sm"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 bg-green-500 border-green-500">
+                              <HiCheckCircle className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                                {course.course_code} - {course.course_name}
+                              </p>
+                              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
+                                {course.uoc} UOC
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeExtraCourse(course.id)}
+                            className="ml-2 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+                          >
+                            <HiX className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Course search modal */}
+                {showCourseModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Add completed courses</h3>
+                        <button onClick={() => { setShowCourseModal(false); setCourseQuery(""); setCourseResults([]); }} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                          <HiX className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="p-6">
+                        <div className="relative mb-4">
+                          <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            autoFocus
+                            type="text"
+                            value={courseQuery}
+                            onChange={(e) => searchCourses(e.target.value)}
+                            placeholder="Search by course code or name..."
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors text-sm"
+                          />
+                          {courseSearchLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          )}
+                        </div>
+                        <div className="space-y-2 max-h-72 overflow-y-auto">
+                          {courseResults.length > 0 ? courseResults.map((course) => {
+                            const isAdded = extraCourses.some(c => c.course_code === course.code);
+                            return (
+                            <button
+                              key={course.code}
+                              onClick={async () => { if (!isAdded) await addExtraCourse(course); }}
+                              disabled={isAdded}
+                              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
+                                isAdded
+                                  ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 cursor-default"
+                                  : "border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300"
+                              }`}
+                            >
+                              <div>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white block">{course.code}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{course.title}</span>
+                              </div>
+                              {isAdded ? (
+                                <span className="text-xs font-bold text-green-600 dark:text-green-400 ml-4 flex-shrink-0 flex items-center gap-1">
+                                  <HiCheck className="w-3.5 h-3.5" /> Added
+                                </span>
+                              ) : (
+                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 ml-4 flex-shrink-0">+ Add</span>
+                              )}
+                            </button>
+                            );
+                          }) : courseQuery.length >= 2 && !courseSearchLoading ? (
+                            <p className="text-center text-sm text-slate-400 py-8">No courses found</p>
+                          ) : (
+                            <p className="text-center text-sm text-slate-400 py-8">Type at least 2 characters to search</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* STEP 2 */}
-            {currentStep === 2 && enrolledProgram && (
-              <div className="space-y-6">
-                <StepHeader
-                  stepNum={2}
-                  title="Update Your Progress"
-                  subtitle="Mark the courses you've completed. The more accurate your progress, the better the recommendation."
-                />
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                  <HiInformationCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                      Click the checkbox next to each course to mark it as completed.
-                    </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      You can also add marks for WAM calculation.
-                    </p>
-                  </div>
-                </div>
-                <ProgressStatsBar stats={progressStats} />
-                <CourseStructureDisplay
-                  structure={courseStructure}
-                  completedCourses={completedCourses}
-                  userId={session.user.id}
-                  enrolledProgram={enrolledProgram}
-                  onCourseUpdate={refreshData}
-                />
-              </div>
-            )}
-
             {/* STEP 3 */}
             {currentStep === 3 && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <StepHeader
                   stepNum={3}
-                  title="Select Your Target Program"
-                  subtitle="Search for and select the program you're thinking about switching to."
+                  title="What program do you want to switch to?"
+                  subtitle=""
                 />
-                
+
                 {programsLoading ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
-                    <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-                      <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
+                  <div className="max-w-5xl mx-auto px-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 text-center">
+                      <div className="inline-block p-3 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                        <HiAcademicCap className="w-7 h-7 text-slate-400 animate-pulse" />
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400">Loading programs...</p>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400">Loading programs...</p>
                   </div>
                 ) : (
-                  <ProgramSelector
-                    isBase={false}
-                    searchValue={searchTarget}
-                    setSearchValue={setSearchTarget}
-                    filteredPrograms={filteredTargetPrograms}
-                    program={targetProgram}
-                    onSelectProgram={async (p) => {
-                      if (!p) {
-                        setTargetProgram(null);
-                        setTargetSelectedSpecs([]);
-                        setTargetSpecsOptions([]);
-                        return;
-                      }
-                      setTargetProgram({ code: p.degree_code, name: p.program_name });
-                      setTargetSelectedSpecs([]);
-                      await fetchSpecialisationsForProgram(p.degree_code, false);
-                    }}
-                    specsOptions={targetSpecsOptions}
-                    specsByType={targetSpecsByType}
-                    selectedSpecs={targetSelectedSpecs}
-                    toggleSpec={toggleSpec}
-                    goNext={resetAndGoStep4}
-                    navigate={navigate}
-                    baseProgram={baseProgram}
-                    baseSpecsOptions={baseSpecsOptions}
-                    baseSelectedSpecs={baseSelectedSpecs}
-                  />
+                  <div className="max-w-5xl mx-auto px-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
+                      <input
+                        type="text"
+                        value={searchTarget}
+                        onChange={(e) => setSearchTarget(e.target.value)}
+                        placeholder="Search programs..."
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                      />
+                      {targetProgram && (
+                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-300 dark:border-green-700 mb-3">
+                          <div className="flex items-center gap-3">
+                            <HiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                            <div>
+                              <div className="text-sm font-bold text-slate-900 dark:text-white">{targetProgram.name}</div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{targetProgram.code}</div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { setTargetProgram(null); setTargetSelectedSpecs([]); setTargetSpecsOptions([]); }}
+                            className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-bold transition-colors"
+                          >
+                            <HiPencil className="w-3.5 h-3.5" /> Change
+                          </button>
+                        </div>
+                      )}
+                      {!targetProgram && (
+                        <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-100 dark:border-slate-800">
+                          {filteredTargetPrograms.slice(0, 30).map((p) => (
+                            <button
+                              key={p.degree_code}
+                              onClick={async () => {
+                                setTargetProgram({ code: p.degree_code, name: p.program_name });
+                                setTargetSelectedSpecs([]);
+                                setTargetExpandedType(null);
+                                await fetchSpecialisationsForProgram(p.degree_code, false);
+                              }}
+                              className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
+                            >
+                              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{p.program_name}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">{p.faculty}</p>
+                            </button>
+                          ))}
+                          {filteredTargetPrograms.length === 0 && (
+                            <div className="px-4 py-6 text-center text-sm text-slate-400">No programs found</div>
+                          )}
+                        </div>
+                      )}
+                      {targetProgram && targetSpecsOptions.length > 0 && (
+                        <div className="mt-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-base font-bold text-slate-900 dark:text-white">Specialisations (Optional)</p>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Select one from each category if applicable</p>
+                          {Object.keys(targetSpecsByType).length === 1 ? (
+                            /* Single type — no accordion, just cards */
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {targetSpecsOptions.map((spec) => {
+                                const isSelected = targetSelectedSpecs.includes(spec.major_code);
+                                return (
+                                  <button
+                                    key={spec.major_code}
+                                    onClick={() => toggleSpec(spec.major_code, false)}
+                                    className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                                      isSelected
+                                        ? "bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600 shadow-md"
+                                        : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="font-semibold text-xs text-slate-900 dark:text-white flex-1">{spec.major_name}</span>
+                                      {isSelected && <HiCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />}
+                                    </div>
+                                    {isSelected && <span className="mt-1 inline-block text-[11px] font-semibold text-green-600 dark:text-green-400">Selected</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            /* Multiple types — accordion */
+                            <div className="space-y-2">
+                              {Object.entries(targetSpecsByType).map(([type, specs]) => {
+                                const isExpanded = targetExpandedType === type;
+                                const selectedSpec = specs.find((s) => targetSelectedSpecs.includes(s.major_code)) ?? null;
+                                return (
+                                  <div
+                                    key={type}
+                                    className={`rounded-xl overflow-hidden border-2 transition-all ${
+                                      selectedSpec ? "border-green-300 dark:border-green-700" : "border-blue-300 dark:border-blue-700"
+                                    }`}
+                                  >
+                                    {/* Accordion header */}
+                                    <div
+                                      className={`flex items-center justify-between px-5 py-4 ${
+                                        selectedSpec
+                                          ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40"
+                                          : "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40"
+                                      }`}
+                                    >
+                                      <button
+                                        onClick={() => setTargetExpandedType(isExpanded ? null : type)}
+                                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                                      >
+                                        <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0">{type}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">{specs.length} options</span>
+                                        {selectedSpec ? (
+                                          <span className="text-xs font-semibold text-green-700 dark:text-green-400 truncate">{selectedSpec.major_name}</span>
+                                        ) : (
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 flex-shrink-0">Not selected</span>
+                                        )}
+                                      </button>
+                                      <button onClick={() => setTargetExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0">
+                                        {isExpanded ? <HiChevronUp className="w-5 h-5 text-slate-500" /> : <HiChevronDown className="w-5 h-5 text-slate-500" />}
+                                      </button>
+                                    </div>
+                                    {/* Accordion body */}
+                                    {isExpanded && (
+                                      <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                          {specs.map((spec) => {
+                                            const isSelected = targetSelectedSpecs.includes(spec.major_code);
+                                            return (
+                                              <button
+                                                key={spec.major_code}
+                                                onClick={() => toggleSpec(spec.major_code, false)}
+                                                className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                                                  isSelected
+                                                    ? "bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600 shadow-md"
+                                                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                                }`}
+                                              >
+                                                <div className="flex items-start justify-between gap-2">
+                                                  <span className="font-semibold text-xs text-slate-900 dark:text-white flex-1">{spec.major_name}</span>
+                                                  {isSelected && <HiCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />}
+                                                </div>
+                                                {isSelected && <span className="mt-1 inline-block text-[11px] font-semibold text-green-600 dark:text-green-400">Selected</span>}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
 
             {/* STEP 4 */}
             {currentStep === 4 && (
-              <div className="space-y-6">
-                <StepHeader
-                  stepNum={4}
-                  title="Transfer Recommendation"
-                  subtitle={
-                    reportLoading
-                      ? "Analysing your programs and generating your personalised report..."
-                      : "Here’s your transfer analysis and recommendation."
-                  }
-                />
+              <div>
 
                 {reportLoading && (
                   <div className="flex flex-col items-center justify-center py-20">
@@ -767,64 +1009,27 @@ function ProgressPage() {
                 )}
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ STICKY BOTTOM NAV ═══════════════════════════════════ */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="mx-6 sm:mx-12 lg:mx-20 py-4 flex items-center justify-between">
-          {/* Back */}
-          <div>
-            {currentStep > 1 ? (
-              <button
-                onClick={goBack}
-                className="flex items-center gap-2.5 px-5 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-              >
-                <HiArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">{nav.back}</span>
-                <span className="sm:hidden">Back</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate("/planner")}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 font-medium hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-              >
-                <HiArrowLeft className="w-4 h-4" /> Back to Planner
-              </button>
-            )}
-          </div>
-
-          {/* Centre */}
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900 dark:text-white">Step {currentStep}</span>
-            <span className="text-sm text-slate-400 dark:text-slate-500">of {STEPS.length}</span>
-          </div>
-
-          {/* Next / Regenerate */}
-          <div className="flex items-center gap-3">
-            {currentStep === 4 && !reportLoading && (comparisonData || reportError) && (
-              <button
-                onClick={runFullAnalysis}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:border-slate-300 dark:hover:border-slate-600 transition-all"
-              >
-                <span className="hidden sm:inline">Regenerate</span>
-              </button>
-            )}
 
             {currentStep < 4 && (
-              <button
-                onClick={currentStep === 3 ? resetAndGoStep4 : goNext}
-                disabled={!canProceedFromStep(currentStep)}
-                className={`flex items-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-[15px] transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-md ${
-                  nav.gradient
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-                    : "bg-blue-600 hover:bg-blue-700 text-white"
-                }`}
-              >
-                <span>{nav.next}</span>
-                <HiArrowRight className="w-5 h-5" />
-              </button>
+              <div className="mt-8 mb-16">
+                <button
+                  onClick={currentStep === 3 ? resetAndGoStep4 : goNext}
+                  disabled={!canProceedFromStep(currentStep)}
+                  className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {nav.next} <HiArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+            {currentStep === 4 && !reportLoading && (comparisonData || reportError) && (
+              <div className="mt-8 mb-16">
+                <button
+                  onClick={runFullAnalysis}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-500 hover:from-slate-400 hover:to-slate-500 dark:hover:from-slate-500 dark:hover:to-slate-400 border border-slate-400 dark:border-slate-500 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition-all"
+                >
+                  Regenerate Report
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -837,56 +1042,17 @@ function ProgressPage() {
    HELPERS
    ═══════════════════════════════════════════════════════════════════ */
 
-function StepHeader({ stepNum, title, subtitle }) {
+function StepHeader({ title, subtitle }) {
   return (
-    <div className="mb-2">
-      <div className="flex items-center gap-3 mb-1.5">
-        <div className="h-1 w-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
-        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Step {stepNum}</span>
-      </div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h2>
-      <p className="text-base text-slate-600 dark:text-slate-400 mt-1">{subtitle}</p>
+    <div className="mt-8 mb-6">
+      <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+        {title}
+      </h2>
+      <p className="text-base text-slate-500 dark:text-slate-400 mt-1.5">{subtitle}</p>
     </div>
   );
 }
 
-function MiniStat({ label, value }) {
-  return (
-    <div className="text-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-      <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">
-        {label}
-      </p>
-      <p className="text-2xl font-semibold text-slate-900 dark:text-white mt-1">{value}</p>
-    </div>
-  );
-}
 
-function ProgressStatsBar({ stats }) {
-  if (!stats) return null;
-  const pct =
-    stats.total_uoc_required > 0
-      ? Math.round((stats.uoc_completed / stats.total_uoc_required) * 100)
-      : 0;
-  return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-slate-900 dark:text-white">
-          {stats.uoc_completed} / {stats.total_uoc_required} UOC completed
-        </span>
-        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{pct}%</span>
-      </div>
-      <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="flex items-center justify-between mt-3 text-xs text-slate-500 dark:text-slate-400">
-        <span>{stats.courses_completed_count} courses completed</span>
-        <span>WAM: {stats.current_wam ? stats.current_wam.toFixed(1) : "N/A"}</span>
-      </div>
-    </div>
-  );
-}
 
 export default ProgressPage;

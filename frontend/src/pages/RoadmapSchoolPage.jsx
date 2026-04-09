@@ -84,7 +84,6 @@ export default function RoadmapSchoolPage() {
           .maybeSingle();
 
         if (error) {
-          console.error("Polling error:", error);
           return;
         }
 
@@ -95,7 +94,7 @@ export default function RoadmapSchoolPage() {
           clearInterval(pollInterval);
         }
       } catch (e) {
-        console.error("Polling failed:", e);
+        // polling error — will retry on next interval
       }
     }, 3000);
 
@@ -164,8 +163,7 @@ export default function RoadmapSchoolPage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 
-                 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-primary transition-colors duration-500"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 text-primary transition-colors duration-500"
     >
       {/* background glow */}
       <div aria-hidden>
@@ -173,7 +171,7 @@ export default function RoadmapSchoolPage() {
         <div className="roadmap-glow-bottom" />
       </div>
 
-      <DashboardNavBar onMenuClick={() => setIsMenuOpen(true)} />
+      <DashboardNavBar onMenuClick={() => setIsMenuOpen(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => setIsMenuOpen(false)} />
 
       <div className="max-w-[1600px] mx-auto pt-20 pb-10 px-4 md:px-6">

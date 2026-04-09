@@ -1,6 +1,10 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_current_user
 from app.utils.database import supabase
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -26,9 +30,13 @@ async def get_user_info(
     else:
         raise HTTPException(status_code=400, detail="Invalid student type")
 
-    resp = supabase.table(table).select("*").eq("user_id", user.id).single().execute()
+    try:
+        resp = supabase.table(table).select("*").eq("user_id", user.id).single().execute()
+    except Exception as e:
+        logger.error(f"[user_info] DB query failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user info")
 
-    if not resp:
+    if not resp.data:
         raise HTTPException(status_code=401, detail="Survey Info not Found")
 
     return resp.data
@@ -45,15 +53,19 @@ async def get_user_recommendations(
     else:
         raise HTTPException(status_code=400, detail="Invalid student type")
 
-    resp = supabase.table(recommendations).select("*").eq("user_id", user.id).execute()
+    try:
+        resp = supabase.table(recommendations).select("*").eq("user_id", user.id).execute()
+    except Exception as e:
+        logger.error(f"[user_recommendations] DB query failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch recommendations")
 
-    if not resp:
+    if not resp.data:
         raise HTTPException(status_code=401, detail="Recommendations Info not Found")
 
     return resp.data
 
 
-@router.get("user/academic_analysis")
+@router.get("/user/academic_analysis")
 async def get_user_academic_analysis(
     user=Depends(get_current_user), student_type=Depends(get_student_type)
 ):
@@ -64,9 +76,13 @@ async def get_user_academic_analysis(
     else:
         raise HTTPException(status_code=400, detail="Invalid student type")
 
-    resp = supabase.table(table).select("analysis").eq("user_id", user.id).execute()
+    try:
+        resp = supabase.table(table).select("analysis").eq("user_id", user.id).execute()
+    except Exception as e:
+        logger.error(f"[user_academic_analysis] DB query failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch academic analysis")
 
-    if not resp:
+    if not resp.data:
         raise HTTPException(status_code=401, detail="Academic Analysis not Found")
 
     return resp.data

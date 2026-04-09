@@ -35,8 +35,6 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
             print(f"No sections found for degree_code {degree_code}")
             return []
 
-        if not result.data:
-            return []
         sections_data = result.data[0].get("sections")
         sections = parse_sections_json(sections_data)
         core_courses = extract_core_courses_from_sections(sections)

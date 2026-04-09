@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt, ask_gpt_async
 from .roadmap_common import (
     _first_or_none, assert_keys
 )
@@ -95,6 +95,7 @@ async def ai_generate_school_payload(context: Dict[str, Any]) -> Dict[str, Any]:
           "details": "Placement requirements or 'No mandatory placements required.'"
         }},
         "internship_programs": [
+          // List exactly 4 internship programs.
           {{
             "program_name": "Internship program name",
             "company": "Company name",
@@ -121,7 +122,7 @@ async def ai_generate_school_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     - Output is valid JSON only.
     """
 
-    raw = ask_openai(prompt)
+    raw = await ask_gpt_async(prompt)
     payload = sanitize_and_parse_json(raw)
 
     assert_keys(
@@ -224,7 +225,7 @@ async def ai_generate_school_careers(context: Dict[str, Any]) -> Dict[str, Any]:
     Return ONLY valid JSON.
     """
 
-    raw = ask_openai(prompt)
+    raw = await ask_gpt_async(prompt)
     return sanitize_and_parse_json(raw)
 
 

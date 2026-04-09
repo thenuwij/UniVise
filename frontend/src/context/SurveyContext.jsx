@@ -9,13 +9,10 @@ export const SurveyContextProvider = ({ children }) => {
 
   const checkSurveyStatus = async (userType, userId) => {
     if (!userId) return;
-    console.log(`Checking survey status for type: ${userType}, id: ${userId}`);
 
     try {
       
       if (userType === "high_school") {
-        setType("high_school");
-        setId(userId);
         const { data } = await supabase
           .from("student_school_data")
           .select("id")
@@ -28,8 +25,6 @@ export const SurveyContextProvider = ({ children }) => {
       }
 
       if (userType === "university") {
-        setType("university");
-        setId(userId);
         const { data } = await supabase
           .from("student_uni_data")
           .select("id")
@@ -49,7 +44,6 @@ export const SurveyContextProvider = ({ children }) => {
     const fetchSurveyStatus = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        console.log("User from auth:", user);
         if (error || !user) {
           console.error("Error fetching user:", error);
           setLoading(false);

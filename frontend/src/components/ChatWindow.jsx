@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Textarea, Button, Avatar } from "flowbite-react";
 import { IoSend } from "react-icons/io5";
 import { supabase } from "../supabaseClient";
@@ -10,7 +10,8 @@ import remarkGfm from "remark-gfm";
 export default function ChatWindow({ convId }) {
   const { session } = UserAuth();
 
-  const firstName = (session.user.user_metadata.first_name);
+  const firstName = session?.user?.user_metadata?.first_name;
+  const userType = session?.user?.user_metadata?.student_type;
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [streamStarted, setStreamStarted] = useState(false);
@@ -67,18 +68,27 @@ export default function ChatWindow({ convId }) {
     setInput("");
 
     if (textAreaRef.current) textAreaRef.current.style.height = "auto";
-    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/chat/conversations/${convId}/reply/stream`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: text }),
-    });
+
+    let res;
+    try {
+      res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/chat/conversations/${convId}/reply/stream`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: text }),
+      });
+    } catch (err) {
+      setLoading(false);
+      setMessages(ms => [...ms, { sender: "bot", text: "Sorry, something went wrong. Please try again.", created_at: new Date().toISOString() }]);
+      return;
+    }
 
     if (!res.ok) {
       setLoading(false);
-      throw new Error(await res.text());
+      setMessages(ms => [...ms, { sender: "bot", text: "Sorry, I couldn't process your message. Please try again.", created_at: new Date().toISOString() }]);
+      return;
     }
 
     // 1. Create a new "bot" entry with empty text
@@ -126,7 +136,7 @@ export default function ChatWindow({ convId }) {
             ${
               isUser
                 ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ml-12"
-                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md mr-12 border border-gray-200 dark:border-gray-700 shadow-sm"
+                : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md mr-12 border border-slate-200 dark:border-slate-700 shadow-sm"
             }
           `}
         >
@@ -155,16 +165,16 @@ export default function ChatWindow({ convId }) {
               // code blocks / inline code
               code: ({ inline, ...props }) =>
                 inline ? (
-                  <code className="bg-gray-700 px-1 rounded" {...props} />
+                  <code className="bg-slate-700 px-1 rounded text-sm" {...props} />
                 ) : (
-                  <pre className="bg-gray-700 p-2 rounded overflow-auto" {...props} />
+                  <pre className="bg-slate-700 p-2 rounded overflow-auto text-sm" {...props} />
                 ),
             }}
           >
             {text}
           </ReactMarkdown>
 
-          <div className="text-[14px] mt-2 text-white text-right">
+          <div className={`text-[11px] mt-2 text-right ${isUser ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
             {new Date(created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -182,8 +192,33 @@ return (
         <div className="mx-auto max-w-4xl p-4 space-y-3 mt-5 pb-32">
           {
             messages.length === 0 ? (
-              <div className="text-center text-gray-500 mt-5">
-                <p className="text-md">Hi {firstName}! What would you like to ask me?</p>
+              <div className="flex flex-col items-center justify-center h-full py-20 px-6 text-center">
+                <div className="p-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 mb-5">
+                  <TbRobot className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-1">Hi {firstName}, I'm Eunice</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-8">Your personal academic and career advisor. Ask me anything about your courses, career paths, or university life.</p>
+                <div className="grid grid-cols-2 gap-3 max-w-lg w-full">
+                  {(userType === "high_school" ? [
+                    "What degrees suit my interests?",
+                    "How do I improve my ATAR?",
+                    "What subjects should I pick?",
+                    "Tell me about my recommendations",
+                  ] : [
+                    "What careers suit my profile?",
+                    "How can I improve my WAM?",
+                    "What electives should I pick?",
+                    "Tell me about my recommendations",
+                  ]).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setInput(q)}
+                      className="text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               messages.map((msg, i) => (
@@ -197,8 +232,12 @@ return (
             )
           }
           {loading && (
-            <div className="flex justify-start mt-4">
-              <TbRobot className="animate-bounce w-10 h-10 text-gray-500" />
+            <div className="flex justify-start mt-2 ml-1">
+              <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-bl-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce [animation-delay:300ms]" />
+              </div>
             </div>
           )}
           {/* Scroll to bottom */}
@@ -208,9 +247,9 @@ return (
       </div>
 
       {/* ─── Floating Input Bar ─────────────────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-100 via-gray-100 to-transparent dark:from-gray-900 dark:via-gray-900 dark:to-transparent pt-8 pb-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100/90 to-transparent dark:from-slate-950 dark:via-slate-950/90 dark:to-transparent pt-8 pb-4">
         <div className="mx-auto max-w-3xl px-4">
-          <div className="relative flex items-end bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-500 shadow-xl backdrop-blur-sm">
+          <div className="relative flex items-end bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-600 shadow-xl backdrop-blur-sm">
             <Textarea
               ref={textAreaRef}
               rows={1}
@@ -231,7 +270,7 @@ return (
               className="
                 flex-1 resize-none overflow-y-auto max-h-40 min-h-[80px]
                 text-md p-6 pr-16 rounded-2xl border-0 focus:ring-0 focus:outline-none
-                bg-transparent placeholder-gray-500 scrollbar-hide
+                bg-transparent placeholder-slate-400 dark:placeholder-slate-500 scrollbar-hide
               "
             />
             <Button

@@ -1,63 +1,75 @@
 import os
-import anthropic
+import openai
 from typing import List, Dict, AsyncGenerator
 from dotenv import load_dotenv
 
 load_dotenv()
 
-if not os.getenv("ANTHROPIC_API_KEY"):
-    raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
+if not os.getenv("OPENAI_API_KEY"):
+    raise RuntimeError("OPENAI_API_KEY environment variable is not set")
 
-_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-_async_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+_openai_async_client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-_MODEL = "claude-sonnet-4-6"
-_SYSTEM = "You are a helpful expert career advisor."
+_GPT_MODEL = "gpt-4o-mini"
+_GPT_SYSTEM = "You are a helpful expert career advisor."
 
 
-def ask_openai(prompt: str, max_tokens: int = 3000) -> str:
+def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTEM) -> str:
+    """Sync GPT-4o mini call."""
     try:
-        response = _client.messages.create(
-            model=_MODEL,
-            system=_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=1,
+        response = _openai_client.chat.completions.create(
+            model=_GPT_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
             max_tokens=max_tokens,
         )
-        return response.content[0].text.strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        print("Claude API error (ask_openai):", e)
+        print("OpenAI API error (ask_gpt):", e)
         return "Sorry, I couldn't process your request."
 
 
-def ask_gemini(prompt: str) -> str:
+async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, system_prompt: str = _GPT_SYSTEM, model: str = _GPT_MODEL, reasoning_effort: str = None) -> str:
+    """Async GPT call. Supports GPT-5.x reasoning_effort and max_completion_tokens."""
     try:
-        response = _client.messages.create(
-            model=_MODEL,
-            system=_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=1,
-            max_tokens=2048,
+        # GPT-5.x models use max_completion_tokens, older models use max_tokens
+        token_param = {"max_completion_tokens": max_tokens} if model.startswith("gpt-5") else {"max_tokens": max_tokens}
+        # reasoning_effort is only supported on GPT-5.x models
+        reasoning_param = {"reasoning_effort": reasoning_effort} if reasoning_effort and model.startswith("gpt-5") else {}
+        response = await _openai_async_client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            **token_param,
+            **reasoning_param,
+            temperature=temperature,
         )
-        return response.content[0].text.strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        print("Claude API error (ask_gemini):", e)
+        print("OpenAI API error (ask_gpt_async):", e)
         return "Sorry, I couldn't process your request."
 
 
-async def ask_chat_completion_stream(
+async def ask_gpt_stream(
     history: List[Dict[str, str]],
     system_prompt: str,
-    model: str = _MODEL,
-    temperature: float = 1,
     max_tokens: int = 500,
+    temperature: float = 1,
 ) -> AsyncGenerator[str, None]:
-    async with _async_client.messages.stream(
-        model=model,
-        system=system_prompt,
-        messages=history,
-        temperature=temperature,
+    """Async streaming GPT-4o mini call — mirrors ask_chat_completion_stream signature."""
+    response = await _openai_async_client.chat.completions.create(
+        model=_GPT_MODEL,
+        messages=[{"role": "system", "content": system_prompt}] + history,
         max_tokens=max_tokens,
-    ) as stream:
-        async for text in stream.text_stream:
-            yield text
+        temperature=temperature,
+        stream=True,
+    )
+    async for chunk in response:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta

@@ -18,22 +18,35 @@ function RegisterForm() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [agreed, setAgreed] = useState(false);
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState('');
+    const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false)
     
     const navigate = useNavigate() 
     const { session, registerNewUser } = UserAuth();
 
+    // Set to true before deployment to enforce UNSW email
+    const ENFORCE_UNSW_EMAIL = false;
+    const isUnswEmail = (val) => /^[^\s@]+@(student\.)?unsw\.edu\.au$/i.test(val);
+
     const handleRegister = async (e) => {
       e.preventDefault();
 
-      if (password != confirmPassword) {
-        return (
-        <Alert color="failure">
-          <span>Passwords did not match. Try Again.</span>
-        </Alert>)
+      if (password !== confirmPassword) {
+        setError("Passwords don't match. Please try again.");
+        return;
       }
 
+      if (!agreed) {
+        setError("Please read and agree to the terms and conditions to register.");
+        return;
+      }
+
+      if (ENFORCE_UNSW_EMAIL && !isUnswEmail(email)) {
+        setError("Please use a valid UNSW email address (e.g. z1234567@ad.unsw.edu.au).");
+        return;
+      }
+
+      setError('');
       setLoading(true);
       try { 
         const result = await registerNewUser(email, password, firstName, lastName, dob, gender);
@@ -42,7 +55,6 @@ function RegisterForm() {
           return;
         }
         if (result.data) {
-          console.log("User registered successfully:", result.data);
           setError('');
           navigate('/survey', { replace: true });
         }
@@ -135,6 +147,7 @@ function RegisterForm() {
               id="dob"
               type="date"
               required
+              max={new Date().toISOString().split("T")[0]}
               value={dob}
               onChange={(e) => setDob(e.target.value)}
             />

@@ -4,15 +4,20 @@ import { supabase } from "../supabaseClient";
 function MajorSearch({ onSelectMajor }) {
   const [query, setQuery] = useState("");
   const [majors, setMajors] = useState([]);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     const fetchMajors = async () => {
       const { data, error } = await supabase
-        .from("majors")
+        .from("unsw_specialisations")
         .select("*")
-        .range(0, 2999); 
+        .range(0, 2999);
 
-      if (!error && data) setMajors(data);
+      if (error || !data) {
+        setFetchError(true);
+      } else {
+        setMajors(data);
+      }
     };
 
     fetchMajors();
@@ -48,7 +53,11 @@ function MajorSearch({ onSelectMajor }) {
       </div>
 
       {/* Results */}
-      {query.length >= 1 ? (
+      {fetchError ? (
+        <p className="text-center text-slate-500 mt-8">
+          Unable to load majors. Please try again later.
+        </p>
+      ) : query.length >= 1 ? (
         filteredMajors.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {filteredMajors.map((major) => (

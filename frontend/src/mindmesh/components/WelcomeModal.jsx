@@ -1,231 +1,125 @@
-// src/pages/mindmesh/components/WelcomeModal.jsx
+import { createPortal } from 'react-dom';
 import { X, MousePointer2, MousePointerClick, Hand, Network } from "lucide-react";
 
 export default function WelcomeModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-6xl w-full max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-2xl w-full overflow-hidden">
+
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-slate-50 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 px-6 py-5 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-          >
+        <div className="relative bg-gradient-to-r from-slate-50 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
             <X className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-3">
-            <Network className="h-8 w-8" />
+            <Network className="h-7 w-7 text-slate-700 dark:text-slate-300" />
             <div>
-              <h2 className="text-2xl font-bold">Welcome to MindMesh!</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Your interactive course prerequisite visualizer</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">MindMesh Guide</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">How to read and interact with the course graph</p>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
-          <div className="grid grid-cols-2 gap-8">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* What is MindMesh */}
-              <section>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3">
-                  What is MindMesh?
-                </h3>
-                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                  MindMesh visualizes how courses in your degree connect through prerequisites. 
-                  Each <strong>node</strong> represents a course, and <strong>arrows</strong> point from 
-                  prerequisites to the courses that require them.
-                </p>
-              </section>
+        <div className="p-6 space-y-6">
 
-              {/* Understanding the Graph */}
-              <section className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <Network className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-                  Understanding Prerequisites
-                </h3>
-                
-                <div className="space-y-4">
-
-                  {/* Course Nodes */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-14 rounded-lg bg-blue-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-md">
-                      COMP<br/>1511
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-slate-100 mb-0.5 text-sm">
-                        Course Nodes
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Courses are coloured by their level (1xxx, 2xxx, 3xxx, etc.)
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Solid Lines */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold shadow">A</div>
-                        <svg width="28" height="8">
-                          <line x1="0" y1="4" x2="24" y2="4" stroke="#334155" strokeWidth="3" />
-                          <polygon points="24,1 28,4 24,7" fill="#334155" />
-                        </svg>
-                        <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold shadow">B</div>
-                      </div>
-                    </div>
-
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                        Solid Line — <span className="text-blue-600 dark:text-blue-400 font-bold">You MUST complete this prerequisite</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Dashed Lines - Pick One */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
-                      <div className="flex items-start gap-1">
-                        <div className="flex flex-col gap-1">
-                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">A</div>
-                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">B</div>
-                        </div>
-                        <div className="flex flex-col gap-1 mt-1">
-                          <svg width="20" height="6">
-                            <line x1="0" y1="3" x2="20" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
-                          </svg>
-                          <svg width="20" height="6">
-                            <line x1="0" y1="3" x2="20" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
-                          </svg>
-                        </div>
-                        <div className="w-7 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-[9px] font-bold shadow mt-[7px]">C</div>
-                      </div>
-                    </div>
-
-                    <div className="flex-1">
-                      <p className="font-bold text-blue-900 dark:text-blue-100 text-sm">
-                        Dashed Line —  <span className="text-blue-600 dark:text-blue-400 font-bold">You must complete ONLY ONE of the linked courses as a prerequisite</span>
-                      </p>
-
-                    </div>
-                  </div>
-
-                  {/* Multiple Colors – Pick from Each */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-14 flex-shrink-0 flex items-center justify-center">
-                      <div className="flex items-start gap-1">
-
-                        <div className="flex flex-col gap-1">
-                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">A</div>
-                          <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow">B</div>
-                        </div>
-
-                        {/* TWO DASHED LINE COLOURS */}
-                        <div className="flex flex-col gap-1 mt-1">
-                          <svg width="24" height="6">
-                            <line x1="0" y1="3" x2="24" y2="3" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="3,3" />
-                          </svg>
-                          <svg width="24" height="6">
-                            <line x1="0" y1="3" x2="24" y2="3" stroke="#10b981" strokeWidth="2.5" strokeDasharray="3,3" />
-                          </svg>
-                        </div>
-
-                        <div className="w-7 h-6 rounded bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shadow mt-[7px]">
-                          C
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex-1">
-                      <p className="font-bold text-blue-900 dark:text-blue-100 text-sm">
-                        Different coloured dash lines  —  <span className="text-blue-600 dark:text-blue-400 font-bold">You must complete ONLY ONE course FROM EACH line colour as a prerequisite</span>
-                      </p>
-                    </div>
-                  </div>
-
+          {/* Understanding Lines */}
+          <section>
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Understanding Connections</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                <div className="flex-shrink-0 flex items-center">
+                  <svg width="48" height="16">
+                    <line x1="0" y1="8" x2="40" y2="8" stroke="#3b82f6" strokeWidth="2.5"/>
+                    <polygon points="38,5 44,8 38,11" fill="#3b82f6"/>
+                  </svg>
                 </div>
-              </section>
-
-            </div>
-            
-            {/* Right Column */}
-            <div className="space-y-6">
-              {/* How to Interact */}
-              <section>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3">
-                  How to Interact
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
-                    <MousePointer2 className="h-5 w-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Single Click Course Node</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Focus on a course to highlight its prerequisites and unlock "View Course Details"</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-                    <MousePointerClick className="h-5 w-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Double Click Course Node</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Expand to show ALL courses connected to this course (prerequisites and dependents)</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                    <Hand className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">Drag & Zoom</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Drag nodes to rearrange, scroll to zoom, drag background to pan around</p>
-                    </div>
-                  </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Solid line</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">You must complete this course before moving on (mandatory prerequisite)</p>
                 </div>
-              </section>
-
-              {/* Navigation Tips */}
-              <section className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
-                <h3 className="text-lg font-bold text-amber-900 dark:text-amber-100 mb-2">
-                  💡 Navigation Tips
-                </h3>
-                <ul className="space-y-1.5 text-sm text-amber-900 dark:text-amber-100">
-                  <li className="flex gap-2">
-                    <span>•</span>
-                    <span>Use <strong>Back/Home</strong> buttons to return to previous views</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span>•</span>
-                    <span>Click <strong>Fit View</strong> to center and zoom to all nodes</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span>•</span>
-                    <span>Use <strong>Freeze</strong> to stop node movement for easier reading</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span>•</span>
-                    <span><strong>Auto Layout</strong> organizes courses by level (1→2→3→4)</span>
-                  </li>
-                </ul>
-              </section>
+              </div>
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                <div className="flex-shrink-0 flex items-center">
+                  <svg width="48" height="16">
+                    <line x1="0" y1="8" x2="40" y2="8" stroke="#8b5cf6" strokeWidth="2.5" strokeDasharray="5,4"/>
+                    <polygon points="38,5 44,8 38,11" fill="#8b5cf6"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Dashed line</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Flexible connection — one option among alternatives (OR prerequisite or corequisite)</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
+
+          {/* Course Node Levels */}
+          <section>
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Course Levels</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { level: "Level 1", code: "1xxx", color: "#2F8DDB" },
+                { level: "Level 2", code: "2xxx", color: "#2563EB" },
+                { level: "Level 3", code: "3xxx", color: "#178756" },
+                { level: "Level 4+", code: "4xxx", color: "#8A4FF7" },
+              ].map(({ level, code, color }) => (
+                <div key={level} className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: color }}>
+                    {code}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{level}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Interactions */}
+          <section>
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">How to Interact</h3>
+            <div className="space-y-2">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                <MousePointer2 className="h-4 w-4 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Single click</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Focus a course — highlights its connections and shows course details below</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                <MousePointerClick className="h-4 w-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Double click</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Expand the graph to show all courses connected to this one</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                <Hand className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Drag & zoom</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Drag nodes to rearrange, scroll to zoom, drag background to pan</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
         </div>
 
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 rounded-xl font-semibold text-white 
-                     bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 
-                     hover:from-sky-600 hover:via-blue-600 hover:to-indigo-600
-                     shadow-lg hover:shadow-xl transition-all duration-200"
+            className="w-full px-6 py-2.5 rounded-xl font-semibold text-white text-sm
+                       bg-gradient-to-r from-blue-500 to-indigo-500
+                       hover:from-blue-600 hover:to-indigo-600
+                       shadow-md hover:shadow-lg transition-all duration-200"
           >
-            Got it! Let's explore
+            Got it, let's explore
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

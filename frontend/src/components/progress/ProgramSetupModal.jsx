@@ -1,5 +1,5 @@
 // src/components/ProgramSetupModal.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HiCheckCircle, HiX } from "react-icons/hi";
 import { supabase } from "../../supabaseClient";
 
@@ -7,6 +7,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
   const [selectedDegree, setSelectedDegree] = useState(null);
   const [degrees, setDegrees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFaculty, setSelectedFaculty] = useState("All");
   const [loading, setLoading] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
 
@@ -95,9 +96,18 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
     }
   };
 
-  const filteredDegrees = degrees.filter((d) =>
-    d.program_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const uniqueFaculties = useMemo(() => {
+    const set = new Set(degrees.map((d) => d.faculty).filter(Boolean));
+    return ["All", ...Array.from(set).sort()];
+  }, [degrees]);
+
+  const filteredDegrees = useMemo(() => {
+    return degrees.filter((d) => {
+      const matchesSearch = d.program_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFaculty = selectedFaculty === "All" || d.faculty === selectedFaculty;
+      return matchesSearch && matchesFaculty;
+    });
+  }, [degrees, searchQuery, selectedFaculty]);
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -162,6 +172,25 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
                        placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
+
+          {/* Faculty filter chips */}
+          {uniqueFaculties.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
+              {uniqueFaculties.map((faculty) => (
+                <button
+                  key={faculty}
+                  onClick={() => setSelectedFaculty(faculty)}
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                    selectedFaculty === faculty
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                  }`}
+                >
+                  {faculty}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Programs List */}
           <div className="space-y-2">

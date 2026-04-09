@@ -11,10 +11,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
 import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
-import { HiOutlineDocumentText, HiOutlineIdentification } from "react-icons/hi2";
+import { HiOutlineIdentification } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
-import { FileUpload } from '../components/FileUpload';
 import { MenuBar } from "../components/MenuBar";
 import { supabase } from "../supabaseClient";
 
@@ -118,10 +117,8 @@ function ProfilePage() {
   const [degreeStage, setDegreeStage] = useState("");
   const [degreeField, setDegreeField] = useState("");
   const [wam, setWam] = useState("");
-  const [reportPath, setReportPath] = useState(null);
   const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
-  const [fileName, setFileName] = useState("");
 
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
@@ -187,11 +184,6 @@ function ProfilePage() {
           setCareerInterests(toArr(data?.career_interests));
           setDegreeInterests(toArr(data?.degree_interests));
           setHobbies(toArr(data?.hobbies));
-          if (data?.report_path) {
-            const { data: urlData } = await supabase.storage.from("reports").getPublicUrl(data.report_path);
-            setReportPath(urlData.publicUrl);
-            setFileName(data.report_path.split("/").pop());
-          }
         } else if (st === "university") {
           const { data } = await supabase.from("student_uni_data").select("*").eq("user_id", user.id).single();
           setStudentType("University");
@@ -202,11 +194,6 @@ function ProfilePage() {
           setHobbies(data?.hobbies ?? []);
           setConfidence(data?.confidence ?? "Not Specified");
           setYear(data?.academic_year ?? "");
-          if (data?.report_path) {
-            const { data: urlData } = await supabase.storage.from("reports").getPublicUrl(data.report_path);
-            setReportPath(urlData.publicUrl);
-            setFileName(data.report_path.split("/").pop());
-          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -217,13 +204,9 @@ function ProfilePage() {
     fetchUserInfo();
   }, []);
 
-  const fileUploadProps = isHS
-    ? { reportType: "highschool_reports", bucket: "reports", table: "student_school_data", column: "report_path" }
-    : { reportType: "uni_transcripts", bucket: "reports", table: "student_uni_data", column: "report_path" };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <DashboardNavBar onMenuClick={openDrawer} />
+      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-16">
@@ -376,17 +359,6 @@ function ProfilePage() {
                 </div>
               </Panel>
 
-              <Panel title={isHS ? "School Report" : "Transcript"} icon={HiOutlineDocumentText}
-                hint={isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}>
-                <FileUpload userId={userId} {...fileUploadProps}
-                  onUpload={(data) => { setReportPath(data.url); setFileName(data.fileName); }} />
-                {reportPath && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-xs text-green-700 font-medium mb-1">{fileName}</p>
-                    <a href={reportPath} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View document</a>
-                  </div>
-                )}
-              </Panel>
             </div>
           </form>
         ) : (
@@ -477,25 +449,6 @@ function ProfilePage() {
                     <p className="text-xs text-slate-400 text-center">Upload a profile picture.</p>
                   </div>
 
-                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
-
-                  {/* Transcript / School Report section */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <HiOutlineDocumentText className="h-5 w-5 text-slate-500" />
-                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">{isHS ? "School Report" : "Transcript"}</h2>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                    {isHS ? "Upload your most recent school report." : "Upload your most recent transcript."}
-                  </p>
-                  {!reportPath ? (
-                    <FileUpload userId={userId} {...fileUploadProps}
-                      onUpload={(data) => { setReportPath(data.url); setFileName(data.fileName); }} />
-                  ) : (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-xs text-green-700 font-medium mb-1">{fileName}</p>
-                      <a href={reportPath} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View document</a>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

@@ -23,9 +23,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
         .upload(path, file, { upsert: true })
       
       if (error) {
-        console.log("Error Uploading to bucket", error)
-      } else {
-        console.log("Uploaded Successfully to bucket")
+        throw new Error(error.message);
       }
 
       // persist in your table
@@ -34,7 +32,7 @@ export function FileUpload({ userId, reportType, bucket, table, column, onUpload
         .update({ [column]: path })
         .eq("user_id", userId)
       if (dbErr) {
-        console.log(dbErr)
+        throw new Error(dbErr.message);
       }
 
       const uploadTime = new Date().toISOString() // or Date.now() for timestamp

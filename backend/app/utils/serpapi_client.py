@@ -116,19 +116,3 @@ def get_company_careers_url(company_name: str) -> Optional[str]:
     
     print(f"✗ No URL found for {company_name}")
     return None
-
-
-def get_multiple_company_urls(company_names: List[str]) -> Dict[str, Optional[str]]:
-    """
-    Fetch careers URLs for multiple companies.
-    
-    Args:
-        company_names: List of company names
-        
-    Returns:
-        Dictionary mapping company names to their careers URLs
-    """
-    results = {}
-    for company in company_names:
-        results[company] = get_company_careers_url(company)
-    return results

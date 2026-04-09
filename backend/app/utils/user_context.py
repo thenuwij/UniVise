@@ -90,5 +90,4 @@ async def get_user_context(user_id: str) -> dict:
         "university": university_data or {},
         "personality": personality_data or {},
         "final_plan": final_plan,
-        "roadmap": final_plan,   
     }

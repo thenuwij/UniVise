@@ -8,7 +8,7 @@ export default function MyPathwayEntryCard() {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
       <h2 className="text-xl font-bold text-primary mb-2">
-        MyPathway — Your Saved Uni Journey
+        Saved Items
       </h2>
 
       <p className="text-secondary text-sm mb-4">
@@ -16,10 +16,10 @@ export default function MyPathwayEntryCard() {
       </p>
 
       <button
-        onClick={() => navigate("/mypathway")}
+        onClick={() => navigate("/saved")}
         className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition"
       >
-        Open MyPathway
+        Open Saved Items
         <HiArrowRight className="w-4 h-4" />
       </button>
     </div>

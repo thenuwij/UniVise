@@ -1,14 +1,12 @@
 // src/pages/MyPlannerSchoolPage.jsx
 import { useState } from "react";
 import {
-  HiAcademicCap,
   HiArrowRight,
   HiBookmark,
-  HiCheckCircle,
+  HiChevronRight,
   HiClipboard,
   HiCollection,
-  HiUserGroup,
-  HiUsers
+  HiUsers,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
@@ -22,226 +20,116 @@ function MyPlannerSchoolPage() {
   const closeDrawer = () => setIsOpen(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      
-      {/* Fixed Navigation */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
       <div className="pt-16 sm:pt-20">
-        
-        {/* PAGE CONTAINER */}
-        <div className="flex flex-col justify-center h-full px-4 sm:px-6">
+        <div className="flex flex-col justify-center h-full mx-20">
 
           {/* HEADER */}
-          <div className="mt-8 mb-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm">
+          <div className="mt-6 mb-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm mb-4">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
               My Planner
             </div>
 
-            <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                 Plan
               </span>{" "}
               Your Academic Journey
             </h1>
-            
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-               Explore degrees, majors, and courses and view your saved items
+
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
+              Explore degrees, specialisations and courses, or view your saved items
             </p>
           </div>
 
-          {/* MY SAVED ITEMS - FULL WIDTH */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-6 mb-8">
-            
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30">
-                <HiBookmark className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          {/* Saved Items card */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md mb-12 overflow-hidden">
+            <div
+              onClick={() => navigate("/saved")}
+              className="p-8 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors duration-200 cursor-pointer group"
+            >
+              <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 inline-flex">
+                <HiBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Your Saved Items
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Build your personalized academic pathway
-                </p>
-              </div>
+
+              <p className="text-lg font-bold text-slate-900 dark:text-white mt-4">Your Saved Items</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Access all your bookmarked degrees, courses and careers</p>
+
+              <ul className="mt-5 space-y-2.5">
+                {[
+                  "Programs & Specialisations",
+                  "Courses & Communities",
+                  "Industry & Career Paths",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+                    <span className="text-sm text-slate-600 dark:text-slate-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="mt-6 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-base font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
+                View Saved Items
+                <HiArrowRight className="w-4 h-4" />
+              </button>
             </div>
+          </div>
 
-            <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
-              Save items to your planner as you explore UniVise. Access all your saved academic options in one place to compare and plan your university journey.
-            </p>
+          {/* SECTION HEADER */}
+          <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-4">Explore UNSW Handbook</p>
 
-            {/* What You Can Save - Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              
-              {/* Academic Options */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-3">
-                  <HiAcademicCap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                    Academic Options
-                  </h3>
-                </div>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                    <HiCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium">Programs & Specialisations:</span>
-                      <span className="text-slate-600 dark:text-slate-400"> Browse the Explore sections below</span>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                    <HiCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium">Courses:</span>
-                      <span className="text-slate-600 dark:text-slate-400"> Explore courses and save the ones that interest you</span>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              {/* From Roadmaps */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-3">
-                  <HiUserGroup className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                    From Your Roadmaps
-                  </h3>
-                </div>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                    <HiCheckCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium">Communities:</span>
-                      <span className="text-slate-600 dark:text-slate-400"> Save societies from your UNSW Roadmap</span>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                    <HiCheckCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium">Industries & Careers:</span>
-                      <span className="text-slate-600 dark:text-slate-400"> Save from any roadmap you generate</span>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* How to Save */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-start gap-3">
-                <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/40 mt-0.5">
-                  <HiBookmark className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <div className="grid grid-cols-3 gap-4 mb-20">
+            <div
+              onClick={() => navigate("/explore-by-degree")}
+              className="relative flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.98] cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-lg transition-all duration-200 group"
+            >
+              <HiChevronRight className="absolute top-4 right-4 w-4 h-4 text-slate-300 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                  <HiCollection className="w-6 h-6 text-blue-500 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">
-                    How to Save Items
-                  </h4>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                    Look for the <span className="font-medium">"Save to Planner"</span> button on any program, specialisation, course, community, or career card. Click it to add the item to your saved collection.
-                  </p>
+                  <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">Degrees</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Browse all UNSW degree programs, structures and entry requirements</p>
                 </div>
               </div>
             </div>
 
-            {/* CTA Button */}
-            <button
-              onClick={() => navigate("/mypathway")}
-              className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
-            >
-              <HiBookmark className="w-5 h-5" />
-              <span>View Saved Items</span>
-              <HiArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Explore Options Section */}
-          <div className="mt-6 mb-6">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-              Explore Academic Options
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Browse degrees, specialisations, and courses to discover what fits your goals
-            </p>
-          </div>
-
-          {/* Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            
-            {/* Explore Degrees */}
             <div
-              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg p-6 group transition-all duration-200 cursor-pointer"
-              onClick={() => navigate("/explore-by-degree")}
-            >
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <HiCollection className="w-5 h-5 text-slate-700 dark:text-slate-300" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Degrees
-                </h3>
-              </div>
-              
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Browse UNSW degree programs, view structures and entry requirements
-              </p>
-              
-              <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors">
-                <span>Explore Degrees</span>
-                <HiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-
-            {/* Explore Specialisations */}
-            <div
-              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg p-6 group transition-all duration-200 cursor-pointer"
               onClick={() => navigate("/explore-by-specialisation")}
+              className="relative flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.98] cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-lg transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <HiUsers className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+              <HiChevronRight className="absolute top-4 right-4 w-4 h-4 text-slate-300 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                  <HiUsers className="w-6 h-6 text-blue-500 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Specialisations
-                </h3>
-              </div>
-              
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Review majors, minors and honours pathways
-              </p>
-              
-              <div className="flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 transition-colors">
-                <span>Explore Specialisations</span>
-                <HiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">Specialisations</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Explore majors, minors and honours pathways available at UNSW</p>
+                </div>
               </div>
             </div>
 
-            {/* Explore Courses */}
             <div
-              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg p-6 group transition-all duration-200 cursor-pointer"
               onClick={() => navigate("/explore-by-course")}
+              className="relative flex flex-col gap-5 px-8 py-10 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.98] cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-lg transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <HiClipboard className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+              <HiChevronRight className="absolute top-4 right-4 w-4 h-4 text-slate-300 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                  <HiClipboard className="w-6 h-6 text-blue-500 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Courses
-                </h3>
-              </div>
-              
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Search courses, check prerequisites and see how they fit your plan
-              </p>
-              
-              <div className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400 transition-colors">
-                <span>Explore Courses</span>
-                <HiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">Courses</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Search individual courses, check prerequisites and see how they fit your plan</p>
+                </div>
               </div>
             </div>
           </div>

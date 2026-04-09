@@ -1,17 +1,10 @@
 // src/components/CourseRelatedDegrees.jsx
 import { useEffect, useState } from "react";
-import { HiAcademicCap } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 
-export default function CourseRelatedDegrees({
-  courseId,
-  courseCode,
-  title = "Programs Offering this Course",
-  icon = <HiAcademicCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
-}) {
+export default function CourseRelatedDegrees({ courseId, courseCode }) {
   const { session } = UserAuth();
-
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
@@ -22,7 +15,6 @@ export default function CourseRelatedDegrees({
     (async () => {
       setLoading(true);
       setErr(null);
-
       try {
         const res = await fetch(
           `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/smart-related/degrees-for-course`,
@@ -39,12 +31,8 @@ export default function CourseRelatedDegrees({
             }),
           }
         );
-
         const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.detail || "Failed to fetch related degrees");
-
-        // backend returns: id, program_name, program_code, faculty, minimum_uoc
+        if (!res.ok) throw new Error(data.detail || "Failed to fetch related degrees");
         setItems(Array.isArray(data) ? data : []);
       } catch (e) {
         setErr(e.message);
@@ -56,71 +44,33 @@ export default function CourseRelatedDegrees({
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow">
-        <p className="text-slate-600 dark:text-slate-300 italic">
-          Loading programs offering this course…
-        </p>
-      </div>
+      <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+        Loading related programs…
+      </p>
     );
   }
 
   if (err || items.length === 0) return null;
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
-        {icon}
-        {title}
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {items.map((deg, i) => {
-          const link = `/degrees/${deg.id}`;
-
-          return (
-            <Link
-              key={i}
-              to={link}
-              className="hover:-translate-y-1 hover:shadow-xl transition-all rounded-2xl"
-            >
-              <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-md">
-
-                {/* Program Name */}
-                <p className="text-lg font-bold mb-2 text-slate-900 dark:text-white">
-                  {deg.program_name}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 text-xs mb-3">
-                  <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 
-                                   text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
-                    Code: {deg.program_code}
-                  </span>
-
-                  {deg.faculty && (
-                    <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 
-                                     text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                      {deg.faculty}
-                    </span>
-                  )}
-
-                  {deg.minimum_uoc && (
-                    <span className="px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/20 
-                                     text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                      {deg.minimum_uoc} UOC
-                    </span>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  View full program structure →
-                </p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {items.map((deg, i) => (
+        <Link key={i} to={`/degrees/${deg.id}`}>
+          <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{deg.program_name}</p>
+              {deg.faculty && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{deg.faculty}</p>
+              )}
+            </div>
+            {deg.program_code && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 flex-shrink-0">
+                {deg.program_code}
+              </span>
+            )}
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

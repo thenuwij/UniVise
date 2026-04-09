@@ -17,7 +17,6 @@ export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const internshipPrograms = industryExperience?.internship_programs || [];
   const topCompanies = industryExperience?.top_recruiting_companies || [];
-  const careerFairs = industryExperience?.career_fairs;
 
   if (!internshipPrograms.length && !topCompanies.length) {
     return null;

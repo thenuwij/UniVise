@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { UserAuth } from "../context/AuthContext";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
@@ -20,7 +19,7 @@ export default function ChatbotPage() {
   <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
     {/*  Top navbars */}
     <div>
-      <DashboardNavBar onMenuClick={openDrawer} />
+      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
     </div>
 
@@ -38,9 +37,11 @@ export default function ChatbotPage() {
       <div className="flex-1 overflow-hidden">
           {conversationId
             ? <ChatWindow convId={conversationId} />
-            : <div className="h-full flex flex-col items-center justify-center text-gray-500 text-md">
-                <TbRobot className="inline-block mb-2 w-12 h-12 text-gray-400 animate-bounce"/>
-                Select or create a new chat to begin.
+            : <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-500">
+                <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800">
+                  <TbRobot className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                </div>
+                <p className="text-sm font-medium">Select or start a new chat to begin</p>
               </div>
           }
         </div>

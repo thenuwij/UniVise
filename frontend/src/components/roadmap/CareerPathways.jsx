@@ -12,8 +12,7 @@ import {
   BarChart3,
   Sparkles,
   Zap,
-  Crown,
-  Info
+  Crown
 } from "lucide-react";
 
 export default function CareerPathways({ careerPathways }) {

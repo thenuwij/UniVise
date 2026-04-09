@@ -22,9 +22,6 @@ class RoadmapResp(BaseModel):
     payload: Dict[str, Any]
 
 # Helper functions
-TERMS = ("T1", "T2", "T3")
-COURSES_TABLE = "unsw_courses"
-
 def ensure(cond: bool, msg: str):
     if not cond:
         raise HTTPException(status_code=400, detail=msg)

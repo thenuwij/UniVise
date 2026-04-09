@@ -284,7 +284,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       // Numbered items
       if (/^\d+\.\s*/.test(line)) {
         const firstSentence = line.replace(/^\d+\.\s*/, '').split(/(?<=[.!?])\s+/)[0];
-        html += `<p class="text-base leading-relaxed font-bold text-slate-900 dark:text-slate-100 py-0.5 flex gap-2">
+        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 py-0.5 flex gap-2">
     <span class="text-blue-500 flex-shrink-0">•</span>
     <span>${firstSentence}</span>
   </p>`;
@@ -293,7 +293,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
       // Bullets
       if (line.startsWith("•")) {
-        html += `<p class="text-base leading-relaxed font-bold text-slate-900 dark:text-slate-100 flex gap-2">
+        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 flex gap-2">
           <span class="text-sky-600 dark:text-sky-400 flex-shrink-0">•</span>
           <span>${line.replace(/^•\s*/, "")}</span>
         </p>`;
@@ -302,7 +302,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
       // Dashes
       if (/^[-–]\s*/.test(line)) {
-        html += `<p class="text-base leading-relaxed font-bold text-slate-900 dark:text-slate-100 flex gap-2 pl-4">
+        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 flex gap-2 pl-4">
           <span class="text-slate-500 dark:text-slate-500 flex-shrink-0">-</span>
           <span>${line.replace(/^[-–]\s*/, "")}</span>
         </p>`;
@@ -310,7 +310,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       }
 
       // Regular text
-      html += `<p class="text-base leading-relaxed font-bold text-slate-900 dark:text-slate-100">${line}</p>`;
+      html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">${line}</p>`;
     }
 
     html += "</div>";
@@ -328,11 +328,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       .filter(Boolean);
 
     if (sentences.length <= 1) {
-      return `<p class="text-base leading-relaxed font-medium text-slate-900 dark:text-slate-100">${sentences[0] ?? ""}</p>`;
+      return `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">${sentences[0] ?? ""}</p>`;
     }
 
     return `<ul class="space-y-1.5">${sentences.map(s =>
-      `<li class="flex gap-2 text-base leading-relaxed font-medium text-slate-900 dark:text-slate-100">
+      `<li class="flex gap-2 text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">
         <span class="text-amber-500 flex-shrink-0 mt-0.5">•</span>
         <span>${s}</span>
       </li>`

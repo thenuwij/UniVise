@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_current_user
 from app.utils.database import supabase
 from .user import get_user_info, get_student_type
-from app.utils.openai_client import ask_openai, ask_gemini
+from app.utils.claude_client import ask_claude
 from app.utils.parse_llm import extract_json
 from pydantic import BaseModel
 
@@ -87,7 +87,7 @@ async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current
     if student_type == "high_school":
         prompt = f"""
           You are an expert high‐school academic analyst. Analyse the following student school report and return a detailed analysis on the report. 
-          This report will later be used for openAI to read again so return in markdown:
+          This report will be analysed by Claude — return in markdown:
 
           - **top_subjects** (array of strings): Subjects with the highest marks (2-3 subjects including the results/marks/rank if available).  
           - **bottom_subjects** (array of strings): Subjects with the lowest marks (1-2 subjects).  
@@ -141,7 +141,7 @@ async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current
         {report_text}
         """
 
-    ai_output_str = ask_gemini(prompt)
+    ai_output_str = ask_claude(prompt)
 
     # Parse it into a native dict
     try:
@@ -158,7 +158,7 @@ async def analyse_report(request: AnalyseReportRequest, user=Depends(get_current
     }
 
     resp = supabase.table(report_table).upsert(upsert_payload).execute()
-    if not resp:
-        raise HTTPException(500, f"DB upsert failed: {resp.error.message}")
+    if resp.data is None:
+        raise HTTPException(500, "DB upsert failed")
 
     return {"analysis": ai_output}

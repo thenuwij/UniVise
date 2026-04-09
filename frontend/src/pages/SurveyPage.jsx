@@ -68,13 +68,6 @@ function SurveyPage() {
       <div>
         <Header/>
       </div>
-      {/* Welcome Heading */}
-      <div className="mt-12 sm:mt-16 md:mt-20 text-center">
-        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold mb-4 leading-tight">
-          Welcome, {firstName||session?.user?.email}!
-        </h1>
-      </div>
-
       {/* Survey Form */}
       <div className="flex flex-col items-center flex-grow w-full justify-center">
         <div className="max-w-6xl  shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-12  flex flex-col mb-12 card-glass-spotlight dark:card-glass-spotlight">

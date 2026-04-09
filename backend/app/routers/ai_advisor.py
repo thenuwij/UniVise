@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Request, Depends, HTTPException
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt
 from app.utils.user_context import get_user_context
 from dependencies import get_current_user
 
@@ -77,7 +77,7 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
     """
 
     try:
-        summary = ask_openai(prompt).strip()
+        summary = ask_gpt(prompt).strip()
         return {"summary": summary}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OpenAI error: {str(e)}")

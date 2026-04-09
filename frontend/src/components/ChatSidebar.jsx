@@ -22,11 +22,12 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
     const { data, error } = await supabase
       .from("conversations")
       .insert(
-        { id: conversationId, 
-          user_id: session.user.id, 
+        { id: conversationId,
+          user_id: session.user.id,
           title,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString() })
+      .select()
     if (error) {
       console.error(error);
       return;
@@ -97,7 +98,7 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
         onClose={() => setShowModal(false)}
         onSave={handleCreate}
       />
-      <Sidebar className="w-full h-screen">
+      <Sidebar className="w-full h-screen [&>div]:bg-white/70 dark:[&>div]:bg-slate-900/80 [&>div]:border-r [&>div]:border-slate-200 dark:[&>div]:border-slate-700/50 [&>div]:backdrop-blur-md">
         <SidebarItems className="h-full flex flex-col">
           {/* Toggle button */}
           
@@ -157,11 +158,11 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
                 >
                   <SidebarItem 
                     onClick={() => navigate(`/chat/${conversation.id}`)} 
-                    className={`flex items-center ${isCollapsed ? 'h-12 justify-center' : 'h-14'} group cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                    className={`flex items-center ${isCollapsed ? 'h-12 justify-center' : 'h-14'} group cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all rounded-lg`}
                     title={isCollapsed ? (conversation.title || 'Untitled Conversation') : ''}
                   >
                     {isCollapsed ? (
-                      <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-semibold text-md mr-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-2">
                         {(conversation.title || 'U').charAt(0).toUpperCase()}
                       </div>
                     ) : (
@@ -187,7 +188,7 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
               ))
             ) : (
               !isCollapsed && (
-                <h1 className='text-center font-semibold'>No conversations yet</h1>
+                <p className='text-center text-sm text-slate-400 dark:text-slate-500 mt-4'>No conversations yet</p>
               )
             )}
           </SidebarItemGroup>

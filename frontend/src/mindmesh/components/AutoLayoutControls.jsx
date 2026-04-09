@@ -40,14 +40,7 @@ export default forwardRef(function AutoLayoutControls({
     const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
     const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
     
-    console.log("🎯 Auto Layout:");
-    console.log("  - Total nodes:", allNodes.length);
-    console.log("  - Connected nodes:", nodes.length);
-    console.log("  - Isolated nodes removed:", allNodes.length - nodes.length);
-    console.log("  - Valid links:", validLinks.length);
-
     if (nodes.length === 0) {
-      console.warn("⚠️ No connected nodes to layout");
       return;
     }
 
@@ -135,7 +128,8 @@ export default forwardRef(function AutoLayoutControls({
   }, [graph, canvasSize, graphRef, setGraph, setFrozen]);
 
   useImperativeHandle(ref, () => ({
-    autoLayout
+    autoLayout,
+    resetLayout,
   }));
 
   const resetLayout = useCallback(() => {
@@ -149,10 +143,6 @@ export default forwardRef(function AutoLayoutControls({
     
     const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
     const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
-    
-    console.log("Reset Layout:");
-    console.log("Connected nodes:", nodes.length);
-    console.log("Valid links:", validLinks.length);
     
     setGraph({ nodes, links: validLinks });
     setFrozen?.(false);

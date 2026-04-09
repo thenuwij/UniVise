@@ -61,7 +61,7 @@ export function MenuBar({ isOpen, handleClose }) {
       inner: "h-full overflow-y-auto overflow-x-hidden rounded bg-transparent px-3 py-4",
     },
     item: {
-      base: "flex items-center justify-center rounded-lg p-2 text-base font-normal text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 group transition-colors duration-200",
+      base: "flex items-center justify-center rounded-lg p-2 text-base font-normal text-gray-900 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:text-white dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 group transition-all duration-200",
       active: "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700",
       content: { base: "flex-1 whitespace-nowrap px-3 text-base" },
       icon: {
@@ -71,14 +71,26 @@ export function MenuBar({ isOpen, handleClose }) {
     },
   };
 
+  const drawerTheme = {
+    root: {
+      base: "fixed z-40 overflow-y-auto p-4 transition-transform bg-gradient-to-b from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 border-r border-slate-200 dark:border-slate-700 shadow-xl",
+      position: {
+        left: {
+          on: "transform-none",
+          off: "-translate-x-full",
+        },
+      },
+    },
+  };
+
   return (
-    <Drawer open={isOpen} onClose={handleClose}>
+    <Drawer open={isOpen} onClose={handleClose} theme={drawerTheme}>
       <DrawerHeader title="MENU" titleIcon={() => <></>} />
       <DrawerItems>
         {/* User info header */}
         <button
           onClick={() => { navigate("/profile"); handleClose(); }}
-          className="w-full px-4 py-3 mb-2 border-b border-slate-200 dark:border-slate-700 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150 flex items-center gap-3"
+          className="w-full px-4 py-3 mb-2 border-b border-slate-200 dark:border-slate-700 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all duration-200 flex items-center gap-3 rounded-lg"
         >
           <div className="flex-shrink-0 h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center">
             <HiOutlineUserCircle className="h-6 w-6 text-slate-500 dark:text-slate-300" />

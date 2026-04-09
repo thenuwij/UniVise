@@ -2,7 +2,7 @@ from typing import Any, Dict
 import json
 import time
 
-from app.utils.openai_client import ask_openai
+from app.utils.openai_client import ask_gpt_async
 from .roadmap_common import parse_json_or_500, assert_keys
 from .roadmap_unsw_helpers import (
     fetch_degree_by_identifier,
@@ -178,19 +178,19 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
    - Choose from BOTH the core courses list AND specialisation courses (if provided above)
    - Prioritize: final-year capstone projects, industry partnership courses, thesis/research units, or advanced technical courses
    
-   - In "highlights": Write 2-3 sentences about what makes this program VALUABLE and why students should choose it.
-     Focus on PRACTICAL VALUE and OUTCOMES:
-     * What unique skills or expertise will students develop?
-     * What real-world experience or hands-on learning opportunities are available?
-     * How does the program prepare students for their career or further study?
-     * What makes graduates of this program competitive in the job market?
-     * What professional development or industry connections does the program provide?
-     
-     DO NOT write generic statements like "strong industry connections" or "excellent career prospects"
-     DO write value-focused statements like "Develops advanced financial modeling skills through live trading simulations and professional-grade tools, preparing graduates for analyst roles in investment banking"
+   - In "highlights": Write 4-5 sentences about what makes this program VALUABLE and why students should choose it.
+     Cover ALL of the following angles — one per sentence:
+     * What unique technical skills or expertise will students develop that are specific to this program?
+     * What real-world, hands-on, or project-based learning opportunities are embedded in the degree?
+     * How does the program prepare students for their career — what roles, industries, or postgrad pathways does it lead to?
+     * What makes graduates of this program competitive — accreditations, research depth, industry partnerships, or specialisation options?
+     * Any standout feature: co-op programs, thesis opportunities, dual degree options, or distinctive electives.
 
-4. For industry: Include work placement/internship info, relevant student societies, and typical graduate roles.
-5. Return ONLY valid JSON with NO trailing commas.
+     DO NOT write generic statements like "strong industry connections", "excellent career prospects", or "well-rounded education".
+     DO write specific, concrete statements tied to this exact program — name actual skills, tools, roles, or opportunities.
+     MINIMUM 4 sentences. MAXIMUM 5 sentences. Each sentence must add new information — no padding or repetition.
+
+4. Return ONLY valid JSON with NO trailing commas.
 
 === CONTEXT DATA ===
 - Program: {program_name}
@@ -217,14 +217,10 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 
   "capstone": {{
     "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
-    "highlights": "Write exactly 2-3 sentences maximum about what makes this program special. Be specific and concise — no more than 60 words total."
+    "highlights": "Write 4-5 specific sentences covering: unique skills developed, hands-on learning opportunities, career/postgrad pathways, competitive advantages (accreditations, research, industry links), and one standout feature of this program. No generic statements. Each sentence must be concrete and specific to this degree."
   }},
   "flexibility": {{
     "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]
-  }},
-  "industry": {{
-    "trainingInfo": "Describe any mandatory or optional work placements, internships, industrial training, or practicum requirements",
-    "rolesHint": "List 5-8 specific graduate job titles or career paths for this degree"
   }},
   "source": "Provide the official UNSW Handbook URL for this program"
 }}
@@ -233,13 +229,13 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
 """
 
     print("Stage 1: Generating general program information...")
-    raw = ask_openai(prompt)
+    raw = await ask_gpt_async(prompt)
     draft = parse_json_or_500(raw)
 
     # Validate structure
     assert_keys(
         draft,
-        ["summary", "entry_requirements", "capstone", "flexibility", "industry", "source"],
+        ["summary", "entry_requirements", "capstone", "flexibility", "source"],
         "unsw_general",
     )
 
@@ -346,19 +342,12 @@ async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # Generate complete roadmap payload using PARALLEL two-stage AI generation.
-# Both sections will run concurrently using threads
 async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
 
     import asyncio
     import time
-    from concurrent.futures import ThreadPoolExecutor
-    
-    total_start = time.time()
 
-    # print("Starting PARALLEL two-stage AI generation for degree")
-    # print(f"Program: {context.get('program_name')}")
-    # print(f"Degree code: {context.get('degree_code')}")
-    # print(f"Core courses in context: {len(context.get('core_courses', []))}")
+    total_start = time.time()
 
     # Fallback honours structure
     fallback_honours = {
@@ -375,48 +364,43 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         }
     }
 
-    # Wrapper functions with timing
-    def run_general():
+    # Timed async wrappers for concurrent execution
+    async def timed_general():
         start = time.time()
         print(f"[Stage 1] STARTED at {start:.1f}")
-        result = asyncio.run(ai_generate_general_info(context))
-        elapsed = time.time() - start
-        print(f"[Stage 1] COMPLETED in {elapsed:.1f}s")
+        result = await ai_generate_general_info(context)
+        print(f"[Stage 1] COMPLETED in {time.time() - start:.1f}s")
         return result
-    
-    def run_honours():
+
+    async def timed_honours():
         start = time.time()
         print(f"[Stage 2] STARTED at {start:.1f}")
-        result = asyncio.run(ai_generate_honours_info(context))
-        elapsed = time.time() - start
-        print(f"[Stage 2] COMPLETED in {elapsed:.1f}s")
+        result = await ai_generate_honours_info(context)
+        print(f"[Stage 2] COMPLETED in {time.time() - start:.1f}s")
         return result
 
-    # Run both AI calls in parallel using ThreadPoolExecutor
-    loop = asyncio.get_event_loop()
-    
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        general_future = loop.run_in_executor(executor, run_general)
-        honours_future = loop.run_in_executor(executor, run_honours)
-        
-        # Wait for both to complete
-        try:
-            general_info = await general_future
-        except Exception as e:
-            print(f"Stage 1 failed: {e}")
-            raise Exception("Failed to generate general program information")
-        
-        try:
-            honours_info = await honours_future
-        except Exception as e:
-            print(f"Stage 2 failed: {e}")
-            honours_info = fallback_honours
+    # Run both stages concurrently with asyncio.gather
+    results = await asyncio.gather(
+        timed_general(),
+        timed_honours(),
+        return_exceptions=True,
+    )
 
-    # Debugging
-    # total_elapsed = time.time() - total_start
-    # print(f"\n{'='*50}")
-    # print(f"TOTAL PARALLEL GENERATION TIME: {total_elapsed:.1f}s")
-    # print(f"{'='*50}\n")
+    general_result, honours_result = results
+
+    # Preserve original error handling:
+    # - Stage 1 must succeed (raise if failed)
+    # - Stage 2 can fallback
+    if isinstance(general_result, Exception):
+        print(f"Stage 1 failed: {general_result}")
+        raise Exception("Failed to generate general program information")
+    general_info = general_result
+
+    if isinstance(honours_result, Exception):
+        print(f"Stage 2 failed: {honours_result}")
+        honours_info = fallback_honours
+    else:
+        honours_info = honours_result
 
     # Combine both stages into ONE payload
     payload = {
@@ -425,7 +409,6 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "capstone": general_info.get("capstone"),
         "honours": honours_info.get("honours"),
         "flexibility": general_info.get("flexibility"),
-        "industry": general_info.get("industry"),
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),
         "selected_honours_name": context.get("selected_honours_name"),

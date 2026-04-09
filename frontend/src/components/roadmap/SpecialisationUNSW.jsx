@@ -1,5 +1,5 @@
 import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, X } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveButton from "../../components/SaveButton";
 import { supabase } from "../../supabaseClient";
@@ -268,13 +268,6 @@ export default function SpecialisationUNSW({ degreeCode }) {
   };
 
 
-  const hasAnySelection = () => {
-    const hasHonours = Object.values(selectedHonours).some(v => v !== null);
-    const hasMajor = Object.values(selectedMajor).some(v => v !== null);
-    const hasMinor = Object.values(selectedMinor).some(v => v !== null);
-    return hasHonours || hasMajor || hasMinor;
-  };
-
   const renderTypeSelector = (type, options, selected, forDegreeCode) => {
     if (options.length === 0) return null;
 
@@ -353,9 +346,8 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
 
     return (
-      <div className="rounded-xl border-2 border-slate-300 dark:border-slate-600 
-                      bg-white dark:bg-slate-900
-                      shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <div className="rounded-xl bg-white dark:bg-slate-900
+                      shadow-sm transition-all duration-300 overflow-hidden">
         {/* Accent bar */}
         <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
         
@@ -453,9 +445,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
               
               <div className="space-y-4 pl-2 mt-4">
                 {filteredSections.map((sec, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-300 dark:border-slate-600 
-                                         bg-white dark:bg-slate-900
-                                         p-5 shadow-md">
+                  <div key={i} className="rounded-xl bg-slate-50 dark:bg-slate-800/40 p-5">
                     <h5 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3">
                       {sec.title}
                     </h5>
@@ -475,10 +465,8 @@ export default function SpecialisationUNSW({ degreeCode }) {
                             onClick={() => handleCourseClick(c)}
                             className="group w-full text-left flex items-center justify-between gap-3 rounded-lg
                                     bg-white dark:bg-slate-800
-                                    border-2 border-slate-300 dark:border-slate-600
                                     p-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20
-                                    hover:border-emerald-400 dark:hover:border-emerald-500 
-                                    hover:shadow-md transition-all duration-200 cursor-pointer"
+                                    hover:shadow-sm transition-all duration-200 cursor-pointer"
                           >
                             <span className="flex-shrink-0 text-xs font-mono font-bold
                                             text-emerald-700 dark:text-emerald-400 
@@ -599,6 +587,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
           type: "unsw",
           degree: { ...degreeData, degree_id: degreeData.id },
           isRegeneration: true,
+          returnToStep: 3,
         },
         replace: true,
       });

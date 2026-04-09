@@ -1,9 +1,11 @@
 # app/routers/compare_programs.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from dependencies import get_current_user
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import logging
+import asyncio
 
 from app.utils.database import supabase
 from app.routers.compare_programs_helpers import (
@@ -67,7 +69,10 @@ class ProgramComparisonResponse(BaseModel):
 
 
 @router.post("/compare", response_model=ProgramComparisonResponse)
-async def compare_programs(request: ProgramComparisonRequest):
+async def compare_programs(
+    request: ProgramComparisonRequest,
+    user=Depends(get_current_user),
+):
     """Clear, actionable program comparison"""
     logger.info("=" * 80)
     logger.info(f"Starting program comparison for user: {request.user_id}")
@@ -75,20 +80,41 @@ async def compare_programs(request: ProgramComparisonRequest):
     logger.info("=" * 80)
 
     try:
-        # Get user's completed courses
-        completed_response = (
-            supabase.table("user_completed_courses")
-            .select("*")
-            .eq("user_id", request.user_id)
-            .eq("is_completed", True)
-            .execute()
-        )
+        # Define DB fetch functions
+        def fetch_completed():
+            return supabase.table("user_completed_courses").select("*").eq("user_id", request.user_id).eq("is_completed", True).execute()
+
+        def fetch_base():
+            return supabase.table("unsw_degrees_final").select("*").eq("degree_code", request.base_program_code).single().execute()
+
+        def fetch_target():
+            return supabase.table("unsw_degrees_final").select("*").eq("degree_code", request.target_program_code).single().execute()
+
+        def fetch_specialisations():
+            return supabase.table("unsw_specialisations").select("*").in_("major_code", request.target_specialisation_codes).execute()
+
+        # Run DB calls in parallel
+        if request.target_specialisation_codes:
+            completed_response, base_program_resp, target_program_resp, spec_resp = await asyncio.gather(
+                asyncio.to_thread(fetch_completed),
+                asyncio.to_thread(fetch_base),
+                asyncio.to_thread(fetch_target),
+                asyncio.to_thread(fetch_specialisations),
+            )
+        else:
+            completed_response, base_program_resp, target_program_resp = await asyncio.gather(
+                asyncio.to_thread(fetch_completed),
+                asyncio.to_thread(fetch_base),
+                asyncio.to_thread(fetch_target),
+            )
+            spec_resp = None
+
+        # Process completed courses
         completed_courses = completed_response.data or []
         completed_course_codes = [c["course_code"] for c in completed_courses]
         completed_set = set(completed_course_codes)
         logger.info(f"Found {len(completed_courses)} completed courses")
 
-        # NEW: completed UOC total (safe int)
         completed_uoc_total = 0
         for c in completed_courses:
             try:
@@ -96,23 +122,8 @@ async def compare_programs(request: ProgramComparisonRequest):
             except Exception:
                 pass
 
-        # Get base & target programs
-        base_program_resp = (
-            supabase.table("unsw_degrees_final")
-            .select("*")
-            .eq("degree_code", request.base_program_code)
-            .single()
-            .execute()
-        )
+        # Process programs
         base_program = base_program_resp.data
-
-        target_program_resp = (
-            supabase.table("unsw_degrees_final")
-            .select("*")
-            .eq("degree_code", request.target_program_code)
-            .single()
-            .execute()
-        )
         target_program = target_program_resp.data
 
         if not base_program or not target_program:
@@ -125,15 +136,9 @@ async def compare_programs(request: ProgramComparisonRequest):
             target_program.get("sections"), default_category="Program Requirement"
         )
 
-        # Add specialisation courses
+        # Process specialisation courses
         target_spec_courses: List[Dict[str, Any]] = []
-        if request.target_specialisation_codes:
-            spec_resp = (
-                supabase.table("unsw_specialisations")
-                .select("*")
-                .in_("major_code", request.target_specialisation_codes)
-                .execute()
-            )
+        if spec_resp:
             for spec in (spec_resp.data or []):
                 spec_courses = extract_courses_from_sections(
                     spec.get("sections"),

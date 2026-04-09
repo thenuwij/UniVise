@@ -23,7 +23,7 @@ function MyPlannerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} />
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
 
@@ -36,88 +36,85 @@ function MyPlannerPage() {
               My Planner
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                 Plan
               </span>{" "}
               Your Journey
             </h1>
 
-            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
               Analyse program transfers, view your saved items, or explore the UNSW handbook
             </p>
           </div>
 
-          {/* Two main action cards */}
-          <div className="grid grid-cols-2 gap-6 mb-12">
+          {/* Combined action card */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md mb-12 overflow-hidden">
+            <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700">
 
-            {/* Card 1 — Program Transfer Analysis */}
-            <div
-              onClick={() => navigate("/progress")}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 border-l-4 border-l-blue-500 shadow-md hover:shadow-xl transition-all duration-200 group p-8"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              {/* Left — Program Transfer Analysis */}
+              <div
+                onClick={() => navigate("/progress")}
+                className="p-8 hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition-colors duration-200 cursor-pointer group"
+              >
+                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 inline-flex">
                   <HiSwitchHorizontal className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-full">
-                  Key Feature
-                </span>
+
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-4">Program Transfer Analysis</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Compare programs and see what transfers</p>
+
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    "Select a target program to compare",
+                    "See transferable vs non-transferable courses",
+                    "Get remaining requirements and prereq checks",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span className="text-sm text-slate-600 dark:text-slate-300">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button className="mt-6 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-base font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
+                  Run Transfer Analysis
+                  <HiArrowRight className="w-4 h-4" />
+                </button>
               </div>
 
-              <p className="text-xl font-bold text-slate-900 dark:text-white mt-4">Program Transfer Analysis</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Compare programs and see what transfers</p>
+              {/* Right — Your Saved Items */}
+              <div
+                onClick={() => navigate("/saved")}
+                className="p-8 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors duration-200 cursor-pointer group"
+              >
+                <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 inline-flex">
+                  <HiBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
 
-              <ul className="mt-5 space-y-2.5">
-                {[
-                  "Select a target program to compare",
-                  "See transferable vs non-transferable courses",
-                  "Get remaining requirements and prereq checks",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-600 dark:text-slate-300">{item}</span>
-                  </li>
-                ))}
-              </ul>
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-4">Your Saved Items</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Access all your bookmarked content</p>
 
-              <button className="mt-6 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-base font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
-                Run Transfer Analysis
-                <HiArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    "Programs & Specialisations",
+                    "Courses & Communities",
+                    "Industry & Career Paths",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+                      <span className="text-sm text-slate-600 dark:text-slate-300">{item}</span>
+                    </li>
+                  ))}
+                </ul>
 
-            {/* Card 2 — Your Saved Items */}
-            <div
-              onClick={() => navigate("/mypathway")}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-all duration-200 group p-8"
-            >
-              <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 inline-flex">
-                <HiBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <button className="mt-6 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-base font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
+                  View Saved Items
+                  <HiArrowRight className="w-4 h-4" />
+                </button>
               </div>
 
-              <p className="text-xl font-bold text-slate-900 dark:text-white mt-4">Your Saved Items</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Access all your bookmarked content</p>
-
-              <ul className="mt-5 space-y-2.5">
-                {[
-                  "Programs & Specialisations",
-                  "Courses & Communities",
-                  "Industry & Career Paths",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
-                    <span className="text-sm text-slate-600 dark:text-slate-300">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button className="mt-6 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-base font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
-                View Saved Items
-                <HiArrowRight className="w-4 h-4" />
-              </button>
             </div>
-
           </div>
 
           {/* SECTION HEADER */}

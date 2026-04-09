@@ -12,10 +12,15 @@ const getProgressMessage = (progress, isRegeneration, type) => {
     return isRegeneration ? "Regenerating your roadmap..." : "Generating your roadmap...";
   }
 
-  // Messages for UNSW roadmaps 
-  const prefix = isRegeneration ? "Regenerating" : "Generating";
-  
-  if (progress < 20) return `${prefix} roadmap structure...`;
+  // Messages for UNSW roadmaps
+  if (isRegeneration) {
+    if (progress < 20) return "Customizing roadmap to your chosen specialisation...";
+    if (progress < 60) return "Personalising your societies, industry and career sections...";
+    if (progress < 95) return "Almost ready with your personalized roadmap...";
+    return "Almost done...";
+  }
+
+  if (progress < 20) return "Generating roadmap structure...";
   if (progress < 60) return "Analyzing program details...";
   if (progress < 95) return "Finalizing your roadmap...";
   return "Almost done...";
@@ -29,9 +34,7 @@ function LoadingRoadmapPage() {
   const ranRef = useRef(false);
 
   const isRegeneration = state?.isRegeneration || false;
-
-  console.log("LoadingRoadmapPage state:", state);
-  console.log("isRegeneration:", isRegeneration);
+  const returnToStep = state?.returnToStep || null;
 
   useEffect(() => {
     const userId = session?.user?.id;
@@ -54,6 +57,7 @@ function LoadingRoadmapPage() {
       navigate,
       supabase,
       setProgress,
+      returnToStep,
     });
   }, [
     session?.user?.id,

@@ -6,11 +6,10 @@ import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import GraphControls from "./components/GraphControls";
-import WelcomeModal from "./components/WelcomeModal";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
 import useMindMeshData from "./hooks/useMindMeshData";
-import { colorFor, levelStyle } from "./utils/index";
-import MindMeshGraph from "./components/MindMeshGraph"; 
+import { colorFor } from "./utils/index";
+import MindMeshGraph from "./components/MindMeshGraph";
 import MindMeshInfoPanel from "./components/MindMeshInfoPanel";
 
 export default function MindMeshGraphPage() {
@@ -22,7 +21,7 @@ export default function MindMeshGraphPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [hoverLink, setHoverLink] = useState(null);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showHint, setShowHint] = useState(true);
 
   const graphRef = useRef(null);
   const controlsRef = useRef(null);
@@ -33,31 +32,26 @@ export default function MindMeshGraphPage() {
 
   const programCode = searchParams.get("program");
   const isProgramView = !!programCode;
-  const { graph, setGraph, debugInfo, programCourses, programMeta } = useMindMeshData({ 
-    isProgramView, 
-    session, 
-    programCode 
+  const { graph, setGraph, debugInfo, programCourses, programMeta } = useMindMeshData({
+    isProgramView,
+    session,
+    programCode
   });
-  
+
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
-  const [buttonPos, setButtonPos] = useState(null);
+  const isAutoLayoutInProgress = useRef(false);
+  const lastGraphSignature = useRef(null);
 
-const isAutoLayoutInProgress = useRef(false);
-const lastGraphSignature = useRef(null); // 🎯 Track which graph we've auto-laid out
-
-useEffect(() => {
+  useEffect(() => {
     if (!graph?.nodes?.length) return;
     if (isAutoLayoutInProgress.current) return;
-    
-    // Create a signature of current graph based on node IDs
+
     const currentSignature = graph.nodes.map(n => n.id).sort().join(',');
-    
-    // Only trigger if this is a NEW graph (different nodes than last time)
     if (lastGraphSignature.current === currentSignature) return;
 
     const t = setTimeout(() => {
       isAutoLayoutInProgress.current = true;
-      lastGraphSignature.current = currentSignature; // Remember this graph
+      lastGraphSignature.current = currentSignature;
       controlsRef.current?.autoLayout?.();
       setTimeout(() => {
         isAutoLayoutInProgress.current = false;
@@ -65,7 +59,15 @@ useEffect(() => {
     }, 150);
 
     return () => clearTimeout(t);
-  }, [graph?.nodes]); // Watch the nodes array
+  }, [graph?.nodes]);
+
+  // Hide hint after 4 seconds
+  useEffect(() => {
+    if (showHint) {
+      const t = setTimeout(() => setShowHint(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [showHint]);
 
   // Resize handling
   useEffect(() => {
@@ -93,8 +95,6 @@ useEffect(() => {
   useEffect(() => {
     if (!focusedNode || !graphRef.current) return;
     const interval = setInterval(() => {
-      const pos = graphRef.current.graph2ScreenCoords(focusedNode.x, focusedNode.y);
-      setButtonPos(pos);
     }, 100);
     return () => clearInterval(interval);
   }, [focusedNode]);
@@ -110,90 +110,22 @@ useEffect(() => {
     [focusedNode]
   );
 
-  // Color palette for OR groups 
-  const getGroupColor = useCallback((groupId, link, isFocused) => {
-    if (!isFocused) return "rgba(148,163,184,0.4)";
-    
-    // Hash ONLY the group_id to get consistent color for same group
-    let hash = 0;
-    for (let i = 0; i < groupId.length; i++) {
-      hash = groupId.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const colorIndex = Math.abs(hash) % 4; 
-    
-    // highly distinct colors, enough for most courses
-    const colors = [
-      "#3b82f6", // blue
-      "#10b981", // emerald/green
-      "#8b5cf6", // purple
-      "#f59e0b", // amber/orange
-    ];
-    
-    return colors[colorIndex];
-  }, []);
-
   const linkColor = useCallback((l) => {
-    const srcId = typeof l.source === "object" ? l.source.id : l.source;
-    const tgtId = typeof l.target === "object" ? l.target.id : l.target;
-    const srcNode = graph.nodes.find((n) => n.id === srcId);
-    const lvl = parseInt(srcNode?.metadata?.level) || 1;
-    const { color } = levelStyle(lvl);
     const isFocused = !focusedNode || isEdgeOfFocus(l);
-    
-    // Handle OR groups
-    if (l.logic_type === 'or' || l.logic_type === 'or_group') {
-      // Count how many unique OR groups this target course has
-      const targetOrGroups = new Set(
-        graph.links
-          .filter(link => {
-            const linkTgt = typeof link.target === "object" ? link.target.id : link.target;
-            return linkTgt === tgtId && 
-                  (link.logic_type === 'or' || link.logic_type === 'or_group') && 
-                  link.group_id;
-          })
-          .map(link => link.group_id)
-      );
-      
-      // If only ONE OR group → use single blue color
-      if (targetOrGroups.size <= 1) {
-        return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
-      }
-      
-      // If MULTIPLE OR groups → color-code by level
-      if (l.group_id) {
-        return getGroupColor(l.group_id, l, isFocused);
-      }
-      
-      // Fallback
-      return isFocused ? "#3b82f6" : "rgba(59,130,246,0.4)";
+    if (l.logic_type === 'and') {
+      return isFocused ? "#3b82f6" : "rgba(148,163,184,0.35)";
     }
-    
-    // AND (solid) edges use level-based color
-    return isFocused ? color : "rgba(148,163,184,0.35)";
-  }, [graph.nodes, graph.links, focusedNode, isEdgeOfFocus, getGroupColor]);
+    return isFocused ? "#8b5cf6" : "rgba(148,163,184,0.35)";
+  }, [focusedNode, isEdgeOfFocus]);
 
   const linkWidth = useCallback((l) => {
-    const srcId = typeof l.source === "object" ? l.source.id : l.source;
-    const srcNode = graph.nodes.find((n) => n.id === srcId);
-    const lvl = parseInt(srcNode?.metadata?.level) || 1;
-    const { width } = levelStyle(lvl);
     const isFocused = !focusedNode || isEdgeOfFocus(l);
-    
-    return isFocused ? width + 0.5 : width;
-  }, [graph.nodes, focusedNode, isEdgeOfFocus]);
+    return isFocused ? 2 : 1;
+  }, [focusedNode, isEdgeOfFocus]);
 
   const linkLineDash = useCallback((l) => {
-    // Solid lines for AND 
-    if (l.logic_type === 'and') {
-      return null; // solid line
-    }
-    
-    // Dashed lines for OR and OR_GROUP (alternatives)
-    if (l.logic_type === 'or' || l.logic_type === 'or_group') {
-      return [6, 6]; 
-    }
-
-    return null;
+    if (l.logic_type === 'and') return null;
+    return [6, 6];
   }, []);
 
   // Neighbour helper
@@ -214,7 +146,7 @@ useEffect(() => {
   const expandGlobalMindMesh = async (n) => {
     graphHistoryRef.current.push(graph);
     const courseKey = n.id;
-    
+
     try {
       const { data: edgesData } = await supabase
         .from("mindmesh_edges_global")
@@ -224,45 +156,32 @@ useEffect(() => {
       if (!edgesData?.length) return;
 
       const connectedKeys = Array.from(new Set([courseKey, ...edgesData.flatMap((e) => [e.from_key, e.to_key])]));
-      
+
       const { data: nodesData } = await supabase
         .from("mindmesh_nodes_global")
         .select("key,label,uoc,faculty,school,level")
         .in("key", connectedKeys);
 
-      console.log("Expand node:", courseKey);
-      console.log("  - Edges fetched:", edgesData.length);
-      console.log("  - Connected keys:", connectedKeys.length);
-      console.log("  - Nodes fetched:", nodesData?.length || 0);
-
       const nodes = (nodesData || []).map((n) => ({
-        id: n.key, 
-        label: n.label || n.key, 
+        id: n.key,
+        label: n.label || n.key,
         type: "course",
         metadata: { uoc: n.uoc, faculty: n.faculty, school: n.school, level: n.level },
       }));
 
-      // Filter out edges where nodes don't exist
       const nodeIds = new Set(nodes.map(n => n.id));
       const validEdges = edgesData.filter(e => nodeIds.has(e.from_key) && nodeIds.has(e.to_key));
-      
-      console.log("  - Valid edges (both nodes exist):", validEdges.length);
-      console.log("  - Invalid edges removed:", edgesData.length - validEdges.length);
 
       const links = validEdges.map((e) => ({
-        source: e.from_key, 
-        target: e.to_key, 
+        source: e.from_key,
+        target: e.to_key,
         type: e.edge_type,
-        confidence: e.confidence, 
-        logic_type: e.logic_type || "and", 
+        confidence: e.confidence,
+        logic_type: e.logic_type || "and",
         group_id: e.group_id || null,
       }));
 
-      setGraph({
-        nodes,
-        links,
-      });
-      
+      setGraph({ nodes, links });
       setFocusedNode(null);
       setFrozen(false);
       requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
@@ -272,6 +191,8 @@ useEffect(() => {
   };
 
   const handleNodeClick = async (node) => {
+    setShowHint(false);
+
     const now = Date.now();
     const delta = now - lastClickRef.current.time;
 
@@ -279,7 +200,7 @@ useEffect(() => {
     if (lastClickRef.current.id === node.id && delta < 250) {
       lastClickRef.current = { id: null, time: 0 };
       await expandGlobalMindMesh(node);
-      setButtonPos(null);
+
       return;
     }
 
@@ -287,10 +208,6 @@ useEffect(() => {
     lastClickRef.current = { id: node.id, time: now };
     setFocusedNode((f) => (f?.id === node.id ? null : node));
 
-    if (graphRef.current && node) {
-      const pos = graphRef.current.graph2ScreenCoords(node.x, node.y);
-      setButtonPos(pos);
-    }
   };
 
   // UI Controls
@@ -317,29 +234,16 @@ useEffect(() => {
     requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
   };
 
-  const handleViewCourse = async () => {
-    if (!focusedNode?.id) return;
-    const { data: match } = await supabase
-      .from("unsw_courses")
-      .select("id")
-      .eq("code", focusedNode.id)
-      .maybeSingle();
-    if (match?.id) navigate(`/course/${match.id}`);
-  };
-
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 
-                    dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100
+                    dark:from-slate-900 dark:via-slate-900 dark:to-slate-950
                     text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      
-      <DashboardNavBar onMenuClick={() => setIsOpen(true)} />
+
+      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
-      
-      {/* Welcome Modal */}
-      <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
-      
-      {/* Header and Controls */}
+
       <GraphControls
+        ref={controlsRef}
         graphHistory={graphHistoryRef}
         handleBack={handleBackGraph}
         handleHome={handleHomeGraph}
@@ -351,25 +255,26 @@ useEffect(() => {
         canvasSize={canvasSize}
         graphRef={graphRef}
         setFrozen={setFrozen}
-        focusedNode={focusedNode}         
-        handleViewCourse={handleViewCourse}
-        onShowHelp={() => setShowWelcome(true)}
-        ref={controlsRef}
-
+        isProgramView={isProgramView}
+        programMeta={programMeta}
+        programCourses={programCourses}
       />
 
       {/* Graph Canvas */}
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
-          <MindMeshInfoPanel
-            graph={graph}
-            programCode={programCode}
-            programMeta={programMeta}
-            isProgramView={isProgramView}
-            programCourses={programCourses}
-          />
+
+          {/* First-load hint */}
+          {showHint && graph?.nodes?.length > 0 && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+              <div className="bg-slate-900/80 dark:bg-slate-100/90 text-white dark:text-slate-900 text-sm font-medium px-4 py-2 rounded-full shadow-lg backdrop-blur-sm animate-pulse">
+                Click any course node to explore its prerequisites
+              </div>
+            </div>
+          )}
+
           <MindMeshGraph
-            ref={graphRef} 
+            ref={graphRef}
             graph={graph}
             canvasSize={canvasSize}
             focusedNode={focusedNode}
@@ -386,6 +291,12 @@ useEffect(() => {
           />
         </div>
       </div>
+
+      {/* Bottom info panel — shown when a node is focused */}
+      <MindMeshInfoPanel
+        focusedNode={focusedNode}
+        onDismiss={() => setFocusedNode(null)}
+      />
     </div>
   );
 }

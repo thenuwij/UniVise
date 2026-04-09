@@ -1,15 +1,33 @@
 # Generated the societies, industry and careers sections in roadmap university mode
 
 import json
+import logging
 import re
 import asyncio
 import time
 from typing import Any, Dict, List
+
+logger = logging.getLogger(__name__)
 from datetime import datetime
+from urllib.parse import quote
+import httpx
 from app.utils.database import supabase
-from app.utils.openai_client import ask_openai
+from app.utils.claude_client import ask_claude, ask_claude_async
+from app.utils.openai_client import ask_gpt_async
 from app.utils.parse_llm import extract_json
 from .roadmap_unsw_helpers import fetch_user_specialisation_context
+
+
+async def validate_url(url: str) -> bool:
+    """Fire a HEAD request; return True if the URL is reachable."""
+    if not url or not url.startswith("http"):
+        return False
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
+            resp = await client.head(url)
+            return resp.status_code in (200, 301, 302, 403)
+    except Exception:
+        return False
 
 # Json parse fixing
 def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
@@ -149,6 +167,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     {{
       "societies": {{
         "faculty_specific": [
+          // Generate 3-5 faculty-specific societies relevant to this degree.
           {{
             "name": "Official Arc UNSW society name",
             "category": "Academic/Professional/Social",
@@ -190,15 +209,15 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     """
         
     print("Societies generating...")
-    
+
     try:
-        raw = ask_openai(prompt)
-        
+        raw = await ask_claude_async(prompt)
+
         raw_stripped = raw.strip()
         first_brace = raw_stripped.find('{')
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
-        
+
         result = sanitize_and_parse_json(json_only)
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
         events_count = len(result.get('societies', {}).get('major_events', []))
@@ -227,7 +246,8 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
 
 # Generate industry experience section in parallel
 async def ai_generate_industry_experience(context: Dict[str, Any]) -> Dict[str, Any]:
-    
+
+    _start = time.time()
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
@@ -261,14 +281,17 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     B. INTERNSHIP PROGRAMS (4-6 programs)
       - ONLY include real, well-known graduate internship programs that are verified to exist
       - Prioritise programs from major Australian employers known to recruit from UNSW
-      - Use EXACT program names as advertised (e.g. "Atlassian Intern Program", "Google STEP Internship", "PwC Vacation Program")
+      - Use EXACT program names as advertised (e.g. "PwC Vacation Program", "Cochlear Student Internship", "BHP Graduate Program")
       - apply_url must be the DIRECT careers page URL for that specific program — not a generic company homepage
       - If unsure of exact apply URL, use the company's main careers page (e.g. https://careers.atlassian.com)
       - competitiveness: one short phrase only (e.g. "Highly competitive", "Moderate", "Rolling intake")
 
     C. TOP RECRUITING COMPANIES (8-10 companies)
-      - Real companies that actively hire UNSW {faculty} graduates
-      - Mix of large firms and notable employers
+      - Real companies that actively hire graduates in this specific discipline — infer from the degree field, not just the faculty
+      - A Law degree → law firms, government, legal tech
+      - An Industrial Design degree → product companies, manufacturers, consultancies, consumer electronics firms
+      - Only include tech companies like Google or Atlassian if the degree is directly software, computer science, or digital design focused
+      - Mix of large firms and notable employers relevant to the field
 
     D. CAREER EVENTS & WIL
       - Major career fairs or employer events
@@ -305,17 +328,30 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     print("Industry Experience Generating...")
     
     try:
-        raw = ask_openai(prompt)
-        
+        raw = await ask_claude_async(prompt, model="claude-haiku-4-5-20251001")
+
         raw_stripped = raw.strip()
         first_brace = raw_stripped.find('{')
         last_brace = raw_stripped.rfind('}')
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
-        
+
         result = sanitize_and_parse_json(json_only)
-        print(f"Industry generated {len(result.get('industry_experience', {}).get('internship_programs', []))} internship programs")
+        programs = result.get("industry_experience", {}).get("internship_programs", [])
+        print(f"Industry generated {len(programs)} internship programs")
+
+        # Validate apply_urls in parallel; replace dead links with fallback search redirect
+        if programs:
+            urls = [p.get("apply_url", "") for p in programs]
+            valid_flags = await asyncio.gather(*[validate_url(u) for u in urls])
+            for program, is_valid in zip(programs, valid_flags):
+                if not is_valid:
+                    query = quote(f"{program.get('company', '')} {program.get('program_name', '')} internship apply Australia")
+                    program["apply_url"] = f"https://www.google.com/search?q={query}"
+                    print(f"[URL] Dead link replaced for {program.get('company')}")
+
+        print(f"[TIMING] ai_generate_industry_experience: {time.time() - _start:.1f}s")
         return result
-        
+
     except Exception as e:
         return {
             "industry_experience": {
@@ -334,6 +370,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
 # Generate career pathways section in parallel
 async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]:
 
+    _start = time.time()
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
@@ -364,6 +401,7 @@ CRITICAL DATA ACCURACY RULES:
 - Role descriptions must be maximum 3 sentences — concise and specific
 - Requirements must be a semicolon-separated list of discrete skills, maximum 5 items
 - Every certification object MUST include a url field with a real working URL. Omitting url from any certification is a critical error.
+- IMPORTANT — hiring_companies: You must populate this field with 3-5 real, named companies that genuinely hire for this specific career pathway. Infer the right employers from the student's degree discipline and the pathway title. For example, an Industrial Design pathway should list companies like Fisher & Paykel, Futuris, Breville, Kogan, or GHD — not software companies. A Law pathway should list firms like Allens, Herbert Smith Freehills, Clayton Utz, or MinterEllison. A Software Engineering pathway may include Atlassian or Canva. Never output placeholder text, generic descriptions, or empty arrays — always output real company names appropriate to the field.
 
 You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
     {specialisation_context}
@@ -394,7 +432,7 @@ You are a UNSW career advisor with access to current job market data. Provide ca
     F. TOP EMPLOYERS (6-8 companies in 2-3 sectors)
 
     G. STATS
-      - Employment rate, starting salary, 3 common roles, source
+      - Employment rate, starting salary, source
       CRITICAL: employment_rate must be a SHORT percentage string only (e.g. '92%'). median_starting_salary must be a SHORT dollar amount only (e.g. '$80,000'). Never write sentences in these fields.
 
     CRITICAL: ALL property names MUST have double quotes. Example:
@@ -411,12 +449,11 @@ You are a UNSW career advisor with access to current job market data. Provide ca
               "salary_range": "$X - $Y AUD based on current listings",
               "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
               "requirements": "Key requirements from actual listings",
-              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "hiring_companies": [],
               "source": "Seek/Indeed/LinkedIn/GradConnection",
               "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
             }}
-          ],
-          "years_experience": "0-2 years"
+          ]
         }},
         "mid_career": {{
           "roles": [
@@ -425,12 +462,11 @@ You are a UNSW career advisor with access to current job market data. Provide ca
               "salary_range": "$X - $Y AUD based on current listings",
               "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
               "requirements": "Key requirements from actual listings",
-              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "hiring_companies": [],
               "source": "Seek/Indeed/LinkedIn/GradConnection",
               "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
             }}
-          ],
-          "years_experience": "3-7 years"
+          ]
         }},
         "senior": {{
           "roles": [
@@ -439,12 +475,11 @@ You are a UNSW career advisor with access to current job market data. Provide ca
               "salary_range": "$X - $Y AUD based on current listings",
               "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
               "requirements": "Key requirements from actual listings",
-              "hiring_companies": ["Atlassian", "Canva", "Commonwealth Bank"],
+              "hiring_companies": [],
               "source": "Seek/Indeed/LinkedIn/GradConnection",
               "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
             }}
-          ],
-          "years_experience": "8+ years"
+          ]
         }},
         "certifications": [
           {{
@@ -470,7 +505,6 @@ You are a UNSW career advisor with access to current job market data. Provide ca
         "employment_stats": {{
           "employment_rate": "A percentage only — e.g. '92%'. No extra words, no sentences.",
           "median_starting_salary": "A dollar amount only — e.g. '$80,000'. No 'AUD', no ranges, no extra words.",
-          "common_first_roles": ["Role 1", "Role 2", "Role 3"],
           "source": "Source name only — e.g. 'QILT Graduate Outcomes Survey 2023'"
         }}
       }}
@@ -482,7 +516,8 @@ You are a UNSW career advisor with access to current job market data. Provide ca
     print("Career Pathways Generating...")
     
     try:
-        raw = ask_openai(prompt, max_tokens=5000)
+        raw = await ask_gpt_async(prompt, max_tokens=5000, model="gpt-5.4-mini")
+        print(f"[TOKENS] Career pathways raw response length: {len(raw)} chars (approx {len(raw)//4} tokens)")
         raw_stripped = raw.strip()
         
         # Extract JSON
@@ -491,16 +526,17 @@ You are a UNSW career advisor with access to current job market data. Provide ca
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
         result = sanitize_and_parse_json(json_only)
+        print(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result
-                
+
     except Exception as e:
         print(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
         
         return {
             "career_pathways": {
-                "entry_level": {"roles": [], "years_experience": "0-2 years"},
-                "mid_career": {"roles": [], "years_experience": "3-7 years"},
-                "senior": {"roles": [], "years_experience": "8+ years"},
+                "entry_level": {"roles": []},
+                "mid_career": {"roles": []},
+                "senior": {"roles": []},
                 "certifications": [],
                 "market_insights": {
                     "demand_level": "Data unavailable",
@@ -511,7 +547,6 @@ You are a UNSW career advisor with access to current job market data. Provide ca
                 "employment_stats": {
                     "employment_rate": "Data not available",
                     "median_starting_salary": "Data not available",
-                    "common_first_roles": [],
                     "source": "Information temporarily unavailable"
                 }
             }
@@ -521,7 +556,7 @@ You are a UNSW career advisor with access to current job market data. Provide ca
 # Generate industry experience and career pathways ssections in one call
 async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: dict):
 
-    loop = asyncio.get_event_loop()
+    total_start = time.time()
 
     base_context = {
         "program_name": roadmap_data.get("program_name"),
@@ -537,19 +572,24 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         except Exception as e:
             print("Failed to load specialisations:", str(e))
 
-    # Run only 2 tasks in parallel (no societies)
-    industry_future = loop.run_in_executor(
-        None, lambda: asyncio.run(ai_generate_industry_experience(base_context))
+    # Run both tasks in parallel
+    t1 = time.time()
+    results = await asyncio.gather(
+        ai_generate_industry_experience(base_context),
+        ai_generate_career_pathways(base_context),
+        return_exceptions=True,
     )
-    careers_future = loop.run_in_executor(
-        None, lambda: asyncio.run(ai_generate_career_pathways(base_context))
-    )
+    industry_result, careers_result = results
 
-    # print(f"Waiting for industry and careers for roadmap {roadmap_id}...")
+    if isinstance(industry_result, Exception):
+        logger.error(f"Industry experience generation failed: {industry_result}")
+        industry_result = {"industry_experience": {}}
 
-    industry_result, careers_result = await asyncio.gather(
-        industry_future, careers_future
-    )
+    if isinstance(careers_result, Exception):
+        logger.error(f"Career pathways generation failed: {careers_result}")
+        careers_result = {"career_pathways": {}}
+
+    print(f"[TIMING] Industry + Career Pathways generated in {time.time() - t1:.1f}s")
 
     print("Industry and careers finished. Merging payload...")
 
@@ -564,7 +604,7 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
 
-    print("Industry and careers saved.")
+    print(f"[TIMING] Total industry+careers background generation: {time.time() - total_start:.1f}s")
 
 
 # Generate societies section in another call 
