@@ -168,19 +168,16 @@ const useRoadmapData = (
         const newSocieties = row?.payload?.industry_societies;
         const newExperience = row?.payload?.industry_experience;
         const newCareers = row?.payload?.career_pathways;
-        const existingSocieties = data?.payload?.industry_societies;
-        const existingExperience = data?.payload?.industry_experience;
-        const existingCareers = data?.payload?.career_pathways;
+        const existingSocieties = data?.industry_societies;
+        const existingExperience = data?.industry_experience;
+        const existingCareers = data?.career_pathways;
 
         if (
           (newSocieties && !existingSocieties) ||
           (newExperience && !existingExperience) ||
           (newCareers && !existingCareers)
         ) {
-          setData((prev) => ({
-            ...(prev || {}),
-            payload: mergePayloadPreserveMandatoryPlacements(prev?.payload, row.payload),
-          }));
+          setData((prev) => mergePayloadPreserveMandatoryPlacements(prev, row.payload));
 
         }
       } catch (err) {
@@ -224,10 +221,7 @@ const useRoadmapData = (
               lastTimestamp = row.updated_at;
 
               // Merge latest payload each time a new bump is detected
-              setData((prev) => ({
-                ...(prev || {}),
-                payload: mergePayloadPreserveMandatoryPlacements(prev?.payload, row.payload),
-              }));
+              setData((prev) => mergePayloadPreserveMandatoryPlacements(prev, row.payload));
 
             }
 
@@ -446,7 +440,7 @@ export default function RoadmapUNSWPage() {
             );
           }
 
-          const societies = data?.payload?.industry_societies;
+          const societies = data?.industry_societies;
           if (!societies || Object.keys(societies).length === 0) {
             return (
               <GeneratingMessage
@@ -471,7 +465,7 @@ export default function RoadmapUNSWPage() {
             );
           }
 
-          const experience = data?.payload?.industry_experience;
+          const experience = data?.industry_experience;
           if (!experience || Object.keys(experience).length === 0) {
             return (
               <GeneratingMessage
@@ -496,7 +490,7 @@ export default function RoadmapUNSWPage() {
             );
           } 
 
-          const careers = data?.payload?.career_pathways;
+          const careers = data?.career_pathways;
           if (!careers || Object.keys(careers).length === 0) {
             return (
               <GeneratingMessage

@@ -12,8 +12,7 @@ from .roadmap_common import (
 )
 from .roadmap_school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
-from .roadmap_industry import generate_and_update_industry_careers
-from .roadmap_industry import generate_and_update_societies
+from .roadmap_industry import generate_and_update_all_industry
 
 router = APIRouter(tags=["roadmap"])
 
@@ -85,7 +84,13 @@ async def create_unsw(
         raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
 
-    # Trigger background tasks for societies and industry/careers
+    # Trigger a SINGLE background task that generates societies, industry
+    # experience, and career pathways together and writes the payload once.
+    # Previously this was two concurrent tasks (societies + industry/careers)
+    # that each did their own read-modify-write on unsw_roadmap.payload,
+    # which became a last-write-wins race risk after the societies model
+    # was migrated from Sonnet (~25s) to Haiku (~11s). Consolidating into
+    # one task with one DB write eliminates that race entirely.
     try:
         import asyncio
 
@@ -93,11 +98,8 @@ async def create_unsw(
             if not task.cancelled() and task.exception():
                 logger.error(f"Background task failed: {task.exception()}")
 
-        societies_task = asyncio.create_task(generate_and_update_societies(rec["id"], rec))
-        societies_task.add_done_callback(handle_task_exception)
-
-        careers_task = asyncio.create_task(generate_and_update_industry_careers(rec["id"], rec))
-        careers_task.add_done_callback(handle_task_exception)
+        industry_task = asyncio.create_task(generate_and_update_all_industry(rec["id"], rec))
+        industry_task.add_done_callback(handle_task_exception)
     except Exception as e:
         print(f"[Background] Failed to schedule tasks: {e}")
 

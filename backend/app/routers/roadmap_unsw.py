@@ -114,6 +114,7 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     uac_code = context.get("uac_code")
     lowest_sel_rank = context.get("lowest_selection_rank")
     lowest_atar = context.get("lowest_atar")
+    assumed_knowledge = context.get("assumed_knowledge")
     core_courses_text = context.get("core_courses_formatted", "")
     majors_count = len(context.get("majors", []))
     minors_count = len(context.get("minors", []))
@@ -171,7 +172,12 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 {specialisation_courses_text}
 
 === INSTRUCTIONS ===
-1. For entry_requirements: Use the provided ATAR/selection rank and research typical subject prerequisites.
+1. For entry_requirements:
+   - Use ATAR_provided and SelectionRank_provided exactly when they are numbers. If null, output a realistic UNSW cutoff.
+   - For the subjects list:
+     * If AssumedKnowledge_provided is non-null, parse the official UNSW assumed knowledge text and output ONLY the subjects it names. Do not add subjects that are not in it. Do not remove subjects that are in it. Do not substitute one subject for another.
+     * If AssumedKnowledge_provided is null, infer 2-3 subjects from the VALID NSW HSC SUBJECTS list below that are the most relevant prerequisites for {program_name}. Never invent, guess, or use a subject that is not on the list.
+   - NEVER output subjects that have been phased out of the NSW HSC. Specifically: "Software Design and Development" is discontinued, use "Software Engineering" instead. "Information Processes and Technology" is discontinued, use "Enterprise Computing" instead. Output only the current official subject names.
 
 2. For capstone (PROGRAM HIGHLIGHTS):
    - In "courses": List 2-3 SIGNATURE courses that best represent this program
@@ -197,6 +203,7 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 - UAC Code: {uac_code}
 - ATAR_provided: {json.dumps(lowest_atar)}
 - SelectionRank_provided: {json.dumps(lowest_sel_rank)}
+- AssumedKnowledge_provided: {json.dumps(assumed_knowledge)}
 - Faculty: {context.get("faculty", "Not specified")}
 - Majors available: {majors_count}
 - Minors available: {minors_count}
@@ -205,13 +212,22 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 {"- Selected Major: " + selected_major_name + " (" + str(len(selected_major_courses)) + " core courses)" if selected_major_name else ""}
 {"- Selected Minor: " + selected_minor_name + " (" + str(len(selected_minor_courses)) + " core courses)" if selected_minor_name else ""}
 
+=== VALID NSW HSC SUBJECTS (use these exact names, nothing else) ===
+Mathematics: Mathematics Standard 2, Mathematics Advanced, Mathematics Extension 1, Mathematics Extension 2
+English: English Standard, English Advanced, English Extension 1, English Extension 2, English EAL/D
+Sciences: Biology, Chemistry, Physics, Earth and Environmental Science, Investigating Science, Science Extension
+HSIE: Ancient History, Modern History, History Extension, Geography, Economics, Business Studies, Legal Studies, Society and Culture, Studies of Religion I, Studies of Religion II
+Technology and Applied Studies: Agriculture, Design and Technology, Engineering Studies, Food Technology, Industrial Technology, Textiles and Design, Software Engineering, Enterprise Computing
+Creative Arts: Visual Arts, Music 1, Music 2, Music Extension, Drama, Dance
+Languages: any NSW HSC language course in the form "[Language] Beginners", "[Language] Continuers", or "[Language] Extension"
+
 === REQUIRED JSON OUTPUT ===
 {{
   "summary": "Write 2-3 engaging sentences describing what this program offers, key focus areas, and career preparation",
   "entry_requirements": {{
     "atar": "Output ONLY a number (no words). If ATAR_provided is a number, use it exactly. If it is null, output a realistic UNSW ATAR cutoff as a pure integer or float.",
     "selectionRank": "Output ONLY a number (no words). If SelectionRank_provided is a number, use it exactly. If it is null, output a realistic UNSW selection rank cutoff as a pure integer or float.",
-    "subjects": ["EXACT HSC subject names only — 2 or 3 items maximum. Use the official NSW HSC subject name and nothing else. No qualifiers, no brackets, no notes, no 'recommended' labels. Examples of correct format: 'Mathematics Advanced', 'Chemistry', 'Physics', 'Software Design and Development', 'Economics'. Never add anything after the subject name."],
+    "subjects": ["Official NSW HSC subject names only, 2 or 3 items maximum. Every item MUST appear verbatim in the VALID NSW HSC SUBJECTS list above. If AssumedKnowledge_provided is non-null, output exactly the subjects it names and nothing else. No qualifiers, no brackets, no notes, no 'recommended' labels, no phased-out subject names. Correct examples: 'Mathematics Advanced', 'Chemistry', 'Physics', 'Software Engineering', 'Economics'. Never add anything after the subject name."],
     "notes": "Mention adjustment factors or pathways"
   }},
 

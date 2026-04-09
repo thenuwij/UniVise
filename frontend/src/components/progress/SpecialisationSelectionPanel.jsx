@@ -87,6 +87,28 @@ export default function SpecialisationSelectionPanel({
   const handleSelectSpec = async (type, spec) => {
     if (loading) return;
 
+    // Before making any change, check if there are marked completed courses
+    // that will be reset. Any specialisation change (select, deselect, swap)
+    // wipes ALL completed courses so users never end up with orphaned
+    // completion state tied to a specialisation they can no longer see.
+    let existingCompletedCount = 0;
+    try {
+      const { count } = await supabase
+        .from("user_completed_courses")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      existingCompletedCount = count || 0;
+    } catch {
+      existingCompletedCount = 0;
+    }
+
+    if (existingCompletedCount > 0) {
+      const ok = window.confirm(
+        `Changing your specialisations will reset all ${existingCompletedCount} of your marked completed courses. Continue?`
+      );
+      if (!ok) return;
+    }
+
     const isSelected = confirmedSpecs[type]?.major_code === spec.major_code;
 
     // Optimistic UI update immediately — no waiting
@@ -111,10 +133,6 @@ export default function SpecialisationSelectionPanel({
           })
           .eq("user_id", userId);
       } else {
-        const oldSpecCode = currentCodes.find((code) => {
-          const s = availableSpecialisations.find((sp) => sp.major_code === code);
-          return s && s.specialisation_type === type;
-        });
         const filteredCodes = currentCodes.filter((code) => {
           const s = availableSpecialisations.find((sp) => sp.major_code === code);
           return s && s.specialisation_type !== type;
@@ -131,16 +149,19 @@ export default function SpecialisationSelectionPanel({
             specialisation_names: [...filteredNames, spec.major_name],
           })
           .eq("user_id", userId);
-
-        if (oldSpecCode) {
-          await supabase
-            .from("user_completed_courses")
-            .delete()
-            .eq("user_id", userId)
-            .eq("source_type", type.toLowerCase())
-            .eq("source_code", oldSpecCode);
-        }
       }
+
+      // Reset ALL marked completed courses whenever specialisations change.
+      // Matches the behaviour when the program itself is changed (see
+      // ProgramSetupModal) — keeps the UX consistent and prevents orphaned
+      // completion state from a previous spec the user can no longer see.
+      if (existingCompletedCount > 0) {
+        await supabase
+          .from("user_completed_courses")
+          .delete()
+          .eq("user_id", userId);
+      }
+
       // Sync parent in background after a short delay so the component
       // stays stable — avoids unmount/remount resetting accordion state
       setTimeout(() => onUpdate(), 800);
@@ -229,8 +250,12 @@ export default function SpecialisationSelectionPanel({
               </div>
             </div>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
             Select one from each category if applicable
+          </p>
+          <p className="text-[11px] text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-1.5">
+            <HiInformationCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            Changing a specialisation will reset any courses you have marked as completed.
           </p>
 
           {isSingleType ? (

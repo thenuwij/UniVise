@@ -288,17 +288,25 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
         }
 
     try:
-        # Get specialisation IDs
+        # Get specialisation IDs.
+        # NOTE: Do NOT use .maybe_single() or .single() here. Both cause
+        # PostgREST to return HTTP 406 (PGRST116) when no row matches, and
+        # supabase-py logs that 406 at the HTTP client layer BEFORE any
+        # exception handler sees it — so even a targeted except APIError
+        # cannot suppress the log line. Using .limit(1) instead returns an
+        # empty list with HTTP 200 on no-match, so the "student has no
+        # specialisations yet" case is completely silent in the logs.
         response = (
             supabase.from_("user_specialisation_selections")
             .select("major_id, minor_id, honours_id")
             .eq("user_id", user_id)
             .eq("degree_code", degree_code)
-            .maybe_single()
+            .limit(1)
             .execute()
         )
+        rows = getattr(response, "data", None) or []
+        data = rows[0] if rows else None
 
-        data = getattr(response, "data", None)
         if not data:
             return {
                 "selected_major_name": None,

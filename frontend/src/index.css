@@ -555,6 +555,55 @@ body {
   background: rgba(75, 85, 99, 0.7);
 }
 
+/* Bold, always-visible scrollbar — used for the roadmap degree results list */
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(14, 165, 233, 0.8) rgba(148, 163, 184, 0.25);
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 6px;
+  margin: 2px 0;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.8); /* sky-500 */
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: rgba(2, 132, 199, 0.95); /* sky-600 */
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+.dark .scrollbar-visible {
+  scrollbar-color: rgba(56, 189, 248, 0.85) rgba(51, 65, 85, 0.5);
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-track {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.85); /* sky-400 */
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 211, 252, 1); /* sky-300 */
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
 /* Add to your global CSS file */
 @keyframes pulse-slow {
   0%, 100% {
@@ -580,4 +629,21 @@ body {
 
 .animate-slide-right {
   animation: slide-right 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   CTA BUTTON PULSE — gently scales to prompt click
+======================================== */
+@keyframes btn-cta-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+
+.btn-cta-pulse {
+  animation: btn-cta-pulse 2.2s ease-in-out infinite;
+}
+
+/* Pause the pulse on hover so Tailwind's hover:scale-105 wins */
+.btn-cta-pulse:hover {
+  animation-play-state: paused;
 }

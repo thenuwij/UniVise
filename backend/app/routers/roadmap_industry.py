@@ -129,11 +129,11 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
 # OpenAI call for generating societies
 async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
-    
+
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
 
-    # Add specialisation context 
+    # Add specialisation context
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
     selected_honours = context.get("selected_honours_name")
@@ -148,17 +148,69 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
         if selected_honours:
             specialisation_context += f"- Honours: {selected_honours}\n"
 
-    
+    # Fetch the verified Arc UNSW society allowlist from Supabase.
+    # If fetch fails or returns empty, fall back to unconstrained generation
+    # (existing behaviour) so roadmap generation never crashes.
+    verified_societies_section = ""
+    try:
+        societies_resp = (
+            supabase.table("unsw_societies")
+            .select("name, arc_category, short_name")
+            .execute()
+        )
+        rows = societies_resp.data or []
+        if rows:
+            lines = []
+            for row in rows:
+                name = (row.get("name") or "").strip()
+                if not name:
+                    continue
+                arc_cat = (row.get("arc_category") or "Uncategorised").strip()
+                short = row.get("short_name")
+                line = f"{name} [{arc_cat}]"
+                if short:
+                    line += f" ({short.strip()})"
+                lines.append(line)
+            verified_list_text = "\n".join(lines)
+            verified_societies_section = f"""
+
+    VERIFIED ARC UNSW SOCIETY LIST, SELECT ONLY FROM THIS LIST:
+{verified_list_text}
+
+    You MUST only recommend societies whose name appears exactly in the list above.
+    Copy the name field verbatim from the list, do not paraphrase, shorten, abbreviate, or alter it in any way.
+    Do not invent or include any society not present in the list above.
+    The bracketed [arc_category] after each name is context only, use it to inform relevance judgements, not as a category rule.
+    The faculty_specific vs cross_faculty split is still your decision based on relevance to {program_name} and the Faculty of {faculty}.
+"""
+            logger.info(f"[Societies] Injected {len(lines)} verified societies into prompt")
+        else:
+            logger.warning("[Societies] unsw_societies table returned no rows, falling back to unconstrained generation")
+    except Exception as e:
+        logger.warning(f"[Societies] Failed to fetch unsw_societies, falling back to unconstrained generation: {e}")
+
     prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
 
 You are a UNSW student engagement advisor. Generate society recommendations for {program_name} students in the Faculty of {faculty}.
     {specialisation_context}
+    {verified_societies_section}
 
     CRITICAL ACCURACY RULES:
-    - ONLY include societies that currently exist and are active on Arc UNSW (arc.unsw.edu.au)
-    - NEVER invent society names — if unsure, use well-known verified ones like CompSoc, EngSoc, DataSoc, MedSoc, FinSoc, UNSW Law Society, etc.
-    - Society names must match their official Arc UNSW name exactly
-    - All descriptions must be 1 sentence maximum — concise and specific
+    - ONLY include societies that currently exist and are active on Arc UNSW (arc.unsw.edu.au).
+    - NEVER invent a society. If you are not certain a society exists on Arc UNSW for this specific program and faculty, do not include it.
+    - Society names must match their official Arc UNSW name exactly.
+    - Select societies based solely on relevance to {program_name} and the Faculty of {faculty}. Do not default to societies from any particular discipline.
+
+    SOCIETY NAME FORMAT (STRICT, applies to every society in faculty_specific and cross_faculty):
+    - If the society is commonly known by an acronym or short form, output the format: "Full Official Society Name (ShortForm)".
+      Abstract pattern only, do not copy: "[Full Official Name Of The Society] ([CommonShortForm])".
+    - If the society has no commonly used acronym, output only its full official name with no brackets.
+    - NEVER output a bare acronym or nickname on its own. The name field must always start with the full official name.
+    - This rule applies equally to BOTH "faculty_specific[].name" AND "cross_faculty[].name".
+    - This is a formatting rule only. It must not influence which societies you choose, only how you write their names.
+
+    OTHER FIELD RULES:
+    - All descriptions must be 1 sentence maximum, concise and specific
     - Key activities: maximum 3 items, each under 8 words
     - Membership benefits: 1 sentence maximum
     - getting_started fields: each must be under 15 words
@@ -169,18 +221,18 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
         "faculty_specific": [
           // Generate 3-5 faculty-specific societies relevant to this degree.
           {{
-            "name": "Official Arc UNSW society name",
+            "name": "Full official Arc UNSW society name. If the society has a common short form, append it in brackets at the end. Never output a bare acronym alone.",
             "category": "Academic/Professional/Social",
-            "relevance": "One sentence — why specifically relevant to {program_name} students",
+            "relevance": "One sentence, why specifically relevant to {program_name} students",
             "key_activities": ["Activity 1 (max 8 words)", "Activity 2", "Activity 3"],
-            "membership_benefits": "One sentence — concrete benefits",
+            "membership_benefits": "One sentence, concrete benefits",
             "professional_affiliation": "Professional body name or null"
           }}
         ],
         "cross_faculty": [
           {{
-            "name": "Official Arc UNSW society name",
-            "why_join": "One sentence — specific benefit for {program_name} students"
+            "name": "Full official Arc UNSW society name. If the society has a common short form, append it in brackets at the end. Never output a bare acronym alone.",
+            "why_join": "One sentence, specific benefit for {program_name} students"
           }}
           // Include 2-4 societies (maximum 4). Only include societies that genuinely benefit students from this specific program. Must be real, currently active Arc UNSW societies.
         ],
@@ -211,7 +263,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     print("Societies generating...")
 
     try:
-        raw = await ask_claude_async(prompt)
+        raw = await ask_claude_async(prompt, model="claude-haiku-4-5-20251001")
 
         raw_stripped = raw.strip()
         first_brace = raw_stripped.find('{')
@@ -554,7 +606,15 @@ You are a UNSW career advisor with access to current job market data. Provide ca
 
 
 # Generate industry experience and career pathways ssections in one call
-async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: dict):
+# Generate ALL industry-related sections (societies + industry_experience
+# + career_pathways) in a SINGLE background task with ONE read-modify-write
+# against unsw_roadmap.payload. This replaces the previously-split
+# generate_and_update_societies() and generate_and_update_industry_careers()
+# functions to eliminate the last-write-wins race that became possible after
+# migrating societies generation from Sonnet to Haiku (completion gap went
+# from ~14s to ~2s, so the two background tasks could now finish in either
+# order and overwrite each other's payload writes under load).
+async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
 
     total_start = time.time()
 
@@ -563,60 +623,8 @@ async def generate_and_update_industry_careers(roadmap_id: str, roadmap_data: di
         "faculty": roadmap_data.get("payload", {}).get("faculty"),
     }
 
-    user_id = roadmap_data.get("user_id")
-    degree_code = roadmap_data.get("degree_code")
-    if user_id and degree_code:
-        try:
-            spec = fetch_user_specialisation_context(user_id, degree_code)
-            base_context.update(spec)
-        except Exception as e:
-            print("Failed to load specialisations:", str(e))
-
-    # Run both tasks in parallel
-    t1 = time.time()
-    results = await asyncio.gather(
-        ai_generate_industry_experience(base_context),
-        ai_generate_career_pathways(base_context),
-        return_exceptions=True,
-    )
-    industry_result, careers_result = results
-
-    if isinstance(industry_result, Exception):
-        logger.error(f"Industry experience generation failed: {industry_result}")
-        industry_result = {"industry_experience": {}}
-
-    if isinstance(careers_result, Exception):
-        logger.error(f"Career pathways generation failed: {careers_result}")
-        careers_result = {"career_pathways": {}}
-
-    print(f"[TIMING] Industry + Career Pathways generated in {time.time() - t1:.1f}s")
-
-    print("Industry and careers finished. Merging payload...")
-
-    latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
-    payload = latest.data.get("payload", {}) if latest.data else {}
-
-    payload["industry_experience"] = industry_result.get("industry_experience", {})
-    payload["career_pathways"] = careers_result.get("career_pathways", {})
-
-    supabase.from_("unsw_roadmap").update({
-        "payload": payload,
-        "updated_at": datetime.utcnow().isoformat(),
-    }).eq("id", roadmap_id).execute()
-
-    print(f"[TIMING] Total industry+careers background generation: {time.time() - total_start:.1f}s")
-
-
-# Generate societies section in another call 
-async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
-
-    start = time.time()
-
-    base_context = {
-        "program_name": roadmap_data.get("program_name"),
-        "faculty": roadmap_data.get("payload", {}).get("faculty"),
-    }
-
+    # Fetch user specialisations ONCE — both society and career generations
+    # read the same context, so there's no need to hit the DB twice.
     user_id = roadmap_data.get("user_id")
     degree_code = roadmap_data.get("degree_code")
     if user_id and degree_code:
@@ -626,20 +634,50 @@ async def generate_and_update_societies(roadmap_id: str, roadmap_data: dict):
         except Exception as e:
             print(f"Failed to load specialisations: {e}")
 
-    # Generate societies
-    societies_result = await ai_generate_societies(base_context)
+    # Run all three AI generations in parallel. asyncio.gather with
+    # return_exceptions=True ensures a single failure doesn't poison the
+    # others — each result is checked individually below.
+    ai_start = time.time()
+    results = await asyncio.gather(
+        ai_generate_societies(base_context),
+        ai_generate_industry_experience(base_context),
+        ai_generate_career_pathways(base_context),
+        return_exceptions=True,
+    )
+    societies_result, industry_result, careers_result = results
 
-    # Load latest payload and merge
+    if isinstance(societies_result, Exception):
+        logger.error(f"Societies generation failed: {societies_result}")
+        societies_result = {"societies": {}}
+
+    if isinstance(industry_result, Exception):
+        logger.error(f"Industry experience generation failed: {industry_result}")
+        industry_result = {"industry_experience": {}}
+
+    if isinstance(careers_result, Exception):
+        logger.error(f"Career pathways generation failed: {careers_result}")
+        careers_result = {"career_pathways": {}}
+
+    print(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
+
+    # SINGLE read-modify-write against unsw_roadmap.payload.
+    # All three sections are merged in one operation so there is no window
+    # in which two concurrent background tasks can overwrite each other.
+    print("All industry sections finished. Merging payload...")
+
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
 
-    # Save to industry_societies for frontend polling
+    # Merge (not replace) — any existing keys in payload (e.g. mandatory
+    # placements, structure, etc.) are preserved. Only the three industry
+    # sections are set/overwritten.
     payload["industry_societies"] = societies_result.get("societies", {})
+    payload["industry_experience"] = industry_result.get("industry_experience", {})
+    payload["career_pathways"] = careers_result.get("career_pathways", {})
 
-    # Save immediately
     supabase.from_("unsw_roadmap").update({
         "payload": payload,
-        "updated_at": datetime.utcnow().isoformat()
+        "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
 
-    print(f"Societies section completed in {time.time() - start:.1f}s")
+    print(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")

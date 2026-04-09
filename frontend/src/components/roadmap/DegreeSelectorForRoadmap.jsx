@@ -128,7 +128,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
 
       {/* Results List - Vertical Cards */}
       {shouldShowResults && (
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+        <div className="scrollbar-visible space-y-2 max-h-[min(560px,70vh)] overflow-y-auto p-3 rounded-xl bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/70 shadow-inner">
           {filteredDegrees.length > 0 ? (
             filteredDegrees.map((deg) => {
               const isSelected = selectedId === deg.id;

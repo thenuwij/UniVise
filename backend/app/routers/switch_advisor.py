@@ -93,8 +93,104 @@ async def get_switch_advice(
             asyncio.to_thread(fetch_survey)
         )
 
+        # ── [Transfer Debug] RAW INPUTS ──────────────────────────────
+        # Logged immediately after DB fetches, before any calculation.
+        _bdown_in = comparison.get("detailed_breakdown", {}) or {}
+        _base_in = _bdown_in.get("base_program", {}) or {}
+        _target_in = _bdown_in.get("target_program", {}) or {}
+        _summary_in = comparison.get("summary", {}) or {}
+        _transfer_in = comparison.get("transfer_analysis", {}) or {}
+        _completed_uoc_in = (
+            _summary_in.get("completed_uoc")
+            or _transfer_in.get("completed_uoc")
+            or 0
+        )
+        logger.info(f"[Transfer Debug] RAW INPUTS — user={request.user_id}")
+        logger.info(
+            f"[Transfer Debug] current: name='{_base_in.get('name','')}' "
+            f"code={request.base_program_code} total_uoc={_base_in.get('total_uoc','')}"
+        )
+        logger.info(f"[Transfer Debug] completed_uoc={_completed_uoc_in}")
+        logger.info(
+            f"[Transfer Debug] target: name='{_target_in.get('name','')}' "
+            f"code={request.target_program_code} "
+            f"summary.estimated_terms={_summary_in.get('estimated_terms','')}"
+        )
+        logger.info(
+            f"[Transfer Debug] base_spec={request.base_specialisation_codes} "
+            f"target_spec={request.target_specialisation_codes}"
+        )
+        logger.info(
+            f"[Transfer Debug] personality_top_types={personality_data.get('top_types', [])}"
+        )
+        logger.info(
+            f"[Transfer Debug] academic_year={survey_data.get('academic_year','')} "
+            f"study_feelings={survey_data.get('study_feelings','')}"
+        )
+        logger.info(
+            f"[Transfer Debug] interest_areas={survey_data.get('interest_areas', [])}"
+        )
+
         context = build_context(comparison, personality_data, survey_data)
+
+        # ── [Transfer Debug] CALCULATED VALUES ───────────────────────
+        # Logged immediately after build_context() computes additional_terms
+        # and base_terms_remaining. base_total_uoc isn't exposed in the
+        # returned context dict, so recompute it locally from the breakdown.
+        _base_total_uoc_calc = _safe_int(_base_in.get("total_uoc") or 0)
+        logger.info(
+            f"[Transfer Debug] CALCULATED — base_total_uoc={_base_total_uoc_calc} "
+            f"completed_uoc={context.get('total_completed_uoc', 0)} "
+            f"transferred_uoc={context.get('transferred_uoc', 0)}"
+        )
+        logger.info(
+            f"[Transfer Debug] base_terms_remaining={int(context.get('base_terms_remaining', 0))} (whole terms) "
+            f"estimated_terms={int(context.get('estimated_terms', 0))} "
+            f"additional_terms={int(context.get('additional_terms', 0))}"
+        )
+        logger.info(
+            f"[Transfer Debug] estimated_completion='{context.get('estimated_completion','')}' "
+            f"transfer_rate_courses={context.get('transfer_rate_courses', 0)}"
+        )
+        logger.info(
+            f"[Transfer Debug] courses_transferred={context.get('transferred_count', 0)} "
+            f"courses_lost={context.get('wasted_count', 0)}"
+        )
+
         user_prompt = build_user_prompt(context)
+
+        # ── [Transfer Debug] AI INPUT SUMMARY ────────────────────────
+        # Logged immediately before the Claude call. The band thresholds
+        # mirror the FACTOR 2 rules in build_system_prompt().
+        _add_t = context.get("additional_terms", 0)
+        if _add_t == 0:
+            _band = "0 (no extra time)"
+        elif _add_t <= 2:
+            _band = "1-2 (manageable)"
+        elif _add_t <= 6:
+            _band = "3-6 (real cost)"
+        else:
+            _band = "6+ (only if essential)"
+        logger.info(
+            "[Transfer Debug] AI INPUT — verdict bands: "
+            "recommended / conditional / not_recommended"
+        )
+        logger.info(f"[Transfer Debug] additional_terms band={_band}")
+        logger.info(
+            f"[Transfer Debug] system_prompt_chars={len(build_system_prompt())} "
+            f"user_prompt_chars={len(user_prompt)}"
+        )
+        logger.info(
+            f"[Eunice] user={request.user_id} "
+            f"current='{context.get('base_program','')}' "
+            f"target='{context.get('target_program','')}' "
+            f"completed={context.get('total_completed_uoc', 0)}uoc "
+            f"base_remaining={context.get('base_terms_remaining', 0)}t "
+            f"target_needs={context.get('estimated_terms', 0)}t "
+            f"additional={_add_t}t "
+            f"completion='{context.get('estimated_completion','')}' "
+            f"verdict_band={_band}"
+        )
 
         response = _client.messages.create(
             model="claude-sonnet-4-6",
@@ -310,9 +406,10 @@ def build_context(comparison: dict, personality_data: dict = None, survey_data: 
     if isinstance(breakdown, dict):
         bp = breakdown.get("base_program", {}) or {}
         base_total_uoc = _safe_int(bp.get("total_uoc") or 0)
-    base_terms_remaining = max(0, (base_total_uoc - completed_uoc) / 18) if base_total_uoc > 0 else 0
-    base_terms_remaining = round(base_terms_remaining, 1)
-    additional_terms = max(0, round(estimated_terms - base_terms_remaining, 1))
+    # Use ceiling division to match estimated_terms so both sides are
+    # whole-term integers — a student cannot complete a fraction of a term.
+    base_terms_remaining = max(0, (base_total_uoc - completed_uoc + 17) // 18) if base_total_uoc > 0 else 0
+    additional_terms = max(0, estimated_terms - base_terms_remaining)
 
     return {
         "can_transfer": comparison.get("can_transfer", True),

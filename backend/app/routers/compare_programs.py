@@ -166,10 +166,14 @@ async def compare_programs(
         wasted_uoc = 0
         matched_target_codes = set()
         target_by_code = {c["code"]: c for c in target_courses_full}
+        # Count courses where we fell back to the 6-UOC UNSW standard
+        # because neither the target catalog nor the completed row carried a
+        # usable UOC value. Logged after the loop so the assumption is visible.
+        _uoc_fallback_count = 0
 
         for completed in completed_courses:
             c_code = completed["course_code"]
-            c_uoc = completed.get("uoc") or 0
+            c_uoc_raw = completed.get("uoc")
 
             match_type = None
             matched_code = None
@@ -186,17 +190,33 @@ async def compare_programs(
                         break
 
             if match_type:
+                # Resolve UOC in priority order: target catalog → completed
+                # row → fallback to 6 (UNSW standard). Prefer the target
+                # catalog because user_completed_courses.uoc is occasionally
+                # NULL/stale, which would otherwise zero out uoc_transferred
+                # and leave estimated_terms wildly overestimated in
+                # switch_advisor's additional_terms calculation.
+                target_course = target_by_code.get(matched_code) or {}
+                target_uoc = target_course.get("uoc")
+                resolved_uoc = 0
+                try:
+                    if target_uoc not in (None, "", 0):
+                        resolved_uoc = int(target_uoc)
+                    elif c_uoc_raw not in (None, "", 0):
+                        resolved_uoc = int(c_uoc_raw)
+                except Exception:
+                    resolved_uoc = 0
+                if resolved_uoc <= 0:
+                    resolved_uoc = 6  # UNSW standard UOC per course
+                    _uoc_fallback_count += 1
+
                 transferred_courses.append({
                     "code": c_code,
                     "name": completed.get("course_name", ""),
-                    "uoc": int(c_uoc or 0),
+                    "uoc": resolved_uoc,
                     "match_type": match_type
                 })
-                if c_uoc:
-                    try:
-                        uoc_transferred += int(c_uoc)
-                    except Exception:
-                        pass
+                uoc_transferred += resolved_uoc
 
                 if matched_code:
                     matched_target_codes.add(matched_code)
@@ -204,18 +224,24 @@ async def compare_programs(
                         if equiv in target_by_code:
                             matched_target_codes.add(equiv)
             else:
+                try:
+                    wasted_course_uoc = (
+                        int(c_uoc_raw) if c_uoc_raw not in (None, "", 0) else 0
+                    )
+                except Exception:
+                    wasted_course_uoc = 0
                 wasted_courses.append({
                     "code": c_code,
                     "name": completed.get("course_name", ""),
-                    "uoc": int(c_uoc or 0)
+                    "uoc": wasted_course_uoc
                 })
-                if c_uoc:
-                    try:
-                        wasted_uoc += int(c_uoc)
-                    except Exception:
-                        pass
+                if wasted_course_uoc:
+                    wasted_uoc += wasted_course_uoc
 
-        logger.info(f"Transfer: {len(transferred_courses)} courses, {uoc_transferred} UOC")
+        logger.info(
+            f"Transfer: {len(transferred_courses)} courses, {uoc_transferred} UOC "
+            f"(fallback 6 UOC assumed for {_uoc_fallback_count} course(s))"
+        )
 
         # Courses needed
         needed_courses = [
@@ -332,7 +358,12 @@ async def compare_programs(
                 "base_program": {
                     "code": base_program["degree_code"],
                     "name": base_program["program_name"],
-                    "faculty": base_program.get("faculty")
+                    "faculty": base_program.get("faculty"),
+                    # total_uoc must be present so switch_advisor can compute
+                    # base_terms_remaining. Without this, same-degree spec
+                    # switches (and actually every switch) end up with
+                    # base_total_uoc=0 and a massively inflated additional_terms.
+                    "total_uoc": int(base_program.get("minimum_uoc") or 144),
                 },
                 "target_program": {
                     "code": target_program["degree_code"],
