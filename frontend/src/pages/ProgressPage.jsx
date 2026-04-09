@@ -431,7 +431,10 @@ function ProgressPage() {
         `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/compare`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
           body: JSON.stringify({
             user_id: session.user.id,
             base_program_code: enrolledProgram.degree_code,
@@ -449,7 +452,10 @@ function ProgressPage() {
         `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/switch-advisor`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
           body: JSON.stringify({
             user_id: session.user.id,
             base_program_code: enrolledProgram.degree_code,
