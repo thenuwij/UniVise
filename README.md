@@ -14,7 +14,7 @@ The broader platform was built in collaboration with a parallel Honours thesis b
 
 The platform consolidates fragmented university information — program handbooks, course rules, specialisation requirements, and industry signals — into a single decision-support experience. Students can explore structured roadmaps, visualise prerequisite constraints, compare programs, and receive recommendations for program transfers based on completed coursework.
 
-UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates an LLM reasoning layer to generate structured guidance and explanations, and optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
+UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost. The platform optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
 
 The platform is **deployed to production** on Vercel (frontend) and Render (backend), with continuous deployment triggered on every Git push.
 
@@ -54,7 +54,7 @@ Users log into the platform via **Google OAuth** and operate within an account c
 
 The roadmap feature generates a structured view of a student's program pathway. It presents a coherent sequence of recommended courses and highlights how program requirements are satisfied over time, based on rules and chosen specialisations.
 
-This feature is designed to reduce the cognitive overhead of manually interpreting handbook requirements and planning around prerequisites. AI roadmap generation has been **optimised to run in under 30 seconds** through parallelised LLM API calls and structured course data caching — down from an initial generation time exceeding 50 seconds.
+The roadmap is delivered in two phases. An initial synchronous payload — covering entry requirements, capstone, and honours information — returns in approximately 10–15 seconds. Background AI generation for societies, industry experience, and career pathways then runs concurrently via parallelised async tasks, with career pathways generation reduced from over 50 seconds to approximately 15 seconds through model selection and concurrency optimisation.
 
 ### Program Comparison and Transfer Analysis (Switch Advisor)
 
@@ -65,7 +65,7 @@ The transfer advisor enables a student to compare their current program against 
 - What remains to complete in the target program
 - The overall impact on progression and workload
 
-In addition to the structured comparison output, UniVise generates a recommendation narrative that explains the transfer tradeoffs and suggests a strategy for completing remaining requirements.
+The analysis is powered by an AI advisor agent that receives structured facts computed by the backend — transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree — alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
 
 ### Specialisation Selection Support
 
@@ -102,20 +102,19 @@ This component can be enabled or disabled depending on API availability and cost
 | Frontend | React, TypeScript, TailwindCSS, React Router |
 | Backend | FastAPI, Python |
 | Database | Supabase (PostgreSQL) |
-| AI Layer | OpenAI API, prompt-orchestrated LLM reasoning |
+| AI Layer | Anthropic Claude API (Sonnet, Haiku) + OpenAI API (GPT-4o mini, GPT-5.4-mini) — multi-provider prompt orchestration with model-agnostic JSON parsing |
 | Auth | Google OAuth |
 | Deployment | Vercel (frontend), Render (backend), continuous deployment via Git |
 | Job Data | SerpAPI (Google Jobs) — optional |
 
 ### High-Level Architecture
-
 ```
 User
  └── React + TypeScript Frontend (Vercel)
        └── FastAPI Backend (Render)
              ├── Supabase PostgreSQL Database
-             ├── LLM Reasoning Layer (OpenAI API)
-             │     └── Parallelised prompt orchestration
+             ├── LLM Reasoning Layer (Anthropic + OpenAI APIs)
+             │     └── Multi-provider parallelised prompt orchestration
              └── SerpAPI Integration (optional)
 ```
 
@@ -123,7 +122,10 @@ The backend coordinates rule parsing, transfer logic, prerequisite graph generat
 
 ### Technical Highlights
 
-- **~40% reduction in AI generation time** via parallelised LLM API calls and structured data caching (50s → under 30s)
+- **~75% reduction in career pathways generation time** via model selection and async concurrency (50s+ → ~15s)
+- **~60% latency reduction on program comparison** via parallelised database fetching with `asyncio.gather()`
+- Multi-provider LLM architecture with model-agnostic JSON parsing — models selected per task for quality and cost
+- AI advisor agent for transfer analysis integrating personality profiling (RIASEC) and structured academic context
 - Custom transfer-matching engine for cross-program comparison
 - Dynamic prerequisite graph construction with force-directed layout (MindMesh)
 - Google OAuth authentication with persistent, database-backed user profiles
@@ -161,7 +163,7 @@ Python scripts were developed to automate re-ingestion and synchronisation of un
 
 ## Usability Evaluation
 
-UniVise was evaluated with **UNSW students** as part of the Honours research process. Participants completed structured tasks across the roadmap, transfer advisor, and MindMesh features, with feedback collected on system clarity, recommendation quality, and overall usefulness. Findings informed iterative improvements to the AI reasoning pipeline and UI design.
+UniVise was evaluated with **80 UNSW students** as part of the Honours research process. Participants completed structured tasks across the roadmap, transfer advisor, and MindMesh features, with feedback collected on system clarity, recommendation quality, and overall usefulness. Findings informed iterative improvements to the AI reasoning pipeline and UI design.
 
 ---
 
