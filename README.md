@@ -163,7 +163,7 @@ Python scripts were developed to automate re-ingestion and synchronisation of un
 
 ## Usability Evaluation
 
-UniVise is currently being evaluated with **80 UNSW students** as part of the Honours research process. Participants completed structured tasks across the roadmap, transfer advisor, and MindMesh features, with feedback collected on system clarity, recommendation quality, and overall usefulness. Findings informed iterative improvements to the AI reasoning pipeline and UI design.
+UniVise is currently being evaluated with **80 UNSW students** as part of the Honours research process. Participants complete structured tasks across the roadmap, transfer advisor, and MindMesh features, with feedback collected on system clarity, recommendation quality, and overall usefulness. Findings are informing iterative improvements to the AI reasoning pipeline and UI design.
 
 ---
 
