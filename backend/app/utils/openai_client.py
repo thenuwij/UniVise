@@ -24,7 +24,7 @@ def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTE
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -33,10 +33,8 @@ def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTE
 
 
 async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, system_prompt: str = _GPT_SYSTEM, model: str = _GPT_MODEL, reasoning_effort: str = None) -> str:
-    """Async GPT call. Supports GPT-5.x reasoning_effort and max_completion_tokens."""
+    """Async GPT call. Supports GPT-5.x reasoning_effort."""
     try:
-        # GPT-5.x models use max_completion_tokens, older models use max_tokens
-        token_param = {"max_completion_tokens": max_tokens} if model.startswith("gpt-5") else {"max_tokens": max_tokens}
         # reasoning_effort is only supported on GPT-5.x models
         reasoning_param = {"reasoning_effort": reasoning_effort} if reasoning_effort and model.startswith("gpt-5") else {}
         response = await _openai_async_client.chat.completions.create(
@@ -45,7 +43,7 @@ async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float 
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            **token_param,
+            max_completion_tokens=max_tokens,
             **reasoning_param,
             temperature=temperature,
         )
@@ -65,7 +63,7 @@ async def ask_gpt_stream(
     response = await _openai_async_client.chat.completions.create(
         model=_GPT_MODEL,
         messages=[{"role": "system", "content": system_prompt}] + history,
-        max_tokens=max_tokens,
+        max_completion_tokens=max_tokens,
         temperature=temperature,
         stream=True,
     )

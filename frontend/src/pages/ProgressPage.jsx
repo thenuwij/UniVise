@@ -584,6 +584,14 @@ function ProgressPage() {
         <div className="" ref={contentRef}>
           {/* ═══ STEP INDICATOR ═══════════════════════════════════ */}
           <div className="bg-gradient-to-r from-slate-300 via-slate-200 to-slate-300 dark:from-slate-600 dark:via-slate-700 dark:to-slate-600 border-b border-slate-400 dark:border-slate-500 px-6 py-5 mb-2 flex items-center">
+            {currentStep === 1 && (
+              <button
+                onClick={() => navigate("/planner")}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              >
+                <HiArrowLeft className="w-4 h-4" /> Planner
+              </button>
+            )}
             {currentStep > 1 && currentStep < 4 && (
               <button
                 onClick={goBack}
@@ -597,7 +605,7 @@ function ProgressPage() {
                 onClick={() => setCurrentStep(3)}
                 className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
               >
-                <HiArrowLeft className="w-4 h-4" /> Back to Planner
+                <HiArrowLeft className="w-4 h-4" /> Back
               </button>
             )}
             <span className="ml-auto text-slate-500 dark:text-slate-400 text-xs font-semibold tracking-widest uppercase">
