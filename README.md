@@ -6,9 +6,7 @@
 
 ## Description
 
-UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together.
-
-UniVise was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney. The project received a **High Distinction** and was **selected among the top 22 projects for the UNSW Honours Thesis Showcase 2025**.
+UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney. 
 
 The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
 
