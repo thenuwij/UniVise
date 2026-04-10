@@ -10,7 +10,7 @@ UniVise is an AI-powered academic advising and planning platform designed to hel
 
 The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
 
-The platform consolidates fragmented university information — program handbooks, course rules, specialisation requirements, and industry signals — into a single decision-support experience. Students can explore structured roadmaps, visualise prerequisite constraints, compare programs, and receive recommendations for program transfers based on completed coursework.
+The platform consolidates fragmented university information including program handbooks, course rules, specialisation requirements, and industry signals into a single decision-support experience. Students can explore structured roadmaps, visualise prerequisite constraints, compare programs, and receive recommendations for program transfers based on completed coursework.
 
 UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost. The platform optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
 
@@ -52,7 +52,7 @@ Users log into the platform via **Google OAuth** and operate within an account c
 
 The roadmap feature generates a structured view of a student's program pathway. It presents a coherent sequence of recommended courses and highlights how program requirements are satisfied over time, based on rules and chosen specialisations.
 
-The roadmap is delivered in two phases. An initial synchronous payload — covering entry requirements, capstone, and honours information — returns in approximately 10–15 seconds. Background AI generation for societies, industry experience, and career pathways then runs concurrently via parallelised async tasks, with career pathways generation reduced from over 50 seconds to approximately 15 seconds through model selection and concurrency optimisation.
+The roadmap is delivered in two phases. An initial synchronous payload covering entry requirements, capstone, and honours information returns in approximately 10–15 seconds. Background AI generation for societies, industry experience, and career pathways then runs concurrently via parallelised async tasks, with career pathways generation reduced from over 50 seconds to approximately 15 seconds through model selection and concurrency optimisation.
 
 ### Program Comparison and Transfer Analysis (Switch Advisor)
 
@@ -63,7 +63,7 @@ The transfer advisor enables a student to compare their current program against 
 - What remains to complete in the target program
 - The overall impact on progression and workload
 
-The analysis is powered by an AI advisor agent that receives structured facts computed by the backend — transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree — alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
+TThe analysis is powered by an AI advisor agent that receives structured facts computed by the backend including transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree, alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
 
 ### Specialisation Selection Support
 
