@@ -3,7 +3,6 @@ import { supabase } from "../supabaseClient";
 
 export function useRoadmapData() {
   const [userType, setUserType] = useState("university");
-  const [hasTranscript, setHasTranscript] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,26 +25,11 @@ export function useRoadmapData() {
         if (!active) return;
         setUserType(currentUserType);
         console.log("Current userType:", currentUserType);
-        // Pick correct tables
-        const analysisTable =
-          currentUserType === "high_school"
-            ? "school_report_analysis"
-            : "transcript_analysis";
 
         const recsTable =
           currentUserType === "high_school"
             ? "degree_recommendations"
             : "final_degree_recommendations";
-
-        // Transcript check
-        const { data: analysisData } = await supabase
-          .from(analysisTable)
-          .select("user_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!active) return;
-        setHasTranscript(!!analysisData);
 
         // Recommendations
         const { data: recs, error: recsError } = await supabase
@@ -98,5 +82,5 @@ export function useRoadmapData() {
     };
   }, []);
 
-  return { userType, hasTranscript, recommendations, loading, error };
+  return { userType, recommendations, loading, error };
 }

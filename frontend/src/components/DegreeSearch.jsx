@@ -19,9 +19,7 @@ function DegreeSearch() {
 
       const { data } = await supabase
         .from("final_degree_recommendations")
-        .select(
-          "degree_name, degree_code, reason, year_1_courses, year_2_courses, year_3_courses, year_4_courses, specialisations"
-        )
+        .select("degree_name, degree_code, reason")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
@@ -30,13 +28,6 @@ function DegreeSearch() {
           degreeName: deg.degree_name,
           degree_code: deg.degree_code,
           reason: deg.reason,
-          specialisations: deg.specialisations,
-          courseBreakdown: {
-            "Year 1": deg.year_1_courses,
-            "Year 2": deg.year_2_courses,
-            "Year 3": deg.year_3_courses,
-            "Year 4": deg.year_4_courses,
-          },
         }));
         setRecommended(formatted);
       }

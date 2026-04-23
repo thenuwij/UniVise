@@ -434,7 +434,7 @@ function ProfilePage() {
               </div>
             </div>
 
-            {/* Right: Profile Picture + Transcript merged */}
+            {/* Right: Profile Picture */}
             <div>
               <div className="card-glass-spotlight">
                 <div />

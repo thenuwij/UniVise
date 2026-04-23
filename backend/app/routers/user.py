@@ -65,24 +65,3 @@ async def get_user_recommendations(
     return resp.data
 
 
-@router.get("/user/academic_analysis")
-async def get_user_academic_analysis(
-    user=Depends(get_current_user), student_type=Depends(get_student_type)
-):
-    if student_type == "university":
-        table = "transcript_analysis"
-    elif student_type == "high_school":
-        table = "school_report_analysis"
-    else:
-        raise HTTPException(status_code=400, detail="Invalid student type")
-
-    try:
-        resp = supabase.table(table).select("analysis").eq("user_id", user.id).execute()
-    except Exception as e:
-        logger.error(f"[user_academic_analysis] DB query failed for user {user.id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch academic analysis")
-
-    if not resp.data:
-        raise HTTPException(status_code=401, detail="Academic Analysis not Found")
-
-    return resp.data

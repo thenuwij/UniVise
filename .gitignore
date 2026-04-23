@@ -17,4 +17,7 @@ venv/
 .idea/
 .vscode/
 CLAUDE.md
-CLAUDE.md
+
+# Inventory docs (generated, not for repo)
+DATABASE_INVENTORY.md
+AUTH_INVENTORY.md

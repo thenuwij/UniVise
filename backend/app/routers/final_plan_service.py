@@ -71,6 +71,7 @@ async def generate_final_plan(user_id: str):
     - Do NOT create, modify, or infer degree names.
     - If a degree is not in the list, you CANNOT recommend it.
     - The "degreeName" field MUST match a name from the list, character-for-character.
+    - Do NOT recommend the same degree more than once. Each "degreeName" in your output must be unique.
     - If none are appropriate, return an empty JSON list [].
 
     Your task:
@@ -145,11 +146,23 @@ async def generate_final_plan(user_id: str):
         })
 
 
-    # print("\n FINAL DEGREE RECOMMENDATIONS TO INSERT")
-    # for r in rows:
-    #     print(f"- {r['degree_name']} → degree_code={r['degree_code']} | reason={r['reason'][:80]}...")
+    # Dedup by degree_code — the LLM occasionally returns the same program twice,
+    # and the DB has a unique index on (user_id, degree_code) that would 409 the batch.
+    seen = set()
+    deduped_rows = []
+    for r in rows:
+        if r["degree_code"] in seen:
+            continue
+        seen.add(r["degree_code"])
+        deduped_rows.append(r)
+    rows = deduped_rows
 
-    insert_response = supabase.table("final_degree_recommendations").insert(rows).execute()
+    insert_response = (
+        supabase
+        .table("final_degree_recommendations")
+        .upsert(rows, on_conflict="user_id,degree_code")
+        .execute()
+    )
 
     if not insert_response or not insert_response.data:
         raise Exception("Supabase insert failed")
