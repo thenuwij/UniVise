@@ -208,24 +208,6 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
 
 
 
-def fetch_degree_related_info(degree_id: str):
-    majors, minors, doubles = [], [], []
-    if not degree_id:
-        return majors, minors, doubles
-    try:
-        m = supabase.from_("degree_majors").select("major_name").eq("degree_id", degree_id).execute()
-        majors = [r["major_name"] for r in (m.data or []) if r.get("major_name")]
-        n = supabase.from_("degree_minors").select("minor_name").eq("degree_id", degree_id).execute()
-        minors = [r["minor_name"] for r in (n.data or []) if r.get("minor_name")]
-        d = supabase.from_("degree_double_degrees").select("program_name").eq("degree_id", degree_id).execute()
-        doubles = [r["program_name"] for r in (d.data or []) if r.get("program_name")]
-    except Exception as e:
-        print(f"Error fetching related degree info: {e}")
-    return majors, minors, doubles
-
-
-# Helper functions for flexibility section
-# Extract all course codes from json flexibility structure
 def extract_all_course_codes(sections: list) -> List[str]:
 
     course_codes = []

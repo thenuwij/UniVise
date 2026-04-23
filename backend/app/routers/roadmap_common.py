@@ -27,7 +27,7 @@ def ensure(cond: bool, msg: str):
         raise HTTPException(status_code=400, detail=msg)
 
 def table_for_mode(mode: str) -> str:
-    mapping = {"school": "school_roadmap", "unsw": "unsw_roadmap", "transcript": "transcript_roadmap"}
+    mapping = {"school": "school_roadmap", "unsw": "unsw_roadmap"}
     tbl = mapping.get(mode)
     if not tbl:
         raise HTTPException(status_code=404, detail="Invalid mode")

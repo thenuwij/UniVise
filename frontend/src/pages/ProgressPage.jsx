@@ -584,7 +584,10 @@ function ProgressPage() {
           <div className="max-w-6xl mx-auto px-6 mb-8">
             {showSetupModal && (
               <ProgramSetupModal
-                onClose={() => setShowSetupModal(false)}
+                onClose={() => {
+                  setShowSetupModal(false);
+                  if (!enrolledProgram) navigate("/planner");
+                }}
                 userId={session.user.id}
                 onComplete={async (programData) => {
                   setEnrolledProgram(programData);

@@ -207,6 +207,8 @@ function SurveyForm() {
         degree_field: formData.degree_field_other || formData.degree_field || null,
         interest_areas: formData.interest_areas || [],
         interest_areas_other: formData.interest_areas_other || null,
+        priorities: formData.priorities || [],
+        work_style: formData.work_style || [],
         hobbies: formData.hobbies || [],
         hobbies_other: formData.hobbies_other || null,
       }]);
@@ -217,7 +219,7 @@ function SurveyForm() {
     }
   };
 
-  const totalSteps = userType === "high_school" ? 8 : 6;
+  const totalSteps = userType === "high_school" ? 8 : 8;
 
   return (
     <div className="w-full max-w-xl">
@@ -539,6 +541,75 @@ function SurveyForm() {
       )}
 
       {userType === "university" && step === 6 && (
+        <div>
+          <StepHeading>What matters most to you in your future career?</StepHeading>
+          <StepSubtitle>Pick up to 3 — helps us weigh recommendations toward what you actually want.</StepSubtitle>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              "High salary",
+              "Making an impact / helping others",
+              "Work-life balance",
+              "Intellectual challenge",
+              "Creative freedom",
+              "Career prestige",
+              "Job security & stability",
+              "Autonomy & flexibility",
+              "Fast career growth",
+            ].map(o => {
+              const isSelected = formData.priorities?.includes(o);
+              const atLimit = (formData.priorities?.length || 0) >= 3;
+              return (
+                <MultiOptionButton
+                  key={o} label={o}
+                  selected={isSelected}
+                  onClick={() => {
+                    if (isSelected) {
+                      handleChange("priorities", formData.priorities.filter(x => x !== o));
+                    } else if (!atLimit) {
+                      handleChange("priorities", [...(formData.priorities || []), o]);
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+            {formData.priorities?.length || 0} / 3 selected
+          </p>
+          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.priorities?.length} />
+        </div>
+      )}
+
+      {userType === "university" && step === 7 && (
+        <div>
+          <StepHeading>How do you like to work?</StepHeading>
+          <StepSubtitle>Select all that apply — most people enjoy a mix.</StepSubtitle>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              "Hands-on building & making things",
+              "Research & deep analysis",
+              "Client-facing & communication",
+              "Creative & artistic work",
+              "Leadership & coordination",
+              "Still figuring it out",
+            ].map(o => (
+              <MultiOptionButton
+                key={o} label={o}
+                selected={formData.work_style?.includes(o)}
+                onClick={() => {
+                  const updated = formData.work_style?.includes(o)
+                    ? formData.work_style.filter(x => x !== o)
+                    : [...(formData.work_style || []), o];
+                  handleChange("work_style", updated);
+                }}
+              />
+            ))}
+          </div>
+          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.work_style?.length} />
+        </div>
+      )}
+
+      {userType === "university" && step === 8 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
           <StepSubtitle>Helps Eunice understand what drives you beyond studies.</StepSubtitle>

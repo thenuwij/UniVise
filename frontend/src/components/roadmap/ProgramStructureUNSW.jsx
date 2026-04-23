@@ -144,7 +144,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [openMap, setOpenMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [structureDescription, setStructureDescription] = useState("");
   const [minimumUoc, setMinimumUoc] = useState(null);
   const [specialNotes, setSpecialNotes] = useState("");
   
@@ -192,7 +191,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const { data, error } = await supabase
           .from("unsw_degrees_final")
-          .select("sections, program_structure, minimum_uoc, special_notes")
+          .select("sections, minimum_uoc, special_notes")
           .eq("degree_code", degreeCode)
           .maybeSingle();
 
@@ -216,7 +215,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           });
 
         setSections(ordered);
-        setStructureDescription(data?.program_structure || "");
         setMinimumUoc(data?.minimum_uoc || null);
         setSpecialNotes(data?.special_notes || "");
         setOpenMap({});
@@ -264,59 +262,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       .maybeSingle();
     if (match?.id) navigate(`/course/${match.id}`);
   };
-
-  function formatStructureText(text = "") {
-    if (!text) return "";
-
-    let cleaned = text
-      .replace(/\r?\n+/g, "\n")
-      .replace(/\u2022/g, "•") 
-      .trim();
-
-    const lines = cleaned
-      .split(/\n|(?=\b\d+\.\s)|(?=•)/g)
-      .map(l => l.trim())
-      .filter(Boolean);
-
-    let html = '<div class="space-y-1.5">';
-
-    for (const line of lines) {
-      // Numbered items
-      if (/^\d+\.\s*/.test(line)) {
-        const firstSentence = line.replace(/^\d+\.\s*/, '').split(/(?<=[.!?])\s+/)[0];
-        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 py-0.5 flex gap-2">
-    <span class="text-blue-500 flex-shrink-0">•</span>
-    <span>${firstSentence}</span>
-  </p>`;
-        continue;
-      }
-
-      // Bullets
-      if (line.startsWith("•")) {
-        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 flex gap-2">
-          <span class="text-sky-600 dark:text-sky-400 flex-shrink-0">•</span>
-          <span>${line.replace(/^•\s*/, "")}</span>
-        </p>`;
-        continue;
-      }
-
-      // Dashes
-      if (/^[-–]\s*/.test(line)) {
-        html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100 flex gap-2 pl-4">
-          <span class="text-slate-500 dark:text-slate-500 flex-shrink-0">-</span>
-          <span>${line.replace(/^[-–]\s*/, "")}</span>
-        </p>`;
-        continue;
-      }
-
-      // Regular text
-      html += `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">${line}</p>`;
-    }
-
-    html += "</div>";
-    return html;
-  }
-
 
   // Format special notes with better structure
   function formatSpecialNotes(text = "") {
@@ -375,7 +320,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
               degree_code: degreeCode,
               total_sections: sections?.length || 0,
               minimum_uoc: minimumUoc,
-              structure_description: structureDescription,
             }}
           />
 
@@ -408,16 +352,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         )}
       </div>
-
-      {/* Structure Description */}
-      {structureDescription && (
-        <div className="w-full rounded-xl bg-slate-100 dark:bg-slate-800/50 px-5 py-4">
-          <div
-            className="text-slate-900 dark:text-slate-100"
-            dangerouslySetInnerHTML={{ __html: formatStructureText(structureDescription) }}
-          />
-        </div>
-      )}
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">

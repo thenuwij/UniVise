@@ -42,7 +42,7 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
     
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
-# Generate roadmap for UNSW students, triggers background tasks for flexibility/societies/careers
+# Generate roadmap for UNSW students, triggers background tasks for societies/careers
 @router.post("/unsw", response_model=RoadmapResp)
 async def create_unsw(
     body: UNSWReq,

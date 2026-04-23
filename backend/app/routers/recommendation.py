@@ -17,23 +17,6 @@ router = APIRouter()
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-def _fetch_report_safe(report_table: str, user_id: str) -> str:
-    """Fetch report analysis without crashing when no report exists."""
-    try:
-        resp = (
-            supabase.table(report_table)
-            .select("analysis")
-            .eq("user_id", user_id)
-            .maybe_single()   # returns None instead of throwing when no row
-            .execute()
-        )
-        if resp and resp.data:
-            return str(resp.data)
-    except Exception as e:
-        print(f"[explain_rec] report fetch error (non-fatal): {e}")
-    return "Student did not provide a report. Ignore this part for now."
-
-
 async def _explain_rec_inner(rec_id: str, user) -> None:
     """
     Core explain logic — called concurrently for all recs in a single
@@ -48,11 +31,9 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
 
         if student_type == "high_school":
             table          = "degree_recommendations"
-            report_table   = "school_report_analysis"
             response_table = "degree_rec_details"
         else:
             table          = "career_recommendations"
-            report_table   = "transcript_analysis"
             response_table = "career_rec_details"
 
         # ── Cache check: skip Claude if details already exist ────────────
@@ -105,10 +86,10 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
                 "degree_field":  user_info.get("degree_field"),
                 "degree_stage":  user_info.get("degree_stage"),
                 "academic_year": user_info.get("academic_year"),
-                "wam":           user_info.get("wam"),
                 "interests":     user_info.get("interest_areas"),
                 "hobbies":       user_info.get("hobbies"),
-                "confidence":    user_info.get("confidence"),
+                "priorities":    user_info.get("priorities"),
+                "work_style":    user_info.get("work_style"),
             }
             rec = {
                 "career_title":       recommendation.get("career_title"),
@@ -120,22 +101,14 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
                 "skills_needed":      recommendation.get("skills_needed"),
             }
 
-        # ── Fetch report and conditionally include it ────────────────────
-        report_raw = _fetch_report_safe(report_table, user.id)
-        has_report = "did not provide" not in report_raw
-        print(f"[explain_rec] report fetched (len={len(report_raw)}, has_report={has_report})")
-
-        report_section = f"\n2. Report Analysis:\n{report_raw}\n" if has_report else ""
-        rec_section_num = "3" if has_report else "2"
-
         if student_type == "high_school":
             prompt = f"""
 You are an expert academic advisor. You have the following inputs:
 
 1. Student Profile:
 {profile}
-{report_section}
-{rec_section_num}. Recommendation Record:
+
+2. Recommendation Record:
 {rec}
 
 Task: Produce only a single valid JSON object (no markdown fences, no commentary) with these keys:
@@ -161,8 +134,8 @@ You are an expert university career advisor. You have the following inputs:
 
 1. Student Profile:
 {profile}
-{report_section}
-{rec_section_num}. Recommendation Record:
+
+2. Recommendation Record:
 {rec}
 
 Task: Produce only a single valid JSON object (no markdown fences, no commentary) with these keys:
@@ -265,25 +238,30 @@ async def get_recommendation_prompts(
             prompt = (
                 "You are a university career advisor for UNSW students. Based on this student's profile:\n\n"
                 f"• Field / Stage / Year: {user_info['degree_field']} / {user_info['degree_stage']} / {user_info['academic_year']}\n"
-                f"• WAM: {user_info['wam']}\n"
-                f"• Interests: {user_info['interest_areas']}\n"
-                f"• Hobbies: {user_info['hobbies']}\n"
-                f"• Confidence: {user_info['confidence']}\n\n"
+                f"• Interests: {', '.join(user_info.get('interest_areas') or []) or 'not provided'}\n"
+                f"• Hobbies: {', '.join(user_info.get('hobbies') or []) or 'not provided'}\n"
+                f"• Priorities: {', '.join(user_info.get('priorities') or []) or 'not provided'}\n"
+                f"• Work style: {', '.join(user_info.get('work_style') or []) or 'not provided'}\n\n"
                 "Return EXACTLY 4 recommended career roles, no more, no less, as a JSON array. Each object must have:\n"
                 "career_title (string), industry (string), suitability_score (int 0-100), "
                 "reason (string, plain sentences only, no em dashes), avg_salary_range (string), education_required (string), "
                 "skills_needed (array of strings), link (string), source (string).\n\n"
+                "STRICT FORMAT for avg_salary_range: MUST be exactly \"$X,XXX - $Y,YYY\" in AUD. "
+                "No qualifiers, no plus signs, no parentheticals, no ranges within ranges, no words like "
+                "\"varies\", \"up to\", \"approx\", \"depending on\". Pick a single realistic AUD range and commit to it, "
+                "even if the actual salary varies widely in practice. If genuinely unknown, use \"$60,000 - $90,000\". "
+                "Valid: \"$75,000 - $110,000\". Invalid: \"$50,000 - $150,000+ (varies widely)\", \"$80k - $120k\", \"$90,000+\".\n\n"
                 "Respond with only a raw JSON array — no markdown, no explanation, no em dashes anywhere."
             )
         elif student_type == "high_school":
             prompt = (
                 "You are a high school academic advisor. Based on this student's profile:\n\n"
                 f"• Year: {user_info['year']}\n"
-                f"• Academic strengths: {user_info['academic_strengths']}\n"
+                f"• Academic strengths: {', '.join(user_info.get('academic_strengths') or []) or 'not provided'}\n"
                 f"• ATAR: {user_info['atar']}\n"
-                f"• Hobbies: {user_info['hobbies']}\n"
-                f"• Career interests: {user_info['career_interests']}\n"
-                f"• Degree interests: {user_info['degree_interest']}\n"
+                f"• Hobbies: {', '.join(user_info.get('hobbies') or []) or 'not provided'}\n"
+                f"• Career interests: {', '.join(user_info.get('career_interests') or []) or 'not provided'}\n"
+                f"• Degree interests: {', '.join(user_info.get('degree_interest') or []) or 'not provided'}\n"
                 f"• Confidence: {user_info['confidence']}\n\n"
                 "Return EXACTLY 4 recommended degrees, no more, no less, as a JSON array. Each object must have:\n"
                 "degree_name (string), university_name (string, NSW universities only), "

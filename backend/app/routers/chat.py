@@ -8,7 +8,6 @@ from .user import (
     get_user_info,
     get_student_type,
     get_user_recommendations,
-    get_user_academic_analysis,
 )
 from app.utils.database import supabase
 from app.utils.openai_client import ask_gpt_stream
@@ -20,7 +19,7 @@ router = APIRouter()
 MAX_HISTORY_MESSAGES = 20  # keep last 20 turns to avoid token bloat
 
 
-def _build_system_prompt(student_type: str, user_info: dict, recommendations: list, academic_history: list) -> str:
+def _build_system_prompt(student_type: str, user_info: dict, recommendations: list) -> str:
     is_hs = student_type == "high_school"
 
     # Format user profile cleanly
@@ -48,7 +47,6 @@ def _build_system_prompt(student_type: str, user_info: dict, recommendations: li
         profile_lines = [
             f"- Degree field: {user_info.get('degree_field', 'unknown')}",
             f"- Degree stage: {user_info.get('degree_stage', 'unknown')}",
-            f"- WAM: {user_info.get('wam', 'not provided')}",
             f"- Interest areas: {', '.join(user_info.get('interest_areas', [])) or 'not provided'}",
         ]
         rec_lines = [
@@ -62,15 +60,6 @@ def _build_system_prompt(student_type: str, user_info: dict, recommendations: li
         )
         persona = "You are Eunice, a sharp and supportive career and academic advisor at UniVise for UNSW students."
 
-    academic_summary = ""
-    if academic_history:
-        try:
-            analysis_text = academic_history[0].get("analysis", "") if isinstance(academic_history, list) else ""
-            if analysis_text:
-                academic_summary = f"\n## Academic Analysis\n{analysis_text[:800]}"
-        except Exception:
-            pass
-
     profile_block = "\n".join(profile_lines)
     rec_block = "\n".join(rec_lines) if rec_lines else "  - No recommendations available yet"
 
@@ -78,8 +67,7 @@ def _build_system_prompt(student_type: str, user_info: dict, recommendations: li
         f"{persona}\n\n"
         f"{focus}\n\n"
         f"## Student Profile\n{profile_block}\n\n"
-        f"## Their Top Recommendations\n{rec_block}"
-        f"{academic_summary}\n\n"
+        f"## Their Top Recommendations\n{rec_block}\n\n"
         "## How to respond\n"
         "- Speak like a trusted advisor in a one-on-one session — warm, direct, and genuinely helpful.\n"
         "- Keep replies focused and conversational. No long essays.\n"
@@ -97,7 +85,6 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
         student_type = await get_student_type(user)
         user_info = await get_user_info(user, student_type)
         recommendations = await get_user_recommendations(user, student_type)
-        academic_history = await get_user_academic_analysis(user, student_type)
 
         if not student_type or not user_info or not recommendations:
             raise HTTPException(status_code=401, detail="Invalid User")
@@ -123,7 +110,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             role = "assistant" if row["sender"] == "bot" else "user"
             history.append({"role": role, "content": row["content"]})
 
-        system_prompt = _build_system_prompt(student_type, user_info, recommendations, academic_history)
+        system_prompt = _build_system_prompt(student_type, user_info, recommendations)
 
         token_stream = ask_gpt_stream(
             history,

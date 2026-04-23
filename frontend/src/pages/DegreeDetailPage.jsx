@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   HiAcademicCap,
   HiArrowLeft,
+  HiArrowRight,
   HiBookOpen,
   HiBriefcase,
   HiChartBar,
@@ -177,20 +178,46 @@ function DegreeDetailPage() {
                 )}
               </div>
             </div>
-            <SaveButton
-              itemType="degree"
-              itemId={degreeId}
-              itemName={degree.program_name}
-              itemData={{
-                degree_code: degree.degree_code,
-                program_name: degree.program_name,
-                faculty: degree.faculty,
-                duration: degree.duration,
-                minimum_uoc: degree.minimum_uoc,
-                lowest_atar: degree.lowest_atar,
-                overview_description: degree.overview_description,
-              }}
-            />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() =>
+                  navigate("/roadmap-loading", {
+                    state: {
+                      type: "unsw",
+                      degree: {
+                        id: degree.id,
+                        degree_id: degree.id,
+                        degree_code: degree.degree_code,
+                        uac_code: degree.uac_code,
+                        program_name: degree.program_name,
+                      },
+                    },
+                  })
+                }
+                className="group flex items-center gap-2 px-4 py-2 rounded-xl
+                           bg-gradient-to-r from-purple-600 to-blue-600
+                           hover:from-purple-700 hover:to-blue-700
+                           text-white font-semibold text-sm whitespace-nowrap
+                           shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <span>Open on Roadmap</span>
+                <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+              <SaveButton
+                itemType="degree"
+                itemId={degreeId}
+                itemName={degree.program_name}
+                itemData={{
+                  degree_code: degree.degree_code,
+                  program_name: degree.program_name,
+                  faculty: degree.faculty,
+                  duration: degree.duration,
+                  minimum_uoc: degree.minimum_uoc,
+                  lowest_atar: degree.lowest_atar,
+                  overview_description: degree.overview_description,
+                }}
+              />
+            </div>
           </div>
 
           {degree.overview_description && (

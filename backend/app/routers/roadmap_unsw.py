@@ -6,7 +6,6 @@ from app.utils.openai_client import ask_gpt_async
 from .roadmap_common import parse_json_or_500, assert_keys
 from .roadmap_unsw_helpers import (
     fetch_degree_by_identifier,
-    fetch_degree_related_info,
     fetch_program_core_courses,
     format_core_courses_for_prompt,
     fetch_user_specialisation_context,
@@ -31,11 +30,6 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
 
     degree_id = degree.get("id")
     degree_code = degree.get("degree_code")
-
-    # Fetch related information
-    t2 = time.time()
-    majors, minors, doubles = fetch_degree_related_info(degree_id)
-    print(f"[TIMING] fetch_degree_related_info: {time.time() - t2:.1f}s")
 
     # Fetch core courses
     core_courses = []
@@ -92,9 +86,6 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "career_outcomes": degree.get("career_outcomes"),
         "assumed_knowledge": degree.get("assumed_knowledge"),
         "handbook_url": degree.get("source_url"),
-        "majors": majors,
-        "minors": minors,
-        "double_degrees": doubles,
         "core_courses": core_courses,
         "core_courses_formatted": core_courses_formatted,
         "selected_honours_name": specialisations.get("selected_honours_name"),
@@ -115,8 +106,6 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     lowest_sel_rank = context.get("lowest_selection_rank")
     lowest_atar = context.get("lowest_atar")
     core_courses_text = context.get("core_courses_formatted", "")
-    majors_count = len(context.get("majors", []))
-    minors_count = len(context.get("minors", []))
     core_courses_count = len(context.get("core_courses", []))
     selected_honours = context.get("selected_honours_name")
     selected_honours_courses = context.get("selected_honours_courses", [])
@@ -198,8 +187,6 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 - ATAR_provided: {json.dumps(lowest_atar)}
 - SelectionRank_provided: {json.dumps(lowest_sel_rank)}
 - Faculty: {context.get("faculty", "Not specified")}
-- Majors available: {majors_count}
-- Minors available: {minors_count}
 - Core courses provided: {core_courses_count}
 {"- Selected Honours: " + selected_honours + " (" + str(len(selected_honours_courses)) + " core courses)" if selected_honours else ""}
 {"- Selected Major: " + selected_major_name + " (" + str(len(selected_major_courses)) + " core courses)" if selected_major_name else ""}
@@ -219,9 +206,6 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
     "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
     "highlights": "Write 4-5 specific sentences covering: unique skills developed, hands-on learning opportunities, career/postgrad pathways, competitive advantages (accreditations, research, industry links), and one standout feature of this program. No generic statements. Each sentence must be concrete and specific to this degree."
   }},
-  "flexibility": {{
-    "options": ["List concrete flexibility options: majors ({majors_count} available), minors ({minors_count} available), electives, exchange programs, dual degrees, internships, etc. Be specific."]
-  }},
   "source": "Provide the official UNSW Handbook URL for this program"
 }}
 
@@ -235,7 +219,7 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
     # Validate structure
     assert_keys(
         draft,
-        ["summary", "entry_requirements", "capstone", "flexibility", "source"],
+        ["summary", "entry_requirements", "capstone", "source"],
         "unsw_general",
     )
 
@@ -408,7 +392,6 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "entry_requirements": general_info.get("entry_requirements"),
         "capstone": general_info.get("capstone"),
         "honours": honours_info.get("honours"),
-        "flexibility": general_info.get("flexibility"),
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),
         "selected_honours_name": context.get("selected_honours_name"),
