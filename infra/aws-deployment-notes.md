@@ -505,20 +505,82 @@ Supabase auth update:
 - Added the CloudFront staging URL to Supabase Auth redirect configuration.
 - Google login now reaches the CloudFront dashboard route.
 
-Known staging limitation:
+Backend HTTPS (resolved 2026-06-04):
 
-- The backend ALB is still HTTP only.
-- A staging API CloudFront distribution now provides an HTTPS API URL in front of the HTTP ALB.
-- The production-quality fix is still to add a custom backend domain and ACM certificate, then expose the ALB through HTTPS directly.
+- The backend ALB now terminates HTTPS directly on port `443`.
+- The API CloudFront HTTP workaround is no longer in the request path (kept temporarily as rollback only).
+- `api.uni-vise.com` DNS points directly at the ALB.
+- See "Backend ALB HTTPS (direct)" section below for details.
 
 Workflow correction:
 
 - `.github/workflows/deploy-frontend-staging.yml` now uses the real S3 bucket:
   - `univise-frontend-staging-280793168491`
 
-## API staging CloudFront distribution
+## Backend ALB HTTPS (direct)
 
-The staging API CloudFront distribution has been created:
+The backend ALB now serves HTTPS directly, replacing the API CloudFront workaround in the request path.
+
+ACM certificate (ALB region):
+
+- Region: `ap-southeast-2` (ALB region; separate from the `us-east-1` CloudFront cert)
+- Domain: `api.uni-vise.com`
+- ARN: `arn:aws:acm:ap-southeast-2:280793168491:certificate/c7c4c5e1-8517-43b7-9643-945ff1cc0253`
+- Status: `ISSUED`
+- Validated via the existing Cloudflare DNS CNAME (ACM validation records are per-domain, so the record added for the `us-east-1` cert also validates this one).
+
+ALB listeners:
+
+- HTTPS `443`: forwards to `univise-backend-tg-staging`, SSL policy `ELBSecurityPolicy-TLS13-1-2-2021-06`, cert above.
+- HTTP `80`: now redirects to HTTPS `443` (`HTTP_301`).
+
+ALB security group `sg-0e09c6fe70c747901`:
+
+- Inbound `80` from `0.0.0.0/0`
+- Inbound `443` from `0.0.0.0/0`
+
+DNS:
+
+- `api.uni-vise.com` CNAME -> `univise-backend-alb-staging-182000404.ap-southeast-2.elb.amazonaws.com` (Cloudflare, DNS only / unproxied).
+- Previously pointed at API CloudFront `d1esobith2xwt7.cloudfront.net`.
+
+Request path now:
+
+```text
+Browser -> ALB HTTPS 443 (TLS terminates here) -> ECS Fargate backend :8000
+```
+
+Verification (real DNS, 2026-06-04):
+
+```bash
+curl https://api.uni-vise.com/health         # {"ok": true}, HTTP/2, cert CN=api.uni-vise.com
+curl -i http://api.uni-vise.com/health        # 301 -> https://api.uni-vise.com:443/health
+```
+
+CORS preflight from `Origin: https://uni-vise.com` returns `access-control-allow-origin: https://uni-vise.com`.
+
+Rollback:
+
+- The API CloudFront distribution `E3TO5AR81C7MHK` is NO LONGER a valid rollback.
+  Its origin talks to the ALB over HTTP `:80`, and the ALB `:80` listener now
+  returns a `301` redirect to `:443`, so requests through API CloudFront fail
+  (this caused the 2026-06-04 incident below).
+- To actually roll back the direct-HTTPS change, either:
+  - revert the ALB `:80` listener to forward (instead of redirect) AND set the
+    API CloudFront origin protocol to HTTPS `:443`, then repoint DNS; or
+  - fall back to the existing Vercel/Render production stack (Supabase unchanged,
+    so no data migration to reverse).
+- The API CloudFront distribution can be decommissioned; it no longer serves a purpose.
+
+## API staging CloudFront distribution (RETIRED)
+
+> Retired 2026-06-04. This was a temporary HTTPS workaround while the ALB was
+> HTTP-only. The backend now terminates HTTPS directly at the ALB (see
+> "Backend ALB HTTPS (direct)" above). This distribution is out of the request
+> path and is currently broken anyway: its origin uses ALB `:80`, which now
+> 301-redirects to `:443`. Do not route traffic through it. Safe to delete.
+
+The staging API CloudFront distribution was created as a workaround:
 
 - Distribution ID: `E3TO5AR81C7MHK`
 - Domain: `d1esobith2xwt7.cloudfront.net`
@@ -527,12 +589,12 @@ The staging API CloudFront distribution has been created:
 - Origin protocol policy: `http-only`
 - Viewer protocol policy: `redirect-to-https`
 
-What this is for:
+What this was for (historical):
 
 - The frontend CloudFront site is HTTPS.
-- The backend ALB is currently HTTP.
+- The backend ALB was originally HTTP only.
 - Browsers can block HTTPS frontend pages from calling HTTP API URLs.
-- API CloudFront provides a temporary HTTPS API URL for staging.
+- API CloudFront provided a temporary HTTPS API URL for staging.
 
 Staging API URL:
 
@@ -683,6 +745,52 @@ GitHub Actions verification:
 - `Deploy Backend Staging`: passed
 - `Deploy Frontend Staging`: passed
 - Website rechecked after workflow deployment
+
+## Incident: stale STAGING_VITE_API_URL broke backend calls (2026-06-04)
+
+Symptom:
+
+- Google login worked, but every backend call from `https://uni-vise.com`
+  failed (roadmap, chat stream, degrees, etc.).
+- Browser console showed `Preflight response is not successful. Status code: 301`
+  for `https://d1esobith2xwt7.cloudfront.net/...` (the old API CloudFront URL).
+
+Root cause (two compounding issues):
+
+1. The GitHub Actions secret `STAGING_VITE_API_URL` still held the old API
+   CloudFront URL, not `https://api.uni-vise.com`. Pushing a frontend change
+   re-ran `deploy-frontend-staging.yml`, which rebuilt the bundle with the stale
+   URL and overwrote the good build in S3.
+2. That old CloudFront path was already broken: its origin uses ALB `:80`,
+   which now `301`-redirects to `:443`, failing CORS preflight.
+
+Why login still worked:
+
+- Login goes directly to Supabase Auth, not through the backend, so it is
+  unaffected by the backend API URL or CORS. "Login works, all backend calls
+  fail" is a frontend-config / CORS signature, not a backend outage.
+
+Diagnosis (check the live bundle's baked URL first):
+
+```bash
+ASSET=$(curl -s https://uni-vise.com/ | grep -o '/assets/index-[A-Za-z0-9_-]*\.js' | head -1)
+curl -s "https://uni-vise.com$ASSET" | grep -o "api.uni-vise.com"
+curl -s "https://uni-vise.com$ASSET" | grep -o "d1esobith2xwt7.cloudfront.net"
+```
+
+Fix:
+
+1. Set GitHub secret `STAGING_VITE_API_URL` = `https://api.uni-vise.com`.
+2. Rebuild + redeploy the frontend (CI re-run preferred, or manual
+   `npm run build` + `aws s3 sync` + CloudFront invalidation).
+
+Verified after fix: live bundle references `api.uni-vise.com`, and a CORS
+preflight for `POST /roadmap/unsw` from `Origin: https://uni-vise.com` returns
+`200` with the correct allow-origin/allow-headers.
+
+Lesson: when changing a backend URL or scheme, audit every place the old value
+lives (GitHub secrets, `.env` files, hardcoded constants), not just the docs.
+Docs are not reality; CI deploys whatever the secret actually holds.
 
 ## Non-goals
 
