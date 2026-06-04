@@ -213,15 +213,17 @@ Cluster:
 Task definition:
 
 - Family: `univise-backend-staging`
-- Active revision: `5`
-- Image: `280793168491.dkr.ecr.ap-southeast-2.amazonaws.com/univise-backend:local-test-amd64`
+- Active revision: `6` (first CI-built image; see CI deploy notes)
+- Image: `280793168491.dkr.ecr.ap-southeast-2.amazonaws.com/univise-backend:<git-sha>` (e.g. `90888ee...`)
 
 Service:
 
 - Name: `univise-backend-staging-service`
 - ARN: `arn:aws:ecs:ap-southeast-2:280793168491:service/univise-staging-cluster/univise-backend-staging-service`
-- Desired count: `1`
+- Desired count: `2` (two tasks for availability; spread across `ap-southeast-2a` and `ap-southeast-2b`)
 - Launch type: `FARGATE`
+- Health check grace period: `60s` (new tasks get 60s to boot before ALB health checks count)
+- Deployment circuit breaker: enabled with automatic rollback (a failed deploy rolls back to the last working revision)
 
 Networking:
 
