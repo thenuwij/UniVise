@@ -743,6 +743,34 @@ GitHub Actions verification:
 - `Deploy Frontend Staging`: passed
 - Website rechecked after workflow deployment
 
+## Monitoring and alarms
+
+CloudWatch alarms notify via an SNS topic.
+
+SNS topic:
+
+- Name: `univise-prod-alarms`
+- ARN: `arn:aws:sns:ap-southeast-2:280793168491:univise-prod-alarms`
+- Subscription: email `jwthenu@gmail.com` (must be confirmed via the AWS email link before notifications deliver)
+
+Alarms (all wired to the SNS topic for both ALARM and OK transitions):
+
+- `univise-prod-alb-unhealthy-hosts`: `UnHealthyHostCount` >= 1 (Maximum, 60s x2). Fires if a backend target fails ALB health checks.
+- `univise-prod-alb-target-5xx`: `HTTPCode_Target_5XX_Count` > 5 (Sum, 300s). Fires if the backend returns server errors.
+- `univise-prod-alb-high-latency`: `TargetResponseTime` > 3s (Average, 300s x2). Fires on slow backend responses.
+- `univise-prod-ecs-cpu-high`: ECS service `CPUUtilization` > 80% (Average, 300s x2).
+- `univise-prod-ecs-memory-high`: ECS service `MemoryUtilization` > 80% (Average, 300s x2).
+
+All alarms use `treat-missing-data = notBreaching`, so low-traffic gaps do not cause false alarms (state may show `INSUFFICIENT_DATA` until the metric has data).
+
+Verify:
+
+```bash
+aws cloudwatch describe-alarms --region ap-southeast-2 \
+  --alarm-name-prefix univise-prod- \
+  --query 'MetricAlarms[].{Name:AlarmName,State:StateValue}' --output table
+```
+
 ## Incident: stale STAGING_VITE_API_URL broke backend calls (2026-06-04)
 
 Symptom:
