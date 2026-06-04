@@ -771,6 +771,42 @@ aws cloudwatch describe-alarms --region ap-southeast-2 \
   --query 'MetricAlarms[].{Name:AlarmName,State:StateValue}' --output table
 ```
 
+## ECS autoscaling
+
+The backend ECS service scales its task count automatically based on CPU.
+
+Scalable target (Application Auto Scaling):
+
+- Resource: `service/univise-staging-cluster/univise-backend-staging-service`
+- Dimension: `ecs:service:DesiredCount`
+- Min capacity: `2` (keeps two-AZ redundancy as the floor)
+- Max capacity: `6` (cost ceiling)
+
+Target-tracking policy `univise-prod-cpu-target-60`:
+
+- Metric: `ECSServiceAverageCPUUtilization`
+- Target: `60%`
+- Scale-out cooldown: `60s` (add capacity quickly under load)
+- Scale-in cooldown: `300s` (remove capacity slowly to avoid flapping)
+
+The policy auto-creates two CloudWatch alarms (`TargetTracking-...-AlarmHigh`
+and `-AlarmLow`) that drive scale-out/scale-in. These are managed by the policy;
+do not edit them directly.
+
+Limitation: scaling tasks helps with API/CPU-bound load. The heavy roadmap/chat
+paths are LLM-bound (OpenAI/Anthropic), so more tasks can hit provider rate
+limits or cost before ECS CPU saturates. The Phase 2 SQS-worker design addresses
+this.
+
+Verify:
+
+```bash
+aws application-autoscaling describe-scaling-policies --region ap-southeast-2 \
+  --service-namespace ecs \
+  --resource-id service/univise-staging-cluster/univise-backend-staging-service \
+  --query 'ScalingPolicies[].PolicyName' --output text
+```
+
 ## Incident: stale STAGING_VITE_API_URL broke backend calls (2026-06-04)
 
 Symptom:
