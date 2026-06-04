@@ -106,6 +106,8 @@ Frontend build variables:
 
 Current staging CORS origins:
 
+- `https://uni-vise.com`
+- `https://www.uni-vise.com`
 - `https://d1pyscw0to902k.cloudfront.net`
 - `https://uni-vise-nu.vercel.app`
 
@@ -211,7 +213,7 @@ Cluster:
 Task definition:
 
 - Family: `univise-backend-staging`
-- Active revision: `3`
+- Active revision: `5`
 - Image: `280793168491.dkr.ecr.ap-southeast-2.amazonaws.com/univise-backend:local-test-amd64`
 
 Service:
@@ -273,6 +275,13 @@ Revision 3 update:
 - Updated `BACKEND_CORS_ORIGINS` to include the real CloudFront staging frontend URL.
 - ECS service updated to `univise-backend-staging:3`.
 - Backend health check still returns `{"ok": true}`.
+
+Revision 5 update:
+
+- Updated `BACKEND_CORS_ORIGINS` to add the custom domains `https://uni-vise.com` and `https://www.uni-vise.com` alongside the CloudFront and Vercel origins.
+- Registered `univise-backend-staging:5` and updated the ECS service to it (rolling deploy, reached steady state).
+- Verified backend health through `https://api.uni-vise.com/health` returns `{"ok": true}`.
+- Verified CORS preflight from `Origin: https://uni-vise.com` returns `access-control-allow-origin: https://uni-vise.com`.
 
 Deployment issue fixed:
 
@@ -459,6 +468,13 @@ Frontend staging URL:
 https://d1pyscw0to902k.cloudfront.net
 ```
 
+Custom frontend URLs:
+
+```text
+https://uni-vise.com
+https://www.uni-vise.com
+```
+
 Frontend build variables used for the first staging upload:
 
 ```bash
@@ -524,6 +540,12 @@ Staging API URL:
 https://d1esobith2xwt7.cloudfront.net
 ```
 
+Custom API URL:
+
+```text
+https://api.uni-vise.com
+```
+
 API health check:
 
 ```bash
@@ -539,7 +561,7 @@ Expected response:
 Frontend was rebuilt with:
 
 ```bash
-VITE_API_URL=https://d1esobith2xwt7.cloudfront.net
+VITE_API_URL=https://api.uni-vise.com
 VITE_SUPABASE_URL=https://ryelnuplhudpuwfruzhl.supabase.co
 VITE_SUPABASE_ANON_KEY=<from frontend/.env>
 ```
@@ -552,9 +574,11 @@ AWS staging smoke test passed on 2026-06-04.
 
 Staging URLs:
 
-- Frontend: `https://d1pyscw0to902k.cloudfront.net`
-- Backend API: `https://d1esobith2xwt7.cloudfront.net`
-- Backend health: `https://d1esobith2xwt7.cloudfront.net/health`
+- Frontend: `https://uni-vise.com`
+- Frontend CloudFront: `https://d1pyscw0to902k.cloudfront.net`
+- Backend API: `https://api.uni-vise.com`
+- Backend API CloudFront: `https://d1esobith2xwt7.cloudfront.net`
+- Backend health: `https://api.uni-vise.com/health`
 
 Confirmed working:
 
@@ -606,10 +630,59 @@ Deployment permissions include:
 Required GitHub Actions secrets:
 
 - `AWS_DEPLOY_ROLE_ARN`: `arn:aws:iam::280793168491:role/univise-github-actions-deploy-role-staging`
-- `STAGING_VITE_API_URL`: `https://d1esobith2xwt7.cloudfront.net`
+- `STAGING_VITE_API_URL`: `https://api.uni-vise.com`
 - `STAGING_VITE_SUPABASE_URL`: `https://ryelnuplhudpuwfruzhl.supabase.co`
 - `STAGING_VITE_SUPABASE_ANON_KEY`: value from `frontend/.env`
 - `CLOUDFRONT_STAGING_DISTRIBUTION_ID`: `EX1BBJSKO1XLS`
+
+## Custom domain setup
+
+Domain purchased through Cloudflare Registrar:
+
+- `uni-vise.com`
+
+ACM certificate:
+
+- Region: `us-east-1`
+- ARN: `arn:aws:acm:us-east-1:280793168491:certificate/840785c4-7707-407c-b763-6e616baeadad`
+- Status: `ISSUED`
+- Domains covered:
+  - `uni-vise.com`
+  - `www.uni-vise.com`
+  - `api.uni-vise.com`
+
+Cloudflare DNS records:
+
+- `uni-vise.com` -> frontend CloudFront `d1pyscw0to902k.cloudfront.net`
+- `www.uni-vise.com` -> frontend CloudFront `d1pyscw0to902k.cloudfront.net`
+- `api.uni-vise.com` -> API CloudFront `d1esobith2xwt7.cloudfront.net`
+
+CloudFront aliases:
+
+- Frontend distribution `EX1BBJSKO1XLS`:
+  - `uni-vise.com`
+  - `www.uni-vise.com`
+- API distribution `E3TO5AR81C7MHK`:
+  - `api.uni-vise.com`
+
+Verification:
+
+```bash
+curl -I https://uni-vise.com
+curl https://api.uni-vise.com/health
+```
+
+Expected API response:
+
+```json
+{"ok": true}
+```
+
+GitHub Actions verification:
+
+- `Deploy Backend Staging`: passed
+- `Deploy Frontend Staging`: passed
+- Website rechecked after workflow deployment
 
 ## Non-goals
 

@@ -21,7 +21,7 @@
       "environment": [
         {
           "name": "BACKEND_CORS_ORIGINS",
-          "value": "https://d1pyscw0to902k.cloudfront.net,https://uni-vise-nu.vercel.app"
+          "value": "https://uni-vise.com,https://www.uni-vise.com,https://d1pyscw0to902k.cloudfront.net,https://uni-vise-nu.vercel.app"
         },
         {
           "name": "SUPABASE_URL",
