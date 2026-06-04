@@ -807,6 +807,33 @@ aws application-autoscaling describe-scaling-policies --region ap-southeast-2 \
   --query 'ScalingPolicies[].PolicyName' --output text
 ```
 
+## Load test (2026-06-04)
+
+Tool: ApacheBench (`ab`). Target: `https://api.uni-vise.com/health` (direct ALB
+HTTPS). The `/health` endpoint was chosen deliberately: it exercises the full
+infra path (DNS -> ALB HTTPS -> ECS task) without calling OpenAI/Anthropic or the
+database, so the test cannot incur LLM cost or hit provider rate limits.
+
+Command:
+
+```bash
+ab -t 60 -c 50 -k -q https://api.uni-vise.com/health
+```
+
+Result (60s sustained, concurrency 50):
+
+- Complete requests: `10938`, Failed: `0`
+- Throughput: ~`182 req/s` (client/geo-limited, not server-limited)
+- Latency p50/p95/p99: `181ms` / `321ms` / `2061ms` (p50 is mostly the Sydney
+  round-trip from the test client; p99 is occasional TLS cold-connect)
+- ECS CPU during load: ~`11%` avg, `28%` peak -> well under the 60% scale-out
+  target, so autoscaling correctly did not trigger and task count stayed at 2.
+
+Interpretation: the platform layer absorbs sustained concurrency with zero errors
+and large headroom. This does NOT exercise the LLM-bound roadmap/chat paths, which
+are cost/rate-limit-bound rather than CPU-bound (a Phase 2 concern). Real
+autoscaling events will come from genuine production CPU load, not from `/health`.
+
 ## Incident: stale STAGING_VITE_API_URL broke backend calls (2026-06-04)
 
 Symptom:
@@ -863,13 +890,22 @@ Docs are not reality; CI deploys whatever the secret actually holds.
 
 ## Rollback plan
 
+For full step-by-step recovery procedures (diagnosis, backend revision rollback,
+frontend rebuild, and full fallback to Vercel/Render), see the dedicated runbook:
+
+- `infra/rollback-runbook.md`
+
+Quick summary:
+
 If AWS frontend fails:
 
-- Keep using the existing Vercel frontend.
+- Rebuild/redeploy the frontend, or fall back to the existing Vercel frontend.
 
 If AWS backend fails:
 
-- Keep using the existing Render backend.
+- Roll the ECS service back to a known-good task definition revision (the
+  deployment circuit breaker also auto-rolls-back failed deploys), or fall back to
+  the existing Render backend.
 
 If CORS or auth redirect fails:
 
