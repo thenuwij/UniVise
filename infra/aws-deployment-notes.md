@@ -563,24 +563,19 @@ CORS preflight from `Origin: https://uni-vise.com` returns `access-control-allow
 
 Rollback:
 
-- The API CloudFront distribution `E3TO5AR81C7MHK` is NO LONGER a valid rollback.
-  Its origin talks to the ALB over HTTP `:80`, and the ALB `:80` listener now
-  returns a `301` redirect to `:443`, so requests through API CloudFront fail
-  (this caused the 2026-06-04 incident below).
-- To actually roll back the direct-HTTPS change, either:
-  - revert the ALB `:80` listener to forward (instead of redirect) AND set the
-    API CloudFront origin protocol to HTTPS `:443`, then repoint DNS; or
-  - fall back to the existing Vercel/Render production stack (Supabase unchanged,
-    so no data migration to reverse).
-- The API CloudFront distribution can be decommissioned; it no longer serves a purpose.
+- The API CloudFront workaround (`E3TO5AR81C7MHK`) has been deleted, so rolling
+  back via CloudFront is no longer an option.
+- To roll back the direct-HTTPS change now, fall back to the existing
+  Vercel/Render production stack (Supabase unchanged, so no data migration to
+  reverse). Repoint the user-facing DNS to the Vercel/Render origins.
+- The ALB HTTPS:443 path is the supported production design going forward.
 
-## API staging CloudFront distribution (RETIRED)
+## API staging CloudFront distribution (DELETED)
 
-> Retired 2026-06-04. This was a temporary HTTPS workaround while the ALB was
+> Deleted 2026-06-04. This was a temporary HTTPS workaround while the ALB was
 > HTTP-only. The backend now terminates HTTPS directly at the ALB (see
-> "Backend ALB HTTPS (direct)" above). This distribution is out of the request
-> path and is currently broken anyway: its origin uses ALB `:80`, which now
-> 301-redirects to `:443`. Do not route traffic through it. Safe to delete.
+> "Backend ALB HTTPS (direct)" above), so the distribution was disabled and then
+> deleted. Kept here for historical reference only.
 
 The staging API CloudFront distribution was created as a workaround:
 
