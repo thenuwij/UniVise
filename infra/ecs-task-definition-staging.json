@@ -1,0 +1,55 @@
+{
+  "family": "univise-backend-staging",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::280793168491:role/univise-ecs-task-execution-role-staging",
+  "taskRoleArn": "arn:aws:iam::280793168491:role/univise-ecs-task-role-staging",
+  "containerDefinitions": [
+    {
+      "name": "univise-backend",
+      "image": "280793168491.dkr.ecr.ap-southeast-2.amazonaws.com/univise-backend:local-test-amd64",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "BACKEND_CORS_ORIGINS",
+          "value": "https://d1pyscw0to902k.cloudfront.net,https://uni-vise-nu.vercel.app"
+        },
+        {
+          "name": "SUPABASE_URL",
+          "value": "https://ryelnuplhudpuwfruzhl.supabase.co"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-2:280793168491:secret:univise/staging/supabase-service-role-key"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-2:280793168491:secret:univise/staging/openai-api-key"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-2:280793168491:secret:univise/staging/anthropic-api-key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/univise-backend-staging",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
