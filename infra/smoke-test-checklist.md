@@ -5,7 +5,7 @@
 Date: 2026-06-04
 Tester: Thenuja Wijesuriya
 
-## Current production URLs
+## Legacy production URLs before AWS cutover
 
 Frontend: https://uni-vise-nu.vercel.app
 Backend: https://univise-ehfj.onrender.com
@@ -33,20 +33,21 @@ No known baseline issues recorded before starting AWS deployment.
 
 ## Notes
 
-This checklist is used to compare the current Vercel/Render deployment against the future AWS staging deployment.
+This checklist compares the original Vercel/Render deployment against the AWS deployment. Supabase remains unchanged in both paths.
 
-## AWS staging smoke test
+## AWS production-domain smoke test
 
 Date: 2026-06-04
 Tester: Thenuja Wijesuriya
 
-## AWS staging URLs
+## AWS production URLs
 
-Frontend: https://d1pyscw0to902k.cloudfront.net
-Backend API: https://d1esobith2xwt7.cloudfront.net
-Backend health: https://d1esobith2xwt7.cloudfront.net/health
+Frontend: https://uni-vise.com
+Frontend CloudFront fallback: https://d1pyscw0to902k.cloudfront.net
+Backend API: https://api.uni-vise.com
+Backend health: https://api.uni-vise.com/health
 
-## Checks after AWS staging deployment
+## Checks after AWS deployment
 
 - [x] Frontend homepage loads
 - [x] User can log in with Google
@@ -62,8 +63,15 @@ Backend health: https://d1esobith2xwt7.cloudfront.net/health
 - [x] Transfer analysis flow completes
 - [x] Eunice chat sends and receives a response
 - [x] Saved items can be added and removed
-- [x] Backend health endpoint responds through API CloudFront
+- [x] Backend health endpoint responds through `api.uni-vise.com`
+- [x] Live frontend bundle uses `https://api.uni-vise.com`
+- [x] GitHub Actions backend deployment passed
+- [x] GitHub Actions frontend deployment passed
 
-## AWS staging issues
+## AWS deployment issues
 
-No blocking staging issues recorded. All tested product flows worked through the CloudFront frontend URL.
+No blocking issues recorded after the custom-domain smoke test. All tested product flows worked through `https://uni-vise.com`.
+
+Resolved incident:
+
+- A stale GitHub Actions secret rebuilt the frontend with the old API CloudFront URL. Fix was to set `STAGING_VITE_API_URL=https://api.uni-vise.com`, redeploy the frontend, and verify the live bundle.

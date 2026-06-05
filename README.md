@@ -1,6 +1,6 @@
 # UniVise — Academic Planning and Program Transfer Advisor
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-uni--vise--nu.vercel.app-blue?style=for-the-badge)](https://uni-vise-nu.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-uni--vise.com-blue?style=for-the-badge)](https://uni-vise.com)
 
 ---
 
@@ -14,7 +14,7 @@ The platform consolidates fragmented university information including program ha
 
 UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost. The platform optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
 
-The platform is **deployed to production** on Vercel (frontend) and Render (backend), with continuous deployment triggered on every Git push.
+The platform is **deployed to production** on AWS at [uni-vise.com](https://uni-vise.com): the frontend is hosted on S3 and served through CloudFront, while the FastAPI backend runs on ECS Fargate behind an HTTPS Application Load Balancer at [api.uni-vise.com](https://api.uni-vise.com). Supabase remains the PostgreSQL/Auth provider. The previous Vercel frontend and Render backend remain available as rollback targets during cutover.
 
 ---
 
@@ -102,14 +102,14 @@ This component can be enabled or disabled depending on API availability and cost
 | Database | Supabase (PostgreSQL) |
 | AI Layer | Anthropic Claude API (Sonnet, Haiku) + OpenAI API (GPT-4o mini, GPT-5.4-mini) — multi-provider prompt orchestration with model-agnostic JSON parsing |
 | Auth | Google OAuth |
-| Deployment | Vercel (frontend), Render (backend), continuous deployment via Git |
+| Deployment | AWS S3 + CloudFront frontend, ECS Fargate + ALB backend, GitHub Actions CI/CD |
 | Job Data | SerpAPI (Google Jobs) — optional |
 
 ### High-Level Architecture
 ```
 User
- └── React + TypeScript Frontend (Vercel)
-       └── FastAPI Backend (Render)
+ └── React + TypeScript Frontend (S3 + CloudFront)
+       └── FastAPI Backend (ECS Fargate + ALB)
              ├── Supabase PostgreSQL Database
              ├── LLM Reasoning Layer (Anthropic + OpenAI APIs)
              │     └── Multi-provider parallelised prompt orchestration
@@ -127,7 +127,7 @@ The backend coordinates rule parsing, transfer logic, prerequisite graph generat
 - Custom transfer-matching engine for cross-program comparison
 - Dynamic prerequisite graph construction with force-directed layout (MindMesh)
 - Google OAuth authentication with persistent, database-backed user profiles
-- Production deployment with continuous delivery on every Git push
+- Production AWS deployment with GitHub Actions continuous delivery
 - Modular frontend architecture with clear separation between UI, business logic, and AI orchestration
 - Designed for scalable institutional deployment
 

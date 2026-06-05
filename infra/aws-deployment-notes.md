@@ -4,17 +4,19 @@
 
 This phase moves UniVise frontend and backend hosting to AWS while keeping Supabase PostgreSQL/Auth/RLS unchanged.
 
-## Current production baseline
+## Current production baseline before AWS
 
 Frontend:
 
-- Current host: Vercel
-- Current URL: https://uni-vise-nu.vercel.app
+- Previous host: Vercel
+- Previous URL: https://uni-vise-nu.vercel.app
+- Current canonical URL: https://uni-vise.com
 
 Backend:
 
-- Current host: Render
-- Current URL: https://univise-ehfj.onrender.com
+- Previous host: Render
+- Previous URL: https://univise-ehfj.onrender.com
+- Current canonical API URL: https://api.uni-vise.com
 
 Database/Auth:
 
@@ -128,7 +130,7 @@ This file describes how ECS Fargate should run the backend container:
 - Plain env vars: `BACKEND_CORS_ORIGINS`, `SUPABASE_URL`
 - Secret env vars: Supabase service-role key, OpenAI key, Anthropic key
 
-The task definition now uses real staging values for account ID, image, Supabase URL, backend secrets, and CORS origins.
+The task definition now uses real staging values for account ID, Supabase URL, backend secrets, and CORS origins. The image value in this file is a safe template value; GitHub Actions replaces it with the newly built immutable git-SHA image during deployment.
 
 ## Backend staging CI/CD
 
@@ -627,16 +629,15 @@ VITE_SUPABASE_ANON_KEY=<from frontend/.env>
 
 Then uploaded to S3 and invalidated through frontend CloudFront.
 
-## AWS staging smoke test result
+## AWS production smoke test result
 
-AWS staging smoke test passed on 2026-06-04.
+AWS production-domain smoke test passed on 2026-06-04.
 
-Staging URLs:
+AWS URLs:
 
 - Frontend: `https://uni-vise.com`
 - Frontend CloudFront: `https://d1pyscw0to902k.cloudfront.net`
 - Backend API: `https://api.uni-vise.com`
-- Backend API CloudFront: `https://d1esobith2xwt7.cloudfront.net`
 - Backend health: `https://api.uni-vise.com/health`
 
 Confirmed working:
@@ -652,7 +653,7 @@ Confirmed working:
 - Transfer analysis
 - Eunice chat
 - Saved item add/remove
-- Backend health through API CloudFront
+- Backend health through `api.uni-vise.com` direct ALB HTTPS
 
 No blocking staging issues were recorded.
 
@@ -684,7 +685,7 @@ Deployment permissions include:
 - Update the staging ECS service.
 - Pass the ECS task execution role and task role.
 - Sync frontend files to the staging S3 bucket.
-- Invalidate the frontend/API CloudFront distributions.
+- Invalidate the frontend CloudFront distribution.
 
 Required GitHub Actions secrets:
 
@@ -714,15 +715,14 @@ Cloudflare DNS records:
 
 - `uni-vise.com` -> frontend CloudFront `d1pyscw0to902k.cloudfront.net`
 - `www.uni-vise.com` -> frontend CloudFront `d1pyscw0to902k.cloudfront.net`
-- `api.uni-vise.com` -> API CloudFront `d1esobith2xwt7.cloudfront.net`
+- `api.uni-vise.com` -> ALB `univise-backend-alb-staging-182000404.ap-southeast-2.elb.amazonaws.com`
 
-CloudFront aliases:
+CloudFront aliases and API DNS:
 
 - Frontend distribution `EX1BBJSKO1XLS`:
   - `uni-vise.com`
   - `www.uni-vise.com`
-- API distribution `E3TO5AR81C7MHK`:
-  - `api.uni-vise.com`
+- API distribution `E3TO5AR81C7MHK` was deleted; `api.uni-vise.com` now points directly to the ALB HTTPS listener.
 
 Verification:
 
