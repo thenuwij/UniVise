@@ -1,9 +1,9 @@
 // src/pages/DashboardPage.jsx
 import { useState } from 'react';
 import { DashboardNavBar } from '../components/DashboardNavBar';
-import EuniceChatCard from '../components/EuniceChatCard.jsx';
 import { MenuBar } from '../components/MenuBar';
-import MyPlannerCard from '../components/MyPlannerCard.jsx';
+import RoadmapHeroCard from '../components/RoadmapHeroCard.jsx';
+import ProgramTransferCard from '../components/ProgramTransferCard.jsx';
 import { RecommendationTable } from '../components/RecommendationTable';
 import { UserAuth } from '../context/AuthContext';
 
@@ -26,6 +26,9 @@ function DashboardPage() {
 
   // Fixed greeting
   const greeting = "Hi";
+
+  const studentType = session?.user?.user_metadata?.student_type;
+  const isUniversity = studentType !== "high_school";
 
   const today = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -53,20 +56,26 @@ function DashboardPage() {
             </h1>
 
             <p className="mt-2">
-              {today} • Your personalised academic and career hub.
+              {today} • Start by building your roadmap, then explore from there.
             </p>
           </div>
 
-          <div className="mt-7 flex gap-4">
-            <EuniceChatCard userType={session?.user?.user_metadata?.student_type} />
-            <MyPlannerCard />
+          {/* Primary row — Roadmap hero (main) + Program Transfer (secondary) */}
+          <div className="mt-7 flex flex-col lg:flex-row items-stretch gap-4">
+            <div className={isUniversity ? "lg:basis-[68%] min-w-0" : "w-full"}>
+              <RoadmapHeroCard />
+            </div>
+            {isUniversity && (
+              <div className="lg:basis-[32%] min-w-0">
+                <ProgramTransferCard />
+              </div>
+            )}
           </div>
 
-          
           {/* Recommendations */}
           <div className="mt-8 mb-4">
             <span className="text-2xl font-semibold">
-              Here's what Eunice's recommendations are for you!
+              {isUniversity ? "Career Recommendations" : "Degree Recommendations"}
             </span>
           </div>
           <RecommendationTable />

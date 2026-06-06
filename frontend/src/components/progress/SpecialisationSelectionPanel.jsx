@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { HiCheckCircle, HiChevronDown, HiChevronUp, HiInformationCircle, HiPencil } from "react-icons/hi";
+import toast from "react-hot-toast";
 import { supabase } from "../../supabaseClient";
 
 export default function SpecialisationSelectionPanel({
@@ -171,7 +172,7 @@ export default function SpecialisationSelectionPanel({
       } else {
         setConfirmedSpecs((prev) => { const n = { ...prev }; delete n[type]; return n; });
       }
-      alert("Failed to update. Please try again.");
+      toast.error("Failed to update. Please try again.");
     } finally {
       setLoading(false);
     }

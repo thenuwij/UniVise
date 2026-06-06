@@ -72,13 +72,13 @@ export default function MindMeshSummary() {
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => (window.location.href = "/planner/mindmesh")}
-            className="flex-1 px-6 py-3 text-white font-semibold rounded-2xl shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300"
+            className="button-primary flex-1 px-6 py-3 font-semibold rounded-2xl"
           >
             Create MindMesh
           </button>
           <button
             onClick={() => setManageOpen(true)}
-            className="px-6 py-3 font-semibold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50"
+            className="button-secondary px-6 py-3 font-semibold rounded-2xl"
             title="Manage items in your mesh"
           >
             Manage Items

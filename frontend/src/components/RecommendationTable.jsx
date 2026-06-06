@@ -240,7 +240,7 @@ function StuckState({ onRegenerate, regenerating }) {
       <button
         onClick={onRegenerate}
         disabled={regenerating}
-        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="button-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold"
       >
         {regenerating ? "Regenerating…" : "Regenerate Recommendations"}
       </button>
