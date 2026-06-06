@@ -26,12 +26,12 @@ export function Header() {
     <div className="mb-4" id="header">
       <div className="flex items-center justify-between px-6 h-16 backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
         <Link to="/" className="flex items-center gap-1">
-          <img src={logo} alt="Univise Logo" className="h-12 w-12" />
+          <img src={logo} alt="UniVise Logo" className="h-12 w-12" />
           <span
             className="whitespace-nowrap text-4xl"
             style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em' }}
           >
-            Univise
+            UniVise
           </span>
         </Link>
         <button

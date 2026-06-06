@@ -30,7 +30,7 @@
   --text-primary: #1f2937;        /* gray-800 */
   --text-secondary: #6b7280;      /* gray-500 */
   --text-muted: #9ca3af;          /* gray-400 */
-  --text-brand: #1e3a8a;          /* blue-900 - for "Univise" text */
+  --text-brand: #1e3a8a;          /* blue-900 - for "UniVise" text */
   --text-icon: #111827;           /* gray-900 - for icons */
   
   /* Border Colors */
@@ -76,7 +76,7 @@
   --text-primary: #f9fafb;         /* gray-50 */
   --text-secondary: #d1d5db;       /* gray-300 */
   --text-muted: #9ca3af;           /* gray-400 */
-  --text-brand: #60a5fa;           /* blue-400 - for "Univise" in dark mode */
+  --text-brand: #60a5fa;           /* blue-400 - for "UniVise" in dark mode */
   --text-icon: #f3f4f6;            /* gray-100 - for icons in dark mode */
   
   --border-light: #374151;         /* gray-700 */
