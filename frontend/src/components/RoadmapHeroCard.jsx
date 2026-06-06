@@ -17,19 +17,19 @@ export default function RoadmapHeroCard() {
               Start here
             </div>
 
-            <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight">
+            <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-tight">
               Build your academic roadmap
             </h2>
 
             <p className="mt-3 text-base font-normal text-slate-600 dark:text-slate-400">
-              Generate a personalised, term-by-term plan for any UNSW degree — tailored to your
-              goals and career direction. This is the best place to start.
+              Discover where a UNSW degree can take you, from study pathways to student communities
+              and future careers.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Button
                 onClick={() => navigate("/roadmap-entryload")}
-                className="button-primary"
+                className="button-primary w-full sm:w-auto sm:min-w-[280px] justify-center text-base"
                 size="lg"
                 pill
               >

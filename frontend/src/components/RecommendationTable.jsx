@@ -45,10 +45,9 @@ function AuraBoardShell({ label, children }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-5 md:p-7">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+          <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
             {label}
-          </div>
+          </h2>
           <span className="text-xs text-slate-500 dark:text-slate-300">Click a card to view details</span>
         </div>
         {children}
@@ -342,7 +341,7 @@ export function RecommendationTable() {
 
   if (!userType || !userId) return null;
 
-  const label = userType === "high_school" ? "Degree Recommendations" : "Career Recommendations";
+  const label = userType === "high_school" ? "Your top degree matches" : "Your top career matches";
 
   return (
     <AuraBoardShell label={label}>

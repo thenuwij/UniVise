@@ -43,20 +43,15 @@ function DashboardPage() {
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
       
-      <div className="pt-16 sm:pt-20"> 
-        <div className="flex flex-col justify-center h-full mx-20">
+      <div className="pt-16 sm:pt-20">
+        <div className="mx-6 sm:mx-12 lg:mx-20">
           <div className="mt-8">
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-              Dashboard
-            </div>
-
-            <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+            <h1 className="text-2xl sm:text-4xl lg:text-4xl font-extrabold">
               {greeting} {displayName}!
             </h1>
 
-            <p className="mt-2">
-              {today} • Start by building your roadmap, then explore from there.
+            <p className="mt-2 text-slate-500 dark:text-slate-400">
+              {today} • Your academic planning hub
             </p>
           </div>
 
@@ -73,12 +68,9 @@ function DashboardPage() {
           </div>
 
           {/* Recommendations */}
-          <div className="mt-8 mb-4">
-            <span className="text-2xl font-semibold">
-              {isUniversity ? "Career Recommendations" : "Degree Recommendations"}
-            </span>
+          <div className="mt-12">
+            <RecommendationTable />
           </div>
-          <RecommendationTable />
 
         </div>
       </div>

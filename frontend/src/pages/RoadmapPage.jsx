@@ -55,17 +55,12 @@ function RoadmapPage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
-        <div className="flex flex-col h-full mx-20">
+        <div className="flex flex-col h-full mx-6 sm:mx-12 lg:mx-20">
 
           {/* Header - Original Layout with Tag and Button on Right */}
           <div className="mt-8 mb-8">
             <div className="flex items-end justify-between gap-6">
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm mb-4">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-                  My Roadmap
-                </div>
-
                 <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                   Generate Your{" "}
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">

@@ -30,14 +30,9 @@ function MyPlannerPage() {
       </div>
 
       <div className="pt-16 sm:pt-20">
-        <div className="flex flex-col justify-center h-full mx-20">
+        <div className="flex flex-col h-full mx-6 sm:mx-12 lg:mx-20">
           {/* HEADER */}
           <div className="mt-6 mb-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-medium shadow-sm mb-4">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-              My Planner
-            </div>
-
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
                 Plan
@@ -71,7 +66,7 @@ function MyPlannerPage() {
                     <span className="text-xs font-semibold uppercase tracking-[0.12em] text-indigo-500 dark:text-indigo-300">Your library</span>
                   </div>
 
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">Saved Items</h3>
+                  <h3 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white mt-4">Saved Items</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 max-w-md">
                     Everything you've bookmarked across UniVise, organised and in one place.
                   </p>
@@ -109,7 +104,7 @@ function MyPlannerPage() {
 
           {/* SECTION HEADER */}
           <div className="mb-5">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Explore UNSW Handbook</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Explore UNSW Handbook</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Browse the full catalogue of degrees, specialisations and courses.</p>
           </div>
 
@@ -141,12 +136,12 @@ function MyPlannerPage() {
                 route: "/explore-by-course",
                 label: "Courses",
                 desc: "Search individual courses, check prerequisites and see how they fit your plan",
-                icon: <HiClipboard className="w-6 h-6 text-emerald-600 dark:text-emerald-300" />,
-                card: "from-emerald-50/80 to-white dark:from-emerald-950/30 dark:to-slate-900 border-emerald-100 dark:border-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-600",
-                chip: "bg-emerald-100/70 dark:bg-emerald-900/30 group-hover:bg-emerald-600 dark:group-hover:bg-emerald-500",
-                glow: "bg-[radial-gradient(300px_140px_at_90%_-10%,rgba(5,150,105,0.16),transparent)]",
-                accent: "from-emerald-500 to-teal-500",
-                chevron: "text-emerald-400",
+                icon: <HiClipboard className="w-6 h-6 text-sky-600 dark:text-sky-300" />,
+                card: "from-sky-50/80 to-white dark:from-sky-950/30 dark:to-slate-900 border-sky-100 dark:border-sky-900/40 hover:border-sky-300 dark:hover:border-sky-600",
+                chip: "bg-sky-100/70 dark:bg-sky-900/30 group-hover:bg-sky-600 dark:group-hover:bg-sky-500",
+                glow: "bg-[radial-gradient(300px_140px_at_90%_-10%,rgba(14,165,233,0.16),transparent)]",
+                accent: "from-sky-500 to-cyan-500",
+                chevron: "text-sky-400",
               },
             ].map(({ route, label, desc, icon, card, chip, glow, accent, chevron }) => (
               <div
