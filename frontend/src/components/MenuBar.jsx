@@ -8,7 +8,6 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { FaFingerprint } from "react-icons/fa";
 import { HiBriefcase, HiOutlineLogout } from "react-icons/hi";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { MdDashboard } from "react-icons/md";
@@ -118,9 +117,6 @@ export function MenuBar({ isOpen, handleClose }) {
                   </SidebarItem>
                   <SidebarItem onClick={handlePlannerClick} icon={HiBriefcase} active={isActive("/planner")} className={isActive("/planner") ? activeClass : ""}>
                     <span className={isActive("/planner") ? "font-semibold" : ""}>My Planner</span>
-                  </SidebarItem>
-                  <SidebarItem onClick={() => { navigate("/traits"); handleClose(); }} icon={FaFingerprint} active={isActive("/traits")} className={isActive("/traits") ? activeClass : ""}>
-                    <span className={isActive("/traits") ? "font-semibold" : ""}>My Traits</span>
                   </SidebarItem>
                 </SidebarItemGroup>
 
