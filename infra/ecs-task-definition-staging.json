@@ -2,8 +2,8 @@
   "family": "univise-backend-staging",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "512",
-  "memory": "1024",
+  "cpu": "256",
+  "memory": "512",
   "executionRoleArn": "arn:aws:iam::280793168491:role/univise-ecs-task-execution-role-staging",
   "taskRoleArn": "arn:aws:iam::280793168491:role/univise-ecs-task-role-staging",
   "containerDefinitions": [
