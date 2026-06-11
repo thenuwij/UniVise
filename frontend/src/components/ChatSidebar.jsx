@@ -89,7 +89,7 @@ function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
     }
 
     fetchConversations();
-  }, [conversations, session]);
+  }, [session]);
 
   return (
     <>
