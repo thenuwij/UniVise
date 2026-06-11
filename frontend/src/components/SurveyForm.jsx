@@ -103,7 +103,7 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
           type="button"
           onClick={onSubmit}
           disabled={loading}
-          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="button-primary px-6 py-2.5 rounded-xl text-sm font-semibold"
         >
           {loading ? "Submitting..." : "Submit"}
         </button>
@@ -112,7 +112,7 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
           type="button"
           onClick={onNext}
           disabled={nextDisabled}
-          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="button-primary px-6 py-2.5 rounded-xl text-sm font-semibold"
         >
           Continue
         </button>

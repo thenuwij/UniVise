@@ -834,6 +834,86 @@ and large headroom. This does NOT exercise the LLM-bound roadmap/chat paths, whi
 are cost/rate-limit-bound rather than CPU-bound (a Phase 2 concern). Real
 autoscaling events will come from genuine production CPU load, not from `/health`.
 
+## Cost audit (2026-06-07)
+
+Billing context:
+
+- Cost Explorer month-to-date actual cost for `2026-06-01` to `2026-06-07`:
+  `$6.55`.
+- Forecasted monthly cost shown by Billing and Cost Management: about `$19.17`.
+- The budget alert was caused by real always-on infrastructure cost and/or
+  forecasted spend, not by significant user traffic.
+
+Confirmed active AWS services:
+
+- S3: static React/Vite frontend build storage.
+- CloudFront: public frontend delivery for `uni-vise.com` and `www.uni-vise.com`.
+- ECS Fargate: FastAPI backend runtime.
+- ECR: backend Docker image storage.
+- Elastic Load Balancing: public HTTPS ALB for `api.uni-vise.com`.
+- VPC: subnets, security groups, and public IPv4 addressing.
+- ACM: HTTPS certificates.
+- Secrets Manager: backend secrets for Supabase, OpenAI, and Anthropic.
+- CloudWatch: ECS logs and alarms.
+- SNS: alarm email notifications.
+- IAM/OIDC: GitHub Actions deployment role and ECS task roles.
+
+Confirmed not currently present in `ap-southeast-2`:
+
+- No EC2 instances.
+- No NAT Gateways.
+- No current EBS volumes.
+- No current EBS snapshots.
+
+Month-to-date actual cost breakdown from Cost Explorer:
+
+```text
+Elastic Container Service     $3.34
+Elastic Load Balancing        $1.54
+VPC                           $1.45
+EC2-Other                     $0.12
+Secrets Manager               $0.10
+Total                         $6.55
+```
+
+Usage-type breakdown:
+
+```text
+Fargate vCPU hours            $2.74
+Fargate memory hours          $0.60
+ALB running hours             $1.54
+Public IPv4 in-use addresses  $1.45
+EBS gp3 volume usage          $0.12
+Secrets Manager secrets       $0.10
+```
+
+Interpretation:
+
+- The main ongoing cost is the backend service running with ECS desired count
+  `2`, meaning two Fargate tasks are kept running continuously.
+- The ALB and public IPv4 costs are expected while `api.uni-vise.com` is served
+  publicly through AWS.
+- The EBS gp3 line item appears historical because no current EC2 instances,
+  EBS volumes, or EBS snapshots were present in Sydney during the audit.
+- S3, CloudFront, ECR, CloudWatch, and SNS were negligible at current traffic.
+
+Practical cost lever:
+
+- For a lower-cost demo/student setup, update
+  `univise-backend-staging-service` desired task count from `2` to `1`.
+- This should reduce ECS/Fargate spend roughly by half while keeping the app
+  usable.
+- Tradeoff: the backend loses two-task high availability and has less deploy
+  headroom.
+
+Do not delete for cost savings unless intentionally taking production down:
+
+- `univise-backend-alb-staging`
+- `univise-backend-staging-service`
+- `univise-frontend-staging-280793168491`
+- CloudFront distribution `EX1BBJSKO1XLS`
+- Backend Secrets Manager entries
+
 ## Incident: stale STAGING_VITE_API_URL broke backend calls (2026-06-04)
 
 Symptom:

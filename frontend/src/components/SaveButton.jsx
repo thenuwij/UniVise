@@ -1,6 +1,7 @@
 // src/components/SaveButton.jsx
 import { useEffect, useState } from "react";
 import { HiBookmark, HiOutlineBookmark } from "react-icons/hi";
+import toast from "react-hot-toast";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
@@ -73,7 +74,7 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
   const handleClick = async (e) => {
     e.stopPropagation();
     if (!session?.user?.id) {
-      alert("Please sign in to save items");
+      toast.error("Please sign in to save items");
       return;
     }
 
@@ -89,6 +90,7 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
           .eq("item_id", itemId);
 
         setIsSaved(false);
+        toast.success("Removed from saved");
       } else {
         const cleanData = await fetchCleanData();
 
@@ -101,10 +103,11 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
         });
 
         setIsSaved(true);
+        toast.success("Saved");
       }
     } catch (err) {
       console.error("SaveButton error:", err);
-      alert("Failed to save item. Please try again.");
+      toast.error("Failed to save item. Please try again.");
     } finally {
       setIsLoading(false);
     }

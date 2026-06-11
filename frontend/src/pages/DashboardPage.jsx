@@ -1,9 +1,9 @@
 // src/pages/DashboardPage.jsx
 import { useState } from 'react';
 import { DashboardNavBar } from '../components/DashboardNavBar';
-import EuniceChatCard from '../components/EuniceChatCard.jsx';
 import { MenuBar } from '../components/MenuBar';
-import MyPlannerCard from '../components/MyPlannerCard.jsx';
+import RoadmapHeroCard from '../components/RoadmapHeroCard.jsx';
+import ProgramTransferCard from '../components/ProgramTransferCard.jsx';
 import { RecommendationTable } from '../components/RecommendationTable';
 import { UserAuth } from '../context/AuthContext';
 
@@ -27,6 +27,9 @@ function DashboardPage() {
   // Fixed greeting
   const greeting = "Hi";
 
+  const studentType = session?.user?.user_metadata?.student_type;
+  const isUniversity = studentType !== "high_school";
+
   const today = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     day: "numeric",
@@ -40,36 +43,34 @@ function DashboardPage() {
         <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
       </div>
       
-      <div className="pt-16 sm:pt-20"> 
-        <div className="flex flex-col justify-center h-full mx-20">
+      <div className="pt-16 sm:pt-20">
+        <div className="mx-6 sm:mx-12 lg:mx-20">
           <div className="mt-8">
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
-              Dashboard
-            </div>
-
-            <h1 className="mt-3 text-2xl sm:text-4xl lg:text-4xl font-extrabold">
+            <h1 className="text-2xl sm:text-4xl lg:text-4xl font-extrabold">
               {greeting} {displayName}!
             </h1>
 
-            <p className="mt-2">
-              {today} • Your personalised academic and career hub.
+            <p className="mt-2 text-slate-500 dark:text-slate-400">
+              {today} • Your academic planning hub
             </p>
           </div>
 
-          <div className="mt-7 flex gap-4">
-            <EuniceChatCard userType={session?.user?.user_metadata?.student_type} />
-            <MyPlannerCard />
+          {/* Primary row — Roadmap hero (main) + Program Transfer (secondary) */}
+          <div className="mt-7 flex flex-col lg:flex-row items-stretch gap-4">
+            <div className={isUniversity ? "lg:basis-[68%] min-w-0" : "w-full"}>
+              <RoadmapHeroCard />
+            </div>
+            {isUniversity && (
+              <div className="lg:basis-[32%] min-w-0">
+                <ProgramTransferCard />
+              </div>
+            )}
           </div>
 
-          
           {/* Recommendations */}
-          <div className="mt-8 mb-4">
-            <span className="text-2xl font-semibold">
-              Here's what Eunice's recommendations are for you!
-            </span>
+          <div className="mt-12">
+            <RecommendationTable />
           </div>
-          <RecommendationTable />
 
         </div>
       </div>

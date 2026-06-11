@@ -64,7 +64,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
     <div id="header" className="relative">
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 dark:via-blue-500/30 to-transparent" />
       <Navbar fluid className="h-16 border-b border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm">
-        <button onClick={onMenuClick} className="flex items-center gap-1.5 ml-4 mb-4 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all duration-200">
+        <button onClick={onMenuClick} className="flex items-center gap-1.5 ml-4 mb-4 text-sm font-bold text-slate-950 dark:text-slate-100 hover:text-black dark:hover:text-white hover:scale-105 transition-all duration-200">
           <LuMenu className={`w-10 h-10 transition-transform duration-300 ${isMenuOpen ? "rotate-90" : "rotate-0"}`} />
           <span>Menu</span>
         </button>
@@ -73,7 +73,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
           onClick={() => {navigate('/dashboard')}}
         >
           <img src={logo} className="h-14 w-14 mb-1"/>
-          <span className="self-center whitespace-nowrap text-4xl mb-3" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em' }}>Univise</span>
+          <span className="self-center whitespace-nowrap text-4xl mb-3" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em' }}>UniVise</span>
         </NavbarBrand>
         <div className="flex items-center gap-4">
           <button

@@ -8,7 +8,7 @@ export default function EuniceChatCard({ userType }) {
   const isHS = userType === "high_school";
 
   return (
-    <div className="card-glass-spotlight w-2/5 py-2.5">
+    <div className="card-glass-spotlight flex-1 py-2.5">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(520px_200px_at_90%_-20%,rgba(56,189,248,0.18),transparent),radial-gradient(480px_220px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
       <div className="relative p-4 md:p-7 flex items-center gap-4">
         {/* Left column */}

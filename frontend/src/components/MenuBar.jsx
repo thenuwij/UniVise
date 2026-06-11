@@ -8,7 +8,7 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiBriefcase, HiOutlineLogout } from "react-icons/hi";
+import { HiBriefcase, HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
@@ -115,6 +115,11 @@ export function MenuBar({ isOpen, handleClose }) {
                   <SidebarItem onClick={() => { navigate("/roadmap-entryload"); handleClose(); }} icon={RiGuideFill} active={isActive("/roadmap-entryload")} className={isActive("/roadmap-entryload") ? activeClass : ""}>
                     <span className={isActive("/roadmap-entryload") ? "font-semibold" : ""}>My Roadmap</span>
                   </SidebarItem>
+                  {userType !== "high_school" && (
+                    <SidebarItem onClick={() => { navigate("/progress"); handleClose(); }} icon={HiSwitchHorizontal} active={isActive("/progress")} className={isActive("/progress") ? activeClass : ""}>
+                      <span className={isActive("/progress") ? "font-semibold" : ""}>Program Transfer</span>
+                    </SidebarItem>
+                  )}
                   <SidebarItem onClick={handlePlannerClick} icon={HiBriefcase} active={isActive("/planner")} className={isActive("/planner") ? activeClass : ""}>
                     <span className={isActive("/planner") ? "font-semibold" : ""}>My Planner</span>
                   </SidebarItem>

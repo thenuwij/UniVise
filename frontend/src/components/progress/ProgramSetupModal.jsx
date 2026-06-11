@@ -1,6 +1,7 @@
 // src/components/ProgramSetupModal.jsx
 import { useEffect, useMemo, useState } from "react";
 import { HiCheckCircle, HiX } from "react-icons/hi";
+import toast from "react-hot-toast";
 import { supabase } from "../../supabaseClient";
 
 export default function ProgramSetupModal({ onClose, userId, onComplete }) {
@@ -39,7 +40,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
 
   const handleSave = async () => {
     if (!selectedDegree) {
-      alert("Please select a program");
+      toast.error("Please select a program");
       return;
     }
 
@@ -72,7 +73,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
 
       if (programError) {
         console.error("Error saving program:", programError);
-        alert("Failed to save program. Please try again.");
+        toast.error("Failed to save program. Please try again.");
         setLoading(false);
         return;
       }
@@ -91,7 +92,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
       onComplete(programData);
     } catch (error) {
       console.error("Error in handleSave:", error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
       setLoading(false);
     }
   };

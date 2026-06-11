@@ -1,5 +1,6 @@
 // src/pages/CourseDetailPage.jsx
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   HiAcademicCap,
   HiArrowLeft,
@@ -52,7 +53,7 @@ function CourseDetailPage() {
 
   const handleAddToProgress = async () => {
     if (!session?.user?.id || !course || !sectionName) {
-      alert("Unable to add course. Please ensure you're logged in and came from a progress section.");
+      toast.error("Unable to add course. Please ensure you're logged in and came from a progress section.");
       return;
     }
     setAddingToProgress(true);
@@ -70,14 +71,15 @@ function CourseDetailPage() {
 
       if (error) {
         console.error("Error adding course:", error);
-        alert("Failed to add course to progress. It may already be added.");
+        toast.error("Failed to add course to progress. It may already be added.");
       } else {
         setAddedSuccess(true);
+        toast.success("Course added to your progress");
         setTimeout(() => { navigate("/progress"); }, 1500);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("An error occurred while adding the course.");
+      toast.error("An error occurred while adding the course.");
     } finally {
       setAddingToProgress(false);
     }
