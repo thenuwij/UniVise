@@ -1,0 +1,75 @@
+name: Deploy Lambda Backend
+
+# Auto-build the arm64 container image and deploy it to the Lambda on every push
+# to infra/aws-lambda that touches backend code or this workflow.
+on:
+  push:
+    branches:
+      - infra/aws-lambda
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-lambda.yml"
+
+# Required for OIDC: id-token lets the job request a token to assume the AWS role.
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: univise-backend-lambda
+  FUNCTION_NAME: univise-backend-lambda
+
+jobs:
+  deploy:
+    name: Build and Deploy Lambda
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+
+      # The runner is x86; QEMU lets it build the arm64 (Graviton) image.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push arm64 image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker buildx build \
+            --platform linux/arm64 \
+            --provenance=false \
+            -f backend/Dockerfile.lambda \
+            -t "$IMAGE_URI" \
+            --push backend
+          echo "image=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy image to Lambda
+        env:
+          IMAGE_URI: ${{ steps.build-image.outputs.image }}
+        run: |
+          aws lambda update-function-code \
+            --function-name "$FUNCTION_NAME" \
+            --image-uri "$IMAGE_URI" \
+            --region "$AWS_REGION"
+          aws lambda wait function-updated \
+            --function-name "$FUNCTION_NAME" \
+            --region "$AWS_REGION"
+          echo "Deployed $IMAGE_URI to $FUNCTION_NAME"
