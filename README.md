@@ -197,3 +197,12 @@ UniVise is currently being evaluated with **80 UNSW students** as part of the Ho
    - Non-transferable courses
    - Remaining requirements
    - Recommendation narrative
+
+---
+
+## Engineering Documentation
+
+- [ADR 0001 — Deployment Platform](docs/adr/0001-deployment-platform.md) — the architecture decision record for how and where UniVise is hosted, including the options considered and their consequences.
+- [AWS Deployment Notes](infra/aws-deployment-notes.md) — Phase 1 notes covering the move of frontend and backend hosting to AWS, with the pre-AWS baseline and the target architecture.
+- [Rollback & Incident Runbook](infra/rollback-runbook.md) — step-by-step diagnosis, backend and frontend rollback procedures, and the fallback path to the legacy stack.
+- [Smoke Test Checklist](infra/smoke-test-checklist.md) — the manual checks run before and after AWS deployment, with the recorded results.
