@@ -2,11 +2,29 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-uni--vise.com-blue?style=for-the-badge)](https://uni-vise.com)
 
+**Live demo: [https://uni-vise.com](https://uni-vise.com)**
+
+UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney.
+
+---
+
+## Status
+
+The platform is deployed and maintained at [uni-vise.com](https://uni-vise.com). The source is published for reference rather than for self-hosting, because it depends on provisioned Supabase infrastructure and institutional data.
+
+---
+
+## Screenshots
+
+![UniVise roadmap view showing a generated program pathway with recommended course sequencing across terms](docs/images/roadmap.png)
+
+![MindMesh prerequisite graph showing courses as a force-directed network of dependency chains and bottleneck courses](docs/images/mindmesh.png)
+
+![Transfer advisor summary showing transferable courses, non-transferable courses, remaining requirements, and the recommendation narrative](docs/images/transfer-advisor.png)
+
 ---
 
 ## Description
-
-UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney. 
 
 The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
 
@@ -63,7 +81,7 @@ The transfer advisor enables a student to compare their current program against 
 - What remains to complete in the target program
 - The overall impact on progression and workload
 
-TThe analysis is powered by an AI advisor agent that receives structured facts computed by the backend including transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree, alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
+The analysis is powered by an AI advisor agent that receives structured facts computed by the backend including transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree, alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
 
 ### Specialisation Selection Support
 
@@ -117,6 +135,8 @@ User
 ```
 
 The backend coordinates rule parsing, transfer logic, prerequisite graph generation, and AI-driven advisory outputs.
+
+The reasoning behind the choice of deployment platform is recorded in [ADR 0001 — Deployment Platform](docs/adr/0001-deployment-platform.md).
 
 ### Technical Highlights
 
@@ -177,3 +197,12 @@ UniVise is currently being evaluated with **80 UNSW students** as part of the Ho
    - Non-transferable courses
    - Remaining requirements
    - Recommendation narrative
+
+---
+
+## Engineering Documentation
+
+- [ADR 0001 — Deployment Platform](docs/adr/0001-deployment-platform.md) — the architecture decision record for how and where UniVise is hosted, including the options considered and their consequences.
+- [AWS Deployment Notes](infra/aws-deployment-notes.md) — Phase 1 notes covering the move of frontend and backend hosting to AWS, with the pre-AWS baseline and the target architecture.
+- [Rollback & Incident Runbook](infra/rollback-runbook.md) — step-by-step diagnosis, backend and frontend rollback procedures, and the fallback path to the legacy stack.
+- [Smoke Test Checklist](infra/smoke-test-checklist.md) — the manual checks run before and after AWS deployment, with the recorded results.
