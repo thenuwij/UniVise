@@ -136,8 +136,6 @@ User
 
 The backend coordinates rule parsing, transfer logic, prerequisite graph generation, and AI-driven advisory outputs.
 
-The reasoning behind the choice of deployment platform is recorded in [ADR 0001 — Deployment Platform](docs/adr/0001-deployment-platform.md).
-
 ### Technical Highlights
 
 - **~75% reduction in career pathways generation time** via model selection and async concurrency (50s+ → ~15s)
