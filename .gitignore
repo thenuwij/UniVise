@@ -23,3 +23,7 @@ AGENTS.md
 DATABASE_INVENTORY.md
 AUTH_INVENTORY.md
 costs.csv
+
+# Engineering decision records and runbooks - kept locally, not published
+docs/adr/
+infra/

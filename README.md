@@ -6,6 +6,8 @@
 
 UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney.
 
+The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
+
 ---
 
 ## Status
@@ -24,19 +26,7 @@ The platform is deployed and maintained at [uni-vise.com](https://uni-vise.com).
 
 ---
 
-## Description
-
-The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
-
-The platform consolidates fragmented university information including program handbooks, course rules, specialisation requirements, and industry signals into a single decision-support experience. Students can explore structured roadmaps, visualise prerequisite constraints, compare programs, and receive recommendations for program transfers based on completed coursework.
-
-UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost. The platform optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
-
-The platform is **deployed to production** on AWS at [uni-vise.com](https://uni-vise.com): the frontend is hosted on S3 and served through CloudFront, while the FastAPI backend runs on AWS Lambda behind CloudFront at [api.uni-vise.com](https://api.uni-vise.com). The Lambda image uses the AWS Lambda Web Adapter, so the app runs as a real uvicorn server and streaming responses work as they do locally. Supabase remains the PostgreSQL/Auth provider. An ECS Fargate deployment was the original production stack and is retained in the repository as infrastructure code.
-
----
-
-## Problems This System Solves
+## Why UniVise Exists
 
 University planning is difficult for several key reasons:
 
@@ -56,7 +46,7 @@ Students frequently discover prerequisite chains too late, which can delay progr
 
 Students want to know how their program choices map to real job markets, skills, and employer demand, but this linkage is usually indirect and scattered.
 
-UniVise addresses these issues by combining structured program data, rule-aware comparisons, prerequisite graph visualisation, and AI-generated advisory outputs.
+UniVise addresses these issues by consolidating program handbooks, course rules, specialisation requirements, and industry signals into a single decision-support experience, combining structured program data, rule-aware comparisons, prerequisite graph visualisation, and AI-generated advisory outputs.
 
 ---
 
@@ -111,6 +101,8 @@ This component can be enabled or disabled depending on API availability and cost
 
 ## System Overview
 
+UniVise is built as a full-stack system with a React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost.
+
 ### Technical Stack
 
 | Layer | Technology |
@@ -120,10 +112,11 @@ This component can be enabled or disabled depending on API availability and cost
 | Database | Supabase (PostgreSQL) |
 | AI Layer | Anthropic Claude API (Sonnet, Haiku) + OpenAI API (GPT-4o mini, GPT-5.4-mini) — multi-provider prompt orchestration with model-agnostic JSON parsing |
 | Auth | Google OAuth |
-| Deployment | AWS S3 + CloudFront frontend, Lambda (container image, Lambda Web Adapter) backend, GitHub Actions CI/CD |
+| Deployment | AWS Lambda backend, S3 + CloudFront frontend, GitHub Actions CI/CD |
 | Job Data | SerpAPI (Google Jobs) — optional |
 
 ### High-Level Architecture
+
 ```
 User
  └── React + TypeScript Frontend (S3 + CloudFront)
@@ -136,6 +129,21 @@ User
 
 The backend coordinates rule parsing, transfer logic, prerequisite graph generation, and AI-driven advisory outputs.
 
+### AWS Deployment
+
+| Component | Service |
+|---|---|
+| Frontend hosting | S3 bucket serving the Vite production build |
+| Frontend delivery | CloudFront with SPA routing fallback and HTTPS via ACM |
+| Backend runtime | Lambda running a container image on arm64 |
+| Backend serving | Lambda Web Adapter running the FastAPI app as a uvicorn server, so streaming responses are preserved |
+| Backend delivery | CloudFront at `api.uni-vise.com`, caching disabled for personalised responses |
+| Container registry | ECR, with images tagged by commit SHA |
+| Secrets | AWS Secrets Manager, loaded at runtime by the function's execution role |
+| CI/CD | GitHub Actions deploying on push to `main`, authenticated to AWS via OIDC with no stored access keys |
+| Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, with email notification through SNS |
+| DNS | Cloudflare, with `uni-vise.com` and `api.uni-vise.com` pointing at their CloudFront distributions |
+
 ### Technical Highlights
 
 - **~75% reduction in career pathways generation time** via model selection and async concurrency (50s+ → ~15s)
@@ -145,9 +153,8 @@ The backend coordinates rule parsing, transfer logic, prerequisite graph generat
 - Custom transfer-matching engine for cross-program comparison
 - Dynamic prerequisite graph construction with force-directed layout (MindMesh)
 - Google OAuth authentication with persistent, database-backed user profiles
-- Production AWS deployment with GitHub Actions continuous delivery
+- Serverless AWS deployment with GitHub Actions continuous delivery
 - Modular frontend architecture with clear separation between UI, business logic, and AI orchestration
-- Designed for scalable institutional deployment
 
 ---
 
@@ -195,12 +202,3 @@ UniVise is currently being evaluated with **80 UNSW students** as part of the Ho
    - Non-transferable courses
    - Remaining requirements
    - Recommendation narrative
-
----
-
-## Engineering Documentation
-
-- [ADR 0001 — Deployment Platform](docs/adr/0001-deployment-platform.md) — the architecture decision record for how and where UniVise is hosted, including the options considered and their consequences.
-- [AWS Deployment Notes](infra/aws-deployment-notes.md) — Phase 1 notes covering the move of frontend and backend hosting to AWS, with the pre-AWS baseline and the target architecture.
-- [Rollback & Incident Runbook](infra/rollback-runbook.md) — step-by-step diagnosis, backend and frontend rollback procedures, and the fallback path to the legacy stack.
-- [Smoke Test Checklist](infra/smoke-test-checklist.md) — the manual checks run before and after AWS deployment, with the recorded results.
