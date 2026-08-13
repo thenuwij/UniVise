@@ -6,16 +6,6 @@ UniVise is an AI-powered academic advising and planning platform designed to hel
 
 The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
 
----
-
-## Status
-
-The platform is deployed and maintained at [uni-vise.com](https://uni-vise.com). The source is published for reference rather than for self-hosting, because it depends on provisioned Supabase infrastructure and institutional data.
-
----
-
-## Screenshots
-
 **Dashboard** — the planning hub, with top career matches ranked by suitability and salary range.
 
 ![UniVise dashboard showing the academic planning hub with roadmap and program transfer entry points, above a ranked list of career matches](docs/images/dashboard.png)
