@@ -84,29 +84,54 @@ async def create_unsw(
         raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
 
-    # Trigger a SINGLE background task that generates societies, industry
-    # experience, and career pathways together and writes the payload once.
-    # Previously this was two concurrent tasks (societies + industry/careers)
-    # that each did their own read-modify-write on unsw_roadmap.payload,
-    # which became a last-write-wins race risk after the societies model
-    # was migrated from Sonnet (~25s) to Haiku (~11s). Consolidating into
-    # one task with one DB write eliminates that race entirely.
-    try:
-        import asyncio
-
-        def handle_task_exception(task):
-            if not task.cancelled() and task.exception():
-                logger.error(f"Background task failed: {task.exception()}")
-
-        industry_task = asyncio.create_task(generate_and_update_all_industry(rec["id"], rec))
-        industry_task.add_done_callback(handle_task_exception)
-    except Exception as e:
-        print(f"[Background] Failed to schedule tasks: {e}")
-
+    # Societies, industry experience, and career pathways are NOT generated
+    # here. They are produced by POST /roadmap/unsw/{roadmap_id}/industry,
+    # which the frontend calls immediately after this response.
+    #
+    # They used to run as an asyncio background task started before this
+    # return. That works on a long-lived server but not on Lambda, which
+    # freezes the execution environment as soon as the response is sent: the
+    # task was suspended mid-flight and its payload write never happened, so
+    # the three sections stayed empty forever. A separate request keeps the
+    # work inside an invocation that is allowed to finish.
     print(f"[TIMING] TOTAL ENDPOINT: {time.time() - endpoint_start:.1f}s")
 
     # Return immediate response to frontend
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
+
+# Generate societies / industry experience / career pathways for a roadmap.
+# Called by the frontend right after create_unsw returns; takes ~15-25s and
+# writes the three sections into unsw_roadmap.payload, which the roadmap page
+# is already polling for. Safe to call more than once.
+@router.post("/unsw/{roadmap_id}/industry")
+async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)):
+    try:
+        res = (
+            supabase.from_("unsw_roadmap")
+            .select("*").eq("id", roadmap_id).single().execute()
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lookup failed: {e}")
+
+    rec = res.data
+    if not rec:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+    if rec.get("user_id") != user.id:
+        raise HTTPException(status_code=403, detail="Not your roadmap")
+
+    # Already generated (e.g. the frontend retried, or the user reloaded) —
+    # don't spend another round of AI calls.
+    payload = rec.get("payload") or {}
+    if all(payload.get(k) for k in ("industry_societies", "industry_experience", "career_pathways")):
+        return {"status": "already_generated"}
+
+    try:
+        await generate_and_update_all_industry(roadmap_id, rec)
+    except Exception as e:
+        logger.error(f"Industry generation failed for {roadmap_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Industry generation failed: {e}")
+
+    return {"status": "generated"}
 
 # Get user's most recent roadmap by mode
 @router.get("/{mode}", response_model=RoadmapResp)
