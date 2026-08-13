@@ -3,8 +3,7 @@ name: Deploy Backend Staging
 on:
   push:
     branches:
-      - infra/aws-phase-1
-      - staging
+      - main
     paths:
       - "backend/**"
       - "infra/ecs-task-definition-staging.json"

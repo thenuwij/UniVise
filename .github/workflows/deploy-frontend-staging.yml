@@ -3,8 +3,7 @@ name: Deploy Frontend Staging
 on:
   push:
     branches:
-      - infra/aws-phase-1
-      - staging
+      - main
     paths:
       - "frontend/**"
       - ".github/workflows/deploy-frontend-staging.yml"
