@@ -75,7 +75,7 @@ The analysis is powered by an AI advisor agent that receives structured facts co
 
 UniVise supports program structures with multiple specialisations. Users can select specialisations (for both current and target programs where applicable) and view how that selection changes requirements and transfer outcomes.
 
-### Prerequisite Visualisation (MindMesh)
+### Prerequisite Visualisation
 
 MindMesh is a prerequisite graph view that represents course dependencies as a force-directed graph. It enables students to:
 
