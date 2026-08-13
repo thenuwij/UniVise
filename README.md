@@ -1,4 +1,4 @@
-# UniVise — Academic Planning and Program Transfer Advisor
+# UniVise - Academic Planning and Program Transfer Advisor
 
 **Live demo: [https://uni-vise.com](https://uni-vise.com)**
 
