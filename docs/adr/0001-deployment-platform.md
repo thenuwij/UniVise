@@ -1,91 +1,100 @@
 # ADR 0001 — Deployment Platform for UniVise
 
-- **Status:** Accepted (with planned follow-up — see "Future")
+- **Status:** Superseded on 2026-06-11 — the backend moved to Lambda. See "What
+  happened next" at the end.
 - **Date:** 2026-06-09
 - **Decider:** Thenuja Wijesuriya
-- **Context tags:** hosting, cost, FastAPI backend, research/usability study
+- **Tags:** hosting, cost, FastAPI backend, usability study
 
 ## Context
 
-UniVise is an AI-powered academic advising platform for UNSW students — a single
-FastAPI backend plus a React/Vite frontend, backed by Supabase. It is a research /
-portfolio project (HD thesis, UNSW CSE Showcase) with an upcoming supervised
-usability study (~80 students) a few months out. Traffic is **low and bursty**, not
-sustained high volume.
+UniVise is an AI-powered academic advising platform for UNSW students: one FastAPI
+backend, a React/Vite frontend, and Supabase for the database and auth. It is an
+Honours thesis project, with a supervised usability study of around 80 students a few
+months out. Traffic is low and bursty, not sustained.
 
-The deployment platform needed to balance three goals that do not always point the
-same way:
+Three things mattered when picking where to host it:
 
-1. **Reliability for the usability study** — students must be able to test quickly,
-   with no cold-start lag during sessions.
-2. **Reasonable cost** — this is a self-funded student project, not a funded startup.
-3. **Career / learning value** — demonstrate real cloud skills and the judgement to
-   pick the right deployment for a project of this size.
+1. Reliability during the study. Students need to test quickly, without waiting on a
+   cold start.
+2. Cost. This is a self-funded student project.
+3. Learning. I wanted hands-on experience with a real cloud deployment.
 
 ## Decision
 
-Host the frontend as a static build on **S3 + CloudFront**, and the backend as a
-containerised FastAPI app on **ECS Fargate behind an Application Load Balancer (ALB)**,
-with images in **ECR** and CI/CD via **GitHub Actions**. Secrets in AWS Secrets
-Manager; HTTPS via ACM.
-
-This is a deliberate, mainstream production choice — containers without managing
-servers — chosen partly for the workload and partly as a genuine AWS learning
-investment ahead of the study.
+Host the frontend as a static build on S3, served through CloudFront. Host the backend
+as a containerised FastAPI app on ECS Fargate behind an Application Load Balancer, with
+images in ECR and CI/CD through GitHub Actions. Secrets live in AWS Secrets Manager and
+HTTPS is handled by ACM.
 
 ## Options considered
 
-| Option | Idle cost | Cold start | Ops burden | Fit for UniVise |
+| Option | Idle cost | Cold start | Ops burden | Notes |
 |---|---|---|---|---|
-| **Render free tier** | $0 | Yes (spins down) | None | Good, but cold starts hurt fast student testing |
-| **Render Starter ($7/mo)** | ~$7 | No | None | Excellent product fit — cheapest always-on option |
-| **ECS Fargate + ALB** (chosen) | ~$42/mo (after right-sizing) | No | Low | Solid; more than needed, but strong learning value |
-| **Serverless (Lambda + API Gateway)** | ~$2–5/mo | Minor (first request) | Low | Arguably the best cost fit for bursty traffic |
-| **Kubernetes (EKS)** | High | No | High | Overkill — wrong tool for a single small service |
+| Render free tier | $0 | Yes, spins down | None | Cold starts made student testing slow |
+| Render Starter | ~$7/mo | No | None | Cheapest always-on option |
+| ECS Fargate + ALB (chosen) | ~$42/mo after right-sizing | No | Low | More than this workload needs |
+| Lambda + API Gateway | ~$2–5/mo | Minor, first request | Low | Best cost fit for bursty traffic |
+| Kubernetes (EKS) | High | No | High | Too much for a single small service |
 
-## The journey (honest record)
+## How I got here
 
-1. **Render free tier** — worked, but cold starts made fast student testing unreliable.
-2. **Render Starter ($7/mo, no spin-down)** — fixed the cold start; product-wise this was
-   the correct, cheapest always-on choice.
-3. **Migrated to AWS (Fargate)** — primarily to build hands-on AWS skills and prepare for
-   scaling, ahead of the usability study. Lambda/serverless was **not** evaluated at this
-   point — a gap in hindsight.
-4. **Cost shock (~$100 USD/mo trajectory)** — driven by always-on Fargate compute + ALB
-   hours + public IPv4 charges, none of which have a free tier.
-5. **Cost optimisation** — traced the bill line-by-line and applied: single right-sized
-   task (1 × 256/512), ALB trimmed from 3 AZs to 2. Result: ~48% reduction (~$80 → ~$42/mo).
-6. **Evaluated serverless** — identified Lambda + API Gateway as the real structural saving
-   (~$2–5/mo) but **deferred** it: re-architecting the backend mid-study trades away the
-   reliability the study needs. Decision: right tool for the *current* stage, revisit later.
+1. Started on the Render free tier. It worked, but the service spun down and cold
+   starts made testing unreliable.
+2. Moved to Render Starter ($7/mo, no spin-down). That fixed the cold starts and was
+   the cheapest always-on option.
+3. Migrated to AWS Fargate to get hands-on AWS experience before the study. I did not
+   evaluate Lambda at this point, which was a gap.
+4. The bill was heading for roughly $100/mo. Fargate compute, ALB hours and public IPv4
+   charges all run continuously, and none of them have a free tier.
+5. Cut it back to one right-sized task (256 CPU / 512 memory) and trimmed the ALB from
+   three availability zones to two. That took the bill from about $80 to about $42/mo,
+   a reduction of roughly 48%.
+6. Looked at Lambda + API Gateway and found it would cost about $2–5/mo, but deferred
+   it. Re-architecting the backend mid-study would risk the reliability the study needs.
 
 ## Consequences
 
-**Positive**
-- Demonstrates container, load-balancing, IaC, and CI/CD fluency.
-- Reliable, no cold starts for the usability study.
-- Full cost model is now understood and documented; a budget alarm is in place.
+Good:
 
-**Negative / trade-offs**
-- Higher cost than the workload strictly requires (~$42/mo vs ~$7 Render / ~$3 serverless).
-- ALB + public IPv4 are ~70% of the remaining bill and are not addressable without an
-  architecture change (serverless or removing the load balancer).
+- No cold starts during the usability study.
+- Hands-on experience with containers, load balancing and CI/CD on AWS.
+- The cost breakdown is understood and documented, with a budget alarm in place.
+
+Trade-offs:
+
+- Costs more than the workload requires: ~$42/mo against ~$7 on Render or ~$3 on
+  serverless.
+- The ALB and public IPv4 charges are around 70% of the remaining bill, and neither can
+  be reduced without changing the architecture.
 
 ## Cost guardrail
 
-An AWS Budget (`univise-monthly-cost`, $50 USD/month) now emails alerts at 60/80/100%
-actual and 100% forecast — so a future cost surprise cannot go unnoticed.
+An AWS Budget (`univise-monthly-cost`, $50 USD/month) emails alerts at 60%, 80% and
+100% of actual spend, and at 100% of forecast spend.
 
 ## Future
 
-- **Build a serverless (Lambda + API Gateway) variant on a branch** — even without cutting
-  over, deploying the same app two ways demonstrates right-sizing judgement and gives a
-  ~$3/mo option for low-traffic / post-study periods.
-- **After the study:** downsize or decommission the always-on stack; keep the AWS IaC in the
-  repo as a demonstration artifact. Decommissioning unneeded infra is itself a maturity signal.
+- Build a Lambda + API Gateway variant on a branch. Deploying the same app two ways
+  gives a ~$3/mo option for quiet periods without cutting over now.
+- After the study, downsize or shut down the always-on stack and keep the AWS
+  infrastructure code in the repo.
 
-## Lesson (for future ADRs)
+## What happened next (2026-06-11)
 
-Match the infrastructure to the project's *current* stage — not to what is impressive, and
-not to scale you might need someday — then write down *why*. The documented reasoning is the
-real engineering asset; the platform choice is secondary.
+The Lambda variant was built and then became production, so the decision above no
+longer describes how UniVise runs.
+
+- The backend is a container image on Lambda, using the AWS Lambda Web Adapter rather
+  than API Gateway. The adapter runs the app as a real uvicorn server inside Lambda,
+  which keeps FastAPI's streaming responses working.
+- `api.uni-vise.com` points at a CloudFront distribution whose origin is the Lambda
+  function URL.
+- The ECS service was scaled to zero. The cluster, service and task definitions still
+  exist as a standby and as infrastructure code.
+- Cold starts were acceptable in practice, which was the main open question.
+
+The reasoning in this ADR still holds for the stage it was written in: an always-on
+container stack was the safe choice going into the usability study. Once the study's
+reliability requirement was no longer the binding constraint, the cost argument for
+serverless won.

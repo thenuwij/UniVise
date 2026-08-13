@@ -32,7 +32,7 @@ The platform consolidates fragmented university information including program ha
 
 UniVise is built as a full-stack system with a modern React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost. The platform optionally integrates live job market listings via SerpAPI to connect academic planning with real-world role demand.
 
-The platform is **deployed to production** on AWS at [uni-vise.com](https://uni-vise.com): the frontend is hosted on S3 and served through CloudFront, while the FastAPI backend runs on ECS Fargate behind an HTTPS Application Load Balancer at [api.uni-vise.com](https://api.uni-vise.com). Supabase remains the PostgreSQL/Auth provider. The previous Vercel frontend and Render backend remain available as rollback targets during cutover.
+The platform is **deployed to production** on AWS at [uni-vise.com](https://uni-vise.com): the frontend is hosted on S3 and served through CloudFront, while the FastAPI backend runs on AWS Lambda behind CloudFront at [api.uni-vise.com](https://api.uni-vise.com). The Lambda image uses the AWS Lambda Web Adapter, so the app runs as a real uvicorn server and streaming responses work as they do locally. Supabase remains the PostgreSQL/Auth provider. An ECS Fargate deployment was the original production stack and is retained in the repository as infrastructure code.
 
 ---
 
@@ -120,14 +120,14 @@ This component can be enabled or disabled depending on API availability and cost
 | Database | Supabase (PostgreSQL) |
 | AI Layer | Anthropic Claude API (Sonnet, Haiku) + OpenAI API (GPT-4o mini, GPT-5.4-mini) — multi-provider prompt orchestration with model-agnostic JSON parsing |
 | Auth | Google OAuth |
-| Deployment | AWS S3 + CloudFront frontend, ECS Fargate + ALB backend, GitHub Actions CI/CD |
+| Deployment | AWS S3 + CloudFront frontend, Lambda (container image, Lambda Web Adapter) backend, GitHub Actions CI/CD |
 | Job Data | SerpAPI (Google Jobs) — optional |
 
 ### High-Level Architecture
 ```
 User
  └── React + TypeScript Frontend (S3 + CloudFront)
-       └── FastAPI Backend (ECS Fargate + ALB)
+       └── FastAPI Backend (Lambda + CloudFront)
              ├── Supabase PostgreSQL Database
              ├── LLM Reasoning Layer (Anthropic + OpenAI APIs)
              │     └── Multi-provider parallelised prompt orchestration
