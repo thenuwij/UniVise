@@ -104,6 +104,25 @@ export async function handleRoadmapGeneration({
       console.log("Initial generation complete. Navigating to roadmap...");
       console.log("Note: Flexibility, societies, and careers will continue loading in background");
 
+      // Kick off societies / industry experience / career pathways. This is a
+      // separate request on purpose: the backend runs on Lambda, which freezes
+      // the execution environment once a response is sent, so work started
+      // after the /roadmap/unsw response never finishes. We deliberately do NOT
+      // await it — the roadmap page polls Supabase for these sections and
+      // renders them as they land.
+      if (roadmapId) {
+        fetch(
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw/${roadmapId}/industry`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}` },
+            credentials: "include",
+          }
+        ).catch((err) =>
+          console.error("Industry section generation request failed:", err)
+        );
+      }
+
       // Navigate to roadmap
       setProgress(100);
       const destination = returnToStep
