@@ -138,7 +138,7 @@ The backend staging deployment workflow lives at:
 
 - `.github/workflows/deploy-backend-staging.yml`
 
-On pushes to `infra/aws-phase-1` or `staging`, when backend deployment files change, the workflow:
+On pushes to `main`, when backend deployment files change, the workflow:
 
 1. Assumes the GitHub AWS deploy role through OIDC.
 2. Logs in to Amazon ECR.
@@ -395,7 +395,7 @@ The frontend staging deployment workflow lives at:
 
 - `.github/workflows/deploy-frontend-staging.yml`
 
-On pushes to `infra/aws-phase-1` or `staging`, when frontend deployment files change, the workflow:
+On pushes to `main`, when frontend deployment files change, the workflow:
 
 1. Assumes the GitHub AWS deploy role through OIDC.
 2. Installs frontend dependencies with `npm ci`.
@@ -675,8 +675,8 @@ Trust policy scope:
 
 - Repository: `thenuwij/UniVise`
 - Branches:
-  - `infra/aws-phase-1`
-  - `staging`
+  - `main`
+  - `infra/aws-lambda`
 
 Deployment permissions include:
 
