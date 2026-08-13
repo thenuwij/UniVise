@@ -1,7 +1,5 @@
 # UniVise — Academic Planning and Program Transfer Advisor
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-uni--vise.com-blue?style=for-the-badge)](https://uni-vise.com)
-
 **Live demo: [https://uni-vise.com](https://uni-vise.com)**
 
 UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney.
@@ -158,7 +156,7 @@ The backend coordinates rule parsing, transfer logic, prerequisite graph generat
 
 ---
 
-## Data Engineering
+## Data Collection and Modelling
 
 A significant portion of the UniVise engineering effort involved sourcing, cleaning, and structuring the large-scale real-world data that powers the platform's advisory outputs.
 
