@@ -1,11 +1,12 @@
 # Screenshots
 
-Place README screenshots in this directory. The root `README.md` references:
+Images used by the root `README.md`.
 
 | File | Shows |
 |---|---|
-| `roadmap.png` | The roadmap view — generated program pathway with course sequencing |
-| `mindmesh.png` | The MindMesh prerequisite graph — force-directed course dependency view |
-| `transfer-advisor.png` | The transfer advisor summary — transferable courses, gaps, and recommendation |
+| `dashboard.png` | The planning hub with ranked career matches |
+| `roadmap.png` | A generated program pathway and its stepped sections |
+| `prerequisite-graph.png` | Course dependencies as a force-directed network |
+| `transfer-advisor.png` | The transfer summary, verdict and key observations |
 
 Keep the filenames above so the existing image tags resolve without edits.

@@ -16,11 +16,21 @@ The platform is deployed and maintained at [uni-vise.com](https://uni-vise.com).
 
 ## Screenshots
 
-![UniVise roadmap view showing a generated program pathway with recommended course sequencing across terms](docs/images/roadmap.png)
+**Dashboard** — the planning hub, with top career matches ranked by suitability and salary range.
 
-![MindMesh prerequisite graph showing courses as a force-directed network of dependency chains and bottleneck courses](docs/images/mindmesh.png)
+![UniVise dashboard showing the academic planning hub with roadmap and program transfer entry points, above a ranked list of career matches](docs/images/dashboard.png)
 
-![Transfer advisor summary showing transferable courses, non-transferable courses, remaining requirements, and the recommendation narrative](docs/images/transfer-advisor.png)
+**Roadmap** — a generated program pathway, stepped through requirements, structure, specialisations, societies, internships and careers.
+
+![UniVise roadmap for the Bachelor of Engineering (Honours) showing the stepped pathway navigation and generated internship programs](docs/images/roadmap.png)
+
+**Prerequisite graph** — course dependencies as a force-directed network, showing chains and bottleneck courses.
+
+![Prerequisite graph showing UNSW courses as connected nodes, with dependency chains and bottleneck courses across a 38-course program](docs/images/prerequisite-graph.png)
+
+**Transfer advisor** — what carries over to a target program, what does not, and the recommendation.
+
+![Transfer advisor summary showing 73% of courses transferring with zero extra terms, a completion estimate, and key observations about lost credit](docs/images/transfer-advisor.png)
 
 ---
 
