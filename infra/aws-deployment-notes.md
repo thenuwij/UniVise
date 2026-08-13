@@ -1,5 +1,17 @@
 # UniVise AWS Deployment Notes - Phase 1
 
+> **Status (2026-08-13):** Phase 1, the move of hosting to AWS, is complete and live at
+> `uni-vise.com`. Phase 2, moving long-running AI generation into an SQS-backed worker
+> flow, has not started.
+>
+> **The backend described below is out of date.** On 2026-06-11 the backend moved from
+> ECS Fargate to Lambda (container image with the Lambda Web Adapter, fronted by
+> CloudFront). The ECS service was scaled to zero and kept as a standby. The frontend is
+> unchanged: S3 plus CloudFront. See `docs/adr/0001-deployment-platform.md` for why, and
+> `infra/rollback-runbook.md` for current recovery steps.
+>
+> Note on naming: AWS resources are named `*-staging` but serve production.
+
 ## Purpose
 
 This phase moves UniVise frontend and backend hosting to AWS while keeping Supabase PostgreSQL/Auth/RLS unchanged.

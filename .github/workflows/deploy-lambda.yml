@@ -1,11 +1,11 @@
 name: Deploy Lambda Backend
 
-# Auto-build the arm64 container image and deploy it to the Lambda on every push
-# to infra/aws-lambda that touches backend code or this workflow.
+# Deploys the production backend. Builds the arm64 container image and updates the
+# Lambda on every push to main that touches backend code or this workflow.
 on:
   push:
     branches:
-      - infra/aws-lambda
+      - main
     paths:
       - "backend/**"
       - ".github/workflows/deploy-lambda.yml"

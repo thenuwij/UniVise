@@ -11,15 +11,18 @@ Region: `ap-southeast-2` · AWS account: `280793168491`
 
 ```text
 Frontend (prod):  https://uni-vise.com  (S3 univise-frontend-staging-280793168491 + CloudFront EX1BBJSKO1XLS)
-Backend  (prod):  https://api.uni-vise.com  (ALB HTTPS:443 -> ECS Fargate)
+Backend  (prod):  https://api.uni-vise.com  (CloudFront E2R4S2V4U19NWK -> Lambda function URL)
 Backend health:   https://api.uni-vise.com/health  -> {"ok": true}
+Lambda function:  univise-backend-lambda (arm64 container image, Lambda Web Adapter)
+Lambda image repo: ECR univise-backend-lambda, tagged by git SHA
+Alarms topic:     univise-prod-alarms (email jwthenu@gmail.com)
+DNS:              Cloudflare (uni-vise.com), DNS-only / unproxied records
+
+Standby (not serving traffic, scaled to zero):
 ECS cluster:      univise-staging-cluster
-ECS service:      univise-backend-staging-service
+ECS service:      univise-backend-staging-service (desiredCount 0)
 Target group:     univise-backend-tg-staging
 ALB:              univise-backend-alb-staging
-Alarms topic:     univise-prod-alarms (email jwthenu@gmail.com)
-Legacy fallback:  Vercel (frontend) https://uni-vise-nu.vercel.app, Render (backend) https://univise-ehfj.onrender.com
-DNS:              Cloudflare (uni-vise.com), DNS-only / unproxied records
 ```
 
 ## 1. Diagnose first (don't roll back blindly)
@@ -68,30 +71,32 @@ Everything down / can't fix fast
   -> See section 4 (full fallback to Vercel/Render).
 ```
 
-## 2. Backend rollback (bad deploy or unhealthy tasks)
+## 2. Backend rollback (bad deploy)
 
-The service has a deployment circuit breaker with automatic rollback, so a failed
-deploy usually reverts itself. To roll back manually to a known-good revision:
+The backend runs on Lambda from a container image in ECR, tagged by git SHA. Rolling
+back means pointing the function at the previous image.
 
 ```bash
-# List recent task definition revisions
-aws ecs list-task-definitions --family-prefix univise-backend-staging \
-  --region ap-southeast-2 --sort DESC --max-items 10
+# List recent image tags, newest first
+aws ecr describe-images --repository-name univise-backend-lambda \
+  --region ap-southeast-2 \
+  --query 'sort_by(imageDetails,&imagePushedAt)[-10:].{tag:imageTags[0],pushed:imagePushedAt}' --output table
 
-# Point the service at a known-good revision (replace N)
-aws ecs update-service \
-  --cluster univise-staging-cluster \
-  --service univise-backend-staging-service \
-  --task-definition univise-backend-staging:N \
+# Point the function at a known-good tag (replace SHA)
+aws lambda update-function-code \
+  --function-name univise-backend-lambda \
+  --image-uri 280793168491.dkr.ecr.ap-southeast-2.amazonaws.com/univise-backend-lambda:SHA \
   --region ap-southeast-2
 
-# Watch until steady (one deployment, COMPLETED)
-aws ecs describe-services --cluster univise-staging-cluster \
-  --services univise-backend-staging-service --region ap-southeast-2 \
-  --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}' --output json
+# Wait for the update to finish
+aws lambda wait function-updated \
+  --function-name univise-backend-lambda --region ap-southeast-2
 ```
 
 Then re-check `curl https://api.uni-vise.com/health`.
+
+If the bad code is already on `main`, revert the commit and push — that redeploys
+through GitHub Actions and is usually cleaner than pinning an old image by hand.
 
 ## 3. Frontend rollback (bad build / wrong API URL)
 
@@ -119,26 +124,30 @@ ASSET=$(curl -s https://uni-vise.com/ | grep -o '/assets/index-[A-Za-z0-9_-]*\.j
 curl -s "https://uni-vise.com$ASSET" | grep -o "api.uni-vise.com"   # should match
 ```
 
-## 4. Full fallback to the legacy Vercel/Render stack
+## 4. Full fallback: bring the ECS stack back
 
-Use this when the AWS stack is broken and can't be fixed quickly. The old stack is
-kept warm for exactly this reason. Supabase is shared and unchanged, so no data
-migration is involved.
+There is no longer a legacy fallback. The Render backend is gone, so the Vercel
+frontend has no API to talk to. Supabase is shared and unchanged, so no fallback
+here involves a data migration.
+
+The remaining fallback is the ECS stack, which is still defined but scaled to zero:
 
 ```text
-1. In Cloudflare DNS, repoint the user-facing records away from AWS:
-   - uni-vise.com / www.uni-vise.com  -> the Vercel deployment
-   - api.uni-vise.com                 -> the Render backend (or update the
-     frontend's VITE_API_URL to the Render URL and redeploy on Vercel)
-2. Keep TTL low (Auto/60s) so the change propagates fast.
-3. Confirm:
-   - Vercel frontend loads and login works
-   - Render backend health: curl https://univise-ehfj.onrender.com/health
-4. Once AWS is fixed, repoint DNS back to AWS (reverse of the above).
+1. Scale the service back up:
+   aws ecs update-service --cluster univise-staging-cluster \
+     --service univise-backend-staging-service --desired-count 1 \
+     --region ap-southeast-2
+2. Wait for a healthy target in univise-backend-tg-staging.
+3. In Cloudflare DNS, point api.uni-vise.com at the ALB
+   (univise-backend-alb-staging-182000404.ap-southeast-2.elb.amazonaws.com)
+   instead of the Lambda CloudFront distribution. Keep TTL low (Auto/60s).
+4. Confirm: curl https://api.uni-vise.com/health
+5. Once Lambda is fixed, reverse the DNS change and scale ECS back to zero.
 ```
 
-Note: the API CloudFront HTTPS workaround was deleted, so it is NOT a fallback
-option. Fallback is the Vercel/Render stack.
+This path only works while the ALB and target group still exist. If they have been
+deleted to save cost, recreating them is a rebuild, not a rollback — in that case fix
+forward on Lambda instead.
 
 ## 5. After any rollback
 

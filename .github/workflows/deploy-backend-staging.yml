@@ -1,13 +1,10 @@
 name: Deploy Backend Staging
 
+# The ECS stack is kept as a standby, scaled to zero. Production runs on Lambda
+# (see deploy-lambda.yml). This workflow is manual only, so pushes to main do not
+# deploy to a service that is serving no traffic.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/**"
-      - "infra/ecs-task-definition-staging.json"
-      - ".github/workflows/deploy-backend-staging.yml"
+  workflow_dispatch:
 
 permissions:
   id-token: write

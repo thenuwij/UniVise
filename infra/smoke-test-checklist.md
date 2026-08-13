@@ -75,3 +75,16 @@ No blocking issues recorded after the custom-domain smoke test. All tested produ
 Resolved incident:
 
 - A stale GitHub Actions secret rebuilt the frontend with the old API CloudFront URL. Fix was to set `STAGING_VITE_API_URL=https://api.uni-vise.com`, redeploy the frontend, and verify the live bundle.
+
+## Lambda backend cutover
+
+Date: 2026-06-11
+
+The backend moved from ECS Fargate to Lambda (container image with the Lambda Web
+Adapter, fronted by CloudFront). The checks above were run against the ECS stack and
+have not been repeated against Lambda. Worth re-running the "Checks after AWS
+deployment" list once, particularly the streaming-dependent flows:
+
+- [ ] Roadmap generation starts and streams sections
+- [ ] Eunice chat streams a response token by token
+- [ ] First request after an idle period is acceptably fast (cold start)

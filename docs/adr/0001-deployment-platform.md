@@ -1,6 +1,7 @@
 # ADR 0001 — Deployment Platform for UniVise
 
-- **Status:** Accepted
+- **Status:** Superseded on 2026-06-11 — the backend moved to Lambda. See "What
+  happened next" at the end.
 - **Date:** 2026-06-09
 - **Decider:** Thenuja Wijesuriya
 - **Tags:** hosting, cost, FastAPI backend, usability study
@@ -78,3 +79,22 @@ An AWS Budget (`univise-monthly-cost`, $50 USD/month) emails alerts at 60%, 80% 
   gives a ~$3/mo option for quiet periods without cutting over now.
 - After the study, downsize or shut down the always-on stack and keep the AWS
   infrastructure code in the repo.
+
+## What happened next (2026-06-11)
+
+The Lambda variant was built and then became production, so the decision above no
+longer describes how UniVise runs.
+
+- The backend is a container image on Lambda, using the AWS Lambda Web Adapter rather
+  than API Gateway. The adapter runs the app as a real uvicorn server inside Lambda,
+  which keeps FastAPI's streaming responses working.
+- `api.uni-vise.com` points at a CloudFront distribution whose origin is the Lambda
+  function URL.
+- The ECS service was scaled to zero. The cluster, service and task definitions still
+  exist as a standby and as infrastructure code.
+- Cold starts were acceptable in practice, which was the main open question.
+
+The reasoning in this ADR still holds for the stage it was written in: an always-on
+container stack was the safe choice going into the usability study. Once the study's
+reliability requirement was no longer the binding constraint, the cost argument for
+serverless won.
