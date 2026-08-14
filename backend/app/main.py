@@ -23,9 +23,10 @@ load_dotenv()
 
 
 def get_cors_origins():
+    # Production origins come from BACKEND_CORS_ORIGINS; the default covers local dev only.
     origins = os.getenv(
         "BACKEND_CORS_ORIGINS",
-        "http://localhost:5173,http://localhost:3000,https://uni-vise-nu.vercel.app",
+        "http://localhost:5173,http://localhost:3000",
     )
     return [origin.strip() for origin in origins.split(",") if origin.strip()]
 
