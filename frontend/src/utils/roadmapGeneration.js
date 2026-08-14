@@ -1,3 +1,4 @@
+import { apiFetch } from "./api";
 
 export async function handleRoadmapGeneration({
   type,
@@ -34,14 +35,11 @@ export async function handleRoadmapGeneration({
         });
       }, 100); // Update every 100ms
       
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/school`, {
+      const res = await apiFetch("/roadmap/school", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        token: accessToken,
         credentials: "include",
-        body: JSON.stringify(body),
+        body,
       });
       
       // Stop the animation once we get response
@@ -79,14 +77,11 @@ export async function handleRoadmapGeneration({
       }, 100); // Update every 100ms
 
       // This blocks while backend AI generates (~10-15 seconds)
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw`, {
+      const res = await apiFetch("/roadmap/unsw", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        token: accessToken,
         credentials: "include",
-        body: JSON.stringify(body),
+        body,
       });
 
       const json = await res.json().catch(() => ({}));
@@ -111,14 +106,11 @@ export async function handleRoadmapGeneration({
       // await it — the roadmap page polls Supabase for these sections and
       // renders them as they land.
       if (roadmapId) {
-        fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/roadmap/unsw/${roadmapId}/industry`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${accessToken}` },
-            credentials: "include",
-          }
-        ).catch((err) =>
+        apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
+          method: "POST",
+          token: accessToken,
+          credentials: "include",
+        }).catch((err) =>
           console.error("Industry section generation request failed:", err)
         );
       }
@@ -142,12 +134,9 @@ export async function handleRoadmapGeneration({
 
     // Fallback ONLY when caller explicitly passed null for type
     if (type === null) {
-      await fetch("/api/final-unsw-degrees", {
+      await apiFetch("/final-unsw-degrees/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        token: accessToken,
         credentials: "include",
       });
 

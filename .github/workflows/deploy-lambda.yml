@@ -21,7 +21,25 @@ env:
   FUNCTION_NAME: univise-backend-lambda
 
 jobs:
+  test:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements-dev.txt
+      - name: Run tests
+        working-directory: backend
+        run: pytest
+
   deploy:
+    needs: test
     name: Build and Deploy Lambda
     runs-on: ubuntu-latest
 

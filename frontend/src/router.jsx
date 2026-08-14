@@ -24,9 +24,7 @@ import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./pages/MyPlannerPage";
 import MindMeshGraphPage from "./mindmesh/MindMeshGraphPage";
 import TraitsPage from "./pages/TraitsPage";
-import MajorDetailPage from "./pages/MajorDetailPage";
-import MinorDetailPage from "./pages/MinorDetailPage";
-import HonoursDetailPage from "./pages/HonoursDetailPage";
+import SpecialisationDetailPage from "./pages/SpecialisationDetailPage";
 import SavedItemsPage from "./pages/SavedItemsPage";
 import ProgressPage from "./pages/ProgressPage";
 import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
@@ -62,9 +60,9 @@ export const router = createBrowserRouter([
   { path: "/planner/school", element: <PrivateRoute><MyPlannerSchoolPage /></PrivateRoute> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
-  { path: "/specialisation/major/:id", element: <PrivateRoute><MajorDetailPage /></PrivateRoute> },
-  { path: "/specialisation/minor/:id", element: <PrivateRoute><MinorDetailPage /></PrivateRoute> },
-  { path: "/specialisation/honours/:id", element: <PrivateRoute><HonoursDetailPage /></PrivateRoute> },
+  { path: "/specialisation/major/:id", element: <PrivateRoute><SpecialisationDetailPage variant="major" /></PrivateRoute> },
+  { path: "/specialisation/minor/:id", element: <PrivateRoute><SpecialisationDetailPage variant="minor" /></PrivateRoute> },
+  { path: "/specialisation/honours/:id", element: <PrivateRoute><SpecialisationDetailPage variant="honours" /></PrivateRoute> },
   { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
   { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
   { path: "/auth/callback", element: <AuthCallback /> },

@@ -19,7 +19,7 @@ function ExploreBySpecialisationPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetch = async () => {
+    const loadSpecialisations = async () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -34,7 +34,7 @@ function ExploreBySpecialisationPage() {
       }
       setLoading(false);
     };
-    fetch();
+    loadSpecialisations();
   }, []);
 
   const filtered = allSpecs.filter((s) => {

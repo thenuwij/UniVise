@@ -1,4 +1,6 @@
-// src/pages/HonoursDetailPage.jsx
+// src/pages/SpecialisationDetailPage.jsx
+// Shared detail view for majors, minors and honours streams. All three read the
+// same unsw_specialisations row and differ only in labelling and accent colour.
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
@@ -17,10 +19,38 @@ import {
   HiInformationCircle,
 } from "react-icons/hi";
 
-function HonoursDetailPage() {
+const VARIANTS = {
+  major: {
+    loadingLabel: "major",
+    typeBadgeClass:
+      "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700",
+    structureTitle: "Specialisation Structure",
+    relatedTitle: "Programs Offering This Major",
+    preserveSectionWhitespace: false,
+  },
+  minor: {
+    loadingLabel: "minor",
+    typeBadgeClass:
+      "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700",
+    structureTitle: "Minor Structure",
+    relatedTitle: "Programs Offering This Minor",
+    preserveSectionWhitespace: false,
+  },
+  honours: {
+    loadingLabel: "honours specialisation",
+    typeBadgeClass:
+      "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700",
+    structureTitle: "Honours Structure",
+    relatedTitle: "Programs Offering This Honours Stream",
+    preserveSectionWhitespace: true,
+  },
+};
+
+function SpecialisationDetailPage({ variant = "major" }) {
+  const config = VARIANTS[variant] ?? VARIANTS.major;
   const { id } = useParams();
   const navigate = useNavigate();
-  const [honours, setHonours] = useState(null);
+  const [spec, setSpec] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
   const [degreeDetailsByCode, setDegreeDetailsByCode] = useState({});
@@ -28,7 +58,7 @@ function HonoursDetailPage() {
 
   useEffect(() => {
     let alive = true;
-    const fetchHonours = async () => {
+    const fetchSpecialisation = async () => {
       setLoadErr(null);
       const { data, error } = await supabase
         .from("unsw_specialisations")
@@ -41,21 +71,29 @@ function HonoursDetailPage() {
 
       let parsedSections = [];
       let parsedDegrees = [];
-      try { parsedSections = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections || []; } catch (err) { console.warn("Failed to parse sections", err); }
-      try { parsedDegrees = typeof data.sections_degrees === "string" ? JSON.parse(data.sections_degrees) : data.sections_degrees || []; } catch (err) { console.warn("Failed to parse related degrees", err); }
+      try {
+        parsedSections = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections || [];
+      } catch (err) {
+        console.warn("Failed to parse sections", err);
+      }
+      try {
+        parsedDegrees = typeof data.sections_degrees === "string" ? JSON.parse(data.sections_degrees) : data.sections_degrees || [];
+      } catch (err) {
+        console.warn("Failed to parse related degrees", err);
+      }
 
-      setHonours({ ...data, sections: parsedSections, related_degrees: parsedDegrees });
+      setSpec({ ...data, sections: parsedSections, related_degrees: parsedDegrees });
     };
-    fetchHonours();
+    fetchSpecialisation();
     return () => { alive = false; };
   }, [id]);
 
   useEffect(() => {
-    if (!honours) return;
+    if (!spec) return;
     const fetchMeta = async () => {
       try {
-        if (honours.related_degrees?.length > 0) {
-          const degreeCodes = Array.from(new Set(honours.related_degrees.map((d) => d.degree_code).filter(Boolean)));
+        if (spec.related_degrees?.length > 0) {
+          const degreeCodes = Array.from(new Set(spec.related_degrees.map((d) => d.degree_code).filter(Boolean)));
           if (degreeCodes.length > 0) {
             const { data: degreesData } = await supabase
               .from("unsw_degrees_final")
@@ -66,9 +104,9 @@ function HonoursDetailPage() {
             setDegreeDetailsByCode(map);
           }
         }
-        if (honours.sections?.length > 0) {
+        if (spec.sections?.length > 0) {
           const allCodes = new Set();
-          honours.sections.forEach((sec) => { (sec.courses || []).forEach((c) => c.code && allCodes.add(c.code)); });
+          spec.sections.forEach((sec) => { (sec.courses || []).forEach((c) => c.code && allCodes.add(c.code)); });
           const list = Array.from(allCodes);
           if (list.length > 0) {
             const { data: courseData } = await supabase
@@ -83,9 +121,9 @@ function HonoursDetailPage() {
       } catch (err) { console.error("Metadata fetch error:", err.message); }
     };
     fetchMeta();
-  }, [honours]);
+  }, [spec]);
 
-  if (!honours) {
+  if (!spec) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
@@ -93,7 +131,7 @@ function HonoursDetailPage() {
             <HiAcademicCap className="w-12 h-12 text-slate-400 animate-pulse" />
           </div>
           <p className="text-slate-600 dark:text-slate-300 text-lg">
-            {loadErr ? `Error: ${loadErr}` : "Loading honours specialisation..."}
+            {loadErr ? `Error: ${loadErr}` : `Loading ${config.loadingLabel}...`}
           </p>
         </div>
       </div>
@@ -121,22 +159,22 @@ function HonoursDetailPage() {
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
-                {honours.major_name}
+                {spec.major_name}
               </h1>
               <div className="flex flex-wrap gap-2">
-                {honours.faculty && (
+                {spec.faculty && (
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    {honours.faculty}
+                    {spec.faculty}
                   </span>
                 )}
-                {honours.major_code && (
+                {spec.major_code && (
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-700">
-                    {honours.major_code}
+                    {spec.major_code}
                   </span>
                 )}
-                {honours.specialisation_type && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
-                    {honours.specialisation_type}
+                {spec.specialisation_type && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${config.typeBadgeClass}`}>
+                    {spec.specialisation_type}
                   </span>
                 )}
               </div>
@@ -144,21 +182,21 @@ function HonoursDetailPage() {
             <SaveButton
               itemType="specialisation"
               itemId={id}
-              itemName={honours.major_name}
+              itemName={spec.major_name}
               itemData={{
-                major_code: honours.major_code,
-                major_name: honours.major_name,
-                specialisation_type: honours.specialisation_type,
-                faculty: honours.faculty,
-                uoc_required: honours.uoc_required,
+                major_code: spec.major_code,
+                major_name: spec.major_name,
+                specialisation_type: spec.specialisation_type,
+                faculty: spec.faculty,
+                uoc_required: spec.uoc_required,
               }}
             />
           </div>
 
-          {honours.overview_description && (
+          {spec.overview_description && (
             <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
-                {honours.overview_description}
+                {spec.overview_description}
               </p>
             </div>
           )}
@@ -170,11 +208,11 @@ function HonoursDetailPage() {
           {/* ── Left: main content ── */}
           <div className="flex-1 min-w-0 space-y-0">
 
-            {/* Honours Structure */}
-            {honours.sections?.length > 0 && (
-              <FlatSection title="Honours Structure" icon={<HiBookOpen className="w-4 h-4" />}>
+            {/* Structure */}
+            {spec.sections?.length > 0 && (
+              <FlatSection title={config.structureTitle} icon={<HiBookOpen className="w-4 h-4" />}>
                 <div className="space-y-8">
-                  {honours.sections.map((section, idx) => (
+                  {spec.sections.map((section, idx) => (
                     <div key={idx}>
                       <div className="flex items-center justify-between gap-4 mb-3">
                         <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">{section.title}</h3>
@@ -185,7 +223,9 @@ function HonoursDetailPage() {
                         )}
                       </div>
                       {section.description && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed whitespace-pre-line">{section.description}</p>
+                        <p className={`text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed${config.preserveSectionWhitespace ? " whitespace-pre-line" : ""}`}>
+                          {section.description}
+                        </p>
                       )}
                       {section.courses?.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -215,10 +255,10 @@ function HonoursDetailPage() {
             )}
 
             {/* Related Degrees */}
-            {honours.related_degrees?.length > 0 && (
-              <FlatSection title="Programs Offering This Honours Stream" icon={<HiAcademicCap className="w-4 h-4" />}>
+            {spec.related_degrees?.length > 0 && (
+              <FlatSection title={config.relatedTitle} icon={<HiAcademicCap className="w-4 h-4" />}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {honours.related_degrees.map((deg, i) => {
+                  {spec.related_degrees.map((deg, i) => {
                     const mapped = degreeDetailsByCode[deg.degree_code];
                     const link = mapped?.id ? `/degrees/${mapped.id}` : null;
                     const programName = mapped?.program_name || deg.program_name;
@@ -250,21 +290,21 @@ function HonoursDetailPage() {
             )}
 
             {/* Important Notes */}
-            {honours.special_notes && honours.special_notes !== "Not specified" && (
+            {spec.special_notes && spec.special_notes !== "Not specified" && (
               <FlatSection title="Important Notes" icon={<HiInformationCircle className="w-4 h-4" />}>
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
                   <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {honours.special_notes}
+                    {spec.special_notes}
                   </p>
                 </div>
               </FlatSection>
             )}
 
             {/* Handbook link */}
-            {honours.source_url && (
+            {spec.source_url && (
               <div className="py-7">
                 <a
-                  href={honours.source_url}
+                  href={spec.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all"
@@ -284,19 +324,19 @@ function HonoursDetailPage() {
                 At a Glance
               </h3>
               <div className="space-y-3">
-                {honours.specialisation_type && (
-                  <StatRow icon={<HiCollection className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Type" value={honours.specialisation_type} />
+                {spec.specialisation_type && (
+                  <StatRow icon={<HiCollection className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Type" value={spec.specialisation_type} />
                 )}
-                {honours.uoc_required && (
-                  <StatRow icon={<HiChartBar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="UOC Required" value={honours.uoc_required} />
+                {spec.uoc_required && (
+                  <StatRow icon={<HiChartBar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="UOC Required" value={spec.uoc_required} />
                 )}
-                {honours.major_code && (
-                  <StatRow icon={<HiDocumentText className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Code" value={honours.major_code} />
+                {spec.major_code && (
+                  <StatRow icon={<HiDocumentText className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Code" value={spec.major_code} />
                 )}
-                {honours.faculty && (
+                {spec.faculty && (
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Faculty</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{honours.faculty}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{spec.faculty}</p>
                   </div>
                 )}
               </div>
@@ -335,4 +375,4 @@ function StatRow({ icon, label, value }) {
   );
 }
 
-export default HonoursDetailPage;
+export default SpecialisationDetailPage;

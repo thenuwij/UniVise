@@ -27,3 +27,6 @@ costs.csv
 # Engineering decision records and runbooks - kept locally, not published
 docs/adr/
 infra/
+
+# Pytest
+.pytest_cache/

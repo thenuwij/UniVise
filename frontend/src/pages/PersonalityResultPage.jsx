@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { apiFetch } from "../utils/api";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -96,10 +97,9 @@ const PersonalityResultPage = () => {
   const [loading, setLoading] = useState(true);
 
   const generateTraitDescription = async () => {
-    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/traits/results`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    }).catch(console.error);
+    await apiFetch("/traits/results", { token: session?.access_token }).catch(
+      console.error
+    );
   };
 
   useEffect(() => {

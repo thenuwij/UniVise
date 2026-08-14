@@ -1,3 +1,4 @@
+import { apiFetch } from "./api";
 
 export async function handleRoadmapEntryGeneration({
   user,
@@ -11,12 +12,9 @@ export async function handleRoadmapEntryGeneration({
 
     if (userType === "university") {
       // Call backend to generate final recommendations
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/final-unsw-degrees/`, {
+      const res = await apiFetch("/final-unsw-degrees/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        token: accessToken,
         credentials: "include",
       });
 

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
+import { apiJson } from "../utils/api";
 
 export default function CourseRelatedDegrees({ courseId, courseCode }) {
   const { session } = UserAuth();
@@ -16,23 +17,15 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
       setLoading(true);
       setErr(null);
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/smart-related/degrees-for-course`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({
-              course_id: courseId ?? null,
-              course_code: courseCode ?? null,
-              top_k: 6,
-            }),
-          }
-        );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Failed to fetch related degrees");
+        const data = await apiJson("/smart-related/degrees-for-course", {
+          method: "POST",
+          token: session.access_token,
+          body: {
+            course_id: courseId ?? null,
+            course_code: courseCode ?? null,
+            top_k: 6,
+          },
+        });
         setItems(Array.isArray(data) ? data : []);
       } catch (e) {
         setErr(e.message);

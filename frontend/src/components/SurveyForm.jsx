@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import SurveyProgressBar from "../components/SurveyProgressBar";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { apiFetch } from "../utils/api";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -174,10 +175,7 @@ function SurveyForm() {
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
   const generateRecommendations = async () => {
-    await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/recommendation/prompt`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
+    await apiFetch("/recommendation/prompt", { token: session?.access_token });
   };
 
   const handleSubmit = async () => {
