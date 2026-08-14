@@ -23,11 +23,11 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
     background task. Uses async Claude client so it never blocks the loop.
     """
     try:
-        print(f"[explain_rec] ── START {rec_id} ──────────────────────────")
+        logger.info(f"[explain_rec] ── START {rec_id} ──────────────────────────")
         student_type = await get_student_type(user)
         user_info    = await get_user_info(user, student_type)
-        print(f"[explain_rec] student_type={student_type}")
-        print(f"[explain_rec] user_info keys: {list(user_info.keys()) if isinstance(user_info, dict) else type(user_info)}")
+        logger.info(f"[explain_rec] student_type={student_type}")
+        logger.info(f"[explain_rec] user_info keys: {list(user_info.keys()) if isinstance(user_info, dict) else type(user_info)}")
 
         if student_type == "high_school":
             table          = "degree_recommendations"
@@ -45,7 +45,7 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
             .execute()
         )
         if cached and cached.data:
-            print(f"[explain_rec] cache hit — {rec_id} already in {response_table}, skipping.")
+            logger.info(f"[explain_rec] cache hit — {rec_id} already in {response_table}, skipping.")
             return
 
         # Fetch the recommendation row
@@ -57,11 +57,11 @@ async def _explain_rec_inner(rec_id: str, user) -> None:
             .execute()
         )
         if not rec_resp or not rec_resp.data:
-            print(f"[explain_rec] ✗ rec {rec_id} not found in {table}, skipping.")
+            logger.warning(f"[explain_rec] ✗ rec {rec_id} not found in {table}, skipping.")
             return
 
         recommendation = rec_resp.data
-        print(f"[explain_rec] recommendation fetched: {list(recommendation.keys())}")
+        logger.info(f"[explain_rec] recommendation fetched: {list(recommendation.keys())}")
 
         # ── Slim down inputs to only what the prompt needs ───────────────
         if student_type == "high_school":
@@ -155,8 +155,8 @@ Style rules that apply to every string value in the response:
 Output raw JSON only.
 """
 
-        print(f"[explain_rec] prompt length (chars): {len(prompt)}")
-        print(f"[explain_rec] calling Claude (max_tokens=1500, temperature=0.5)…")
+        logger.info(f"[explain_rec] prompt length (chars): {len(prompt)}")
+        logger.info("[explain_rec] calling Claude (max_tokens=1500, temperature=0.5)…")
 
         raw_response = await ask_gpt_async(prompt, max_tokens=1500, temperature=0.5)
 
@@ -164,19 +164,19 @@ Output raw JSON only.
 
         try:
             parsed = extract_json(raw_response)
-            print(f"[explain_rec] JSON parsed OK — keys: {list(parsed.keys())}")
+            logger.info(f"[explain_rec] JSON parsed OK — keys: {list(parsed.keys())}")
         except Exception as parse_err:
-            print(f"[explain_rec] ✗ JSON parse FAILED: {parse_err}")
-            print(f"[explain_rec] FULL raw response:\n{raw_response}")
-            print(f"[explain_rec] retrying with stricter prompt…")
+            logger.error(f"[explain_rec] ✗ JSON parse FAILED: {parse_err}")
+            logger.debug(f"[explain_rec] FULL raw response:\n{raw_response}")
+            logger.warning("[explain_rec] retrying with stricter prompt…")
             raw_response = await ask_gpt_async(
                 prompt + "\n\nIMPORTANT: Your previous response could not be parsed. Output ONLY a raw JSON object — no text before or after, no markdown fences, no explanation.",
                 max_tokens=1500,
                 temperature=0.2,
             )
-            print(f"[explain_rec] retry raw_response first 300:\n{raw_response[:300]}")
+            logger.debug(f"[explain_rec] retry raw_response first 300:\n{raw_response[:300]}")
             parsed = extract_json(raw_response)
-            print(f"[explain_rec] retry JSON parsed OK — keys: {list(parsed.keys())}")
+            logger.debug(f"[explain_rec] retry JSON parsed OK — keys: {list(parsed.keys())}")
 
         if student_type == "high_school":
             details = {
@@ -204,15 +204,13 @@ Output raw JSON only.
                 "summary":         parsed.get("summary", ""),
             }
 
-        print(f"[explain_rec] upserting to {response_table}…")
+        logger.info(f"[explain_rec] upserting to {response_table}…")
         upsert_resp = supabase.table(response_table).upsert(details).execute()
-        print(f"[explain_rec] upsert response: {upsert_resp}")
-        print(f"[explain_rec] ✓ {rec_id} written to {response_table}")
+        logger.info(f"[explain_rec] upsert response: {upsert_resp}")
+        logger.info(f"[explain_rec] ✓ {rec_id} written to {response_table}")
 
     except Exception as e:
-        import traceback
-        print(f"[explain_rec] ✗ {rec_id} EXCEPTION: {type(e).__name__}: {e}")
-        print(traceback.format_exc())
+        logger.exception(f"[explain_rec] {rec_id} failed: {type(e).__name__}: {e}")
 
 
 async def _run_all_explains(rows: list, user) -> None:

@@ -258,17 +258,17 @@ def enrich_courses_with_conditions(
     if not codes:
         return course_list
 
-    logger.info(f"Enriching {len(codes)} courses with prerequisite data")
+    logger.debug(f"Enriching {len(codes)} courses with prerequisite data")
 
     try:
         resp = supabase.table("unsw_courses").select("code,conditions_for_enrolment").in_("code", codes).execute()
         data = resp.data or []
         
-        logger.info(f"Fetched conditions for {len(data)} courses from database")
+        logger.debug(f"Fetched conditions for {len(data)} courses from database")
         cond_map = {row["code"]: row.get("conditions_for_enrolment", "") for row in data}
         
         with_conditions = sum(1 for v in cond_map.values() if v and v.strip())
-        logger.info(f"Courses with actual prerequisite data: {with_conditions}/{len(data)}")
+        logger.debug(f"Courses with actual prerequisite data: {with_conditions}/{len(data)}")
 
         for c in course_list:
             if not c.get("conditions_for_enrolment"):
@@ -281,7 +281,7 @@ def enrich_courses_with_conditions(
 
 def group_courses_by_level(courses: List[Dict[str, Any]], completed_codes: set) -> Dict[str, Any]:
     """Group courses by level with metadata"""
-    logger.info(f"Grouping {len(courses)} courses by level")
+    logger.debug(f"Grouping {len(courses)} courses by level")
     
     grouped = {}
     total_prereq_issues = 0
@@ -403,15 +403,15 @@ def calculate_recommendation(
     - "Very Difficult": Score < 45
     """
 
-    logger.info(f"Calculating feasibility score:")
-    logger.info(f"  Transfer rate: {transfer_percentage:.1f}%")
-    logger.info(f"  Courses completed: {completed_courses_count}")
-    logger.info(f"  Courses needed: {courses_needed_count}")
-    logger.info(f"  UOC needed: {uoc_needed}")
+    logger.debug("Calculating feasibility score:")
+    logger.debug(f"  Transfer rate: {transfer_percentage:.1f}%")
+    logger.debug(f"  Courses completed: {completed_courses_count}")
+    logger.debug(f"  Courses needed: {courses_needed_count}")
+    logger.debug(f"  UOC needed: {uoc_needed}")
 
     # ─── Edge Case: No courses completed ───────────────────────────
     if completed_courses_count == 0:
-        logger.info(f"  → No courses completed, returning 'Not Yet Started'")
+        logger.debug("  → No courses completed, returning 'Not Yet Started'")
         return True, "Not Yet Started"
 
     # ─── FACTOR 1: Transfer Efficiency (0-45 points) ───────────────
@@ -432,7 +432,7 @@ def calculate_recommendation(
         # Below 30% transfer rate is very poor
         transfer_score = 0
 
-    logger.info(f"  Transfer efficiency: {transfer_percentage:.1f}% → {transfer_score}/45 points")
+    logger.debug(f"  Transfer efficiency: {transfer_percentage:.1f}% → {transfer_score}/45 points")
 
     # ─── FACTOR 2: Remaining Workload (0-30 points) ────────────────
     # Based on estimated terms to completion (UOC / 18 per term)
@@ -449,7 +449,7 @@ def calculate_recommendation(
     else:
         workload_score = 0   # 3+ years - major commitment
 
-    logger.info(f"  Workload: {uoc_needed} UOC, ~{estimated_terms} terms → {workload_score}/30 points")
+    logger.debug(f"  Workload: {uoc_needed} UOC, ~{estimated_terms} terms → {workload_score}/30 points")
 
     # ─── FACTOR 3: Blockers & Issues (0-15 points) ─────────────────
     blocker_score = 15  # Start with full points, subtract for issues
@@ -461,7 +461,7 @@ def calculate_recommendation(
     ]
     if faculty_change_issues:
         blocker_score -= 5
-        logger.info(f"  Faculty change detected → -5 points")
+        logger.debug("  Faculty change detected → -5 points")
 
     # Prerequisite chain issues - these can seriously delay completion
     relevant_prereq_count = 0
@@ -484,7 +484,7 @@ def calculate_recommendation(
         else:
             prereq_penalty = 8
         blocker_score -= prereq_penalty
-        logger.info(f"  Prereq issues (weighted): {relevant_prereq_count} → -{prereq_penalty} points")
+        logger.debug(f"  Prereq issues (weighted): {relevant_prereq_count} → -{prereq_penalty} points")
 
     # Advanced course load issues
     advanced_issues = [
@@ -493,10 +493,10 @@ def calculate_recommendation(
     ]
     if advanced_issues:
         blocker_score -= 2
-        logger.info(f"  Heavy advanced load → -2 points")
+        logger.debug("  Heavy advanced load → -2 points")
 
     blocker_score = max(0, blocker_score)  # Floor at 0
-    logger.info(f"  Blockers final: {blocker_score}/15 points")
+    logger.debug(f"  Blockers final: {blocker_score}/15 points")
 
     # ─── FACTOR 4: Early Student Bonus (0-10 points) ───────────────
     # Students who switch early have less to lose and more flexibility
@@ -507,7 +507,7 @@ def calculate_recommendation(
     else:
         early_bonus = 0   # Later years - no bonus
 
-    logger.info(f"  Early student bonus: {early_bonus}/10 points")
+    logger.debug(f"  Early student bonus: {early_bonus}/10 points")
 
     # ─── Calculate Final Score ─────────────────────────────────────
     total_score = transfer_score + workload_score + blocker_score + early_bonus

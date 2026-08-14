@@ -3,10 +3,13 @@ SerpAPI Client for fetching company careers page URLs.
 Location: backend/app/utils/serpapi_client.py
 """
 
+import logging
 import os
 import requests
 from typing import Optional, Dict, List
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -43,11 +46,11 @@ def get_company_careers_url(company_name: str) -> Optional[str]:
     """
     # Check manual overrides first
     if company_name in MANUAL_COMPANY_URLS:
-        print(f"✓ Using manual override for {company_name}")
+        logger.debug(f"✓ Using manual override for {company_name}")
         return MANUAL_COMPANY_URLS[company_name]
     
     if not SERPAPI_KEY:
-        print("Warning: SERPAPI_API_KEY not configured")
+        logger.warning("SERPAPI_API_KEY not configured")
         return None
     
     # Clean company name (remove "Pty Ltd", "Australia", etc.)
@@ -85,7 +88,7 @@ def get_company_careers_url(company_name: str) -> Optional[str]:
             for result in organic_results:
                 link = result.get("link", "").lower()
                 if any(keyword in link for keyword in strong_keywords):
-                    print(f"✓ Found careers URL for {company_name}: {link}")
+                    logger.debug(f"✓ Found careers URL for {company_name}: {link}")
                     return result.get("link")
             
             # Priority 2: Look for titles with career keywords
@@ -95,24 +98,24 @@ def get_company_careers_url(company_name: str) -> Optional[str]:
                 link = result.get("link", "").lower()
                 
                 if any(keyword in title or keyword in link for keyword in title_keywords):
-                    print(f"✓ Found careers URL for {company_name}: {link}")
+                    logger.debug(f"✓ Found careers URL for {company_name}: {link}")
                     return result.get("link")
             
             # Priority 3: If first query and we have results, return first result (likely homepage)
             if query_idx == 0 and organic_results:
                 homepage = organic_results[0].get("link")
-                print(f"⚠ Using homepage for {company_name}: {homepage}")
+                logger.warning(f"⚠ Using homepage for {company_name}: {homepage}")
                 return homepage
                 
         except requests.exceptions.Timeout:
-            print(f"⏱ Timeout for '{query}' - trying next query")
+            logger.warning(f"⏱ Timeout for '{query}' - trying next query")
             continue
         except requests.exceptions.RequestException as e:
-            print(f"✗ SerpAPI request failed for query '{query}': {e}")
+            logger.error(f"✗ SerpAPI request failed for query '{query}': {e}")
             continue
         except Exception as e:
-            print(f"✗ Unexpected error in SerpAPI search: {e}")
+            logger.error(f"✗ Unexpected error in SerpAPI search: {e}")
             continue
     
-    print(f"✗ No URL found for {company_name}")
+    logger.warning(f"✗ No URL found for {company_name}")
     return None

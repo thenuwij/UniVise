@@ -1,7 +1,10 @@
+import logging
 import os
 import openai
 from typing import List, Dict, AsyncGenerator
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -28,7 +31,7 @@ def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTE
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print("OpenAI API error (ask_gpt):", e)
+        logger.error(f"OpenAI API error (ask_gpt): {e}")
         return "Sorry, I couldn't process your request."
 
 
@@ -49,7 +52,7 @@ async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float 
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print("OpenAI API error (ask_gpt_async):", e)
+        logger.error(f"OpenAI API error (ask_gpt_async): {e}")
         return "Sorry, I couldn't process your request."
 
 

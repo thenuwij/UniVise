@@ -57,7 +57,7 @@ async def create_unsw(
     ctx = await gather_unsw_context(user.id, body)
     payload = await ai_generate_unsw_payload(ctx)
 
-    print(f"[TIMING] After AI generation: {time.time() - endpoint_start:.1f}s")
+    logger.debug(f"[TIMING] After AI generation: {time.time() - endpoint_start:.1f}s")
 
     # save roadmap in DB 
     db_start = time.time()
@@ -78,7 +78,7 @@ async def create_unsw(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
 
-    print(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
+    logger.debug(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
 
     if not ins.data:
         raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
@@ -94,7 +94,7 @@ async def create_unsw(
     # task was suspended mid-flight and its payload write never happened, so
     # the three sections stayed empty forever. A separate request keeps the
     # work inside an invocation that is allowed to finish.
-    print(f"[TIMING] TOTAL ENDPOINT: {time.time() - endpoint_start:.1f}s")
+    logger.info(f"[TIMING] TOTAL ENDPOINT: {time.time() - endpoint_start:.1f}s")
 
     # Return immediate response to frontend
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}

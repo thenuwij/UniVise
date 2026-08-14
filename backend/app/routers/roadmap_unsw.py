@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 import json
 import time
@@ -11,12 +12,14 @@ from .roadmap_unsw_helpers import (
     fetch_user_specialisation_context,
 )
 
+logger = logging.getLogger(__name__)
+
 # Gathers complete context for UNSW degree roadmap generation.
 async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
 
     total_start = time.time()
 
-    print(f"Gathering UNSW context for request: {req}")
+    logger.info(f"Gathering UNSW context for request: {req}")
 
     # Fetch degree information
     t1 = time.time()
@@ -26,7 +29,7 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         program_name=req.program_name,
     )
 
-    print(f"[TIMING] fetch_degree_by_identifier: {time.time() - t1:.1f}s")
+    logger.debug(f"[TIMING] fetch_degree_by_identifier: {time.time() - t1:.1f}s")
 
     degree_id = degree.get("id")
     degree_code = degree.get("degree_code")
@@ -35,31 +38,21 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     core_courses = []
     core_courses_formatted = ""
 
-    # print(f"Degree ID: {degree_id}")
-    # print(f"Degree Code: {degree_code}")
-    # print(f"Program Name: {degree.get('program_name')}")
-    # print(f"Faculty: {degree.get('faculty')}")
 
     if degree_code:
         t3 = time.time()
         core_courses = fetch_program_core_courses(degree_code)
-        print(f"[TIMING] fetch_program_core_courses: {time.time() - t3:.1f}s")
+        logger.debug(f"[TIMING] fetch_program_core_courses: {time.time() - t3:.1f}s")
         if core_courses:
             t4 = time.time()
             core_courses_formatted = format_core_courses_for_prompt(core_courses)
-            print(f"[TIMING] format_core_courses_for_prompt: {time.time() - t4:.1f}s")
+            logger.debug(f"[TIMING] format_core_courses_for_prompt: {time.time() - t4:.1f}s")
 
-            # Debug logging
-            # print(f"\n{'='*50}")
-            # print(f"CORE COURSES FOR AI CONTEXT ({len(core_courses)} courses)")
-            # print(f"{'='*50}")
-
-            for c in core_courses[:5]:  # Show first 5
+            for c in core_courses[:5]:
                 overview_preview = (c.get('overview') or '')[:100]
-                print(f"  {c['code']}: {c.get('name')} | {c.get('section')} | {overview_preview}...")
+                logger.debug(f"{c['code']}: {c.get('name')} | {c.get('section')} | {overview_preview}...")
             if len(core_courses) > 5:
-                print(f"  ... and {len(core_courses) - 5} more courses")
-            print(f"{'='*50}\n")
+                logger.debug(f"... and {len(core_courses) - 5} more courses")
 
     faculty = degree.get("faculty")
     
@@ -67,9 +60,9 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     if user_id and degree_code:
         try:
             specialisations = fetch_user_specialisation_context(user_id, degree_code)
-            print(f"[TIMING] Fetched specialisations: {specialisations.get('selected_honours_name', 'None')}")
+            logger.debug(f"[TIMING] Fetched specialisations: {specialisations.get('selected_honours_name', 'None')}")
         except Exception as e:
-            print(f"[ERROR] Failed to fetch specialisations: {e}")
+            logger.error(f"[ERROR] Failed to fetch specialisations: {e}")
 
 
     # Return complete context
@@ -142,14 +135,14 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
         if selected_honours: selected_list.append(f"Honours: {selected_honours}")
         if selected_major_name: selected_list.append(f"Major: {selected_major_name}")
         if selected_minor_name: selected_list.append(f"Minor: {selected_minor_name}")
-        print(f"[Capstone] Including specialisation courses - {', '.join(selected_list)}")
+        logger.info(f"[Capstone] Including specialisation courses - {', '.join(selected_list)}")
     else:
-        print(f"[Capstone] No specialisations selected, using core courses only")
+        logger.warning("[Capstone] No specialisations selected, using core courses only")
         
 
     # Token monitoring
     prompt_est_tokens = len(core_courses_text) // 4
-    print(f"Stage 1 prompt size: ~{prompt_est_tokens} tokens")
+    logger.info(f"Stage 1 prompt size: ~{prompt_est_tokens} tokens")
 
     # Build AI prompt for general info
     prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes in any part of your response. Rewrite any sentence that would use an em dash as two separate sentences or rephrase using a comma, colon, or conjunction instead.
@@ -228,7 +221,7 @@ Languages: any NSW HSC language course in the form "[Language] Beginners", "[Lan
 CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify actual capstone/thesis courses from this program. Only list courses that appear in the core courses section above.
 """
 
-    print("Stage 1: Generating general program information...")
+    logger.info("Stage 1: Generating general program information...")
     raw = await ask_gpt_async(prompt)
     draft = parse_json_or_500(raw)
 
@@ -258,12 +251,12 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
             draft["capstone"]["highlights"] = (
                 "No dedicated capstone or signature course was identified among the program's courses."
             )
-            print("Capstone validation: No valid courses found")
+            logger.warning("Capstone validation: No valid courses found")
         else:
             draft["capstone"]["courses"] = validated_capstone
             source = 'core + specialisation' if has_any_specialisation else 'core only'
-            print(f"Capstone validation: {len(validated_capstone)} courses validated from {source}")
-    print("Stage 1: General program information generated successfully")
+            logger.info(f"Capstone validation: {len(validated_capstone)} courses validated from {source}")
+    logger.info("Stage 1: General program information generated successfully")
     return draft
 
 # Stage 2: Return hardcoded honours information based on faculty.
@@ -271,7 +264,7 @@ async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
 
     faculty = context.get("faculty", "").lower()
     
-    print(f"Stage 2: Fetching hardcoded honours for faculty: {faculty}")
+    logger.info(f"Stage 2: Fetching hardcoded honours for faculty: {faculty}")
     
     # Hardcoded honours structures
     HONOURS_DATA = {
@@ -329,15 +322,15 @@ async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
     # Determine which honours structure to use
     if "business" in faculty or "commerce" in faculty or "economics" in faculty:
         honours_data = HONOURS_DATA["business"]
-        print("Stage 2: Using Business honours structure")
+        logger.info("Stage 2: Using Business honours structure")
     elif "engineering" in faculty:
         honours_data = HONOURS_DATA["engineering"]
-        print("Stage 2: Using Engineering honours structure")
+        logger.info("Stage 2: Using Engineering honours structure")
     else:
         honours_data = HONOURS_DATA["general"]
-        print(f"Stage 2: Using General honours structure (no specific match for '{faculty}')")
+        logger.warning(f"Stage 2: Using General honours structure (no specific match for '{faculty}')")
     
-    print("Stage 2: Honours information retrieved instantly (hardcoded)")
+    logger.info("Stage 2: Honours information retrieved instantly (hardcoded)")
     return {"honours": honours_data}
 
 
@@ -367,16 +360,16 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     # Timed async wrappers for concurrent execution
     async def timed_general():
         start = time.time()
-        print(f"[Stage 1] STARTED at {start:.1f}")
+        logger.debug(f"[Stage 1] STARTED at {start:.1f}")
         result = await ai_generate_general_info(context)
-        print(f"[Stage 1] COMPLETED in {time.time() - start:.1f}s")
+        logger.debug(f"[Stage 1] COMPLETED in {time.time() - start:.1f}s")
         return result
 
     async def timed_honours():
         start = time.time()
-        print(f"[Stage 2] STARTED at {start:.1f}")
+        logger.debug(f"[Stage 2] STARTED at {start:.1f}")
         result = await ai_generate_honours_info(context)
-        print(f"[Stage 2] COMPLETED in {time.time() - start:.1f}s")
+        logger.debug(f"[Stage 2] COMPLETED in {time.time() - start:.1f}s")
         return result
 
     # Run both stages concurrently with asyncio.gather
@@ -392,12 +385,12 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     # - Stage 1 must succeed (raise if failed)
     # - Stage 2 can fallback
     if isinstance(general_result, Exception):
-        print(f"Stage 1 failed: {general_result}")
+        logger.error(f"Stage 1 failed: {general_result}")
         raise Exception("Failed to generate general program information")
     general_info = general_result
 
     if isinstance(honours_result, Exception):
-        print(f"Stage 2 failed: {honours_result}")
+        logger.error(f"Stage 2 failed: {honours_result}")
         honours_info = fallback_honours
     else:
         honours_info = honours_result
@@ -418,5 +411,5 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
         "selected_minor_courses": context.get("selected_minor_courses", []),
     }
 
-    print("Parallel two-stage generation complete!")
+    logger.info("Parallel two-stage generation complete!")
     return payload

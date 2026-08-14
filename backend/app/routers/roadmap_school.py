@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 from app.utils.database import supabase
 from app.utils.openai_client import ask_gpt, ask_gpt_async
@@ -6,6 +7,8 @@ from .roadmap_common import (
 )
 import json
 from .roadmap_industry import sanitize_and_parse_json
+
+logger = logging.getLogger(__name__)
 
 
 async def gather_school_context(user_id: str, req) -> Dict[str, Any]:
@@ -231,7 +234,7 @@ async def ai_generate_school_careers(context: Dict[str, Any]) -> Dict[str, Any]:
 
 # Background task to update DB with careers
 async def generate_and_update_school_careers(roadmap_id: str, context: Dict[str, Any]):
-    print(f"[School Background] Generating careers for {roadmap_id}...")
+    logger.info(f"[School Background] Generating careers for {roadmap_id}...")
     
     try:
         careers_data = await ai_generate_school_careers(context)
@@ -248,7 +251,7 @@ async def generate_and_update_school_careers(roadmap_id: str, context: Dict[str,
             "payload": payload
         }).eq("id", roadmap_id).execute()
         
-        print(f"[School Background] Careers saved for {roadmap_id}")
+        logger.info(f"[School Background] Careers saved for {roadmap_id}")
         
     except Exception as e:
-        print(f"[School Background] Failed: {e}")
+        logger.error(f"[School Background] Failed: {e}")

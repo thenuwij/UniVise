@@ -46,7 +46,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
-        print(f"[JSON] Initial parse failed: {e}")
+        logger.error(f"[JSON] Initial parse failed: {e}")
         last_error = e
         
     try:
@@ -65,7 +65,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
-        print(f"[JSON] Cleanup parse failed: {e}")
+        logger.error(f"[JSON] Cleanup parse failed: {e}")
         last_error = e
 
     # Fix unquoted property names
@@ -77,7 +77,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
         fixed = re.sub(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', quote_property_names, cleaned)
         return json.loads(fixed)
     except json.JSONDecodeError as e:
-        print(f"[JSON] Property name fixing failed: {e}")
+        logger.error(f"[JSON] Property name fixing failed: {e}")
         last_error = e
 
     # Extract core JSON object/brackets
@@ -91,7 +91,7 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
             json_only = re.sub(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'"\1":', json_only)
             return json.loads(json_only)
     except json.JSONDecodeError as e:
-        print(f"[JSON] Extraction strategy failed: {e}")
+        logger.error(f"[JSON] Extraction strategy failed: {e}")
         last_error = e
 
     # Fix specific known patterns
@@ -114,12 +114,11 @@ def sanitize_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
         return json.loads(fixed_text)
     except json.JSONDecodeError as e:
-        print(f"Pattern fixing failed: {e}")
+        logger.error(f"Pattern fixing failed: {e}")
         last_error = e
 
     # If all strategies failed
-    print(f"All parsing strategies failed")
-    # print(f"Raw text (first 500 chars):\n{raw_text[:500]}")
+    logger.error("All parsing strategies failed")
 
     raise ValueError(
         f"Could not parse JSON after multiple attempts. "
@@ -260,7 +259,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     Return ONLY valid JSON. Start with {{ and end with }}.
     """
         
-    print("Societies generating...")
+    logger.info("Societies generating...")
 
     try:
         raw = await ask_claude_async(prompt, model="claude-haiku-4-5-20251001")
@@ -273,11 +272,11 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
         result = sanitize_and_parse_json(json_only)
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
         events_count = len(result.get('societies', {}).get('major_events', []))
-        print(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies, {events_count} events")
+        logger.info(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies, {events_count} events")
         return result
         
     except Exception as e:
-        print(f"[Stage 1: Societies] ✗ Error: {e}")
+        logger.error(f"[Stage 1: Societies] ✗ Error: {e}")
         return {
             "societies": {
                 "faculty_specific": [],
@@ -377,7 +376,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     Use REAL company and program names. Return ONLY valid JSON. Start with {{ and end with }}.
     """
         
-    print("Industry Experience Generating...")
+    logger.info("Industry Experience Generating...")
     
     try:
         raw = await ask_claude_async(prompt, model="claude-haiku-4-5-20251001")
@@ -389,7 +388,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
 
         result = sanitize_and_parse_json(json_only)
         programs = result.get("industry_experience", {}).get("internship_programs", [])
-        print(f"Industry generated {len(programs)} internship programs")
+        logger.info(f"Industry generated {len(programs)} internship programs")
 
         # Validate apply_urls in parallel; replace dead links with fallback search redirect
         if programs:
@@ -399,9 +398,9 @@ You are a UNSW career advisor. Provide industry experience information for {prog
                 if not is_valid:
                     query = quote(f"{program.get('company', '')} {program.get('program_name', '')} internship apply Australia")
                     program["apply_url"] = f"https://www.google.com/search?q={query}"
-                    print(f"[URL] Dead link replaced for {program.get('company')}")
+                    logger.info(f"[URL] Dead link replaced for {program.get('company')}")
 
-        print(f"[TIMING] ai_generate_industry_experience: {time.time() - _start:.1f}s")
+        logger.debug(f"[TIMING] ai_generate_industry_experience: {time.time() - _start:.1f}s")
         return result
 
     except Exception as e:
@@ -565,11 +564,11 @@ You are a UNSW career advisor with access to current job market data. Provide ca
     Return ONLY valid JSON. Start with {{ and end with }}.
     """
 
-    print("Career Pathways Generating...")
+    logger.info("Career Pathways Generating...")
     
     try:
         raw = await ask_gpt_async(prompt, max_tokens=5000, model="gpt-5.4-mini")
-        print(f"[TOKENS] Career pathways raw response length: {len(raw)} chars (approx {len(raw)//4} tokens)")
+        logger.info(f"[TOKENS] Career pathways raw response length: {len(raw)} chars (approx {len(raw)//4} tokens)")
         raw_stripped = raw.strip()
         
         # Extract JSON
@@ -578,12 +577,13 @@ You are a UNSW career advisor with access to current job market data. Provide ca
         json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
         
         result = sanitize_and_parse_json(json_only)
-        print(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
+        logger.debug(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result
 
     except Exception as e:
-        print(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
-        
+        logger.error(f"ai_generate_career_pathways failed, returning empty pathways: {e}")
+        logger.debug(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
+
         return {
             "career_pathways": {
                 "entry_level": {"roles": []},
@@ -632,7 +632,7 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
             spec = fetch_user_specialisation_context(user_id, degree_code)
             base_context.update(spec)
         except Exception as e:
-            print(f"Failed to load specialisations: {e}")
+            logger.error(f"Failed to load specialisations: {e}")
 
     # Run all three AI generations in parallel. asyncio.gather with
     # return_exceptions=True ensures a single failure doesn't poison the
@@ -658,12 +658,12 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         logger.error(f"Career pathways generation failed: {careers_result}")
         careers_result = {"career_pathways": {}}
 
-    print(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
+    logger.debug(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
 
     # SINGLE read-modify-write against unsw_roadmap.payload.
     # All three sections are merged in one operation so there is no window
     # in which two concurrent background tasks can overwrite each other.
-    print("All industry sections finished. Merging payload...")
+    logger.info("All industry sections finished. Merging payload...")
 
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
@@ -680,4 +680,4 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
 
-    print(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")
+    logger.info(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")

@@ -1,6 +1,9 @@
+import logging
 from typing import Any, Dict, List
 from app.utils.database import supabase
 import json
+
+logger = logging.getLogger(__name__)
 
 
 CORE_COURSE_KEYWORDS = [
@@ -21,7 +24,7 @@ CORE_COURSE_KEYWORDS = [
 # Helper functions for Capstone (Program Highlights section) in roadmap unsw
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:
-        print("Missing degree_code in fetch_program_core_courses.")
+        logger.info("Missing degree_code in fetch_program_core_courses.")
         return []
     try:
         result = (
@@ -32,7 +35,7 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
             .execute()
         )
         if not result.data or not result.data[0].get("sections"):
-            print(f"No sections found for degree_code {degree_code}")
+            logger.info(f"No sections found for degree_code {degree_code}")
             return []
 
         sections_data = result.data[0].get("sections")
@@ -40,7 +43,7 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
         core_courses = extract_core_courses_from_sections(sections)
         return enrich_courses_with_db_details(core_courses)
     except Exception as e:
-        print(f"fetch_program_core_courses failed for {degree_code}: {e}")
+        logger.error(f"fetch_program_core_courses failed for {degree_code}: {e}")
         return []
     
 
@@ -56,7 +59,7 @@ def parse_sections_json(sections_data) -> list:
             sections = sections_data
         return sections if isinstance(sections, list) else []
     except (json.JSONDecodeError, TypeError, AttributeError) as e:
-        print(f"Error parsing sections JSON: {e}")
+        logger.error(f"Error parsing sections JSON: {e}")
         return []
     
 def extract_core_courses_from_sections(sections: list) -> List[Dict[str, Any]]:
@@ -102,7 +105,7 @@ def enrich_courses_with_db_details(courses: List[Dict[str, Any]]) -> List[Dict[s
                     "study_level": d.get("study_level", ""),
                 })
     except Exception as e:
-        print(f"Error enriching course details: {e}")
+        logger.error(f"Error enriching course details: {e}")
     return courses
 
 
@@ -181,10 +184,10 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
                 degree = getattr(result, "data", None)
 
     except Exception as e:
-        print(f"Error fetching degree: {e}")
+        logger.error(f"Error fetching degree: {e}")
 
     if not degree:
-        print(f"No degree found for id={degree_id}, uac={uac_code}, name={program_name}")
+        logger.info(f"No degree found for id={degree_id}, uac={uac_code}, name={program_name}")
         return {
             "id": degree_id,
             "program_name": program_name,
@@ -354,7 +357,7 @@ def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[st
         return result
 
     except Exception as e:
-        print(f"[fetch_user_specialisation_context] Error: {e}")
+        logger.error(f"[fetch_user_specialisation_context] Error: {e}")
         return {
             "selected_major_name": None,
             "selected_major_courses": [],
@@ -419,7 +422,7 @@ def extract_core_course_codes_from_sections(sections_data) -> List[str]:
         return core_course_codes
     
     except Exception as e:
-        print(f"[extract_core_courses_from_sections] Error: {e}")
+        logger.error(f"[extract_core_courses_from_sections] Error: {e}")
         return []
     
 

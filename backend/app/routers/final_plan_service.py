@@ -1,3 +1,4 @@
+import logging
 from app.utils.database import supabase
 from app.utils.openai_client import ask_gpt, ask_gpt_async
 from app.utils.parse_llm import extract_json
@@ -5,6 +6,8 @@ import json
 import uuid
 import re
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def clean_openai_response(raw):
@@ -100,10 +103,7 @@ async def generate_final_plan(user_id: str):
     except Exception as e:
         raise Exception(f"Failed to parse OpenAI result: {str(e)}\nRaw output:\n{result}")
 
-    # print("PARSED AI RECOMMENDATIONS")
     # for d in degrees:
-    #     print("-", d.get("degreeName"))
-    # print("END PARSED")
 
     # Insert into Supabase final_recommendations table (University students only)
     rows = []
@@ -125,13 +125,13 @@ async def generate_final_plan(user_id: str):
             if match and match.data and len(match.data) > 0:
                 degree_id = match.data[0]["id"]  # Get the actual degree ID
                 degree_code = match.data[0]["degree_code"]
-                print(f"Exact match: {degree_name} → {degree_code} (id: {degree_id})")
+                logger.info(f"Exact match: {degree_name} → {degree_code} (id: {degree_id})")
             else:
-                print(f"No exact UNSW match found for: '{degree_name}'")
+                logger.info(f"No exact UNSW match found for: '{degree_name}'")
                 continue  
 
         except Exception as e:
-            print(f"[ERROR] Query failed for '{degree_name}': {e}")
+            logger.error(f"[ERROR] Query failed for '{degree_name}': {e}")
             continue  
 
         # Only insert valid UNSW degrees 

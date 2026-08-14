@@ -110,7 +110,7 @@ async def get_switch_advice(
             f"[Transfer Debug] current: name='{_base_in.get('name','')}' "
             f"code={request.base_program_code} total_uoc={_base_in.get('total_uoc','')}"
         )
-        logger.info(f"[Transfer Debug] completed_uoc={_completed_uoc_in}")
+        logger.debug(f"[Transfer Debug] completed_uoc={_completed_uoc_in}")
         logger.info(
             f"[Transfer Debug] target: name='{_target_in.get('name','')}' "
             f"code={request.target_program_code} "
