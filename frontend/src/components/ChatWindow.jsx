@@ -6,6 +6,7 @@ import { TbRobot } from "react-icons/tb";
 import { UserAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { apiFetch } from "../utils/api";
 
 export default function ChatWindow({ convId }) {
   const { session } = UserAuth();
@@ -71,13 +72,10 @@ export default function ChatWindow({ convId }) {
 
     let res;
     try {
-      res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/chat/conversations/${convId}/reply/stream`, {
+      res = await apiFetch(`/chat/conversations/${convId}/reply/stream`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content: text }),
+        token: session?.access_token,
+        body: { content: text },
       });
     } catch {
       setLoading(false);

@@ -22,6 +22,7 @@ import { MenuBar } from "../components/MenuBar";
 import SaveButton from "../components/SaveButton";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { apiJson } from "../utils/api";
 
 function DegreeDetailPage() {
   const { session } = UserAuth();
@@ -42,16 +43,11 @@ function DegreeDetailPage() {
     setAdvisorSummary(null);
     setLoadErr(null);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/smart-summary/degree`, {
+      const data = await apiJson("/smart-summary/degree", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ degree_id: degreeId }),
+        token: session?.access_token,
+        body: { degree_id: degreeId },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Something went wrong");
       setAdvisorSummary(data.summary);
       advisorRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (err) {

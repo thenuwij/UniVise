@@ -10,6 +10,7 @@ import {
 } from "react-icons/hi";
 import { TbRobot } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
+import { apiFetch } from "../utils/api";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
@@ -305,10 +306,7 @@ export function RecommendationTable() {
     setRegenerating(true);
     setStuck(false);
     try {
-      await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/recommendation/prompt`,
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
+      await apiFetch("/recommendation/prompt", { token: session.access_token });
       // Backend wiped old data and queued new explain tasks — start polling
       startPolling();
     } catch (e) {

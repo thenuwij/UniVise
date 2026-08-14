@@ -11,6 +11,7 @@ import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import { UserAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { apiFetch } from "../utils/api";
 
 // ── Loading skeleton ──────────────────────────────────────────────
 function Skeleton() {
@@ -415,10 +416,10 @@ function RecommendationPage() {
           setLoading(false);
           setPreparing(true);
           // Fire-and-forget retry in case the background task previously crashed
-          fetch(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/recommendation/${id}/explain`,
-            { method: "POST", headers: { Authorization: `Bearer ${session?.access_token}` } }
-          ).catch(() => {}); // ignore — polling will pick up the result
+          apiFetch(`/recommendation/${id}/explain`, {
+            method: "POST",
+            token: session?.access_token,
+          }).catch(() => {}); // ignore — polling will pick up the result
           startedAtRef.current = Date.now();
           pollRef.current = setInterval(async () => {
             if (!isMounted) return;
@@ -456,10 +457,10 @@ function RecommendationPage() {
     setStuck(false);
     setPreparing(true);
     try {
-      await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/recommendation/${id}/explain`,
-        { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
+      await apiFetch(`/recommendation/${id}/explain`, {
+        method: "POST",
+        token: session.access_token,
+      });
     } catch { /* ignore */ }
     setRegenerating(false);
     // restart polling

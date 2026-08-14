@@ -28,6 +28,7 @@ import CourseStructureDisplay from "../components/progress/CourseStructureDispla
 import ProgramSetupModal from "../components/progress/ProgramSetupModal";
 import SpecialisationSelectionPanel from "../components/progress/SpecialisationSelectionPanel";
 import AdvisorReport from "../components/advisor/AdvisorReport";
+import { apiJson } from "../utils/api";
 
 // ─── Steps ──────────────────────────────────────────────────────
 const STEPS = [
@@ -448,47 +449,26 @@ function ProgressPage() {
     setAiReport(null);
 
     try {
-      const compareResponse = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/compare`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            user_id: session.user.id,
-            base_program_code: enrolledProgram.degree_code,
-            base_specialisation_codes: baseSelectedSpecs,
-            target_program_code: targetProgram.code,
-            target_specialisation_codes: targetSelectedSpecs,
-          }),
-        }
-      );
-      const compareData = await compareResponse.json();
-      if (!compareResponse.ok) throw new Error(compareData.detail || "Comparison failed");
+      const comparisonRequest = {
+        user_id: session.user.id,
+        base_program_code: enrolledProgram.degree_code,
+        base_specialisation_codes: baseSelectedSpecs,
+        target_program_code: targetProgram.code,
+        target_specialisation_codes: targetSelectedSpecs,
+      };
+
+      const compareData = await apiJson("/compare", {
+        method: "POST",
+        token: session.access_token,
+        body: comparisonRequest,
+      });
       setComparisonData(compareData);
 
-      const aiResponse = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/switch-advisor`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            user_id: session.user.id,
-            base_program_code: enrolledProgram.degree_code,
-            base_specialisation_codes: baseSelectedSpecs,
-            target_program_code: targetProgram.code,
-            target_specialisation_codes: targetSelectedSpecs,
-            comparison_data: compareData,
-          }),
-        }
-      );
-      const aiData = await aiResponse.json();
-      if (!aiResponse.ok) throw new Error(aiData.detail || "Transfer analysis failed");
+      const aiData = await apiJson("/switch-advisor", {
+        method: "POST",
+        token: session.access_token,
+        body: { ...comparisonRequest, comparison_data: compareData },
+      });
       setAiReport(aiData);
     } catch (err) {
       console.error(err);
