@@ -35,12 +35,10 @@ export default function ComparisonResults({
     .map(s => s.major_name);
 
   const {
-    can_transfer,
     recommendation,
     summary,
     transfer_analysis,
     requirements_by_level,
-    critical_issues,
     detailed_breakdown
   } = comparisonData;
 

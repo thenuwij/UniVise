@@ -117,7 +117,7 @@ function ProfilePage() {
   const [degreeStage, setDegreeStage] = useState("");
   const [degreeField, setDegreeField] = useState("");
   const [wam, setWam] = useState("");
-  const [userId, setUserId] = useState();
+  const [, setUserId] = useState();
   const [loading, setLoading] = useState(true);
 
   const openDrawer = () => setIsOpen(true);

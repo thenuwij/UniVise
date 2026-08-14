@@ -12,11 +12,6 @@ export default function ProgramSelector({
   specsByType,
   selectedSpecs,
   toggleSpec,
-  goNext,
-  navigate,
-  baseProgram,
-  baseSpecsOptions,
-  baseSelectedSpecs,
 }) {
   const selectedProgramRef = useRef(null);
   const [selectedFaculty, setSelectedFaculty] = useState("All");

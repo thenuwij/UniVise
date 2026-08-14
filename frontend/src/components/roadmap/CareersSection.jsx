@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import SaveButton from "../SaveButton";
 
-export default function CareersSection({ careerPathways = {}, sources = [], isLoading = false }) {
+export default function CareersSection({ careerPathways = {}, isLoading = false }) {
   const [activeTab, setActiveTab] = useState("entry");
   const [showAllCerts, setShowAllCerts] = useState(false);
 

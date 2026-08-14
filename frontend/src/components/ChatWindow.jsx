@@ -50,7 +50,7 @@ export default function ChatWindow({ convId }) {
     setLoading(true);
     setStreamStarted(false)
     // insert user message
-    const { data: userMsg } = await supabase
+    await supabase
       .from("conversation_messages")
       .insert({
         conversation_id: convId,
@@ -79,7 +79,7 @@ export default function ChatWindow({ convId }) {
         },
         body: JSON.stringify({ content: text }),
       });
-    } catch (err) {
+    } catch {
       setLoading(false);
       setMessages(ms => [...ms, { sender: "bot", text: "Sorry, something went wrong. Please try again.", created_at: new Date().toISOString() }]);
       return;

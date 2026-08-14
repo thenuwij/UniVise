@@ -96,7 +96,6 @@ function TraitsPage() {
   const [loading, setLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
   const { session } = UserAuth();
-  const userType = session?.user?.user_metadata?.student_type;
 
   useEffect(() => {
     const observer = new MutationObserver(() => {

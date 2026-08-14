@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import { MenuBar } from "../components/MenuBar";
 import ChatSidebar from "../components/ChatSidebar";
@@ -7,7 +7,6 @@ import ChatWindow from "../components/ChatWindow";
 import { TbRobot } from "react-icons/tb";
 
 export default function ChatbotPage() {
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { conversationId } = useParams();

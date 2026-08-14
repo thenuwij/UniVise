@@ -1,6 +1,6 @@
 // src/pages/MindMeshGraphPage.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { UserAuth } from "../context/AuthContext";
 import { DashboardNavBar } from "../components/DashboardNavBar";
@@ -14,13 +14,12 @@ import MindMeshInfoPanel from "./components/MindMeshInfoPanel";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [frozen, setFrozen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
-  const [hoverLink, setHoverLink] = useState(null);
+  const [, setHoverLink] = useState(null);
   const [showHint, setShowHint] = useState(true);
 
   const graphRef = useRef(null);
@@ -32,7 +31,7 @@ export default function MindMeshGraphPage() {
 
   const programCode = searchParams.get("program");
   const isProgramView = !!programCode;
-  const { graph, setGraph, debugInfo, programCourses, programMeta } = useMindMeshData({
+  const { graph, setGraph, programCourses, programMeta } = useMindMeshData({
     isProgramView,
     session,
     programCode

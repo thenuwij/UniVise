@@ -34,12 +34,6 @@ const extractStepIndexFromUrl = (searchParams) => {
   return Number.isFinite(idx) ? idx : 0;
 };
 
-const normalizeSources = (data) => {
-  if (Array.isArray(data?.sources)) return data.sources;
-  if (data?.source) return [data.source];
-  return [];
-};
-
 const useDegreeData = (degreeCode) => {
   const [degreeData, setDegreeData] = useState(null);
 
@@ -55,7 +49,7 @@ const useDegreeData = (degreeCode) => {
 
         if (error) throw error;
         setDegreeData(degree);
-      } catch (err) {
+      } catch {
         // degree fetch failed — component renders without degree data
       }
     };
@@ -180,7 +174,7 @@ const useRoadmapData = (
           setData((prev) => mergePayloadPreserveMandatoryPlacements(prev, row.payload));
 
         }
-      } catch (err) {
+      } catch {
         // polling error — will retry on next interval
       }
     }, 5000);
@@ -230,11 +224,11 @@ const useRoadmapData = (
               setIsRegenerating(false);
               clearInterval(intervalId);
             }
-          } catch (err) {
+          } catch {
             // polling error — will retry on next interval
           }
         }, 3000);
-      } catch (err) {
+      } catch {
         // polling init failed — regeneration not started
       }
     };
@@ -512,17 +506,11 @@ export default function RoadmapUNSWPage() {
     preloadedRoadmapId
   );
 
-  const sources = normalizeSources(data);
-
   const headerProgramName =
     activeDegree?.degree_name ||
     activeDegree?.program_name ||
     header.program_name ||
     DEFAULT_PROGRAM_NAME;
-
-  const headerUac = activeDegree?.uac_code ?? header.uac_code ?? DEFAULT_UAC_CODE;
-  const entryRequirements = data?.entry_requirements || {};
-  const programStructure = data?.program_structure || {};
 
   const handleBackClick = useCallback(() => navigate("/roadmap"), [navigate]);
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);

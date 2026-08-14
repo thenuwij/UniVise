@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import SurveyForm from '../components/SurveyForm';
 import { UserAuth } from '../context/AuthContext';
-import { useSurvey } from '../context/SurveyContext';
+import { useSurvey } from '../context/useSurvey';
 import { supabase } from '../supabaseClient';
 
 function SurveyPage() {
-  const { session, signOut } = UserAuth();
+  const { session } = UserAuth();
   const { hasCompletedSurvey, loading: surveyLoading } = useSurvey();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState('');
+  const [, setFirstName] = useState('');
   const [checkingAccess, setCheckingAccess] = useState(true);
 
   useEffect(() => {
@@ -49,16 +49,6 @@ function SurveyPage() {
   if (loading || surveyLoading || checkingAccess) {
     return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
   }
-
-  const handleSignOut = async (e) => {
-    e.preventDefault();
-    try {
-      await signOut();
-      navigate("/login");
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800"

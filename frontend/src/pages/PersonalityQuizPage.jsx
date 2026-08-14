@@ -6,7 +6,7 @@ import PersonalityQuizForm from "../components/PersonalityQuizForm";
 import { UserAuth } from "../context/AuthContext";
 
 const PersonalityQuizPage = () => {
-  const { session, signOut } = UserAuth();
+  const { signOut } = UserAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async (e) => {

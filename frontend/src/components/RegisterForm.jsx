@@ -22,7 +22,7 @@ function RegisterForm() {
     const [openModal, setOpenModal] = useState(false)
     
     const navigate = useNavigate() 
-    const { session, registerNewUser } = UserAuth();
+    const { registerNewUser } = UserAuth();
 
     // Set to true before deployment to enforce UNSW email
     const ENFORCE_UNSW_EMAIL = false;
@@ -58,7 +58,7 @@ function RegisterForm() {
           setError('');
           navigate('/survey', { replace: true });
         }
-      }catch (err) {
+      }catch {
         setError("An error occured")
       } finally {
         setLoading(false)

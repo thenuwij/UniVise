@@ -274,12 +274,6 @@ export default function SpecialisationUNSW({ degreeCode }) {
     const popoverKey = `${forDegreeCode}-${type.toLowerCase()}`;
     const isOpen = openType === popoverKey;
 
-    const getIcon = () => {
-      if (type === "Honours") return <Award className="h-4 w-4" />;
-      if (type === "Major") return <GraduationCap className="h-4 w-4" />;
-      return <BookOpen className="h-4 w-4" />;
-    };
-
     return (
       <div className="relative">
         <button

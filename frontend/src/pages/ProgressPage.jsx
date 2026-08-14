@@ -215,7 +215,9 @@ function ProgressPage() {
               typeof spec.sections === "string"
                 ? JSON.parse(spec.sections)
                 : spec.sections;
-          } catch {}
+          } catch (err) {
+            console.warn("Failed to parse specialisation sections", err);
+          }
 
           specSections?.forEach((section) => {
             if (section?.title?.toLowerCase().includes("overview")) return;
@@ -523,13 +525,6 @@ function ProgressPage() {
         setReportError(null);
       }
       setCurrentStep((s) => s - 1);
-    }
-  };
-
-  const goToStep = (step) => {
-    if (step <= currentStep) {
-      if (step < 4) { setComparisonData(null); setAiReport(null); setReportError(null); }
-      setCurrentStep(step);
     }
   };
 

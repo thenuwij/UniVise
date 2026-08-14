@@ -1,5 +1,5 @@
 
-export function TraitsMatcher({ RIASEC, userType, traitScores }) {
+export function TraitsMatcher({ RIASEC, userType }) {
 
 
   return (

@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-
-const SurveyContext = createContext();
+import { SurveyContext } from "./surveyContext";
 
 export const SurveyContextProvider = ({ children }) => {
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
@@ -71,5 +70,3 @@ export const SurveyContextProvider = ({ children }) => {
     </SurveyContext.Provider>
   );
 };
-
-export const useSurvey = () => useContext(SurveyContext);

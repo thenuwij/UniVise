@@ -41,8 +41,8 @@ function MajorDetailPage() {
 
       let parsedSections = [];
       let parsedDegrees = [];
-      try { parsedSections = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections || []; } catch {}
-      try { parsedDegrees = typeof data.sections_degrees === "string" ? JSON.parse(data.sections_degrees) : data.sections_degrees || []; } catch {}
+      try { parsedSections = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections || []; } catch (err) { console.warn("Failed to parse sections", err); }
+      try { parsedDegrees = typeof data.sections_degrees === "string" ? JSON.parse(data.sections_degrees) : data.sections_degrees || []; } catch (err) { console.warn("Failed to parse related degrees", err); }
 
       setMajor({ ...data, sections: parsedSections, related_degrees: parsedDegrees });
     };

@@ -8,7 +8,7 @@ import { MenuBar } from "../components/MenuBar";
 
 function ExploreByDegreePage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedDegree, setSelectedDegree] = useState(null);
+  const [, setSelectedDegree] = useState(null);
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
   const navigate = useNavigate();

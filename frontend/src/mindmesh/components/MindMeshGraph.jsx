@@ -7,7 +7,6 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
   {
     graph,
     canvasSize,
-    focusedNode,
     handleNodeClick,
     onBackgroundClick,
     setHoverLink,

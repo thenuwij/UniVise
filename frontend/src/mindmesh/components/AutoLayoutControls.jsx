@@ -1,6 +1,25 @@
 // src/pages/mindmesh/components/AutoLayoutControls.jsx
 import { useCallback, forwardRef, useImperativeHandle } from "react";
 
+const idOf = (n) => (typeof n === "object" ? n.id : n);
+
+const normalizeLinksToIds = (links) =>
+  links.map((l) => ({ ...l, source: idOf(l.source), target: idOf(l.target) }));
+
+const codeDigitLevel = (n) => {
+  const m = String(n?.item_key || n?.code || "").match(/\d{4}/);
+  return m ? Number(m[0][0]) : undefined;
+};
+
+const inferBaseLevel = (n) => {
+  if (n.item_type === "degree") return 0;
+  const meta = Number(n?.metadata?.level);
+  if (!Number.isNaN(meta) && meta >= 0) return Math.max(1, Math.min(meta, 8));
+  const dig = codeDigitLevel(n);
+  if (dig !== undefined) return Math.max(1, Math.min(dig, 8));
+  return 1;
+};
+
 export default forwardRef(function AutoLayoutControls({
   graph,
   setGraph,
@@ -9,24 +28,6 @@ export default forwardRef(function AutoLayoutControls({
   setFrozen,
   className = "",
 }, ref) {
-
-  const idOf = (n) => (typeof n === "object" ? n.id : n);
-  const normalizeLinksToIds = (links) =>
-    links.map((l) => ({ ...l, source: idOf(l.source), target: idOf(l.target) }));
-
-  const codeDigitLevel = (n) => {
-    const m = String(n?.item_key || n?.code || "").match(/\d{4}/);
-    return m ? Number(m[0][0]) : undefined;
-  };
-
-  const inferBaseLevel = (n) => {
-    if (n.item_type === "degree") return 0;
-    const meta = Number(n?.metadata?.level);
-    if (!Number.isNaN(meta) && meta >= 0) return Math.max(1, Math.min(meta, 8));
-    const dig = codeDigitLevel(n);
-    if (dig !== undefined) return Math.max(1, Math.min(dig, 8));
-    return 1;
-  };
 
   const autoLayout = useCallback(() => {
     if (!graph?.nodes?.length) return;

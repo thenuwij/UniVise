@@ -88,7 +88,9 @@ function DegreeDetailPage() {
         if (deg?.sections) {
           parsedSections = typeof deg.sections === "string" ? JSON.parse(deg.sections) : deg.sections;
         }
-      } catch {}
+      } catch (err) {
+        console.warn("Failed to parse degree sections", err);
+      }
 
       setDegree({ ...deg, career_outcomes: parsedCareerOutcomes, sections: parsedSections });
     };
@@ -453,7 +455,7 @@ function formatStructureText(text) {
       const numbered = line.match(/^(\d+)\.\s+(.+)/);
       if (numbered) return { type: "numbered", num: numbered[1], text: numbered[2] };
       if (line.startsWith("•") || line.startsWith("-"))
-        return { type: "bullet", text: line.replace(/^[•\-]\s*/, "") };
+        return { type: "bullet", text: line.replace(/^[•-]\s*/, "") };
       return { type: "text", text: line };
     });
 }

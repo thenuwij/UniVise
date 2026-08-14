@@ -1,5 +1,5 @@
 // RoadmapSchoolPage.jsx — Matches UNSW Roadmap Design (Quick Facts Removed)
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "../components/DashboardNavBar";
 import GradientCard from "../components/GradientCard";
@@ -93,7 +93,7 @@ export default function RoadmapSchoolPage() {
           setCareersLoading(false);
           clearInterval(pollInterval);
         }
-      } catch (e) {
+      } catch {
         // polling error — will retry on next interval
       }
     }, 3000);

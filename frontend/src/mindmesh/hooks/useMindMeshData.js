@@ -116,19 +116,14 @@ export default function useMindMeshData({ isProgramView, session, programCode })
         
         builtGraph.nodes.forEach((n) => !G.hasNode(n.id) && G.addNode(n.id));
         
-        let edgesAdded = 0;
-        let edgesSkipped = 0;
-        const validLinks = []; 
-        
+        const validLinks = [];
+
         builtGraph.links.forEach((l) => {
           const s = String(l.source),
             t = String(l.target);
           if (G.hasNode(s) && G.hasNode(t) && s !== t && !G.hasEdge(s, t)) {
             G.addEdge(s, t);
-            validLinks.push(l); 
-            edgesAdded++;
-          } else {
-            edgesSkipped++;
+            validLinks.push(l);
           }
         });
 
