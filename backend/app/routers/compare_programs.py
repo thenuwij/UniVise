@@ -19,7 +19,6 @@ from app.routers.compare_programs_helpers import (
     estimate_completion_date,
 )
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

@@ -1,7 +1,10 @@
+import logging
 import os
 import anthropic
 from typing import List, Dict, AsyncGenerator
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -27,7 +30,7 @@ async def ask_claude_async(prompt: str, max_tokens: int = 3000, temperature: flo
         )
         return response.content[0].text.strip()
     except Exception as e:
-        print("Claude API error (ask_claude_async):", e)
+        logger.error(f"Claude API error (ask_claude_async): {e}")
         raise
 
 
@@ -58,7 +61,7 @@ async def ask_claude_async_with_search(prompt: str, max_tokens: int = 3000, temp
         )
         return _extract_last_text(response.content)
     except Exception as e:
-        print("Claude API error (ask_claude_async_with_search):", e)
+        logger.error(f"Claude API error (ask_claude_async_with_search): {e}")
         raise
 
 
@@ -75,7 +78,7 @@ def ask_claude_with_search(prompt: str, max_tokens: int = 3000) -> str:
         )
         return _extract_last_text(response.content)
     except Exception as e:
-        print("Claude API error (ask_claude_with_search):", e)
+        logger.error(f"Claude API error (ask_claude_with_search): {e}")
         return "Sorry, I couldn't process your request."
 
 
@@ -91,7 +94,7 @@ def ask_claude(prompt: str, max_tokens: int = 3000, model: str = _MODEL) -> str:
         )
         return response.content[0].text.strip()
     except Exception as e:
-        print("Claude API error (ask_claude):", e)
+        logger.error(f"Claude API error (ask_claude): {e}")
         return "Sorry, I couldn't process your request."
 
 

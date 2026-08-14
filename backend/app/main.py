@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import FastAPI
@@ -11,6 +12,11 @@ from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
 from app.routers import switch_advisor
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 app = FastAPI()
 load_dotenv()
