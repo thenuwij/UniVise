@@ -3,6 +3,7 @@ name: Deploy Lambda Backend
 # Deploys the production backend. Builds the arm64 container image and updates the
 # Lambda on every push to main that touches backend code or this workflow.
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
