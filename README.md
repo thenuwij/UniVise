@@ -1,202 +1,105 @@
-# UniVise - Academic Planning and Program Transfer Advisor
+# UniVise - Academic and Career Planner for UNSW Students
 
-**Live demo: [https://uni-vise.com](https://uni-vise.com)**
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-uni--vise.com-2563EB?style=flat-square&labelColor=0D1117&logo=googlechrome&logoColor=white)](https://uni-vise.com)
+![React](https://img.shields.io/badge/React-19-8B949E?style=flat-square&labelColor=0D1117&logo=react&logoColor=8B949E)
+![FastAPI](https://img.shields.io/badge/FastAPI-8B949E?style=flat-square&labelColor=0D1117&logo=fastapi&logoColor=8B949E)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-8B949E?style=flat-square&labelColor=0D1117&logo=postgresql&logoColor=8B949E)
+![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-8B949E?style=flat-square&labelColor=0D1117&logo=awslambda&logoColor=8B949E)
 
-UniVise is an AI-powered academic advising and planning platform designed to help university students understand how their degree structure, specialisations, prerequisites, and career outcomes fit together. The system was developed as part of an Honours research thesis investigating AI-driven academic advising systems at UNSW Sydney.
+UniVise is an AI-powered academic and career planning platform for UNSW students. It takes thousands of scattered handbook rules, prerequisites, and specialisation requirements and turns them into a clear picture of where a degree leads, what switching programs would actually cost, and which careers it opens up. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
 
-The broader platform was built in collaboration with a parallel Honours thesis by [David Choi](https://github.com/dchoi03), which focused on AI-powered university guidance for high school students. Together, the system supports both prospective and current university students through separate advisory pathways.
-
-**Dashboard** — the planning hub, with top career matches ranked by suitability and salary range.
-
-![UniVise dashboard showing the academic planning hub with roadmap and program transfer entry points, above a ranked list of career matches](docs/images/dashboard.png)
-
-**Roadmap** — a generated program pathway, stepped through requirements, structure, specialisations, societies, internships and careers.
-
-![UniVise roadmap for the Bachelor of Engineering (Honours) showing the stepped pathway navigation and generated internship programs](docs/images/roadmap.png)
-
-**Prerequisite graph** — course dependencies as a force-directed network, showing chains and bottleneck courses.
-
-![Prerequisite graph showing UNSW courses as connected nodes, with dependency chains and bottleneck courses across a 38-course program](docs/images/prerequisite-graph.png)
-
-**Transfer advisor** — what carries over to a target program, what does not, and the recommendation.
-
-![Transfer advisor summary showing 73% of courses transferring with zero extra terms, a completion estimate, and key observations about lost credit](docs/images/transfer-advisor.png)
+It shares a platform with a parallel Honours thesis by [David Choi](https://github.com/dchoi03) on AI-powered guidance for high school students, so the system serves both prospective and current university students.
 
 ---
 
-## Why UniVise Exists
+## Motivation
 
-University planning is difficult for several key reasons:
+Degree planning at UNSW is spread across handbook pages, program rules, and specialisation requirements that rarely line up. Four gaps follow from that.
 
-### Information Fragmentation and Rule Complexity
+1. **Rules are fragmented.** Prerequisites, progression constraints, and specialisation requirements live in different places and formats, so reasoning about a pathway end to end is hard.
 
-Degree rules, specialisation requirements, prerequisites, and progression constraints are spread across multiple pages and formats, making it hard for students to reason about their pathway end-to-end.
+2. **Switching programs is a guess.** Students considering a transfer have no clear view of what carries over, what does not, or what it costs in extra terms.
 
-### Lack of Decision Support for Switching Programs or Specialisations
+3. **Prerequisite chains surface too late.** Bottleneck courses are usually discovered after they have already delayed progression or closed off a specialisation.
 
-Students considering a transfer often do not have a clear picture of what will carry over, what will not, and how switching affects time-to-graduation and future course options.
+4. **Career links are indirect.** Students want to know how program choices map to real roles and employers, but that connection is scattered at best.
 
-### Poor Visibility into Prerequisite Bottlenecks
-
-Students frequently discover prerequisite chains too late, which can delay progression and limit specialisation choices.
-
-### Weak Alignment Between Academic Choices and Career Outcomes
-
-Students want to know how their program choices map to real job markets, skills, and employer demand, but this linkage is usually indirect and scattered.
-
-UniVise addresses these issues by consolidating program handbooks, course rules, specialisation requirements, and industry signals into a single decision-support experience, combining structured program data, rule-aware comparisons, prerequisite graph visualisation, and AI-generated advisory outputs.
+UniVise pulls these into one place: structured program data scraped from the UNSW handbook, rule-aware program comparison, prerequisite graph visualisation, and AI-generated advice grounded in that data.
 
 ---
 
 ## Key Features
 
-### Log In and User Context
+### Dashboard
 
-Users log into the platform via **Google OAuth** and operate within an account context that supports saving preferences, planning artifacts, and personalised results. UniVise is designed to operate with authenticated sessions and a persistent database-backed profile.
+The planning hub: career matches ranked by suitability and salary, with entry points into roadmap generation and program transfer.
+
+![UniVise dashboard showing the academic planning hub with roadmap and program transfer entry points, above a ranked list of career matches](docs/images/dashboard.png)
 
 ### Roadmap Generation
 
-The roadmap feature generates a structured view of a student's program pathway. It presents a coherent sequence of recommended courses and highlights how program requirements are satisfied over time, based on rules and chosen specialisations.
+A full program pathway, sequencing courses and showing how requirements are satisfied over time for a chosen specialisation. Societies, industry experience, and career pathways generate in the background, linked through to real employers.
 
-The roadmap is delivered in two phases. An initial synchronous payload covering entry requirements, capstone, and honours information returns in approximately 10–15 seconds. Background AI generation for societies, industry experience, and career pathways then runs concurrently via parallelised async tasks, with career pathways generation reduced from over 50 seconds to approximately 15 seconds through model selection and concurrency optimisation.
+![UniVise roadmap for the Bachelor of Engineering (Honours) showing the stepped pathway navigation and generated internship programs](docs/images/roadmap.png)
 
-### Program Comparison and Transfer Analysis (Switch Advisor)
+### Program Transfer
 
-The transfer advisor enables a student to compare their current program against a target program and understand:
+Compares a current program against a target: what transfers, what does not, what is left, and what it costs in extra terms. An AI advisor weighs those facts alongside the student's personality profile to reach a verdict, not just a score.
 
-- Which completed courses are likely transferable
-- Which are not transferable (and why)
-- What remains to complete in the target program
-- The overall impact on progression and workload
+![Program transfer summary showing 73% of courses transferring with zero extra terms, a completion estimate, and key observations about lost credit](docs/images/transfer-advisor.png)
 
-The analysis is powered by an AI advisor agent that receives structured facts computed by the backend including transfer rate, additional terms relative to the current degree, faculty alignment, prerequisite gaps, and how early the student is in their degree, alongside the student's RIASEC personality profile and survey responses. The agent reasons through these inputs using a defined advisory framework to produce a verdict and recommendation narrative, rather than mapping an arbitrary numeric score to a label. The backend comparison endpoint was optimised via parallelised database fetching, reducing latency by approximately 60%.
+### Prerequisite Graph (MindMesh)
 
-### Specialisation Selection Support
+Course dependencies as a force-directed network, exposing prerequisite chains and the bottleneck courses that gate the most options.
 
-UniVise supports program structures with multiple specialisations. Users can select specialisations (for both current and target programs where applicable) and view how that selection changes requirements and transfer outcomes.
-
-### Prerequisite Visualisation
-
-MindMesh is a prerequisite graph view that represents course dependencies as a force-directed graph. It enables students to:
-
-- Identify prerequisite chains early
-- Detect bottleneck courses that gate many downstream options
-- Understand which courses unlock particular specialisations or electives
-
-This improves planning quality and reduces late-stage surprises in progression.
-
-### Career and Job Market Integration
-
-UniVise integrates live job listings using SerpAPI (Google Jobs) to provide career-relevant information such as:
-
-- Role distribution for a given query
-- Employer trends
-- Market signals that inform pathway decisions
-
-This component can be enabled or disabled depending on API availability and cost.
+![Prerequisite graph showing UNSW courses as connected nodes, with dependency chains and bottleneck courses across a 38-course program](docs/images/prerequisite-graph.png)
 
 ---
 
 ## System Overview
 
-UniVise is built as a full-stack system with a React frontend, a FastAPI backend, and a Supabase (PostgreSQL) database. It integrates a multi-provider LLM reasoning layer across Anthropic and OpenAI APIs, with model selection optimised per task for quality and cost.
+A React frontend, a FastAPI backend, and a PostgreSQL database, with an LLM layer that spans Anthropic and OpenAI and picks a model per task for quality and cost.
 
-### Technical Stack
+### Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, TypeScript, TailwindCSS, React Router |
-| Backend | FastAPI, Python |
-| Database | Supabase (PostgreSQL) |
-| AI Layer | Anthropic Claude API (Sonnet, Haiku) + OpenAI API (GPT-4o mini, GPT-5.4-mini) — multi-provider prompt orchestration with model-agnostic JSON parsing |
-| Auth | Google OAuth |
-| Deployment | AWS Lambda backend, S3 + CloudFront frontend, GitHub Actions CI/CD |
-| Job Data | SerpAPI (Google Jobs) — optional |
+| Frontend | React 19, Vite, TailwindCSS 4, React Router 7 |
+| Backend | FastAPI, Python 3.12 |
+| Database | PostgreSQL with row level security policies on every table, managed on Supabase |
+| AI Layer | Anthropic Claude (Sonnet 4.6, Haiku 4.5) and OpenAI (GPT-5.4-mini, GPT-4o mini), selected per task |
+| Graphs | react-force-graph, graphology |
+| Auth | Google OAuth with JWT bearer tokens, validated on every protected endpoint |
 
-### High-Level Architecture
+### How It Works
 
-```
-User
- └── React + TypeScript Frontend (S3 + CloudFront)
-       └── FastAPI Backend (Lambda + CloudFront)
-             ├── Supabase PostgreSQL Database
-             ├── LLM Reasoning Layer (Anthropic + OpenAI APIs)
-             │     └── Multi-provider parallelised prompt orchestration
-             └── SerpAPI Integration (optional)
-```
+A request hits CloudFront, then FastAPI on Lambda. Program rules, course data, and prerequisites come from Postgres, and the backend computes the structured facts first: transfer rates, prerequisite chains, remaining requirements, extra terms. Only then does it call the LLM layer, with independent prompts running in parallel.
 
-The backend coordinates rule parsing, transfer logic, prerequisite graph generation, and AI-driven advisory outputs.
+The models reason over facts the backend has already computed, not over raw handbook text. That keeps advice grounded in real program rules rather than in whatever the model recalls about UNSW.
 
-### AWS Deployment
+### Deployment
 
 | Component | Service |
 |---|---|
-| Frontend hosting | S3 bucket serving the Vite production build |
-| Frontend delivery | CloudFront with SPA routing fallback and HTTPS via ACM |
-| Backend runtime | Lambda running a container image on arm64 |
-| Backend serving | Lambda Web Adapter running the FastAPI app as a uvicorn server, so streaming responses are preserved |
-| Backend delivery | CloudFront at `api.uni-vise.com`, caching disabled for personalised responses |
-| Container registry | ECR, with images tagged by commit SHA |
-| Secrets | AWS Secrets Manager, loaded at runtime by the function's execution role |
-| CI/CD | GitHub Actions deploying on push to `main`, authenticated to AWS via OIDC with no stored access keys |
-| Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, with email notification through SNS |
-| DNS | Cloudflare, with `uni-vise.com` and `api.uni-vise.com` pointing at their CloudFront distributions |
-
-### Technical Highlights
-
-- **~75% reduction in career pathways generation time** via model selection and async concurrency (50s+ → ~15s)
-- **~60% latency reduction on program comparison** via parallelised database fetching with `asyncio.gather()`
-- Multi-provider LLM architecture with model-agnostic JSON parsing — models selected per task for quality and cost
-- AI advisor agent for transfer analysis integrating personality profiling (RIASEC) and structured academic context
-- Custom transfer-matching engine for cross-program comparison
-- Dynamic prerequisite graph construction with force-directed layout (MindMesh)
-- Google OAuth authentication with persistent, database-backed user profiles
-- Serverless AWS deployment with GitHub Actions continuous delivery
-- Modular frontend architecture with clear separation between UI, business logic, and AI orchestration
+| Frontend | S3 serving the Vite build, delivered by CloudFront with SPA fallback and HTTPS via ACM |
+| Backend | Lambda running an arm64 container, with the Lambda Web Adapter running FastAPI as a real uvicorn server so streaming works |
+| API delivery | CloudFront at `api.uni-vise.com`, caching disabled for personalised responses |
+| Images | ECR, tagged by commit SHA |
+| Secrets | AWS Secrets Manager, loaded at runtime |
+| CI/CD | GitHub Actions on push to `main`, authenticated by OIDC with no stored AWS keys |
+| Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, notified through SNS |
 
 ---
 
-## Data Collection and Modelling
+## Using It
 
-A significant portion of the UniVise engineering effort involved sourcing, cleaning, and structuring the large-scale real-world data that powers the platform's advisory outputs.
-
-### Data Sources
-
-- **UNSW Handbook** — The entire UNSW program and course handbook was scraped to extract degree rules, course descriptions, prerequisites, specialisation requirements, and progression constraints across thousands of courses and program structures
-- **Job Market Listings** — Live job listing data integrated via SerpAPI (Google Jobs) to surface employer trends and role demand relevant to each program pathway
-- **Society and Extracurricular Information** — Additional university data points scraped and structured to enrich the student-facing advisory context
-
-### Data Cleaning and Processing
-
-Raw scraped data contained significant noise, inconsistencies, and structural anomalies across different handbook formats and course entry styles. A dedicated cleaning and normalisation pipeline was developed to resolve these issues before ingestion into the database, ensuring advisory outputs were grounded in accurate, well-structured data.
-
-### Database Design
-
-The cleaned data was modelled into a relational PostgreSQL schema on Supabase, with multiple linked tables representing programs, courses, specialisations, prerequisites, and their interdependencies. The schema was designed to support efficient querying for roadmap generation, transfer matching, and prerequisite graph construction across thousands of data points.
-
-**Row Level Security (RLS)** policies were implemented across all tables to enforce access control at the database level, ensuring users can only read and write data appropriate to their authenticated session.
-
-### Automated Update Pipeline
-
-Python scripts were developed to automate re-ingestion and synchronisation of university data, allowing the backend database to be updated quickly in response to changes in the UNSW handbook or program structures — without requiring manual data entry or schema migration.
+1. Sign in with Google, then complete the short onboarding survey and personality quiz.
+2. Generate a roadmap for your program, and open MindMesh inside it to see prerequisite chains and bottleneck courses.
+3. In **Program Transfer**, pick your current and target program, with specialisations.
+4. Review the transfer summary and recommendation.
 
 ---
 
-## Usability Evaluation
+## Licence
 
-UniVise is currently being evaluated with **80 UNSW students** as part of the Honours research process. Participants complete structured tasks across the roadmap, transfer advisor, and MindMesh features, with feedback collected on system clarity, recommendation quality, and overall usefulness. Findings are informing iterative improvements to the AI reasoning pipeline and UI design.
-
----
-
-## User Guide
-
-1. Log in to the platform using your Google account.
-2. Navigate to the **Roadmap** page to generate and view a structured pathway for a selected program. Open **MindMesh** within the Roadmap to inspect prerequisites and identify bottleneck courses early.
-3. Use the **Switch Advisor** to select:
-   - Current program and specialisation
-   - Target program and specialisation
-4. Review the transfer summary:
-   - Transferable courses
-   - Non-transferable courses
-   - Remaining requirements
-   - Recommendation narrative
+This project was developed as Honours research at UNSW Sydney. It is not licensed for reuse or redistribution.
