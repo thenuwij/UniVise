@@ -25,7 +25,8 @@ AUTH_INVENTORY.md
 costs.csv
 
 # Engineering decision records and runbooks - kept locally, not published
-docs/adr/
+docs/*
+!docs/images/
 infra/
 
 # Pytest
