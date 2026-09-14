@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import SavedItemCard from "../components/pathway/SavedItemCard";
+import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 

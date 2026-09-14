@@ -4,7 +4,7 @@ import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
 import RoadmapHeroCard from '../components/RoadmapHeroCard.jsx';
 import ProgramTransferCard from '../components/ProgramTransferCard.jsx';
-import { RecommendationTable } from '../components/RecommendationTable';
+import { RecommendationTable } from '@/features/recommendations/components/RecommendationTable';
 import { UserAuth } from '@/app/AuthContext';
 
 
