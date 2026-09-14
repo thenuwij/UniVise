@@ -1,6 +1,6 @@
 # app/utils/user_context.py
 
-from app.utils.database import supabase
+from app.core.database import supabase
 
 def _first_or_empty(res):
     try:

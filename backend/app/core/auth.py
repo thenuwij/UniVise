@@ -1,7 +1,7 @@
 import logging
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.utils.database import supabase
+from app.core.database import supabase
 
 logger = logging.getLogger(__name__)
 

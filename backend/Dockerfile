@@ -20,8 +20,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # whereas the old Lambda base image did.
 RUN pip install --no-cache-dir boto3
 
-# Whole backend dir, so root-level dependencies.py sits beside the app/ package
-# (same as the ECS image's `COPY . .`).
 COPY . .
 
 # LWA config: stream responses, check readiness on /health, app listens on 8080.

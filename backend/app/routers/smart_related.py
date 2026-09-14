@@ -1,32 +1,16 @@
 # app/routers/smart_related.py
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from app.models.smart_related import CourseToDegreesReq, DegreeOut
+from typing import List, Dict, Any
 import json
 import re
 
-from dependencies import get_current_user
-from app.utils.database import supabase
-from app.utils.openai_client import ask_gpt_async
-from app.utils.parse_llm import extract_json
+from app.core.auth import get_current_user
+from app.core.database import supabase
+from app.llm.openai_client import ask_gpt_async
+from app.llm.json_parsing import extract_json
 
 router = APIRouter(prefix="/smart-related", tags=["Smart Related"])
-
-# Request model for finding degrees related to a course
-class CourseToDegreesReq(BaseModel):
-    course_id: Optional[str] = None         
-    course_code: Optional[str] = None     
-    top_k: int = 4
-    restrict_faculty: bool = True           
-
-# Response model for degree recommendations
-class DegreeOut(BaseModel):
-    id: str
-    program_name: str
-    uac_code: Optional[str] = None
-    faculty: Optional[str] = None
-    reason: Optional[str] = None         
-    score: Optional[float] = None
 
 SYSTEM_PROMPT = """
 You are selecting the most relevant university degrees for ONE course.

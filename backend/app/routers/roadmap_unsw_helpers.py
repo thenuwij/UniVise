@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, List
-from app.utils.database import supabase
+from app.core.database import supabase
 import json
 
 logger = logging.getLogger(__name__)

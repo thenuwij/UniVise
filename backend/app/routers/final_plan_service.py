@@ -1,7 +1,7 @@
 import logging
-from app.utils.database import supabase
-from app.utils.openai_client import ask_gpt_async
-from app.utils.parse_llm import extract_json
+from app.core.database import supabase
+from app.llm.openai_client import ask_gpt_async
+from app.llm.json_parsing import extract_json
 import uuid
 import re
 from datetime import datetime
