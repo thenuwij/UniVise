@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 from app.utils.database import supabase
-from app.utils.openai_client import ask_gpt, ask_gpt_async
+from app.utils.openai_client import ask_gpt_async
 from .roadmap_common import (
     _first_or_none, assert_keys
 )

@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 # Gathers complete context for UNSW degree roadmap generation.
 async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
 
-    total_start = time.time()
-
     logger.info(f"Gathering UNSW context for request: {req}")
 
     # Fetch degree information
@@ -103,7 +101,6 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     core_courses_count = len(context.get("core_courses", []))
     selected_honours = context.get("selected_honours_name")
     selected_honours_courses = context.get("selected_honours_courses", [])
-    selected_honours_overview = context.get("selected_honours_overview")
     selected_major_name = context.get("selected_major_name")
     selected_major_courses = context.get("selected_major_courses", [])
     selected_minor_name = context.get("selected_minor_name")
@@ -339,8 +336,6 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
 
     import asyncio
     import time
-
-    total_start = time.time()
 
     # Fallback honours structure
     fallback_honours = {

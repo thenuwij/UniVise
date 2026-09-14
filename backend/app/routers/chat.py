@@ -12,7 +12,6 @@ from .user import (
 from app.utils.database import supabase
 from app.utils.openai_client import ask_gpt_stream
 from fastapi.responses import StreamingResponse
-import json
 
 router = APIRouter()
 

@@ -1,5 +1,5 @@
 import logging
-from fastapi import Depends, HTTPException, Security
+from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.utils.database import supabase
 
