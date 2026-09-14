@@ -1,0 +1,14 @@
+import { Navigate } from "react-router-dom";
+import { UserAuth } from "./AuthContext";
+
+const PrivateRoute = ({ children }) => {
+  const { session } = UserAuth();
+
+  if (session === undefined) {
+    return <div>Loading...</div>;
+  }
+
+  return <div>{session ? <>{children}</> : <Navigate to="/login" replace />}</div>;
+};
+
+export default PrivateRoute; 

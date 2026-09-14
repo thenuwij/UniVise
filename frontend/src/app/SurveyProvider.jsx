@@ -1,0 +1,72 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/shared/lib/supabase";
+import { SurveyContext } from "./SurveyContext";
+
+export const SurveyContextProvider = ({ children }) => {
+  const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const checkSurveyStatus = async (userType, userId) => {
+    if (!userId) return;
+
+    try {
+      
+      if (userType === "high_school") {
+        const { data } = await supabase
+          .from("student_school_data")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+
+        // console.log("High school data lookup result:", data);
+
+        if (data) setHasCompletedSurvey(true);
+      }
+
+      if (userType === "university") {
+        const { data } = await supabase
+          .from("student_uni_data")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+
+        // console.log("University data lookup result:", data);
+
+        if (data) setHasCompletedSurvey(true);
+      }
+    } catch (error) {
+      console.error("Error checking survey status:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSurveyStatus = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          console.error("Error fetching user:", error);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSurveyStatus();
+  }, []);
+
+  return (
+     <SurveyContext.Provider
+      value={{
+        hasCompletedSurvey,
+        loading,
+        checkSurveyStatus,
+      }}
+    >
+      {children}
+    </SurveyContext.Provider>
+  );
+};

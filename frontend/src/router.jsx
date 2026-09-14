@@ -1,40 +1,39 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import SurveyPage from "./pages/SurveyPage";
-import DashboardPage from "./pages/DashboardPage";
-import PrivateRoute from "./components/PrivateRoute";
-import ChatbotPage from './pages/ChatbotPage';
-import ProfilePage from './pages/ProfilePage';
-import RecommendationPage from "./pages/RecommendationPage";
-import PersonalityQuizPage from "./pages/PersonalityQuizPage";
-import PersonalityResultPage from "./pages/PersonalityResultPage";
-import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
-import ExploreByDegreePage from "./pages/ExploreByDegreePage";
-import ExploreBySpecialisationPage from "./pages/ExploreBySpecialisationPage";
-import ExploreByCoursePage from "./pages/ExploreByCoursePage";
-import DegreeDetailPage from "./pages/DegreeDetailPage";
-import RoadmapPage from "./pages/RoadmapPage";
-import CourseDetailPage from "./pages/CourseDetailPage";
-import LoadingRoadmapPage from "./pages/LoadingRoadmapPage";
-import RoadmapSchoolPage from "./pages/RoadmapSchoolPage";
-import RoadmapUNSWPage from "./pages/RoadmapUNSWPage";
-import LoadingRoadmapEntryPage from "./pages/LoadingRoadmapEntryPage";
-import MyPlannerPage from "./pages/MyPlannerPage";
-import MindMeshGraphPage from "./mindmesh/MindMeshGraphPage";
-import TraitsPage from "./pages/TraitsPage";
-import SpecialisationDetailPage from "./pages/SpecialisationDetailPage";
-import SavedItemsPage from "./pages/SavedItemsPage";
-import ProgressPage from "./pages/ProgressPage";
-import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
-import AuthCallback from "./components/AuthCallBack";
+import LoginPage from "./features/auth/pages/LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
+import SurveyPage from "./features/onboarding/pages/SurveyPage";
+import DashboardPage from "./features/dashboard/pages/DashboardPage";
+import PrivateRoute from "./app/PrivateRoute";
+import ChatbotPage from './features/chat/pages/ChatbotPage';
+import ProfilePage from './features/profile/pages/ProfilePage';
+import RecommendationPage from "./features/recommendations/pages/RecommendationPage";
+import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
+import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
+import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
+import ExploreByDegreePage from "./features/explore/pages/ExploreByDegreePage";
+import ExploreBySpecialisationPage from "./features/explore/pages/ExploreBySpecialisationPage";
+import ExploreByCoursePage from "./features/explore/pages/ExploreByCoursePage";
+import DegreeDetailPage from "./features/explore/pages/DegreeDetailPage";
+import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
+import CourseDetailPage from "./features/explore/pages/CourseDetailPage";
+import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
+import RoadmapSchoolPage from "./features/roadmap/pages/RoadmapSchoolPage";
+import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
+import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
+import MyPlannerPage from "./features/planner/pages/MyPlannerPage";
+import MindMeshGraphPage from "./features/mindmesh/pages/MindMeshGraphPage";
+import TraitsPage from "./features/traits/pages/TraitsPage";
+import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDetailPage";
+import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
+import ProgressPage from "./features/transfer/pages/ProgressPage";
+import MyPlannerSchoolPage from "./features/planner/pages/MyPlannerSchoolPage";
+import AuthCallback from "./features/auth/pages/AuthCallback";
 
 
 
 
 export const router = createBrowserRouter([
-  { path: "/", element: <App/> },
+  { path: "/", element: <LoginPage/> },
   { path: "/login", element: <LoginPage/> },
   { path: "/register", element: <RegisterPage/> },
   { path: "/survey", element: <PrivateRoute><SurveyPage/></PrivateRoute>},

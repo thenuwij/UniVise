@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from dependencies import get_current_user
-from app.utils.database import supabase
-from app.utils.openai_client import ask_gpt
+from app.core.auth import get_current_user
+from app.core.database import supabase
+from app.llm.openai_client import ask_gpt
 from postgrest.exceptions import APIError  # catch DB errors
 
 router = APIRouter()

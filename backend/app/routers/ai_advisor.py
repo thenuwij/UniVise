@@ -1,10 +1,10 @@
 # app/routers/ai_advisor.py
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from app.utils.database import supabase
-from app.utils.openai_client import ask_gpt
-from app.utils.user_context import get_user_context
-from dependencies import get_current_user
+from app.core.database import supabase
+from app.llm.openai_client import ask_gpt
+from app.services.user_context import get_user_context
+from app.core.auth import get_current_user
 
 router = APIRouter()
 

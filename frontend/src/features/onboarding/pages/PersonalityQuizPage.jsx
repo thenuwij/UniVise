@@ -1,0 +1,58 @@
+import { Button } from "flowbite-react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Header } from "@/shared/layout/Header";
+import PersonalityQuizForm from "../components/PersonalityQuizForm";
+import { UserAuth } from "@/app/AuthContext";
+
+const PersonalityQuizPage = () => {
+  const { signOut } = UserAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async (e) => {
+    e.preventDefault();
+    try {
+      await signOut();
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  return (
+    <div>
+      <motion.div
+        className="min-h-screen flex flex-col items-center relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -40 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+      >
+        <div className="w-full relative">
+          <Header />
+          {/* Sign Out Button */}
+          <div className="absolute top-4 right-24">
+            <Button color="gray" size="sm" onClick={handleSignOut}>
+              Sign Out
+            </Button>
+          </div>
+        </div>
+
+        {/* Welcome Text */}
+        <div className="mt-12 sm:mt-16 md:mt-20 text-center px-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-8 leading-tight">
+            Discover Your Personality
+          </h1>
+        </div>
+
+        {/* Quiz Form Section */}
+        <div className="flex-grow w-full flex items-center justify-center px-4 pb-20">
+          <PersonalityQuizForm />
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default PersonalityQuizPage;
