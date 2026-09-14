@@ -96,9 +96,9 @@ frontend/src/
   app/          auth and survey context, route guard
   shared/       Supabase and API clients, layout, shared UI
   features/     one folder per product area (roadmap, transfer, mindmesh, explore, ...),
-                each with its own pages/ and components/
+                each with its own pages/, plus components/ or hooks/ where needed
 backend/app/
-  routers/      HTTP endpoints only
+  routers/      FastAPI endpoints
   services/     business logic: roadmap generation, program comparison, advisors
   llm/          OpenAI and Claude clients, parsing of model output
   models/       Pydantic request and response schemas
