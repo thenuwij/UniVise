@@ -8,9 +8,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import DegreeSelectorSection from "../components/roadmap/DegreeSelectorSection";
-import GenerateButton from "../components/roadmap/GenerateButton";
-import RecommendedDegrees from "../components/roadmap/RecommendedDegrees";
+import DegreeSelectorSection from "../components/DegreeSelectorSection";
+import GenerateButton from "../components/GenerateButton";
+import RecommendedDegrees from "../components/RecommendedDegrees";
 import { useRoadmapData } from "../hooks/useRoadmapData";
 
 function RoadmapPage() {

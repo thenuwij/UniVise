@@ -6,13 +6,13 @@ import GradientCard from "../components/GradientCard";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import Pill from "../components/Pill";
 import SectionTitle from "../components/SectionTitle";
-import { ArrowLeft } from "../components/icons/InlineIcons";
-import CareersSection from "../components/roadmap/CareersSection";
-import EntryRequirementsCard from "../components/roadmap/EntryRequirementsCard";
-import IndustrySection from "../components/roadmap/IndustrySection";
-import ProgramStructure from "../components/roadmap/ProgramStructure";
-import RoadmapFlow from "../components/roadmap/RoadmapFlow";
-import SkeletonCard from "../components/roadmap/SkeletonCard";
+import { ArrowLeft } from "../components/InlineIcons";
+import CareersSection from "../components/CareersSection";
+import EntryRequirementsCard from "../components/EntryRequirementsCard";
+import IndustrySection from "../components/IndustrySection";
+import ProgramStructure from "../components/ProgramStructure";
+import RoadmapFlow from "../components/RoadmapFlow";
+import SkeletonCard from "../components/SkeletonCard";
 import { supabase } from "@/shared/lib/supabase";
 
 
