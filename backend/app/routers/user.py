@@ -1,8 +1,8 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_current_user
-from app.utils.database import supabase
+from app.core.auth import get_current_user
+from app.core.database import supabase
 
 logger = logging.getLogger(__name__)
 

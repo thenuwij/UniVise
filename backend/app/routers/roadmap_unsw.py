@@ -3,7 +3,7 @@ from typing import Any, Dict
 import json
 import time
 
-from app.utils.openai_client import ask_gpt_async
+from app.llm.openai_client import ask_gpt_async
 from .roadmap_common import parse_json_or_500, assert_keys
 from .roadmap_unsw_helpers import (
     fetch_degree_by_identifier,

@@ -1,24 +1,6 @@
 from fastapi import HTTPException
-from pydantic import BaseModel
 from typing import Optional, Any, Dict, List
-from app.utils.parse_llm import extract_json
-
-# Request and Response models
-class SchoolReq(BaseModel):
-    recommendation_id: Optional[str] = None
-    degree_name: Optional[str] = None
-    country: Optional[str] = "AU"
-
-class UNSWReq(BaseModel):
-    degree_id: Optional[str] = None
-    uac_code: Optional[str] = None
-    program_name: Optional[str] = None
-    specialisation: Optional[str] = None
-
-class RoadmapResp(BaseModel):
-    id: str
-    mode: str
-    payload: Dict[str, Any]
+from app.llm.json_parsing import extract_json
 
 # Helper functions
 def ensure(cond: bool, msg: str):

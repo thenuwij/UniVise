@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 from datetime import datetime
 from urllib.parse import quote
 import httpx
-from app.utils.database import supabase
-from app.utils.claude_client import ask_claude_async
-from app.utils.openai_client import ask_gpt_async
+from app.core.database import supabase
+from app.llm.claude_client import ask_claude_async
+from app.llm.openai_client import ask_gpt_async
 from .roadmap_unsw_helpers import fetch_user_specialisation_context
 
 

@@ -11,10 +11,9 @@
 import os
 import sys
 
-# Put the backend root (/var/task) on sys.path so BOTH the `app.*` imports and
-# the routers' bare `from dependencies import ...` resolve — dependencies.py
-# lives at the backend root, next to the app/ package. Self-locating via
-# __file__ so it works however the script is launched.
+# Put the backend root (/var/task) on sys.path so the `app.*` imports resolve
+# when this script is launched as `python app/lambda_server.py`. Self-locating
+# via __file__ so it works however the script is launched.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import boto3  # installed in the Lambda image (the slim base lacks it)

@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from app.routers.final_plan_service import clean_openai_response
 from app.routers.roadmap_common import parse_json_or_500
 from app.routers.roadmap_industry import sanitize_and_parse_json
-from app.utils.parse_llm import extract_json
+from app.llm.json_parsing import extract_json
 
 BOTH_PARSE = [
     ('{"a": 1}', {"a": 1}),

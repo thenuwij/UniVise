@@ -1,15 +1,13 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from app.utils.database import supabase
-from dependencies import get_current_user
+from app.core.database import supabase
+from app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
-from .roadmap_common import (
-    SchoolReq, UNSWReq, RoadmapResp,
-    ensure, table_for_mode
-)
+from app.models.roadmap import SchoolReq, UNSWReq, RoadmapResp
+from .roadmap_common import ensure, table_for_mode
 from .roadmap_school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from .roadmap_unsw import gather_unsw_context, ai_generate_unsw_payload
 from .roadmap_industry import generate_and_update_all_industry

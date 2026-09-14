@@ -4,7 +4,7 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-from app.utils.database import supabase
+from app.core.database import supabase
 
 logger = logging.getLogger(__name__)
 
