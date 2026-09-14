@@ -1,5 +1,4 @@
 import requests
-import json
 
 API_URL = "https://api-ap-southeast-2.prod.courseloop.com/publisher/search-academic-items"
 

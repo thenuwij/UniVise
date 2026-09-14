@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional, Any, Dict, List
-import json, re
 from app.utils.parse_llm import extract_json
 
 # Request and Response models
@@ -32,12 +31,6 @@ def table_for_mode(mode: str) -> str:
     if not tbl:
         raise HTTPException(status_code=404, detail="Invalid mode")
     return tbl
-
-def clean_openai_response(raw: str) -> str:
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE).strip()
-    return cleaned
 
 def parse_json_or_500(raw: str) -> Dict[str, Any]:
     try:

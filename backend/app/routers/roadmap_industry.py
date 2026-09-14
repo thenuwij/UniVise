@@ -5,16 +5,15 @@ import logging
 import re
 import asyncio
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 from datetime import datetime
 from urllib.parse import quote
 import httpx
 from app.utils.database import supabase
-from app.utils.claude_client import ask_claude, ask_claude_async
+from app.utils.claude_client import ask_claude_async
 from app.utils.openai_client import ask_gpt_async
-from app.utils.parse_llm import extract_json
 from .roadmap_unsw_helpers import fetch_user_specialisation_context
 
 
@@ -403,7 +402,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
         logger.debug(f"[TIMING] ai_generate_industry_experience: {time.time() - _start:.1f}s")
         return result
 
-    except Exception as e:
+    except Exception:
         return {
             "industry_experience": {
                 "mandatory_placements": {
