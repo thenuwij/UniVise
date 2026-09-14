@@ -5,12 +5,12 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import GraphControls from "./components/GraphControls";
-import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
-import useMindMeshData from "./hooks/useMindMeshData";
-import { colorFor } from "./utils/index";
-import MindMeshGraph from "./components/MindMeshGraph";
-import MindMeshInfoPanel from "./components/MindMeshInfoPanel";
+import GraphControls from "../components/GraphControls";
+import { nodeCanvasObject, nodePointerAreaPaint } from "../components/NodeRenderer";
+import useMindMeshData from "../hooks/useMindMeshData";
+import { colorFor } from "../utils/index";
+import MindMeshGraph from "../components/MindMeshGraph";
+import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
