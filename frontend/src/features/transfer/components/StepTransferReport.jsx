@@ -1,5 +1,5 @@
 import { HiX } from "react-icons/hi";
-import AdvisorReport from "../advisor/AdvisorReport";
+import AdvisorReport from "./AdvisorReport";
 
 // Step 4: loading, error and result states for the transfer recommendation.
 function StepTransferReport({

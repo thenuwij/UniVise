@@ -24,11 +24,11 @@ import {
   HiInformationCircle,
 } from "react-icons/hi";
 
-import ProgramSetupModal from "../components/progress/ProgramSetupModal";
-import StepCurrentProgram from "../components/progress/StepCurrentProgram";
-import StepCompletedCourses from "../components/progress/StepCompletedCourses";
-import StepTargetProgram from "../components/progress/StepTargetProgram";
-import StepTransferReport from "../components/progress/StepTransferReport";
+import ProgramSetupModal from "../components/ProgramSetupModal";
+import StepCurrentProgram from "../components/StepCurrentProgram";
+import StepCompletedCourses from "../components/StepCompletedCourses";
+import StepTargetProgram from "../components/StepTargetProgram";
+import StepTransferReport from "../components/StepTransferReport";
 import { apiJson } from "@/shared/lib/api";
 import { buildCourseStructure } from "../utils/courseStructure";
 
