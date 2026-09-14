@@ -1,7 +1,7 @@
 // src/components/CourseRow.jsx
 import { useState } from "react";
 import { HiCheckCircle } from "react-icons/hi";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 async function recalculateStats(userId) {
   const { data: courses } = await supabase

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Header } from '../components/Header';
+import { Header } from '@/shared/layout/Header';
 import SurveyForm from '../components/SurveyForm';
-import { UserAuth } from '../context/AuthContext';
-import { useSurvey } from '../context/useSurvey';
-import { supabase } from '../supabaseClient';
+import { UserAuth } from '@/app/AuthContext';
+import { useSurvey } from '@/app/useSurvey';
+import { supabase } from '@/shared/lib/supabase';
 
 function SurveyPage() {
   const { session } = UserAuth();

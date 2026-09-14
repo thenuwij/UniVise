@@ -17,12 +17,12 @@ import {
   HiSparkles,
 } from "react-icons/hi";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import SaveButton from "../components/SaveButton";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import { apiJson } from "../utils/api";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import SaveButton from "@/shared/ui/SaveButton";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { apiJson } from "@/shared/lib/api";
 
 function DegreeDetailPage() {
   const { session } = UserAuth();

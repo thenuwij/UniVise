@@ -1,10 +1,10 @@
 // src/pages/MindMeshGraphPage.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
+import { supabase } from "@/shared/lib/supabase";
+import { UserAuth } from "@/app/AuthContext";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
 import GraphControls from "./components/GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./components/NodeRenderer";
 import useMindMeshData from "./hooks/useMindMeshData";

@@ -2,7 +2,7 @@ import { Award, BookOpen, CheckCircle2, Star, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 
 export default function CapstoneHonours({ data }) {

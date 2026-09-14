@@ -1,9 +1,9 @@
 import { Button } from "flowbite-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../components/Header";
+import { Header } from "@/shared/layout/Header";
 import PersonalityQuizForm from "../components/PersonalityQuizForm";
-import { UserAuth } from "../context/AuthContext";
+import { UserAuth } from "@/app/AuthContext";
 
 const PersonalityQuizPage = () => {
   const { signOut } = UserAuth();

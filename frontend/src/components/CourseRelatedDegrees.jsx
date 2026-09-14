@@ -1,8 +1,8 @@
 // src/components/CourseRelatedDegrees.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
-import { apiJson } from "../utils/api";
+import { UserAuth } from "@/app/AuthContext";
+import { apiJson } from "@/shared/lib/api";
 
 export default function CourseRelatedDegrees({ courseId, courseCode }) {
   const { session } = UserAuth();

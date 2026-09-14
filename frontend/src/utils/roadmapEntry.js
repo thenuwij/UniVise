@@ -1,4 +1,4 @@
-import { apiFetch } from "./api";
+import { apiFetch } from "@/shared/lib/api";
 
 export async function handleRoadmapEntryGeneration({
   user,

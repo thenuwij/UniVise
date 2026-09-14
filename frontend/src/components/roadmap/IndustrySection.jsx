@@ -1,6 +1,6 @@
 // src/components/roadmap/IndustrySection.jsx
 import { useState } from "react";
-import SaveButton from "../SaveButton";
+import SaveButton from "@/shared/ui/SaveButton";
 
 import {
   AlertCircle,

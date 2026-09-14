@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Textarea, Button, Avatar } from "flowbite-react";
 import { IoSend } from "react-icons/io5";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 import { TbRobot } from "react-icons/tb";
-import { UserAuth } from "../context/AuthContext";
+import { UserAuth } from "@/app/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { apiFetch } from "../utils/api";
+import { apiFetch } from "@/shared/lib/api";
 
 export default function ChatWindow({ convId }) {
   const { session } = UserAuth();

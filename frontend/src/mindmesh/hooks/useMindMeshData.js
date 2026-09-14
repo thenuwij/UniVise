@@ -1,7 +1,7 @@
 import { Graph } from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 export default function useMindMeshData({ isProgramView, session, programCode }) {
   const [graph, setGraph] = useState({ nodes: [], links: [] });

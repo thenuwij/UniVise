@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HiSearch, HiX } from "react-icons/hi";
 import { Link, useSearchParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 function CourseSearch() {
   const [query, setQuery] = useState("");

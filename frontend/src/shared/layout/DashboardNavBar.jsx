@@ -11,9 +11,9 @@ import { useEffect, useState } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { LuMenu } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.svg";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import logo from "@/assets/logo.svg";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
 

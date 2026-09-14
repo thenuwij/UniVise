@@ -2,8 +2,8 @@
 import { ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "../../components/SaveButton";
-import { supabase } from "../../supabaseClient";
+import SaveButton from "@/shared/ui/SaveButton";
+import { supabase } from "@/shared/lib/supabase";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);

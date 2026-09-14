@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoadingPage from "../components/LoadingPage";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
 
 const getProgressMessage = (progress, isRegeneration, type) => {

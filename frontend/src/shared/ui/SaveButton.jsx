@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { HiBookmark, HiOutlineBookmark } from "react-icons/hi";
 import toast from "react-hot-toast";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 function SaveButton({ itemType, itemId, className = "", itemName = null, itemData = {} }) {
   const { session } = UserAuth();

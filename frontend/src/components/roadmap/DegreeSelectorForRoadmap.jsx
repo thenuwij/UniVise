@@ -1,7 +1,7 @@
 // src/components/roadmap/DegreeSelectorForRoadmap.jsx
 import { useEffect, useState } from "react";
 import { HiAcademicCap, HiFilter, HiSearch, HiX } from "react-icons/hi";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefined }) {
   const [query, setQuery] = useState(initialQuery ?? "");

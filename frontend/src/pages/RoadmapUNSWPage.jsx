@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import GradientCard from "../components/GradientCard";
 import { ArrowLeft } from "../components/icons/InlineIcons";
-import { MenuBar } from "../components/MenuBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
 import Pill from "../components/Pill";
 import CapstoneHonours from "../components/roadmap/CapstoneHonours";
 import CareerPathways from "../components/roadmap/CareerPathways";
@@ -16,7 +16,7 @@ import SkeletonCard from "../components/roadmap/SkeletonCard";
 import SocietiesCommunity from "../components/roadmap/SocietiesCommunity";
 import SpecialisationUNSW from "../components/roadmap/SpecialisationUNSW";
 import SectionTitle from "../components/SectionTitle";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";

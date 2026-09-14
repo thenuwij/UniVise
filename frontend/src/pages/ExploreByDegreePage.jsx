@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { HiAcademicCap, HiArrowLeft } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import DegreeSearchPlanner from "../components/DegreeSearchPlanner";
-import { MenuBar } from "../components/MenuBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
 
 
 function ExploreByDegreePage() {

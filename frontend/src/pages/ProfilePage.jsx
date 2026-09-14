@@ -13,9 +13,9 @@ import { FaRegEdit } from "react-icons/fa";
 import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
 import { HiOutlineIdentification } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import { supabase } from "../supabaseClient";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import { supabase } from "@/shared/lib/supabase";
 
 function Panel({ title, icon: Icon, children, hint }) {
   return (

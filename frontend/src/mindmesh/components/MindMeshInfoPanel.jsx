@@ -1,7 +1,7 @@
 // src/mindmesh/components/MindMeshInfoPanel.jsx
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 export default function MindMeshInfoPanel({ focusedNode, onDismiss }) {
   const navigate = useNavigate();

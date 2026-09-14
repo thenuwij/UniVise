@@ -2,8 +2,8 @@ import { Alert, Button, Checkbox, Label, Modal, ModalBody, ModalHeader, Select, 
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 import { TermsText } from "./TermsText";
 
 

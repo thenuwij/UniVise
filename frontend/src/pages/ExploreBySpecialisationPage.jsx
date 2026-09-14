@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { HiArrowLeft, HiSearch, HiX } from "react-icons/hi";
 import { Link, useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import { supabase } from "../supabaseClient";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import { supabase } from "@/shared/lib/supabase";
 
 const TYPES = ["All", "Major", "Minor", "Honours"];
 

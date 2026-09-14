@@ -10,7 +10,7 @@ import {
   Users
 } from "lucide-react";
 import { useState } from "react";
-import SaveButton from "../SaveButton";
+import SaveButton from "@/shared/ui/SaveButton";
 
 export default function SocietiesCommunity({ societies }) {
   const [showAll, setShowAll] = useState(false);
