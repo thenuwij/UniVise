@@ -24,13 +24,6 @@ export function colorFor(type) {
   }
 }
 
-export function levelStyle(lvl) {
-  return {
-    color: levelPalette[lvl] || "#B58CFA",  // fallback to purple
-    width: Math.max(1.2, 2.0 - (lvl - 1) * 0.1),
-  };
-}
-
 // Node colours
 export function getLevelColor(level) {
   const lvl = Number(level);
@@ -41,14 +34,4 @@ export function getLevelColor(level) {
   if (lvl >= 4) return "#8A4FF7";    
   return "#8E8E93";
 }
-
-// Edge colours 
-export const levelPalette = {
-  1: "#70BEE9", 
-  2: "#86A7F7",  
-  3: "#6DD8A4",  
-  4: "#B58CFA", 
-  6: "#F59E0B",  
-  9: "#EC4899",  
-};
 
