@@ -4,8 +4,8 @@ import json
 import time
 
 from app.llm.openai_client import ask_gpt_async
-from .roadmap_common import parse_json_or_500, assert_keys
-from .roadmap_unsw_helpers import (
+from app.services.roadmap.common import parse_json_or_500, assert_keys
+from app.services.roadmap.unsw_queries import (
     fetch_degree_by_identifier,
     fetch_program_core_courses,
     format_core_courses_for_prompt,

@@ -1,19 +1,12 @@
 import logging
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async
-from app.llm.json_parsing import extract_json
+from app.llm.json_parsing import extract_json, clean_openai_response
 import uuid
-import re
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-
-def clean_openai_response(raw):
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```json|^```|```$", "", cleaned, flags=re.MULTILINE).strip()
-    return cleaned
 
 async def get_career_recommendations(user_id: str):
     response = (

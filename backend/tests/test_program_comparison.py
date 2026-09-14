@@ -6,7 +6,7 @@ compare page.
 """
 import pytest
 
-from app.routers.compare_programs_helpers import (
+from app.services.program_comparison import (
     check_prerequisite_satisfied,
     extract_courses_from_sections,
     get_equivalent_codes,

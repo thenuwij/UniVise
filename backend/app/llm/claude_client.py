@@ -16,12 +16,12 @@ _MODEL = "claude-sonnet-4-6"
 _SYSTEM = "You are a helpful expert career advisor."
 
 
-async def ask_claude_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, model: str = _MODEL) -> str:
+async def ask_claude_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, model: str = _MODEL, system_prompt: str = _SYSTEM) -> str:
     """Non-blocking async Claude call — use inside async route handlers and background tasks."""
     try:
         response = await _async_client.messages.create(
             model=model,
-            system=_SYSTEM,
+            system=system_prompt,
             messages=[{"role": "user", "content": prompt}],
             temperature=temperature,
             max_tokens=max_tokens,

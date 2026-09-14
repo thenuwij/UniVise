@@ -13,7 +13,7 @@ import logging
 import asyncio
 
 from app.core.database import supabase
-from app.routers.compare_programs_helpers import (
+from app.services.program_comparison import (
     get_level_name,
     get_equivalent_codes,
     extract_courses_from_sections,
