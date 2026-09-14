@@ -89,6 +89,23 @@ The models reason over facts the backend has already computed, not over raw hand
 | CI/CD | GitHub Actions on push to `main`, authenticated by OIDC with no stored AWS keys |
 | Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, notified through SNS |
 
+### Repository Structure
+
+```
+frontend/src/
+  app/          auth and survey context, route guard
+  shared/       Supabase and API clients, layout, shared UI
+  features/     one folder per product area (roadmap, transfer, mindmesh, explore, ...),
+                each with its own pages/ and components/
+backend/app/
+  routers/      HTTP endpoints only
+  services/     business logic: roadmap generation, program comparison, advisors
+  llm/          OpenAI and Claude clients, parsing of model output
+  models/       Pydantic request and response schemas
+  core/         configuration, database client, JWT auth
+backend/tests/  API route contract and core logic tests
+```
+
 ---
 
 ## Using It
