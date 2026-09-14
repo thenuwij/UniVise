@@ -2,11 +2,11 @@ import logging
 from typing import Any, Dict
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async
-from .roadmap_common import (
+from app.services.roadmap.common import (
     _first_or_none, assert_keys
 )
 import json
-from .roadmap_industry import sanitize_and_parse_json
+from app.llm.json_parsing import sanitize_and_parse_json
 
 logger = logging.getLogger(__name__)
 

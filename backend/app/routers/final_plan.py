@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.auth import get_current_user
-from app.routers.final_plan_service import generate_final_plan
+from app.services.final_plan import generate_final_plan
 
 logger = logging.getLogger(__name__)
 

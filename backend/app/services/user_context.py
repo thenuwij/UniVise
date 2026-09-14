@@ -1,4 +1,4 @@
-# app/utils/user_context.py
+# app/services/user_context.py
 
 from app.core.database import supabase
 
