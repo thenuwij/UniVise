@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { HiCheckCircle, HiX } from "react-icons/hi";
 import toast from "react-hot-toast";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 export default function ProgramSetupModal({ onClose, userId, onComplete }) {
   const [selectedDegree, setSelectedDegree] = useState(null);

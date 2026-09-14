@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HiCheckCircle, HiChevronDown, HiChevronUp, HiInformationCircle, HiPencil } from "react-icons/hi";
 import toast from "react-hot-toast";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 export default function SpecialisationSelectionPanel({
   enrolledProgram,

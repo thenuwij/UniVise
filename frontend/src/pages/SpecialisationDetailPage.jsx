@@ -3,10 +3,10 @@
 // same unsw_specialisations row and differ only in labelling and accent colour.
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import SaveButton from "../components/SaveButton";
-import { supabase } from "../supabaseClient";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import SaveButton from "@/shared/ui/SaveButton";
+import { supabase } from "@/shared/lib/supabase";
 
 import {
   HiAcademicCap,

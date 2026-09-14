@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
+import { UserAuth } from "@/app/AuthContext";
 
 const LoadingPersonalityPage = () => {
   const navigate = useNavigate();

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { personalityQuestions } from "../data/PersonalityQuestions.js";
-import { supabase } from "../supabaseClient";
-import { UserAuth } from "../context/AuthContext";
+import { personalityQuestions } from "../data/personalityQuestions.js";
+import { supabase } from "@/shared/lib/supabase";
+import { UserAuth } from "@/app/AuthContext";
 
 const SCALE_LABELS = {
   1: "Strongly Disagree",

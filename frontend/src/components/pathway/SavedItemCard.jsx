@@ -11,7 +11,7 @@ import {
   HiX,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 import CareerPathCard from "./CareerPathCard";
 import CommunityCard from "./CommunityCard";
 import CourseCard from "./CourseCard";

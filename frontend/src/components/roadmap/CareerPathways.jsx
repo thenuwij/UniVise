@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SaveButton from "../SaveButton";
+import SaveButton from "@/shared/ui/SaveButton";
 import {
   TrendingUp,
   Award,

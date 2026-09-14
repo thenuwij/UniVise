@@ -10,7 +10,7 @@ import {
   Zap
 } from "lucide-react";
 import { useState } from "react";
-import SaveButton from "../SaveButton";
+import SaveButton from "@/shared/ui/SaveButton";
 
 export default function CareersSection({ careerPathways = {}, isLoading = false }) {
   const [activeTab, setActiveTab] = useState("entry");

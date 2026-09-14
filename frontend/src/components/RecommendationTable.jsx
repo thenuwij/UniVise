@@ -10,9 +10,9 @@ import {
 } from "react-icons/hi";
 import { TbRobot } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
-import { apiFetch } from "../utils/api";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { apiFetch } from "@/shared/lib/api";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 // Utils
 const toPercent = (v) => {

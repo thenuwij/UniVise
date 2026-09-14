@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.svg";
+import logo from "@/assets/logo.svg";
 
 export function Header() {
   const [isDark, setIsDark] = useState(

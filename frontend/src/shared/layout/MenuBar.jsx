@@ -14,8 +14,8 @@ import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
 import { TbMessageChatbotFilled } from "react-icons/tb";
 import { useLocation, useNavigate } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 export function MenuBar({ isOpen, handleClose }) {
   const [userType, setUserType] = useState(null);

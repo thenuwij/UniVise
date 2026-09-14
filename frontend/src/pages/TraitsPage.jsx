@@ -11,10 +11,10 @@ import { GrGroup } from "react-icons/gr";
 import { LuScanSearch } from "react-icons/lu";
 import { TbAugmentedReality, TbBriefcase, TbClipboardList, TbPalette } from "react-icons/tb";
 import { useNavigate } from 'react-router-dom';
-import { DashboardNavBar } from '../components/DashboardNavBar';
-import { MenuBar } from '../components/MenuBar';
-import { UserAuth } from '../context/AuthContext';
-import { supabase } from '../supabaseClient';
+import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
+import { MenuBar } from '@/shared/layout/MenuBar';
+import { UserAuth } from '@/app/AuthContext';
+import { supabase } from '@/shared/lib/supabase';
 
 
 

@@ -1,15 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import SurveyPage from "./pages/SurveyPage";
+import LoginPage from "./features/auth/pages/LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
+import SurveyPage from "./features/onboarding/pages/SurveyPage";
 import DashboardPage from "./pages/DashboardPage";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from "./app/PrivateRoute";
 import ChatbotPage from './pages/ChatbotPage';
 import ProfilePage from './pages/ProfilePage';
 import RecommendationPage from "./pages/RecommendationPage";
-import PersonalityQuizPage from "./pages/PersonalityQuizPage";
-import PersonalityResultPage from "./pages/PersonalityResultPage";
-import LoadingPersonalityPage from "./pages/LoadingPersonalityPage";
+import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
+import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
+import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
 import ExploreByDegreePage from "./pages/ExploreByDegreePage";
 import ExploreBySpecialisationPage from "./pages/ExploreBySpecialisationPage";
 import ExploreByCoursePage from "./pages/ExploreByCoursePage";
@@ -27,7 +27,7 @@ import SpecialisationDetailPage from "./pages/SpecialisationDetailPage";
 import SavedItemsPage from "./pages/SavedItemsPage";
 import ProgressPage from "./pages/ProgressPage";
 import MyPlannerSchoolPage from "./pages/MyPlannerSchoolPage";
-import AuthCallback from "./components/AuthCallBack";
+import AuthCallback from "./features/auth/pages/AuthCallback";
 
 
 

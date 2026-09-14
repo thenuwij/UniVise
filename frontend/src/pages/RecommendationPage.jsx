@@ -7,11 +7,11 @@ import {
 } from "react-icons/hi";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TbRobot } from "react-icons/tb";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import { apiFetch } from "../utils/api";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { apiFetch } from "@/shared/lib/api";
 
 // ── Loading skeleton ──────────────────────────────────────────────
 function Skeleton() {

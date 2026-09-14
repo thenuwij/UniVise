@@ -1,8 +1,8 @@
 import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "../../components/SaveButton";
-import { supabase } from "../../supabaseClient";
+import SaveButton from "@/shared/ui/SaveButton";
+import { supabase } from "@/shared/lib/supabase";
 import GeneratingMessage from "./GeneratingMessage";
 
 

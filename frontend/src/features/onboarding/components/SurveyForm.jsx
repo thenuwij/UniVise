@@ -3,10 +3,10 @@ import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
-import SurveyProgressBar from "../components/SurveyProgressBar";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import { apiFetch } from "../utils/api";
+import SurveyProgressBar from "./SurveyProgressBar";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { apiFetch } from "@/shared/lib/api";
 
 // ── Shared primitives ──────────────────────────────────────────────
 

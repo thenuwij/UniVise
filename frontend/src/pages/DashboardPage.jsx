@@ -1,11 +1,11 @@
 // src/pages/DashboardPage.jsx
 import { useState } from 'react';
-import { DashboardNavBar } from '../components/DashboardNavBar';
-import { MenuBar } from '../components/MenuBar';
+import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
+import { MenuBar } from '@/shared/layout/MenuBar';
 import RoadmapHeroCard from '../components/RoadmapHeroCard.jsx';
 import ProgramTransferCard from '../components/ProgramTransferCard.jsx';
 import { RecommendationTable } from '../components/RecommendationTable';
-import { UserAuth } from '../context/AuthContext';
+import { UserAuth } from '@/app/AuthContext';
 
 
 function DashboardPage() {

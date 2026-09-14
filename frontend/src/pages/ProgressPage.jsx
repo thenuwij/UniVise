@@ -3,10 +3,10 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 import {
   HiAcademicCap,
@@ -29,7 +29,7 @@ import StepCurrentProgram from "../components/progress/StepCurrentProgram";
 import StepCompletedCourses from "../components/progress/StepCompletedCourses";
 import StepTargetProgram from "../components/progress/StepTargetProgram";
 import StepTransferReport from "../components/progress/StepTransferReport";
-import { apiJson } from "../utils/api";
+import { apiJson } from "@/shared/lib/api";
 import { buildCourseStructure } from "../utils/courseStructure";
 
 // ─── Steps ──────────────────────────────────────────────────────

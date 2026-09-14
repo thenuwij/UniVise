@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { HiSearch, HiX } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 function DegreeSearchPlanner() {
   const [query, setQuery] = useState("");

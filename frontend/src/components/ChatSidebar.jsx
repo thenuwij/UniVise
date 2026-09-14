@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react';
 import { TbMessageChatbotFilled, TbTrash, TbChevronLeft} from 'react-icons/tb';
 import { Button, Modal } from 'flowbite-react';
-import { UserAuth } from '../context/AuthContext';
-import { supabase } from '../supabaseClient';
+import { UserAuth } from '@/app/AuthContext';
+import { supabase } from '@/shared/lib/supabase';
 import Conversation from './Conversation';
 import { FiSidebar } from "react-icons/fi";
 

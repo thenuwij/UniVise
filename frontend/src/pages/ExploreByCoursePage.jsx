@@ -2,8 +2,8 @@ import { useState } from "react";
 import { HiArrowLeft } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import CourseSearch from "../components/CourseSearch";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
 
 function ExploreByCoursePage() {
   const [isOpen, setIsOpen] = useState(false);

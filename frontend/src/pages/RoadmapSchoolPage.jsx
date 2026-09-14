@@ -1,9 +1,9 @@
 // RoadmapSchoolPage.jsx — Matches UNSW Roadmap Design (Quick Facts Removed)
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DashboardNavBar } from "../components/DashboardNavBar";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import GradientCard from "../components/GradientCard";
-import { MenuBar } from "../components/MenuBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
 import Pill from "../components/Pill";
 import SectionTitle from "../components/SectionTitle";
 import { ArrowLeft } from "../components/icons/InlineIcons";
@@ -13,7 +13,7 @@ import IndustrySection from "../components/roadmap/IndustrySection";
 import ProgramStructure from "../components/roadmap/ProgramStructure";
 import RoadmapFlow from "../components/roadmap/RoadmapFlow";
 import SkeletonCard from "../components/roadmap/SkeletonCard";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase";
 
 
 const SchoolIcon = (p) => (

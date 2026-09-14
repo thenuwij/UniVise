@@ -13,11 +13,11 @@ import {
 } from "react-icons/hi";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
-import { DashboardNavBar } from "../components/DashboardNavBar";
-import { MenuBar } from "../components/MenuBar";
-import SaveButton from "../components/SaveButton";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
+import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
+import { MenuBar } from "@/shared/layout/MenuBar";
+import SaveButton from "@/shared/ui/SaveButton";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 
 function CourseDetailPage() {
   const { courseId } = useParams();

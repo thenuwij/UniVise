@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { Pie } from "react-chartjs-2";
 import { HiArrowRight } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../components/Header";
-import { UserAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import { apiFetch } from "../utils/api";
+import { Header } from "@/shared/layout/Header";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { apiFetch } from "@/shared/lib/api";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
