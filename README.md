@@ -119,4 +119,4 @@ backend/tests/  API route contract and core logic tests
 
 ## Licence
 
-This project was developed as Honours research at UNSW Sydney. It is not licensed for reuse or redistribution.
+This project was developed as Honours research at UNSW Sydney and is currently in production under research. It is not licensed for reuse or redistribution.
