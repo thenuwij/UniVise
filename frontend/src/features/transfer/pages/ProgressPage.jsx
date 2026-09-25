@@ -366,6 +366,7 @@ function ProgressPage() {
 
     try {
       const comparisonRequest = {
+        user_id: session.user.id,
         base_program_code: enrolledProgram.degree_code,
         base_specialisation_codes: baseSelectedSpecs,
         target_program_code: targetProgram.code,
