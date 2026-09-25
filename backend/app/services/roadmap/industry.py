@@ -193,7 +193,8 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
                     "how_to_find": "Visit arc.unsw.edu.au or attend O-Week stalls",
                     "cost_range": "$5-15 per year typically"
                 }
-            }
+            },
+            "failed": True,
         }
 
 # Generate industry experience section in parallel
@@ -315,7 +316,8 @@ You are a UNSW career advisor. Provide industry experience information for {prog
                 "top_recruiting_companies": [],
                 "career_fairs": "Information temporarily unavailable",
                 "wil_opportunities": "Information temporarily unavailable"
-            }
+            },
+            "failed": True,
         }
 
 
@@ -502,7 +504,8 @@ You are a UNSW career advisor with access to current job market data. Provide ca
                     "median_starting_salary": "Data not available",
                     "source": "Information temporarily unavailable"
                 }
-            }
+            },
+            "failed": True,
         }
 
 
@@ -553,26 +556,20 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     # Run all three AI generations in parallel. asyncio.gather with
     # return_exceptions=True ensures a single failure doesn't poison the
     # others — each result is checked individually below.
+    generators = {
+        "industry_societies": (ai_generate_societies, "societies"),
+        "industry_experience": (ai_generate_industry_experience, "industry_experience"),
+        "career_pathways": (ai_generate_career_pathways, "career_pathways"),
+    }
+    existing = roadmap_data.get("payload") or {}
+    previously_failed = set(existing.get("industry_failed") or [])
+    todo = [k for k in generators if not existing.get(k) or k in previously_failed]
+
     ai_start = time.time()
     results = await asyncio.gather(
-        ai_generate_societies(base_context),
-        ai_generate_industry_experience(base_context),
-        ai_generate_career_pathways(base_context),
+        *[generators[k][0](base_context) for k in todo],
         return_exceptions=True,
     )
-    societies_result, industry_result, careers_result = results
-
-    if isinstance(societies_result, Exception):
-        logger.error(f"Societies generation failed: {societies_result}")
-        societies_result = {"societies": {}}
-
-    if isinstance(industry_result, Exception):
-        logger.error(f"Industry experience generation failed: {industry_result}")
-        industry_result = {"industry_experience": {}}
-
-    if isinstance(careers_result, Exception):
-        logger.error(f"Career pathways generation failed: {careers_result}")
-        careers_result = {"career_pathways": {}}
 
     logger.debug(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
 
@@ -587,9 +584,15 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     # Merge (not replace) — any existing keys in payload (e.g. mandatory
     # placements, structure, etc.) are preserved. Only the three industry
     # sections are set/overwritten.
-    payload["industry_societies"] = societies_result.get("societies", {})
-    payload["industry_experience"] = industry_result.get("industry_experience", {})
-    payload["career_pathways"] = careers_result.get("career_pathways", {})
+    failed = []
+    for key, result in zip(todo, results):
+        if isinstance(result, Exception):
+            logger.error(f"{key} generation failed: {result}")
+            result = {}
+        if not result or result.get("failed"):
+            failed.append(key)
+        payload[key] = result.get(generators[key][1], {})
+    payload["industry_failed"] = failed
 
     supabase.from_("unsw_roadmap").update({
         "payload": payload,

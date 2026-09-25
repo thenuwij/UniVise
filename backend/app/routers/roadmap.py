@@ -120,7 +120,8 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
     # Already generated (e.g. the frontend retried, or the user reloaded) —
     # don't spend another round of AI calls.
     payload = rec.get("payload") or {}
-    if all(payload.get(k) for k in ("industry_societies", "industry_experience", "career_pathways")):
+    sections = ("industry_societies", "industry_experience", "career_pathways")
+    if all(payload.get(k) for k in sections) and not payload.get("industry_failed"):
         return {"status": "already_generated"}
 
     try:
