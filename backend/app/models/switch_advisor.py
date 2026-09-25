@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 
 class SwitchAdvisorRequest(BaseModel):
-    user_id: str
     base_program_code: str
     base_specialisation_codes: list[str] = []
     target_program_code: str

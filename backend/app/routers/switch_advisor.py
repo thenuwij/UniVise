@@ -39,24 +39,24 @@ async def get_switch_advice(
             try:
                 res = supabase.table("personality_results") \
                     .select("top_types, result_summary, trait_scores") \
-                    .eq("user_id", str(request.user_id)) \
+                    .eq("user_id", str(user.id)) \
                     .maybe_single() \
                     .execute()
                 return res.data or {}
             except Exception as e:
-                logger.warning(f"[switch_advisor] fetch_personality failed for user {request.user_id}: {e}")
+                logger.warning(f"[switch_advisor] fetch_personality failed for user {user.id}: {e}")
                 return {}
 
         def fetch_survey():
             try:
                 res = supabase.table("student_uni_data") \
                     .select("academic_year, study_feelings, interest_areas, switching_pathway, confidence") \
-                    .eq("user_id", str(request.user_id)) \
+                    .eq("user_id", str(user.id)) \
                     .maybe_single() \
                     .execute()
                 return res.data or {}
             except Exception as e:
-                logger.warning(f"[switch_advisor] fetch_survey failed for user {request.user_id}: {e}")
+                logger.warning(f"[switch_advisor] fetch_survey failed for user {user.id}: {e}")
                 return {}
 
         personality_data, survey_data = await asyncio.gather(
@@ -76,7 +76,7 @@ async def get_switch_advice(
             or _transfer_in.get("completed_uoc")
             or 0
         )
-        logger.info(f"[Transfer Debug] RAW INPUTS — user={request.user_id}")
+        logger.info(f"[Transfer Debug] RAW INPUTS — user={user.id}")
         logger.info(
             f"[Transfer Debug] current: name='{_base_in.get('name','')}' "
             f"code={request.base_program_code} total_uoc={_base_in.get('total_uoc','')}"
@@ -152,7 +152,7 @@ async def get_switch_advice(
             f"user_prompt_chars={len(user_prompt)}"
         )
         logger.info(
-            f"[Eunice] user={request.user_id} "
+            f"[Eunice] user={user.id} "
             f"current='{context.get('base_program','')}' "
             f"target='{context.get('target_program','')}' "
             f"completed={context.get('total_completed_uoc', 0)}uoc "

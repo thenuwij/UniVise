@@ -36,14 +36,14 @@ async def compare_programs(
 ):
     """Clear, actionable program comparison"""
     logger.info("=" * 80)
-    logger.info(f"Starting program comparison for user: {request.user_id}")
+    logger.info(f"Starting program comparison for user: {user.id}")
     logger.info(f"Base program: {request.base_program_code}, Target: {request.target_program_code}")
     logger.info("=" * 80)
 
     try:
         # Define DB fetch functions
         def fetch_completed():
-            return supabase.table("user_completed_courses").select("*").eq("user_id", request.user_id).eq("is_completed", True).execute()
+            return supabase.table("user_completed_courses").select("*").eq("user_id", user.id).eq("is_completed", True).execute()
 
         def fetch_base():
             return supabase.table("unsw_degrees_final").select("*").eq("degree_code", request.base_program_code).single().execute()
