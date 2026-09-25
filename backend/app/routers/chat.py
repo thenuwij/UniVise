@@ -37,7 +37,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
         user_info = await get_user_info(user, student_type)
         recommendations = await get_user_recommendations(user, student_type)
 
-        if not student_type or not user_info or not recommendations:
+        if not student_type or not user_info:
             raise HTTPException(status_code=401, detail="Invalid User")
 
         user_messages = (
