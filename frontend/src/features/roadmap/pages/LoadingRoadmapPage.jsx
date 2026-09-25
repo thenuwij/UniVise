@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LoadingPage from "../components/LoadingPage";
+import GenerationError from "../components/GenerationError";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
@@ -31,6 +32,8 @@ function LoadingRoadmapPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
+  const [attempt, setAttempt] = useState(0);
   const ranRef = useRef(false);
 
   const isRegeneration = state?.isRegeneration || false;
@@ -58,6 +61,7 @@ function LoadingRoadmapPage() {
       supabase,
       setProgress,
       returnToStep,
+      onError: type === "unsw" ? setError : undefined,
     });
   }, [
     session?.user?.id,
@@ -66,7 +70,26 @@ function LoadingRoadmapPage() {
     state?.degree,
     navigate,
     supabase,
+    attempt,
   ]);
+
+  const retry = () => {
+    ranRef.current = false;
+    setError(null);
+    setProgress(0);
+    setAttempt((a) => a + 1);
+  };
+
+  if (error) {
+    return (
+      <GenerationError
+        title="We couldn't generate your roadmap"
+        message="The AI service may be busy right now. Please try again in a moment."
+        onRetry={retry}
+        onBack={() => navigate("/roadmap", { replace: true })}
+      />
+    );
+  }
 
   const message = getProgressMessage(progress, isRegeneration, state?.type);
 

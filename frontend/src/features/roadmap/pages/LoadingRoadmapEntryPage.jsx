@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingPage from "../components/LoadingPage";
+import GenerationError from "../components/GenerationError";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { handleRoadmapEntryGeneration } from "../utils/roadmapEntry";
@@ -14,6 +15,8 @@ function LoadingRoadmapEntryPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
+  const [attempt, setAttempt] = useState(0);
 
   // Animate the bar until finished 
   useEffect(() => {
@@ -37,9 +40,25 @@ function LoadingRoadmapEntryPage() {
       navigate,
       supabase,
       setProgress,
+      onError: setError,
     });
     
-  }, [session?.user, session?.access_token, navigate]);
+  }, [session?.user, session?.access_token, navigate, attempt]);
+
+  if (error) {
+    return (
+      <GenerationError
+        title="We couldn't build your degree recommendations"
+        message="The AI service may be busy right now. Please try again in a moment."
+        onRetry={() => {
+          setError(null);
+          setProgress(0);
+          setAttempt((a) => a + 1);
+        }}
+        onBack={() => navigate("/roadmap", { replace: true })}
+      />
+    );
+  }
 
   return (
     <LoadingPage

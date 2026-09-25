@@ -34,6 +34,7 @@ function DegreeDetailPage() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
+  const [summaryErr, setSummaryErr] = useState(false);
   const [courseIdByCode, setCourseIdByCode] = useState({});
 
   const advisorRef = useRef(null);
@@ -41,7 +42,7 @@ function DegreeDetailPage() {
   const fetchSmartAdvisor = async () => {
     setLoadingSummary(true);
     setAdvisorSummary(null);
-    setLoadErr(null);
+    setSummaryErr(false);
     try {
       const data = await apiJson("/smart-summary/degree", {
         method: "POST",
@@ -50,8 +51,8 @@ function DegreeDetailPage() {
       });
       setAdvisorSummary(data.summary);
       advisorRef.current?.scrollIntoView({ behavior: "smooth" });
-    } catch (err) {
-      setLoadErr(err.message);
+    } catch {
+      setSummaryErr(true);
     } finally {
       setLoadingSummary(false);
     }
@@ -259,7 +260,9 @@ function DegreeDetailPage() {
                       <h3 className="text-base font-semibold text-emerald-900 dark:text-emerald-100">Need Personalised Guidance?</h3>
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                      Get an AI-powered summary of how this degree aligns with your goals and interests.
+                      {summaryErr
+                        ? "We couldn't generate your summary. The AI service may be busy, please try again in a moment."
+                        : "Get an AI-powered summary of how this degree aligns with your goals and interests."}
                     </p>
                   </div>
                   <button
@@ -267,7 +270,7 @@ function DegreeDetailPage() {
                     className="flex-shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow hover:shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all flex items-center gap-2"
                   >
                     <HiSparkles className="w-4 h-4" />
-                    Generate Summary
+                    {summaryErr ? "Try again" : "Generate Summary"}
                   </button>
                 </div>
               )}

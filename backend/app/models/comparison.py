@@ -3,7 +3,6 @@ from typing import List, Optional, Dict, Any
 
 
 class ProgramComparisonRequest(BaseModel):
-    user_id: str
     base_program_code: str
     base_specialisation_codes: List[str] = []
     target_program_code: str

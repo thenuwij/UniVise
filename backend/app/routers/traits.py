@@ -51,7 +51,13 @@ def result_description(user=Depends(get_current_user)):
     Consider studying subjects like fine arts, computer science, psychology, or engineering to further develop your skills and interests.
     """
 
-    resp_text = ask_gpt(prompt)
+    try:
+        resp_text = ask_gpt(prompt)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="AI service unavailable, please try again.",
+        )
 
     # 3) Update description for this row
     try:

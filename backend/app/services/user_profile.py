@@ -50,7 +50,4 @@ async def get_user_recommendations(user, student_type):
         logger.error(f"[user_recommendations] DB query failed for user {user.id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch recommendations")
 
-    if not resp.data:
-        raise HTTPException(status_code=401, detail="Recommendations Info not Found")
-
-    return resp.data
+    return resp.data or []

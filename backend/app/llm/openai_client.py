@@ -32,7 +32,7 @@ def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTE
         return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"OpenAI API error (ask_gpt): {e}")
-        return "Sorry, I couldn't process your request."
+        raise
 
 
 async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, system_prompt: str = _GPT_SYSTEM, model: str = _GPT_MODEL, reasoning_effort: str = None) -> str:
@@ -53,7 +53,7 @@ async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float 
         return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"OpenAI API error (ask_gpt_async): {e}")
-        return "Sorry, I couldn't process your request."
+        raise
 
 
 async def ask_gpt_stream(

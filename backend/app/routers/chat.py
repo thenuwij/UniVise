@@ -22,11 +22,22 @@ MAX_HISTORY_MESSAGES = 20  # keep last 20 turns to avoid token bloat
 @router.post("/conversations/{conv_id}/reply/stream")
 async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_user)):
     try:
+        conversation = (
+            supabase.table("conversations")
+            .select("id")
+            .eq("id", conv_id)
+            .eq("user_id", user.id)
+            .limit(1)
+            .execute()
+        )
+        if not conversation.data:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+
         student_type = await get_student_type(user)
         user_info = await get_user_info(user, student_type)
         recommendations = await get_user_recommendations(user, student_type)
 
-        if not student_type or not user_info or not recommendations:
+        if not student_type or not user_info:
             raise HTTPException(status_code=401, detail="Invalid User")
 
         user_messages = (
