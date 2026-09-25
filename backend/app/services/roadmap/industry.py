@@ -519,15 +519,30 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
 
     total_start = time.time()
 
+    degree_code = roadmap_data.get("degree_code")
+    faculty = None
+    if degree_code:
+        try:
+            degree_resp = (
+                supabase.from_("unsw_degrees_final")
+                .select("faculty")
+                .eq("degree_code", degree_code)
+                .limit(1)
+                .execute()
+            )
+            if degree_resp.data:
+                faculty = degree_resp.data[0].get("faculty")
+        except Exception as e:
+            logger.error(f"Failed to load faculty for {degree_code}: {e}")
+
     base_context = {
         "program_name": roadmap_data.get("program_name"),
-        "faculty": roadmap_data.get("payload", {}).get("faculty"),
+        "faculty": faculty or "Not specified",
     }
 
     # Fetch user specialisations ONCE — both society and career generations
     # read the same context, so there's no need to hit the DB twice.
     user_id = roadmap_data.get("user_id")
-    degree_code = roadmap_data.get("degree_code")
     if user_id and degree_code:
         try:
             spec = fetch_user_specialisation_context(user_id, degree_code)
