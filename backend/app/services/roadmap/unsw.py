@@ -183,7 +183,7 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 - ATAR_provided: {json.dumps(lowest_atar)}
 - SelectionRank_provided: {json.dumps(lowest_sel_rank)}
 - AssumedKnowledge_provided: {json.dumps(assumed_knowledge)}
-- Faculty: {context.get("faculty", "Not specified")}
+- Faculty: {context.get("faculty") or "Not specified"}
 - Core courses provided: {core_courses_count}
 {"- Selected Honours: " + selected_honours + " (" + str(len(selected_honours_courses)) + " core courses)" if selected_honours else ""}
 {"- Selected Major: " + selected_major_name + " (" + str(len(selected_major_courses)) + " core courses)" if selected_major_name else ""}
@@ -259,7 +259,7 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
 # Stage 2: Return hardcoded honours information based on faculty.
 async def ai_generate_honours_info(context: Dict[str, Any]) -> Dict[str, Any]:
 
-    faculty = context.get("faculty", "").lower()
+    faculty = (context.get("faculty") or "").lower()
     
     logger.info(f"Stage 2: Fetching hardcoded honours for faculty: {faculty}")
     
