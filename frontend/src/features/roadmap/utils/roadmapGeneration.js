@@ -9,6 +9,7 @@ export async function handleRoadmapGeneration({
   supabase,
   setProgress,
   returnToStep,
+  onError,
 }) {
   try {
     if (type === "school") {
@@ -77,18 +78,21 @@ export async function handleRoadmapGeneration({
       }, 100); // Update every 100ms
 
       // This blocks while backend AI generates (~10-15 seconds)
-      const res = await apiFetch("/roadmap/unsw", {
-        method: "POST",
-        token: accessToken,
-        credentials: "include",
-        body,
-      });
+      let res;
+      try {
+        res = await apiFetch("/roadmap/unsw", {
+          method: "POST",
+          token: accessToken,
+          credentials: "include",
+          body,
+        });
+      } finally {
+        // Stop animation once backend responds
+        clearInterval(progressInterval);
+      }
 
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
-
-      // Stop animation once backend responds
-      clearInterval(progressInterval);
 
       const roadmapId = json?.id || json?.roadmap_id;
       let finalPayload = json?.payload || {};
@@ -157,6 +161,10 @@ export async function handleRoadmapGeneration({
     }
   } catch (e) {
     console.error("handleRoadmapGeneration error:", e);
+    if (onError) {
+      onError(e);
+      return;
+    }
     navigate("/roadmap", { replace: true });
   }
 }

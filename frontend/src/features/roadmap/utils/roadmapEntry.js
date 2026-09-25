@@ -6,6 +6,7 @@ export async function handleRoadmapEntryGeneration({
   navigate,
   supabase,
   setProgress,
+  onError,
 }) {
   try {
     const userType = user.user_metadata?.student_type || "university";
@@ -66,6 +67,10 @@ export async function handleRoadmapEntryGeneration({
     navigate("/roadmap", { replace: true });
   } catch (e) {
     console.error("handleRoadmapEntryGeneration error:", e);
+    if (onError) {
+      onError(e);
+      return;
+    }
     navigate("/roadmap", { replace: true });
   } finally {
     setProgress(100);

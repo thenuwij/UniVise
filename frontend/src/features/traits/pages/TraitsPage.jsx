@@ -15,6 +15,7 @@ import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
 import { UserAuth } from '@/app/AuthContext';
 import { supabase } from '@/shared/lib/supabase';
+import { apiJson } from '@/shared/lib/api';
 
 
 
@@ -96,6 +97,21 @@ function TraitsPage() {
   const [loading, setLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
   const { session } = UserAuth();
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
+
+  const retryDescription = async () => {
+    setDescriptionLoading(true);
+    setDescriptionError(false);
+    try {
+      const data = await apiJson("/traits/results", { token: session?.access_token });
+      setResult((prev) => ({ ...prev, description: data.description }));
+    } catch {
+      setDescriptionError(true);
+    } finally {
+      setDescriptionLoading(false);
+    }
+  };
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -219,9 +235,25 @@ function TraitsPage() {
                 <p className="text-xl font-semibold text-slate-800 dark:text-white">
                   What this means for you
                 </p>
-                <p className="mt-3">
-                  {result?.description || "No further details available."}
-                </p>
+                {result?.description && !result.description.startsWith("Sorry, I couldn't process") ? (
+                  <p className="mt-3">{result.description}</p>
+                ) : (
+                  <div className="mt-3">
+                    <p className="text-slate-600 dark:text-slate-400">
+                      {descriptionError
+                        ? "We still couldn't generate your description. The AI service may be busy, please try again in a moment."
+                        : "Your personalised description hasn't been generated yet."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={retryDescription}
+                      disabled={descriptionLoading}
+                      className="button-primary inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-lg text-sm font-semibold"
+                    >
+                      {descriptionLoading ? "Generating..." : descriptionError ? "Try again" : "Generate description"}
+                    </button>
+                  </div>
+                )}
 
                 <hr className="my-5 border-slate-200 dark:border-slate-700" />
 
