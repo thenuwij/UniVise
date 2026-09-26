@@ -104,6 +104,7 @@ backend/app/
   models/       Pydantic request and response schemas
   core/         configuration, database client, JWT auth
 backend/tests/  API route contract and core logic tests
+supabase/migrations/  database schema and row level security policies as SQL migrations
 ```
 
 ---
