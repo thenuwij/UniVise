@@ -46,6 +46,7 @@ function DegreeDetailPage() {
     try {
       const data = await apiJson("/smart-summary/degree", {
         method: "POST",
+        retry: true,
         token: session?.access_token,
         body: { degree_id: degreeId },
       });

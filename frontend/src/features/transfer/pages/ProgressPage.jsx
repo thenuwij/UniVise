@@ -374,6 +374,7 @@ function ProgressPage() {
 
       const compareData = await apiJson("/compare", {
         method: "POST",
+        retry: true,
         token: session.access_token,
         body: comparisonRequest,
       });
@@ -381,6 +382,7 @@ function ProgressPage() {
 
       const aiData = await apiJson("/switch-advisor", {
         method: "POST",
+        retry: true,
         token: session.access_token,
         body: { ...comparisonRequest, comparison_data: compareData },
       });

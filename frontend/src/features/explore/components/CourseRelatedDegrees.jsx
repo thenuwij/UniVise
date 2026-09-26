@@ -19,6 +19,7 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
       try {
         const data = await apiJson("/smart-related/degrees-for-course", {
           method: "POST",
+          retry: true,
           token: session.access_token,
           body: {
             course_id: courseId ?? null,
