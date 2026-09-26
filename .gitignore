@@ -31,3 +31,6 @@ infra/
 
 # Pytest
 .pytest_cache/
+
+# Supabase CLI
+supabase/.temp/
