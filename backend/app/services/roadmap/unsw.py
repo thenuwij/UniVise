@@ -1,6 +1,5 @@
 import logging
 from typing import Any, Dict
-import json
 import time
 
 from app.llm.openai_client import ask_gpt_async
@@ -71,11 +70,8 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "program_name": degree.get("program_name") or req.program_name,
         "uac_code": degree.get("uac_code"),
         "faculty": faculty,
-        "lowest_selection_rank": degree.get("lowest_selection_rank"),
-        "lowest_atar": degree.get("lowest_atar"),
         "description": degree.get("overview_description"),
         "career_outcomes": degree.get("career_outcomes"),
-        "assumed_knowledge": degree.get("assumed_knowledge"),
         "handbook_url": degree.get("source_url"),
         "core_courses": core_courses,
         "core_courses_formatted": core_courses_formatted,
@@ -94,9 +90,6 @@ async def ai_generate_general_info(context: Dict[str, Any]) -> Dict[str, Any]:
     # Extract context values
     program_name = context.get("program_name")
     uac_code = context.get("uac_code")
-    lowest_sel_rank = context.get("lowest_selection_rank")
-    lowest_atar = context.get("lowest_atar")
-    assumed_knowledge = context.get("assumed_knowledge")
     core_courses_text = context.get("core_courses_formatted", "")
     core_courses_count = len(context.get("core_courses", []))
     selected_honours = context.get("selected_honours_name")
@@ -151,14 +144,7 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
 {specialisation_courses_text}
 
 === INSTRUCTIONS ===
-1. For entry_requirements:
-   - Use ATAR_provided and SelectionRank_provided exactly when they are numbers. If null, output a realistic UNSW cutoff.
-   - For the subjects list:
-     * If AssumedKnowledge_provided is non-null, parse the official UNSW assumed knowledge text and output ONLY the subjects it names. Do not add subjects that are not in it. Do not remove subjects that are in it. Do not substitute one subject for another.
-     * If AssumedKnowledge_provided is null, infer 2-3 subjects from the VALID NSW HSC SUBJECTS list below that are the most relevant prerequisites for {program_name}. Never invent, guess, or use a subject that is not on the list.
-   - NEVER output subjects that have been phased out of the NSW HSC. Specifically: "Software Design and Development" is discontinued, use "Software Engineering" instead. "Information Processes and Technology" is discontinued, use "Enterprise Computing" instead. Output only the current official subject names.
-
-2. For capstone (PROGRAM HIGHLIGHTS):
+1. For capstone (PROGRAM HIGHLIGHTS):
    - In "courses": List 2-3 SIGNATURE courses that best represent this program
    - Choose from BOTH the core courses list AND specialisation courses (if provided above)
    - Prioritize: final-year capstone projects, industry partnership courses, thesis/research units, or advanced technical courses
@@ -175,44 +161,24 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
      DO write specific, concrete statements tied to this exact program — name actual skills, tools, roles, or opportunities.
      MINIMUM 4 sentences. MAXIMUM 5 sentences. Each sentence must add new information — no padding or repetition.
 
-4. Return ONLY valid JSON with NO trailing commas.
+2. Return ONLY valid JSON with NO trailing commas.
 
 === CONTEXT DATA ===
 - Program: {program_name}
 - UAC Code: {uac_code}
-- ATAR_provided: {json.dumps(lowest_atar)}
-- SelectionRank_provided: {json.dumps(lowest_sel_rank)}
-- AssumedKnowledge_provided: {json.dumps(assumed_knowledge)}
 - Faculty: {context.get("faculty") or "Not specified"}
 - Core courses provided: {core_courses_count}
 {"- Selected Honours: " + selected_honours + " (" + str(len(selected_honours_courses)) + " core courses)" if selected_honours else ""}
 {"- Selected Major: " + selected_major_name + " (" + str(len(selected_major_courses)) + " core courses)" if selected_major_name else ""}
 {"- Selected Minor: " + selected_minor_name + " (" + str(len(selected_minor_courses)) + " core courses)" if selected_minor_name else ""}
 
-=== VALID NSW HSC SUBJECTS (use these exact names, nothing else) ===
-Mathematics: Mathematics Standard 2, Mathematics Advanced, Mathematics Extension 1, Mathematics Extension 2
-English: English Standard, English Advanced, English Extension 1, English Extension 2, English EAL/D
-Sciences: Biology, Chemistry, Physics, Earth and Environmental Science, Investigating Science, Science Extension
-HSIE: Ancient History, Modern History, History Extension, Geography, Economics, Business Studies, Legal Studies, Society and Culture, Studies of Religion I, Studies of Religion II
-Technology and Applied Studies: Agriculture, Design and Technology, Engineering Studies, Food Technology, Industrial Technology, Textiles and Design, Software Engineering, Enterprise Computing
-Creative Arts: Visual Arts, Music 1, Music 2, Music Extension, Drama, Dance
-Languages: any NSW HSC language course in the form "[Language] Beginners", "[Language] Continuers", or "[Language] Extension"
-
 === REQUIRED JSON OUTPUT ===
 {{
   "summary": "Write 2-3 engaging sentences describing what this program offers, key focus areas, and career preparation",
-  "entry_requirements": {{
-    "atar": "Output ONLY a number (no words). If ATAR_provided is a number, use it exactly. If it is null, output a realistic UNSW ATAR cutoff as a pure integer or float.",
-    "selectionRank": "Output ONLY a number (no words). If SelectionRank_provided is a number, use it exactly. If it is null, output a realistic UNSW selection rank cutoff as a pure integer or float.",
-    "subjects": ["Official NSW HSC subject names only, 2 or 3 items maximum. Every item MUST appear verbatim in the VALID NSW HSC SUBJECTS list above. If AssumedKnowledge_provided is non-null, output exactly the subjects it names and nothing else. No qualifiers, no brackets, no notes, no 'recommended' labels, no phased-out subject names. Correct examples: 'Mathematics Advanced', 'Chemistry', 'Physics', 'Software Engineering', 'Economics'. Never add anything after the subject name."],
-    "notes": "Mention adjustment factors or pathways"
-  }},
-
   "capstone": {{
     "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
     "highlights": "Write 4-5 specific sentences covering: unique skills developed, hands-on learning opportunities, career/postgrad pathways, competitive advantages (accreditations, research, industry links), and one standout feature of this program. No generic statements. Each sentence must be concrete and specific to this degree."
-  }},
-  "source": "Provide the official UNSW Handbook URL for this program"
+  }}
 }}
 
 CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify actual capstone/thesis courses from this program. Only list courses that appear in the core courses section above.
@@ -225,7 +191,7 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
     # Validate structure
     assert_keys(
         draft,
-        ["summary", "entry_requirements", "capstone", "source"],
+        ["summary", "capstone"],
         "unsw_general",
     )
 
@@ -393,7 +359,6 @@ async def ai_generate_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     # Combine both stages into ONE payload
     payload = {
         "summary": general_info.get("summary"),
-        "entry_requirements": general_info.get("entry_requirements"),
         "capstone": general_info.get("capstone"),
         "honours": honours_info.get("honours"),
         "program_name": context.get("program_name"),

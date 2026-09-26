@@ -306,9 +306,13 @@ export function RecommendationTable() {
     setRegenerating(true);
     setStuck(false);
     try {
-      const res = await apiFetch("/recommendation/prompt", { token: session.access_token });
+      const res = await apiFetch("/recommendation/prompt", {
+        method: "POST",
+        token: session.access_token,
+        retry: true,
+      });
       if (!res.ok) throw new Error(`Recommendation generation failed (HTTP ${res.status})`);
-      // Backend wiped old data and queued new explain tasks — start polling
+      // Backend wiped old data — start polling
       startPolling();
     } catch (e) {
       console.error("Regenerate failed:", e);

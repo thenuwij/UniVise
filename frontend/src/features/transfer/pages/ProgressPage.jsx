@@ -30,6 +30,7 @@ import StepCompletedCourses from "../components/StepCompletedCourses";
 import StepTargetProgram from "../components/StepTargetProgram";
 import StepTransferReport from "../components/StepTransferReport";
 import { apiJson } from "@/shared/lib/api";
+import { toSearchTerm } from "@/shared/lib/search";
 import { buildCourseStructure } from "../utils/courseStructure";
 
 // ─── Steps ──────────────────────────────────────────────────────
@@ -206,12 +207,13 @@ function ProgressPage() {
 
   const searchCourses = async (q) => {
     setCourseQuery(q);
-    if (q.length < 2) { setCourseResults([]); return; }
+    const term = toSearchTerm(q);
+    if (term.length < 2) { setCourseResults([]); return; }
     setCourseSearchLoading(true);
     const { data } = await supabase
       .from("unsw_courses")
       .select("id, code, title, uoc")
-      .or(`code.ilike.%${q}%,title.ilike.%${q}%`)
+      .or(`code.ilike.%${term}%,title.ilike.%${term}%`)
       .limit(6);
     setCourseResults(data || []);
     setCourseSearchLoading(false);
@@ -374,6 +376,7 @@ function ProgressPage() {
 
       const compareData = await apiJson("/compare", {
         method: "POST",
+        retry: true,
         token: session.access_token,
         body: comparisonRequest,
       });
@@ -381,6 +384,7 @@ function ProgressPage() {
 
       const aiData = await apiJson("/switch-advisor", {
         method: "POST",
+        retry: true,
         token: session.access_token,
         body: { ...comparisonRequest, comparison_data: compareData },
       });

@@ -175,7 +175,11 @@ function SurveyForm() {
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
   const generateRecommendations = async () => {
-    await apiFetch("/recommendation/prompt", { token: session?.access_token });
+    await apiFetch("/recommendation/prompt", {
+      method: "POST",
+      token: session?.access_token,
+      retry: true,
+    });
   };
 
   const handleSubmit = async () => {

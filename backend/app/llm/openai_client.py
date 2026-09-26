@@ -11,8 +11,15 @@ load_dotenv()
 if not os.getenv("OPENAI_API_KEY"):
     raise RuntimeError("OPENAI_API_KEY environment variable is not set")
 
-_openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-_openai_async_client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+_TIMEOUT_SECONDS = 60
+_MAX_RETRIES = 2
+
+_openai_client = openai.OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"), timeout=_TIMEOUT_SECONDS, max_retries=_MAX_RETRIES
+)
+_openai_async_client = openai.AsyncOpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"), timeout=_TIMEOUT_SECONDS, max_retries=_MAX_RETRIES
+)
 
 _GPT_MODEL = "gpt-4o-mini"
 _GPT_SYSTEM = "You are a helpful expert career advisor."
