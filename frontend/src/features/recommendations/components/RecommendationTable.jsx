@@ -312,7 +312,7 @@ export function RecommendationTable() {
         retry: true,
       });
       if (!res.ok) throw new Error(`Recommendation generation failed (HTTP ${res.status})`);
-      // Backend wiped old data and queued new explain tasks — start polling
+      // Backend wiped old data — start polling
       startPolling();
     } catch (e) {
       console.error("Regenerate failed:", e);

@@ -2,7 +2,7 @@ import datetime
 import logging
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,6 @@ from app.services.recommendation import (
     claim_recommendation_run,
     explain_recommendation,
     release_recommendation_run,
-    run_all_explains,
 )
 
 router = APIRouter()
@@ -24,10 +23,7 @@ router = APIRouter()
 # ── routes ───────────────────────────────────────────────────────────────────
 
 @router.post("/prompt")
-async def get_recommendation_prompts(
-    background_tasks: BackgroundTasks,
-    user=Depends(get_current_user),
-):
+async def get_recommendation_prompts(user=Depends(get_current_user)):
     if not claim_recommendation_run(user.id):
         return JSONResponse(status_code=202, content={"status": "in_progress"})
 
@@ -140,9 +136,6 @@ async def get_recommendation_prompts(
                     "created_at":         now,
                 })
             supabase.table("career_recommendations").insert(rows).execute()
-
-        # One background task runs ALL explains concurrently via asyncio.gather
-        background_tasks.add_task(run_all_explains, rows, user)
 
         return {"status": "success", "recommendations": rows}
 

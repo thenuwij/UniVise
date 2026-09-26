@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from app.core.database import supabase
@@ -212,8 +211,3 @@ Output raw JSON only.
 
     except Exception as e:
         logger.exception(f"[explain_rec] {rec_id} failed: {type(e).__name__}: {e}")
-
-
-async def run_all_explains(rows: list, user) -> None:
-    """Run all explain tasks concurrently — total time ≈ 1 Claude call, not N."""
-    await asyncio.gather(*[explain_recommendation(row["id"], user) for row in rows])
