@@ -9,6 +9,15 @@ from app.services.user_profile import get_user_info, get_student_type
 logger = logging.getLogger(__name__)
 
 
+def claim_recommendation_run(user_id: str) -> bool:
+    response = supabase.rpc("claim_recommendation_run", {"p_user_id": user_id}).execute()
+    return bool(response.data)
+
+
+def release_recommendation_run(user_id: str) -> None:
+    supabase.table("recommendation_runs").delete().eq("user_id", user_id).execute()
+
+
 async def explain_recommendation(rec_id: str, user) -> None:
     """
     Core explain logic — called concurrently for all recs in a single

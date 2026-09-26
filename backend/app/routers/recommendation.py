@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 from app.core.auth import get_current_user
@@ -10,18 +11,26 @@ from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async
 from app.llm.json_parsing import extract_json
 from app.services.user_profile import get_user_info, get_student_type
-from app.services.recommendation import explain_recommendation, run_all_explains
+from app.services.recommendation import (
+    claim_recommendation_run,
+    explain_recommendation,
+    release_recommendation_run,
+    run_all_explains,
+)
 
 router = APIRouter()
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
 
-@router.get("/prompt")
+@router.post("/prompt")
 async def get_recommendation_prompts(
     background_tasks: BackgroundTasks,
     user=Depends(get_current_user),
 ):
+    if not claim_recommendation_run(user.id):
+        return JSONResponse(status_code=202, content={"status": "in_progress"})
+
     try:
         student_type = await get_student_type(user)
         user_info    = await get_user_info(user, student_type)
@@ -142,6 +151,8 @@ async def get_recommendation_prompts(
     except Exception as e:
         logger.error(f"[get_recommendation_prompts] Failed for user {user.id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate recommendations")
+    finally:
+        release_recommendation_run(user.id)
 
 
 @router.post("/{rec_id}/explain")
