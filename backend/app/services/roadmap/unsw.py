@@ -178,8 +178,7 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
   "capstone": {{
     "courses": ["List 2-3 signature course codes and names - choose from BOTH core courses AND specialisation courses (if provided). Prioritize advanced/unique courses."],
     "highlights": "Write 4-5 specific sentences covering: unique skills developed, hands-on learning opportunities, career/postgrad pathways, competitive advantages (accreditations, research, industry links), and one standout feature of this program. No generic statements. Each sentence must be concrete and specific to this degree."
-  }},
-  "source": "Provide the official UNSW Handbook URL for this program"
+  }}
 }}
 
 CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify actual capstone/thesis courses from this program. Only list courses that appear in the core courses section above.
@@ -192,7 +191,7 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
     # Validate structure
     assert_keys(
         draft,
-        ["summary", "capstone", "source"],
+        ["summary", "capstone"],
         "unsw_general",
     )
 
