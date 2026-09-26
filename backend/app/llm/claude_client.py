@@ -10,7 +10,12 @@ load_dotenv()
 if not os.getenv("ANTHROPIC_API_KEY"):
     raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
 
-_async_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_TIMEOUT_SECONDS = 60
+_MAX_RETRIES = 2
+
+_async_client = anthropic.AsyncAnthropic(
+    api_key=os.getenv("ANTHROPIC_API_KEY"), timeout=_TIMEOUT_SECONDS, max_retries=_MAX_RETRIES
+)
 
 _MODEL = "claude-sonnet-4-6"
 _SYSTEM = "You are a helpful expert career advisor."
