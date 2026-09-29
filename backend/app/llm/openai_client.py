@@ -101,10 +101,11 @@ async def ask_gpt_stream(
     system_prompt: str,
     max_tokens: int = 500,
     temperature: float = 1,
+    model: str = _GPT_MODEL,
 ) -> AsyncGenerator[str, None]:
-    """Async streaming GPT-4o mini call."""
+    """Async streaming GPT call."""
     response = await _openai_async_client.chat.completions.create(
-        model=_GPT_MODEL,
+        model=model,
         messages=[{"role": "system", "content": system_prompt}] + history,
         max_completion_tokens=max_tokens,
         temperature=temperature,
