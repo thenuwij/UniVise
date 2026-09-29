@@ -58,6 +58,30 @@ class Societies(BaseModel):
 class SocietiesSection(BaseModel):
     societies: Societies
 
+class MandatoryPlacements(BaseModel):
+    required: bool
+    details: str
+
+class InternshipProgram(BaseModel):
+    program_name: str
+    company: str
+    duration: str
+    timing: str
+    paid: bool
+    application_period: str
+    competitiveness: str
+    apply_url: str
+
+class IndustryExperience(BaseModel):
+    mandatory_placements: MandatoryPlacements
+    internship_programs: list[InternshipProgram]
+    top_recruiting_companies: list[str]
+    career_fairs: str
+    wil_opportunities: str
+
+class IndustryExperienceSection(BaseModel):
+    industry_experience: IndustryExperience
+
 class RoadmapResp(BaseModel):
     id: str
     mode: str
