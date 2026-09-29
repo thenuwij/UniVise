@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Any, Dict
 
 class SchoolReq(BaseModel):
@@ -81,6 +81,55 @@ class IndustryExperience(BaseModel):
 
 class IndustryExperienceSection(BaseModel):
     industry_experience: IndustryExperience
+
+class CareerRole(BaseModel):
+    title: str
+    salary_range: str
+    description: str
+    requirements: str
+    hiring_companies: list[str]
+    source: str
+    source_url: str
+
+class EntryLevelStage(BaseModel):
+    roles: list[CareerRole] = Field(min_length=3, max_length=3)
+
+class ExperiencedStage(BaseModel):
+    roles: list[CareerRole] = Field(min_length=2, max_length=2)
+
+class Certification(BaseModel):
+    name: str
+    provider: str
+    importance: str
+    timeline: str
+    notes: Optional[str]
+    url: str
+
+class MarketInsights(BaseModel):
+    demand_level: str
+    trends: str
+    geographic_notes: str
+
+class SectorEmployers(BaseModel):
+    sector: str
+    companies: list[str]
+
+class EmploymentStats(BaseModel):
+    employment_rate: str
+    median_starting_salary: str
+    source: str
+
+class CareerPathways(BaseModel):
+    entry_level: EntryLevelStage
+    mid_career: ExperiencedStage
+    senior: ExperiencedStage
+    certifications: list[Certification] = Field(min_length=2, max_length=3)
+    market_insights: MarketInsights
+    top_employers: list[SectorEmployers] = Field(min_length=2, max_length=3)
+    employment_stats: EmploymentStats
+
+class CareerPathwaysSection(BaseModel):
+    career_pathways: CareerPathways
 
 class RoadmapResp(BaseModel):
     id: str

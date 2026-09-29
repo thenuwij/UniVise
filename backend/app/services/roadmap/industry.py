@@ -11,9 +11,8 @@ from urllib.parse import quote
 import httpx
 from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
-from app.llm.openai_client import ask_gpt_async
-from app.llm.json_parsing import sanitize_and_parse_json
-from app.models.roadmap import IndustryExperienceSection, SocietiesSection
+from app.llm.openai_client import ask_gpt_structured
+from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
 from app.services.roadmap.unsw_queries import fetch_user_specialisation_context
 
 
@@ -376,10 +375,6 @@ You are a UNSW career advisor with access to current job market data. Provide ca
       - Employment rate, starting salary, source
       CRITICAL: employment_rate must be a SHORT percentage string only (e.g. '92%'). median_starting_salary must be a SHORT dollar amount only (e.g. '$80,000'). Never write sentences in these fields.
 
-    CRITICAL: ALL property names MUST have double quotes. Example:
-    CORRECT: {{"name": "..."}}
-    WRONG: {{name: "..."}}
-
     JSON STRUCTURE:
     {{
       "career_pathways": {{
@@ -437,12 +432,9 @@ You are a UNSW career advisor with access to current job market data. Provide ca
           "trends": "1-2 sentences about industry trends and outlook",
           "geographic_notes": "Location info"
         }},
-        "top_employers": {{
-          "by_sector": {{
-            "Sector1": ["...", "..."],
-            "Sector2": ["...", "..."]
-          }}
-        }},
+        "top_employers": [
+          {{"sector": "Sector name", "companies": ["...", "..."]}}
+        ],
         "employment_stats": {{
           "employment_rate": "A percentage only — e.g. '92%'. No extra words, no sentences.",
           "median_starting_salary": "A dollar amount only — e.g. '$80,000'. No 'AUD', no ranges, no extra words.",
@@ -450,29 +442,22 @@ You are a UNSW career advisor with access to current job market data. Provide ca
         }}
       }}
     }}
-
-    Return ONLY valid JSON. Start with {{ and end with }}.
     """
 
     logger.info("Career Pathways Generating...")
-    
+
     try:
-        raw = await ask_gpt_async(prompt, max_tokens=5000, model="gpt-5.4-mini")
-        logger.info(f"[TOKENS] Career pathways raw response length: {len(raw)} chars (approx {len(raw)//4} tokens)")
-        raw_stripped = raw.strip()
-        
-        # Extract JSON
-        first_brace = raw_stripped.find('{')
-        last_brace = raw_stripped.rfind('}')
-        json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
-        
-        result = sanitize_and_parse_json(json_only)
+        section = await ask_gpt_structured(prompt, CareerPathwaysSection, max_tokens=5000, model="gpt-5.4-mini")
+        result = section.model_dump()
+        pathways = result["career_pathways"]
+        pathways["top_employers"] = {
+            "by_sector": {group["sector"]: group["companies"] for group in pathways["top_employers"]}
+        }
         logger.debug(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result
 
     except Exception as e:
         logger.error(f"ai_generate_career_pathways failed, returning empty pathways: {e}")
-        logger.debug(f"Raw:\n{raw if 'raw' in locals() else 'N/A'}")
 
         return {
             "career_pathways": {
