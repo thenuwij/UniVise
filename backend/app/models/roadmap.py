@@ -12,6 +12,14 @@ class UNSWReq(BaseModel):
     program_name: Optional[str] = None
     specialisation: Optional[str] = None
 
+class ProgramCapstone(BaseModel):
+    courses: list[str]
+    highlights: str
+
+class ProgramOverview(BaseModel):
+    summary: str
+    capstone: ProgramCapstone
+
 class RoadmapResp(BaseModel):
     id: str
     mode: str
