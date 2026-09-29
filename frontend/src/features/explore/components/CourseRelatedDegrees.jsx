@@ -4,11 +4,14 @@ import { Link } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
 
+const INITIAL_VISIBLE = 6;
+
 export default function CourseRelatedDegrees({ courseId, courseCode }) {
   const { session } = UserAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!session || (!courseId && !courseCode)) return;
@@ -16,6 +19,7 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
     (async () => {
       setLoading(true);
       setErr(null);
+      setShowAll(false);
       try {
         const data = await apiJson("/smart-related/degrees-for-course", {
           method: "POST",
@@ -24,7 +28,6 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
           body: {
             course_id: courseId ?? null,
             course_code: courseCode ?? null,
-            top_k: 6,
           },
         });
         setItems(Array.isArray(data) ? data : []);
@@ -39,32 +42,53 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
   if (loading) {
     return (
       <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-        Loading related programs…
+        Loading programs…
       </p>
     );
   }
 
-  if (err || items.length === 0) return null;
+  if (err) return null;
+
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        No program structure lists this course yet. Check the UNSW Handbook for where it can be taken.
+      </p>
+    );
+  }
+
+  const visible = showAll ? items : items.slice(0, INITIAL_VISIBLE);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {items.map((deg, i) => (
-        <Link key={i} to={`/degrees/${deg.id}`}>
-          <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{deg.program_name}</p>
-              {deg.faculty && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{deg.faculty}</p>
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {visible.map((deg) => (
+          <Link key={deg.id} to={`/degrees/${deg.id}`}>
+            <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{deg.program_name}</p>
+                {deg.faculty && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{deg.faculty}</p>
+                )}
+              </div>
+              {deg.program_code && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 flex-shrink-0">
+                  {deg.program_code}
+                </span>
               )}
             </div>
-            {deg.program_code && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 flex-shrink-0">
-                {deg.program_code}
-              </span>
-            )}
-          </div>
-        </Link>
-      ))}
+          </Link>
+        ))}
+      </div>
+      {items.length > INITIAL_VISIBLE && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          className="text-sm font-semibold text-sky-700 dark:text-sky-300 hover:underline"
+        >
+          {showAll ? "Show fewer" : `Show all ${items.length} programs`}
+        </button>
+      )}
     </div>
   );
 }

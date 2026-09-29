@@ -2,8 +2,8 @@ import logging
 from typing import Any, Dict
 import time
 
-from app.llm.openai_client import ask_gpt_async
-from app.services.roadmap.common import parse_json_or_500, assert_keys
+from app.llm.openai_client import ask_gpt_structured
+from app.models.roadmap import ProgramOverview
 from app.services.roadmap.unsw_queries import (
     fetch_degree_by_identifier,
     fetch_program_core_courses,
@@ -161,8 +161,6 @@ You are a UNSW academic advisor. Using official UNSW sources (Handbook, progress
      DO write specific, concrete statements tied to this exact program — name actual skills, tools, roles, or opportunities.
      MINIMUM 4 sentences. MAXIMUM 5 sentences. Each sentence must add new information — no padding or repetition.
 
-2. Return ONLY valid JSON with NO trailing commas.
-
 === CONTEXT DATA ===
 - Program: {program_name}
 - UAC Code: {uac_code}
@@ -185,15 +183,8 @@ CRITICAL FOR CAPSTONE: You MUST use the core courses list provided to identify a
 """
 
     logger.info("Stage 1: Generating general program information...")
-    raw = await ask_gpt_async(prompt)
-    draft = parse_json_or_500(raw)
-
-    # Validate structure
-    assert_keys(
-        draft,
-        ["summary", "capstone"],
-        "unsw_general",
-    )
+    overview = await ask_gpt_structured(prompt, ProgramOverview, model="gpt-5.4-mini")
+    draft = overview.model_dump()
 
     # Validate capstone courses against core courses
     all_valid_codes = {c["code"] for c in context.get("core_courses", []) if c.get("code")}

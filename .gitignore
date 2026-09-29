@@ -28,6 +28,7 @@ costs.csv
 docs/*
 !docs/images/
 infra/
+ai/
 
 # Pytest
 .pytest_cache/

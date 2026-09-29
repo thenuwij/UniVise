@@ -236,8 +236,8 @@ function CourseDetailPage() {
               </FlatSection>
             )}
 
-            {/* Related Degrees */}
-            <FlatSection title="Related Programs" icon={<HiAcademicCap className="w-4 h-4" />}>
+            {/* Programs that include this course */}
+            <FlatSection title="Part of these programs" icon={<HiAcademicCap className="w-4 h-4" />}>
               <CourseRelatedDegrees
                 courseId={course.id}
                 courseCode={course.code}

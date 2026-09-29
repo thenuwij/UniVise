@@ -68,6 +68,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             system_prompt,
             temperature=0.7,
             max_tokens=1500,
+            model="gpt-5.4-mini",
         )
 
         async def event_generator():

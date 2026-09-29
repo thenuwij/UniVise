@@ -9,6 +9,27 @@ function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
 
+const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
+
+function NoCourseListNotice({ handbookUrl }) {
+  return (
+    <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
+      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+        UniVise does not have a course list for this program yet, so there is nothing to visualise here.
+        Its courses may sit inside a major or stream.
+      </p>
+      <a
+        href={handbookUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+      >
+        View the full structure in the official UNSW Handbook
+      </a>
+    </div>
+  );
+}
+
 function InfoSection({ section }) {
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 px-5 py-3 shadow-sm">
@@ -146,6 +167,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [err, setErr] = useState("");
   const [minimumUoc, setMinimumUoc] = useState(null);
   const [specialNotes, setSpecialNotes] = useState("");
+  const [handbookUrl, setHandbookUrl] = useState("");
   
   const firstExpandableSectionRef = useRef(null);
 
@@ -191,7 +213,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const { data, error } = await supabase
           .from("unsw_degrees_final")
-          .select("sections, minimum_uoc, special_notes")
+          .select("sections, minimum_uoc, special_notes, source_url")
           .eq("degree_code", degreeCode)
           .maybeSingle();
 
@@ -217,6 +239,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         setSections(ordered);
         setMinimumUoc(data?.minimum_uoc || null);
         setSpecialNotes(data?.special_notes || "");
+        setHandbookUrl(data?.source_url || "");
         setOpenMap({});
       } catch (e) {
         console.error("Error during fetchStructure:", e);
@@ -371,6 +394,9 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         ) : sections.length > 0 ? (
           <>
+            {!hasExpandableSections && (
+              <NoCourseListNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />
+            )}
             {sections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
               const hasCourses = sec.courses && sec.courses.length > 0;
@@ -400,12 +426,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             )}
           </>
         ) : (
-          <div className="text-center py-10 px-5 rounded-xl border-2 border-slate-300 dark:border-slate-600
-                        bg-slate-50 dark:bg-slate-800/50">
-            <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
-              No structure data available for this program.
-            </p>
-          </div>
+          <NoCourseListNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />
         )}
       </div>
 
