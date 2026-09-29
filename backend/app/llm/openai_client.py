@@ -28,16 +28,17 @@ _GPT_SYSTEM = "You are a helpful expert career advisor."
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
 
-def ask_gpt(prompt: str, max_tokens: int = 3000, system_prompt: str = _GPT_SYSTEM) -> str:
-    """Sync GPT-4o mini call."""
+def ask_gpt(prompt: str, max_tokens: int = 3000, temperature: float = 1, system_prompt: str = _GPT_SYSTEM, model: str = _GPT_MODEL) -> str:
+    """Sync GPT call, for sync route handlers that FastAPI runs in a worker thread."""
     try:
         response = _openai_client.chat.completions.create(
-            model=_GPT_MODEL,
+            model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             max_completion_tokens=max_tokens,
+            temperature=temperature,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:

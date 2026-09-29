@@ -52,7 +52,7 @@ def result_description(user=Depends(get_current_user)):
     """
 
     try:
-        resp_text = ask_gpt(prompt)
+        resp_text = ask_gpt(prompt, temperature=0.5, model="gpt-5.4-mini")
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
