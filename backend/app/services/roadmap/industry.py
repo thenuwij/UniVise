@@ -10,9 +10,10 @@ from datetime import datetime
 from urllib.parse import quote
 import httpx
 from app.core.database import supabase
-from app.llm.claude_client import ask_claude_async
+from app.llm.claude_client import ask_claude_async, ask_claude_structured
 from app.llm.openai_client import ask_gpt_async
 from app.llm.json_parsing import sanitize_and_parse_json
+from app.models.roadmap import SocietiesSection
 from app.services.roadmap.unsw_queries import fetch_user_specialisation_context
 
 
@@ -156,21 +157,13 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
         }}
       }}
     }}
-
-    Return ONLY valid JSON. Start with {{ and end with }}.
     """
-        
+
     logger.info("Societies generating...")
 
     try:
-        raw = await ask_claude_async(prompt, model="claude-haiku-4-5-20251001")
-
-        raw_stripped = raw.strip()
-        first_brace = raw_stripped.find('{')
-        last_brace = raw_stripped.rfind('}')
-        json_only = raw_stripped[first_brace:last_brace + 1] if first_brace != -1 else raw_stripped
-
-        result = sanitize_and_parse_json(json_only)
+        section = await ask_claude_structured(prompt, SocietiesSection, model="claude-haiku-4-5-20251001")
+        result = section.model_dump()
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
         events_count = len(result.get('societies', {}).get('major_events', []))
         logger.info(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies, {events_count} events")
