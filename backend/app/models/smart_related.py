@@ -1,18 +1,14 @@
 from pydantic import BaseModel
 from typing import Optional
 
-# Request model for finding degrees related to a course
+# Request model for finding the programs that include a course
 class CourseToDegreesReq(BaseModel):
     course_id: Optional[str] = None
     course_code: Optional[str] = None
-    top_k: int = 4
-    restrict_faculty: bool = True
 
-# Response model for degree recommendations
+# A program whose structure includes the course
 class DegreeOut(BaseModel):
     id: str
+    program_code: str
     program_name: str
-    uac_code: Optional[str] = None
     faculty: Optional[str] = None
-    reason: Optional[str] = None
-    score: Optional[float] = None
