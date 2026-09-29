@@ -36,7 +36,7 @@ def test_returns_in_progress_without_generating_when_run_already_claimed(client,
         raise AssertionError("generation must not start")
 
     monkeypatch.setattr(recommendation, "get_student_type", fail_if_called)
-    monkeypatch.setattr(recommendation, "ask_gpt_async", fail_if_called)
+    monkeypatch.setattr(recommendation, "ask_gpt_structured", fail_if_called)
 
     response = client.post("/recommendation/prompt")
 
@@ -59,7 +59,7 @@ def test_releases_run_when_generation_fails(client, released, monkeypatch):
 
     monkeypatch.setattr(recommendation, "get_student_type", student_type)
     monkeypatch.setattr(recommendation, "get_user_info", user_info)
-    monkeypatch.setattr(recommendation, "ask_gpt_async", ai_down)
+    monkeypatch.setattr(recommendation, "ask_gpt_structured", ai_down)
 
     response = client.post("/recommendation/prompt")
 

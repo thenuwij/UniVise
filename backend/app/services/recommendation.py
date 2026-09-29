@@ -3,6 +3,7 @@ import logging
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async
 from app.llm.json_parsing import extract_json
+from app.models.recommendation import CareerRecommendation
 from app.services.user_profile import get_user_info, get_student_type
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,15 @@ def claim_recommendation_run(user_id: str) -> bool:
 
 def release_recommendation_run(user_id: str) -> None:
     supabase.table("recommendation_runs").delete().eq("user_id", user_id).execute()
+
+
+def replace_career_recommendations(user_id: str, recommendations: list[CareerRecommendation]) -> list[dict]:
+    """Swap a student's career recommendations for new ones in a single transaction."""
+    rows = [rec.model_dump() for rec in recommendations]
+    response = supabase.rpc(
+        "replace_career_recommendations", {"p_user_id": user_id, "p_rows": rows}
+    ).execute()
+    return response.data
 
 
 async def explain_recommendation(rec_id: str, user) -> None:

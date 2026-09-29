@@ -8,13 +8,15 @@ from fastapi.responses import JSONResponse
 logger = logging.getLogger(__name__)
 from app.core.auth import get_current_user
 from app.core.database import supabase
-from app.llm.openai_client import ask_gpt_async
+from app.llm.openai_client import ask_gpt_async, ask_gpt_structured
 from app.llm.json_parsing import extract_json
+from app.models.recommendation import CareerRecommendations
 from app.services.user_profile import get_user_info, get_student_type
 from app.services.recommendation import (
     claim_recommendation_run,
     explain_recommendation,
     release_recommendation_run,
+    replace_career_recommendations,
 )
 
 router = APIRouter()
@@ -42,17 +44,18 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
                 f"• Hobbies: {', '.join(user_info.get('hobbies') or []) or 'not provided'}\n"
                 f"• Priorities: {', '.join(user_info.get('priorities') or []) or 'not provided'}\n"
                 f"• Work style: {', '.join(user_info.get('work_style') or []) or 'not provided'}\n\n"
-                "Return EXACTLY 4 recommended career roles, no more, no less, as a JSON array. Each object must have:\n"
-                "career_title (string), industry (string), suitability_score (int 0-100), "
-                "reason (string, plain sentences only, no em dashes), avg_salary_range (string), education_required (string), "
-                "skills_needed (array of strings), link (string), source (string).\n\n"
-                "STRICT FORMAT for avg_salary_range: MUST be exactly \"$X,XXX - $Y,YYY\" in AUD. "
-                "No qualifiers, no plus signs, no parentheticals, no ranges within ranges, no words like "
-                "\"varies\", \"up to\", \"approx\", \"depending on\". Pick a single realistic AUD range and commit to it, "
-                "even if the actual salary varies widely in practice. If genuinely unknown, use \"$60,000 - $90,000\". "
-                "Valid: \"$75,000 - $110,000\". Invalid: \"$50,000 - $150,000+ (varies widely)\", \"$80k - $120k\", \"$90,000+\".\n\n"
-                "Respond with only a raw JSON array — no markdown, no explanation, no em dashes anywhere."
+                "Recommend exactly 4 career roles. For each, give a suitability_score from 0 to 100, "
+                "a reason in plain sentences, the education required, the key skills needed, "
+                "and a link and source for further reading.\n\n"
+                "avg_salary_range is a single realistic AUD range in the form \"$X,XXX - $Y,YYY\", "
+                "for example \"$75,000 - $110,000\". If genuinely unknown, use \"$60,000 - $90,000\".\n\n"
+                "Do not use em dashes anywhere."
             )
+            generated = await ask_gpt_structured(
+                prompt, CareerRecommendations, max_tokens=2000, model="gpt-5.4-mini"
+            )
+            rows = replace_career_recommendations(user.id, generated.recommendations)
+            return {"status": "success", "recommendations": rows}
         elif student_type == "high_school":
             prompt = (
                 "You are a high school academic advisor. Based on this student's profile:\n\n"
@@ -73,7 +76,6 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
         else:
             raise HTTPException(status_code=400, detail="Unknown student type")
 
-        # Both university and high_school use GPT-4o mini
         recommendation_raw = await ask_gpt_async(prompt, max_tokens=2000)
 
         try:
@@ -85,57 +87,30 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
             ) from e
 
         # ── Wipe existing data so this endpoint is fully idempotent ──────────────
-        # Deleting rec rows cascades the detail rows too (or we delete both explicitly).
-        if student_type == "high_school":
-            existing = supabase.table("degree_recommendations").select("id").eq("user_id", user.id).execute()
-            if existing.data:
-                old_ids = [r["id"] for r in existing.data]
-                supabase.table("degree_rec_details").delete().in_("id", old_ids).execute()
-            supabase.table("degree_recommendations").delete().eq("user_id", user.id).execute()
-        else:
-            existing = supabase.table("career_recommendations").select("id").eq("user_id", user.id).execute()
-            if existing.data:
-                old_ids = [r["id"] for r in existing.data]
-                supabase.table("career_rec_details").delete().in_("id", old_ids).execute()
-            supabase.table("career_recommendations").delete().eq("user_id", user.id).execute()
+        existing = supabase.table("degree_recommendations").select("id").eq("user_id", user.id).execute()
+        if existing.data:
+            old_ids = [r["id"] for r in existing.data]
+            supabase.table("degree_rec_details").delete().in_("id", old_ids).execute()
+        supabase.table("degree_recommendations").delete().eq("user_id", user.id).execute()
 
         rows = []
         now  = datetime.datetime.now().isoformat()
 
-        if student_type == "high_school":
-            for rec in parsed:
-                rows.append({
-                    "id":                   str(uuid.uuid4()),
-                    "user_id":              user.id,
-                    "degree_name":          rec["degree_name"],
-                    "university_name":      rec["university_name"],
-                    "atar_requirement":     int(float(rec["atar_requirement"])),
-                    "suitability_score":    int(float(rec["suitability_score"])),
-                    "est_completion_years": rec.get("estimated_completion_time", 3.0),
-                    "reason":               rec.get("reason"),
-                    "sources":              rec.get("source"),
-                    "link":                 rec.get("link"),
-                    "created_at":           now,
-                })
-            supabase.table("degree_recommendations").insert(rows).execute()
-
-        elif student_type == "university":
-            for rec in parsed:
-                rows.append({
-                    "id":                 str(uuid.uuid4()),
-                    "user_id":            user.id,
-                    "career_title":       rec["career_title"],
-                    "industry":           rec["industry"],
-                    "suitability_score":  rec["suitability_score"],
-                    "reason":             rec.get("reason"),
-                    "avg_salary_range":   rec["avg_salary_range"],
-                    "education_required": rec["education_required"],
-                    "skills_needed":      rec["skills_needed"],
-                    "link":               rec.get("link"),
-                    "source":             rec.get("source"),
-                    "created_at":         now,
-                })
-            supabase.table("career_recommendations").insert(rows).execute()
+        for rec in parsed:
+            rows.append({
+                "id":                   str(uuid.uuid4()),
+                "user_id":              user.id,
+                "degree_name":          rec["degree_name"],
+                "university_name":      rec["university_name"],
+                "atar_requirement":     int(float(rec["atar_requirement"])),
+                "suitability_score":    int(float(rec["suitability_score"])),
+                "est_completion_years": rec.get("estimated_completion_time", 3.0),
+                "reason":               rec.get("reason"),
+                "sources":              rec.get("source"),
+                "link":                 rec.get("link"),
+                "created_at":           now,
+            })
+        supabase.table("degree_recommendations").insert(rows).execute()
 
         return {"status": "success", "recommendations": rows}
 
