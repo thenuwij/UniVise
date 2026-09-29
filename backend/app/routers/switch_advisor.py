@@ -3,14 +3,12 @@
 # Takes the EXISTING /compare endpoint results and sends them to OpenAI for analysis
 # Does NOT duplicate compare logic — receives comparison_data from frontend
 
-import json
 import logging
 import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.auth import get_current_user
-from app.models.switch_advisor import SwitchAdvisorRequest, SwitchAdvisorResponse
-from app.llm.claude_client import ask_claude_async
-from app.llm.json_parsing import extract_json
+from app.models.switch_advisor import SwitchAdvice, SwitchAdvisorRequest, SwitchAdvisorResponse
+from app.llm.claude_client import ask_claude_structured
 from app.core.database import supabase
 from app.services.switch_advisor import build_context, build_system_prompt, build_user_prompt, safe_int
 
@@ -163,24 +161,18 @@ async def get_switch_advice(
             f"verdict_band={_band}"
         )
 
-        response_text = await ask_claude_async(
+        advice = await ask_claude_structured(
             user_prompt,
+            SwitchAdvice,
             max_tokens=2000,
-            model="claude-sonnet-4-6",
+            temperature=None,
+            model="claude-sonnet-5",
             system_prompt=build_system_prompt(),
+            disable_thinking=True,
         )
 
-        result = extract_json(response_text)
-
         return SwitchAdvisorResponse(
-            verdict=result.get("verdict", "conditional"),
-            verdict_label=result.get("verdict_label", "Review Needed"),
-            summary=result.get("summary", ""),
-            key_insights=result.get("key_insights", []),
-            pros=result.get("pros", []),
-            cons=result.get("cons", []),
-            action_steps=result.get("action_steps", []),
-            detailed_analysis=result.get("detailed_analysis", ""),
+            **advice.model_dump(),
             # Pass through timeline and transfer stats from context
             additional_terms=context.get("additional_terms", 0),
             estimated_completion=context.get("estimated_completion", ""),
@@ -189,9 +181,6 @@ async def get_switch_advice(
             courses_lost=context.get("wasted_count", 0),
         )
 
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Claude response: {e}")
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
     except Exception as e:
         logger.error(f"Switch advisor error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

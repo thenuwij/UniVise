@@ -48,12 +48,16 @@ async def ask_claude_structured(
     temperature: Optional[float] = 0.3,
     model: str = _MODEL,
     system_prompt: str = _SYSTEM,
+    disable_thinking: bool = False,
 ) -> SchemaT:
     """Async Claude call whose reply is constrained to and validated against a Pydantic schema.
 
-    Pass temperature=None for models that reject it (Claude 5 family).
+    Pass temperature=None for models that reject it (Claude 5 family), and
+    disable_thinking=True for models that think by default (Sonnet 5) when
+    thinking would only spend the max_tokens budget.
     """
     temperature_param = {"temperature": temperature} if temperature is not None else {}
+    thinking_param = {"thinking": {"type": "disabled"}} if disable_thinking else {}
     try:
         response = await _async_client.messages.parse(
             model=model,
@@ -62,6 +66,7 @@ async def ask_claude_structured(
             output_format=schema,
             max_tokens=max_tokens,
             **temperature_param,
+            **thinking_param,
         )
     except Exception as e:
         logger.error(f"Claude API error (ask_claude_structured): {e}")

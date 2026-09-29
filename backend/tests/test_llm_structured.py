@@ -79,6 +79,16 @@ def test_claude_structured_omits_temperature_when_none(monkeypatch):
     assert "temperature" not in parser.kwargs
 
 
+def test_claude_structured_sends_thinking_only_when_disabled(monkeypatch):
+    parser = fake_claude(monkeypatch, SYDNEY)
+
+    asyncio.run(claude_client.ask_claude_structured("Name a city", City))
+    assert "thinking" not in parser.kwargs
+
+    asyncio.run(claude_client.ask_claude_structured("Name a city", City, disable_thinking=True))
+    assert parser.kwargs["thinking"] == {"type": "disabled"}
+
+
 def test_claude_structured_raises_when_no_parsed_output(monkeypatch):
     fake_claude(monkeypatch, None, stop_reason="max_tokens")
 

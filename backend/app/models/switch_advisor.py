@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -7,6 +9,21 @@ class SwitchAdvisorRequest(BaseModel):
     target_program_code: str
     target_specialisation_codes: list[str] = []
     comparison_data: dict  # The full response from /compare endpoint
+
+
+class SwitchAdvice(BaseModel):
+    verdict: Literal["recommended", "conditional", "not_recommended"]
+    verdict_label: Literal[
+        "Go For It", "Strong Move", "Clear Fit", "Great Time to Switch",
+        "Worth Weighing", "Some Trade-offs", "Think It Through", "Proceed With Care",
+        "Stay The Course", "High Cost Switch", "Reconsider This", "Not Worth It Right Now",
+    ]
+    summary: str
+    key_insights: list[str]
+    pros: list[str]
+    cons: list[str]
+    action_steps: list[str]
+    detailed_analysis: str
 
 
 class SwitchAdvisorResponse(BaseModel):
