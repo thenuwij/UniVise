@@ -8,7 +8,7 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiBriefcase, HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
+import { HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
@@ -38,15 +38,7 @@ export function MenuBar({ isOpen, handleClose }) {
     loadUser();
   }, []);
 
-  const handlePlannerClick = () => {
-    navigate(userType === "high_school" ? "/planner/school" : "/planner");
-    handleClose();
-  };
-
   const isActive = (path) => {
-    if (path === "/planner") {
-      return location.pathname === "/planner" || location.pathname === "/planner/school";
-    }
     if (path === "/roadmap-entryload") {
       return location.pathname === "/roadmap-entryload" || location.pathname === "/roadmap" || location.pathname.startsWith("/roadmap/");
     }
@@ -123,9 +115,6 @@ export function MenuBar({ isOpen, handleClose }) {
                       <span className={isActive("/progress") ? "font-semibold" : ""}>Program Transfer</span>
                     </SidebarItem>
                   )}
-                  <SidebarItem onClick={handlePlannerClick} icon={HiBriefcase} active={isActive("/planner")} className={isActive("/planner") ? activeClass : ""}>
-                    <span className={isActive("/planner") ? "font-semibold" : ""}>My Planner</span>
-                  </SidebarItem>
                 </SidebarItemGroup>
 
                 <SidebarItemGroup>

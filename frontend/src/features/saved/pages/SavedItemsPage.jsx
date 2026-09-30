@@ -95,11 +95,11 @@ function SavedItemsPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate("/planner")}
+          onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 mt-8 mb-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <HiArrowLeft className="w-4 h-4" />
-          Back to My Planner
+          Back to Dashboard
         </button>
 
         {/* Page header */}
