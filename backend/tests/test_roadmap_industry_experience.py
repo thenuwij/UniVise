@@ -1,14 +1,19 @@
 """Tests for the roadmap industry experience step.
 
 The AI call and the link check are faked; these check the payload shape the
-frontend reads, dead-link replacement and the fallback when generation fails.
+frontend reads, that placement and WIL courses come only from the program's
+real course list, dead-link replacement and the fallback when generation fails.
 """
 import asyncio
 
 from app.models.roadmap import IndustryExperienceSection
 from app.services.roadmap import industry
 
-CONTEXT = {"program_name": "Bachelor of Commerce", "faculty": "UNSW Business School"}
+CONTEXT = {
+    "program_name": "Bachelor of Commerce",
+    "faculty": "UNSW Business School",
+    "program_courses": [{"code": "COMM2233", "name": "Industry Consulting Project", "section": "Work Integrated Learning (WIL)", "section_rule": "Students must complete 6 UOC of the following courses."}],
+}
 
 LIVE_URL = "https://careers.example.com/interns"
 DEAD_URL = "https://careers.example.com/missing"
@@ -17,7 +22,7 @@ DEAD_URL = "https://careers.example.com/missing"
 def section(apply_urls):
     return {
         "industry_experience": {
-            "mandatory_placements": {"required": False, "details": "No mandatory placements required."},
+            "mandatory_placements": {"required": False, "details": "No mandatory placements required.", "course_codes": []},
             "internship_programs": [
                 {
                     "program_name": f"Summer Program {index}",
@@ -34,6 +39,7 @@ def section(apply_urls):
             "top_recruiting_companies": ["Example Co"],
             "career_fairs": "UNSW Careers Fair in Term 1.",
             "wil_opportunities": "COMM2233 Industry Consulting Project.",
+            "wil_course_codes": ["COMM2233"],
         }
     }
 
@@ -79,3 +85,24 @@ def test_returns_fallback_when_generation_fails(monkeypatch):
 
     assert result["failed"] is True
     assert result["industry_experience"]["internship_programs"] == []
+
+
+def test_keeps_only_placement_and_wil_courses_from_the_program(monkeypatch):
+    payload = section([LIVE_URL])
+    experience = payload["industry_experience"]
+    experience["mandatory_placements"] = {
+        "required": True,
+        "details": "Complete ENGG4999 before graduating.",
+        "course_codes": ["ENGG4999"],
+    }
+    experience["wil_course_codes"] = ["COMM2233", "WILX1234"]
+    experience["wil_opportunities"] = "COMM2233 and WILX1234."
+    fake_reply(monkeypatch, payload)
+
+    result = asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
+
+    out = result["industry_experience"]
+    assert out["mandatory_placements"]["course_codes"] == []
+    assert out["mandatory_placements"]["details"] == "Complete (course not listed) before graduating."
+    assert out["wil_course_codes"] == ["COMM2233"]
+    assert out["wil_opportunities"] == "COMM2233 and (course not listed)."

@@ -2,6 +2,7 @@
 
 import logging
 import asyncio
+import re
 import time
 from typing import Any, Dict
 
@@ -13,7 +14,36 @@ from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
-from app.services.roadmap.unsw_queries import fetch_user_specialisation_context
+from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_user_specialisation_context
+
+COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
+
+
+def course_list_for_prompt(courses: list) -> str:
+    if not courses:
+        return "The program's course list is not available, so do not name any course codes."
+    sections: Dict[str, list] = {}
+    for c in courses:
+        sections.setdefault((c.get("section") or "Other", c.get("section_rule") or ""), []).append(c)
+    blocks = []
+    for (title, rule), items in sections.items():
+        header = f"{title}: {rule}" if rule else title
+        blocks.append(header + "\n" + "\n".join(f"- {c['code']}: {c['name']}" for c in items))
+    listing = "\n\n".join(blocks)
+    return f"The program's real courses, grouped by the Handbook section and its rule. Only ever name course codes from this list, never invent one:\n{listing}"
+
+
+def keep_listed_codes(codes: list, allowed: set, limit: int) -> list:
+    kept = []
+    for code in codes or []:
+        code = (code or "").strip().upper()
+        if code in allowed and code not in kept:
+            kept.append(code)
+    return kept[:limit]
+
+
+def replace_unlisted_codes(text: str, allowed: set) -> str:
+    return COURSE_CODE.sub(lambda m: m.group(0) if m.group(0) in allowed else "(course not listed)", text or "")
 
 
 async def validate_url(url: str) -> bool:
@@ -222,6 +252,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     A. MANDATORY PLACEMENTS
       - Whether required for degree completion
       - Duration, timing, and key requirements if applicable
+      - course_codes: the placement or industrial training courses from the course list below (for example an industrial training course, if it is listed). If none is in the list, return an empty list and say "not listed" in details.
 
     B. INTERNSHIP PROGRAMS (4-6 programs)
       - ONLY include real, well-known graduate internship programs that are verified to exist
@@ -241,6 +272,9 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     D. CAREER EVENTS & WIL
       - Major career fairs or employer events
       - Work Integrated Learning subjects or co-op programs
+      - wil_course_codes: WIL or industry project courses from the course list below. If none is in the list, return an empty list and say "not listed" in wil_opportunities.
+
+    {course_list_for_prompt(context.get("program_courses") or [])}
 
     REQUIRED JSON OUTPUT:
     {{
@@ -275,7 +309,15 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     try:
         section = await ask_claude_structured(prompt, IndustryExperienceSection, model="claude-haiku-4-5-20251001")
         result = section.model_dump()
-        programs = result.get("industry_experience", {}).get("internship_programs", [])
+        experience = result["industry_experience"]
+        allowed = {c["code"] for c in context.get("program_courses") or []}
+        placements = experience["mandatory_placements"]
+        placements["course_codes"] = keep_listed_codes(placements["course_codes"], allowed, 10)
+        placements["details"] = replace_unlisted_codes(placements["details"], allowed)
+        experience["wil_course_codes"] = keep_listed_codes(experience["wil_course_codes"], allowed, 10)
+        experience["wil_opportunities"] = replace_unlisted_codes(experience["wil_opportunities"], allowed)
+        experience["career_fairs"] = replace_unlisted_codes(experience["career_fairs"], allowed)
+        programs = experience.get("internship_programs", [])
         logger.info(f"Industry generated {len(programs)} internship programs")
 
         # Validate apply_urls in parallel; replace dead links with fallback search redirect
@@ -296,12 +338,14 @@ You are a UNSW career advisor. Provide industry experience information for {prog
             "industry_experience": {
                 "mandatory_placements": {
                     "required": False,
-                    "details": "Information temporarily unavailable"
+                    "details": "Information temporarily unavailable",
+                    "course_codes": [],
                 },
                 "internship_programs": [],
                 "top_recruiting_companies": [],
                 "career_fairs": "Information temporarily unavailable",
-                "wil_opportunities": "Information temporarily unavailable"
+                "wil_opportunities": "Information temporarily unavailable",
+                "wil_course_codes": [],
             },
             "failed": True,
         }
@@ -374,6 +418,13 @@ You are a UNSW career advisor with access to current job market data. Provide ca
     G. STATS
       - Employment rate, starting salary, source
       CRITICAL: employment_rate must be a SHORT percentage string only (e.g. '92%'). median_starting_salary must be a SHORT dollar amount only (e.g. '$80,000'). Never write sentences in these fields.
+
+    H. FOR EVERY ROLE (all 7)
+      - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
+      - degree_courses: 2-3 course codes from the course list below that build the skills this role needs. Only codes from the list. Return an empty list if none fit or the list is not available.
+      - next_steps: up to 3 short, concrete actions a current student can take now towards this role
+
+    {course_list_for_prompt(context.get("program_courses") or [])}
 
     JSON STRUCTURE:
     {{
@@ -450,6 +501,11 @@ You are a UNSW career advisor with access to current job market data. Provide ca
         section = await ask_gpt_structured(prompt, CareerPathwaysSection, max_tokens=5000, model="gpt-5.4-mini")
         result = section.model_dump()
         pathways = result["career_pathways"]
+        allowed = {c["code"] for c in context.get("program_courses") or []}
+        for stage in ("entry_level", "mid_career", "senior"):
+            for role in pathways[stage]["roles"]:
+                role["degree_courses"] = keep_listed_codes(role["degree_courses"], allowed, 3)
+                role["degree_path"] = replace_unlisted_codes(role["degree_path"], allowed)
         pathways["top_employers"] = {
             "by_sector": {group["sector"]: group["companies"] for group in pathways["top_employers"]}
         }
@@ -524,6 +580,13 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
             base_context.update(spec)
         except Exception as e:
             logger.error(f"Failed to load specialisations: {e}")
+
+    specialisation_codes = [
+        *(base_context.get("selected_major_courses") or []),
+        *(base_context.get("selected_minor_courses") or []),
+        *(base_context.get("selected_honours_courses") or []),
+    ]
+    base_context["program_courses"] = fetch_program_course_list(degree_code, specialisation_codes)
 
     # Run all three AI generations in parallel. asyncio.gather with
     # return_exceptions=True ensures a single failure doesn't poison the

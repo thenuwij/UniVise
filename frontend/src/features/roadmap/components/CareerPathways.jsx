@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SaveButton from "@/shared/ui/SaveButton";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 import {
   TrendingUp,
   Award,
@@ -12,10 +15,45 @@ import {
   BarChart3,
   Sparkles,
   Zap,
-  Crown
+  Crown,
+  GraduationCap,
+  ListChecks
 } from "lucide-react";
 
-export default function CareerPathways({ careerPathways }) {
+const INTEREST_PATTERNS = {
+  "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,
+  "Tech & Software": /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems)/i,
+  "Science & Research": /\b(scien|research|laborator|biolog|chemi|physic|environment)/i,
+  "Engineering & Design": /\b(engineer|design|architect|manufactur)/i,
+  "Health & Medicine": /\b(health|medic|clinic|nurs|doctor|physio|pharmac|psycholog)/i,
+  "Law & Policy": /\b(law|legal|lawyer|solicitor|policy|complian|paralegal)/i,
+  "Arts & Media": /\b(media|journalis|writer|content|communicat|artist|creative|editor)/i,
+};
+
+const matchesInterests = (title, interestAreas) =>
+  interestAreas.some((area) => INTEREST_PATTERNS[area]?.test(title || ""));
+
+function useInterestAreas(enabled) {
+  const { session } = UserAuth();
+  const userId = session?.user?.id;
+  const [interestAreas, setInterestAreas] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !userId) return;
+    supabase
+      .from("student_uni_data")
+      .select("interest_areas")
+      .eq("user_id", userId)
+      .limit(1)
+      .then(({ data }) => setInterestAreas(data?.[0]?.interest_areas || []));
+  }, [enabled, userId]);
+
+  return interestAreas;
+}
+
+export default function CareerPathways({ careerPathways, personal = false }) {
+  const navigate = useNavigate();
+  const interestAreas = useInterestAreas(personal);
   const [activeTab, setActiveTab] = useState('entry');
   const [showAllCerts, setShowAllCerts] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
@@ -41,6 +79,15 @@ export default function CareerPathways({ careerPathways }) {
 
   const toggleDescription = (idx) => {
     setExpandedDescriptions(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const openCourse = async (code) => {
+    const { data: match } = await supabase
+      .from("unsw_courses")
+      .select("id")
+      .eq("code", code)
+      .maybeSingle();
+    if (match?.id) navigate(`/course/${match.id}`);
   };
 
   return (
@@ -175,9 +222,18 @@ export default function CareerPathways({ careerPathways }) {
                 {/* Role Header */}
                 <div className="mb-4 pb-4 border-b-2 border-slate-200 dark:border-slate-700">
                   <div className="flex items-start justify-between gap-4 mb-3">
-                    <h5 className="flex-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
-                      {role.title}
-                    </h5>
+                    <div className="flex-1">
+                      <h5 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                        {role.title}
+                      </h5>
+                      {personal && matchesInterests(role.title, interestAreas) && (
+                        <span className="mt-1.5 inline-block px-2.5 py-1 rounded-full text-xs font-semibold
+                                       bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300
+                                       border border-emerald-200 dark:border-emerald-700">
+                          Matches your interests
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <SaveButton
@@ -214,6 +270,57 @@ export default function CareerPathways({ careerPathways }) {
                     </button>
                   )}
                 </div>
+
+                {personal && (role.degree_path || role.degree_courses?.length > 0) && (
+                  <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                    <div className="flex items-start gap-3">
+                      <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
+                          How your degree gets you there
+                        </p>
+                        {role.degree_path && (
+                          <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">{role.degree_path}</p>
+                        )}
+                        {role.degree_courses?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {role.degree_courses.map((code) => (
+                              <button
+                                key={code}
+                                type="button"
+                                onClick={() => openCourse(code)}
+                                className="px-3 py-1 rounded-lg text-sm font-bold bg-white dark:bg-slate-800
+                                          border-2 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300
+                                          hover:border-blue-500 transition-colors"
+                              >
+                                {code}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {role.next_steps?.length > 0 && (
+                  <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700">
+                    <div className="flex items-start gap-3">
+                      <ListChecks className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-2">Next steps</p>
+                        <div className="space-y-1">
+                          {role.next_steps.slice(0, 3).map((step, sIdx) => (
+                            <p key={sIdx} className="text-base text-slate-700 dark:text-slate-300 leading-relaxed flex gap-2">
+                              <span className="text-blue-500 flex-shrink-0">{sIdx + 1}.</span>
+                              <span>{step}</span>
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Requirements */}
                 {role.requirements && (
