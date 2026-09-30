@@ -13,12 +13,25 @@ function sumUoC(list = []) {
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
 
+function parseSections(raw) {
+  try {
+    let parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn("JSON parse error for sections:", err);
+    return [];
+  }
+}
+
+const hasCourses = (section) => section?.courses?.length > 0;
+
 function NoCourseListNotice({ handbookUrl }) {
   return (
     <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
       <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
         UniVise does not have a course list for this program yet, so there is nothing to visualise here.
-        Its courses may sit inside a major or stream.
+        Its courses may sit inside a major or stream. Choose a major in the Specialisations step to see its courses here.
       </p>
       <a
         href={handbookUrl}
@@ -202,17 +215,23 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [specialNotes, setSpecialNotes] = useState("");
   const [handbookUrl, setHandbookUrl] = useState("");
   
+  const [major, setMajor] = useState(null);
+  
   const firstExpandableSectionRef = useRef(null);
 
-  const allCourses = useMemo(() => {
-    const codes = sections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
-    return Array.from(new Set(codes));
-  }, [sections]);
+  const programHasCourses = useMemo(() => sections.some(hasCourses), [sections]);
 
-  // Check if there are any expandable sections
-  const hasExpandableSections = useMemo(() => {
-    return sections.some(s => s.courses && s.courses.length > 0);
-  }, [sections]);
+  const courseSections = useMemo(
+    () => (programHasCourses ? sections.filter(hasCourses) : major?.sections || []),
+    [programHasCourses, sections, major]
+  );
+
+  const allCourses = useMemo(() => {
+    const codes = courseSections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
+    return Array.from(new Set(codes));
+  }, [courseSections]);
+
+  const hasExpandableSections = courseSections.length > 0;
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
@@ -252,14 +271,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         if (error) throw error;
 
-        let parsed = [];
-        try {
-          parsed = typeof data.sections === "string" ? JSON.parse(data.sections) : data.sections;
-          if (typeof parsed === "string") parsed = JSON.parse(parsed);
-        } catch (err) {
-          console.warn("JSON parse error for sections:", err);
-          parsed = [];
-        }
+        const parsed = parseSections(data?.sections);
 
         const ordered = parsed
           .filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))
@@ -284,6 +296,39 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
     fetchStructure();
   }, [degreeCode, propSections]);
+
+  useEffect(() => {
+    if (loading || programHasCourses || !degreeCode || !userId) {
+      setMajor(null);
+      return;
+    }
+    let active = true;
+    const fetchMajor = async () => {
+      const { data: selections } = await supabase
+        .from("user_specialisation_selections")
+        .select("major_id")
+        .eq("user_id", userId)
+        .eq("degree_code", degreeCode)
+        .limit(1);
+      const majorId = selections?.[0]?.major_id;
+      if (!majorId) {
+        if (active) setMajor(null);
+        return;
+      }
+      const { data: spec } = await supabase
+        .from("unsw_specialisations")
+        .select("major_name, sections")
+        .eq("id", majorId)
+        .maybeSingle();
+      if (!active || !spec) return;
+      const majorSections = parseSections(spec.sections).filter(
+        (sec) => hasCourses(sec) && !sec.title?.toLowerCase().includes("overview")
+      );
+      setMajor(majorSections.length ? { name: spec.major_name, sections: majorSections } : null);
+    };
+    fetchMajor();
+    return () => { active = false; };
+  }, [loading, programHasCourses, degreeCode, userId]);
 
   useEffect(() => {
     if (!trackCompletion || !userId) return;
@@ -313,10 +358,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   
   const expandAll = () => {
     const newMap = {};
-    sections.forEach((s, i) => {
-      if (s.courses?.length > 0) {
-        newMap[`${s.title}-${i}`] = true;
-      }
+    courseSections.forEach((s, i) => {
+      newMap[`${s.title}-${i}`] = true;
     });
     setOpenMap(newMap);
     
@@ -449,19 +492,19 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                         border-2 border-red-300 dark:border-red-700 shadow-sm">
             <p className="text-sm text-red-700 dark:text-red-300 font-medium">{err}</p>
           </div>
-        ) : sections.length > 0 ? (
+        ) : sections.length > 0 || major ? (
           <>
-            {!hasExpandableSections && (
+            {!programHasCourses && (major ? (
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Showing the courses of your major: <span className="font-bold">{major.name}</span>
+              </p>
+            ) : (
               <NoCourseListNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />
-            )}
-            {sections.map((sec, i) => {
+            ))}
+            {courseSections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
-              const hasCourses = sec.courses && sec.courses.length > 0;
-              const isFirstExpandable = hasCourses && sections.slice(0, i).every(s => !s.courses || s.courses.length === 0);
-
-              if (!hasCourses) return null;
               return (
-                <div key={key} ref={isFirstExpandable ? firstExpandableSectionRef : null}>
+                <div key={key} ref={i === 0 ? firstExpandableSectionRef : null}>
                   <CourseSection
                     section={sec}
                     isOpen={!!openMap[key]}
@@ -473,13 +516,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 </div>
               );
             })}
-            {sections.some(sec => !sec.courses || sec.courses.length === 0) && (
+            {sections.some(sec => !hasCourses(sec)) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {sections.map((sec, i) => {
-                  const key = `${sec.title}-${i}`;
-                  const hasCourses = sec.courses && sec.courses.length > 0;
-                  if (hasCourses) return null;
-                  return <InfoSection key={key} section={sec} />;
+                  if (hasCourses(sec)) return null;
+                  return <InfoSection key={`${sec.title}-${i}`} section={sec} />;
                 })}
               </div>
             )}
