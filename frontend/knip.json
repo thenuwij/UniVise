@@ -8,6 +8,7 @@
     "src/features/roadmap/components/EntryRequirementsCard.jsx",
     "src/features/roadmap/components/IndustrySection.jsx",
     "src/features/roadmap/components/ProgramStructure.jsx",
-    "src/features/roadmap/components/EntryRequirementsUnsw.jsx"
+    "src/features/roadmap/components/EntryRequirementsUnsw.jsx",
+    "src/features/recommendations/pages/RecommendationPage.jsx"
   ]
 }

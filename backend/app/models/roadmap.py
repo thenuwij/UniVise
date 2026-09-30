@@ -90,6 +90,9 @@ class CareerRole(BaseModel):
     hiring_companies: list[str]
     source: str
     source_url: str
+    degree_path: str
+    degree_courses: list[str] = Field(max_length=3)
+    next_steps: list[str] = Field(min_length=1, max_length=3)
 
 class EntryLevelStage(BaseModel):
     roles: list[CareerRole] = Field(min_length=3, max_length=3)

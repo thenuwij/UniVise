@@ -47,6 +47,41 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
         return []
     
 
+def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
+    courses: Dict[str, str] = {}
+    if degree_code:
+        try:
+            result = (
+                supabase.from_("unsw_degrees_final")
+                .select("sections")
+                .eq("degree_code", degree_code)
+                .limit(1)
+                .execute()
+            )
+            sections = parse_sections_json(result.data[0].get("sections")) if result.data else []
+            for section in sections:
+                if not isinstance(section, dict):
+                    continue
+                for course in section.get("courses") or []:
+                    if isinstance(course, dict) and course.get("code"):
+                        courses.setdefault(course["code"].strip().upper(), course.get("name") or "")
+        except Exception as e:
+            logger.error(f"fetch_program_course_list failed for {degree_code}: {e}")
+
+    missing = [c.strip().upper() for c in extra_codes or [] if c and c.strip().upper() not in courses]
+    if missing:
+        titles: Dict[str, str] = {}
+        try:
+            rows = supabase.from_("unsw_courses").select("code, title").in_("code", missing).execute().data or []
+            titles = {row["code"]: row.get("title") or "" for row in rows}
+        except Exception as e:
+            logger.error(f"Course title lookup failed: {e}")
+        for code in missing:
+            courses.setdefault(code, titles.get(code, ""))
+
+    return [{"code": code, "name": name} for code, name in courses.items()]
+
+
 def parse_sections_json(sections_data) -> list:
     if not sections_data:
         return []

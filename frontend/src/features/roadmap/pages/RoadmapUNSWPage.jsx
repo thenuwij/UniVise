@@ -409,7 +409,7 @@ export default function RoadmapUNSWPage() {
         title: "Careers",
         render: () => industrySection(
           "career_pathways",
-          () => <CareerPathways careerPathways={data.career_pathways} />,
+          () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
           "Generating Career Pathways...",
           "Mapping entry-level, mid-career, and senior roles for your field."
         ),

@@ -6,7 +6,6 @@ import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import PrivateRoute from "./app/PrivateRoute";
 import ChatbotPage from './features/chat/pages/ChatbotPage';
 import ProfilePage from './features/profile/pages/ProfilePage';
-import RecommendationPage from "./features/recommendations/pages/RecommendationPage";
 import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
 import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
@@ -39,7 +38,7 @@ export const router = createBrowserRouter([
   { path: "/chat", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/chat/:conversationId", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>},
-  { path: "/recommendation/:id" , element: <PrivateRoute><RecommendationPage/></PrivateRoute>},
+  { path: "/recommendation/:id", element: <Navigate to="/roadmap-entryload?step=4" replace /> },
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },

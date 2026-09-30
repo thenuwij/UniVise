@@ -63,6 +63,7 @@ async def explain_recommendation(rec_id: str, user) -> None:
             supabase.table(table)
             .select("*")
             .eq("id", rec_id)
+            .eq("user_id", user.id)
             .maybe_single()
             .execute()
         )
