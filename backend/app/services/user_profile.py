@@ -5,6 +5,8 @@ from app.core.database import supabase
 
 logger = logging.getLogger(__name__)
 
+UNIVERSITY_ONLY = "UniVise is for university students only"
+
 
 async def get_student_type(user) -> str:
     # Grab it from the decoded JWT
@@ -13,6 +15,8 @@ async def get_student_type(user) -> str:
         raise HTTPException(
             status_code=400, detail="student_type missing or invalid in token metadata"
         )
+    if student_type == "high_school":
+        raise HTTPException(status_code=403, detail=UNIVERSITY_ONLY)
     return student_type
 
 

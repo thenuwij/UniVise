@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import SurveyPage from "./features/onboarding/pages/SurveyPage";
@@ -17,7 +17,6 @@ import DegreeDetailPage from "./features/explore/pages/DegreeDetailPage";
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import CourseDetailPage from "./features/explore/pages/CourseDetailPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
-import RoadmapSchoolPage from "./features/roadmap/pages/RoadmapSchoolPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
 import MyPlannerPage from "./features/planner/pages/MyPlannerPage";
@@ -26,7 +25,6 @@ import TraitsPage from "./features/traits/pages/TraitsPage";
 import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDetailPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
 import ProgressPage from "./features/transfer/pages/ProgressPage";
-import MyPlannerSchoolPage from "./features/planner/pages/MyPlannerSchoolPage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
 
 
@@ -52,11 +50,11 @@ export const router = createBrowserRouter([
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
   { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },
   { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
-  { path: "/roadmap/school", element: <PrivateRoute><RoadmapSchoolPage /></PrivateRoute> },
+  { path: "/roadmap/school", element: <Navigate to="/roadmap" replace /> },
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <PrivateRoute><MyPlannerPage /></PrivateRoute> },
-  { path: "/planner/school", element: <PrivateRoute><MyPlannerSchoolPage /></PrivateRoute> },
+  { path: "/planner/school", element: <Navigate to="/planner" replace /> },
   { path: "/planner/mindmesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
   { path: "/specialisation/major/:id", element: <PrivateRoute><SpecialisationDetailPage variant="major" /></PrivateRoute> },

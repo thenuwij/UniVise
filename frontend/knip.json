@@ -1,4 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "ignore": [".flowbite-react/**"]
+  "ignore": [
+    ".flowbite-react/**",
+    "src/features/planner/pages/MyPlannerSchoolPage.jsx",
+    "src/features/roadmap/pages/RoadmapSchoolPage.jsx",
+    "src/features/roadmap/components/CareersSection.jsx",
+    "src/features/roadmap/components/EntryRequirementsCard.jsx",
+    "src/features/roadmap/components/IndustrySection.jsx",
+    "src/features/roadmap/components/ProgramStructure.jsx"
+  ]
 }

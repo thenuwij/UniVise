@@ -11,6 +11,7 @@ from app.services.roadmap.common import ensure, table_for_mode
 from app.services.roadmap.school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from app.services.roadmap.unsw import gather_unsw_context, ai_generate_unsw_payload
 from app.services.roadmap.industry import generate_and_update_all_industry
+from app.services.user_profile import UNIVERSITY_ONLY
 
 router = APIRouter(tags=["roadmap"])
 
@@ -18,7 +19,8 @@ router = APIRouter(tags=["roadmap"])
 @router.post("/school", response_model=RoadmapResp)
 async def create_school(body: SchoolReq, user=Depends(get_current_user)):
     import asyncio
-    
+
+    raise HTTPException(status_code=403, detail=UNIVERSITY_ONLY)
     ensure(bool(body.recommendation_id or body.degree_name), "Provide recommendation_id or degree_name.")
     ctx = await gather_school_context(user.id, body)
     payload = await ai_generate_school_payload(ctx)

@@ -127,8 +127,8 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
 function SurveyForm() {
   const { session } = UserAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [userType, setUserType] = useState("");
+  const [step, setStep] = useState(2);
+  const [userType, setUserType] = useState("university");
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -225,7 +225,7 @@ function SurveyForm() {
 
   return (
     <div className="w-full max-w-xl">
-      <SurveyProgressBar step={step} totalSteps={userType ? totalSteps : 1} />
+      <SurveyProgressBar step={step - 1} totalSteps={totalSteps - 1} />
 
       {/* ── Step 1: User type ── */}
       {step === 1 && (
@@ -480,7 +480,7 @@ function SurveyForm() {
               <StyledInput placeholder="Please specify" value={formData.degree_stage_other || ""} onChange={e => handleChange("degree_stage_other", e.target.value)} />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.degree_stage || (formData.degree_stage === "Other" && !formData.degree_stage_other)} />
+          <NavButtons onNext={handleNext} nextDisabled={!formData.degree_stage || (formData.degree_stage === "Other" && !formData.degree_stage_other)} />
         </div>
       )}
 
