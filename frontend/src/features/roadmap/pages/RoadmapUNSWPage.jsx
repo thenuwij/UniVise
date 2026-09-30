@@ -60,6 +60,14 @@ const useDegreeData = (degreeCode) => {
   return degreeData;
 };
 
+const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
+
+const handbookUrlFor = (degree, degreeCode) => {
+  if (!degreeCode) return null;
+  const sourceUrl = degree?.source_url;
+  return sourceUrl && sourceUrl.includes(`/${degreeCode}`) ? sourceUrl : `${HANDBOOK_PROGRAM_URL}/${degreeCode}`;
+};
+
 const extractDegreeCode = (degree) => {
   if (!degree) return null;
   const finalCode = degree.code || degree.degree_code || degree.program_code || null;
@@ -374,7 +382,24 @@ export default function RoadmapUNSWPage() {
         key: "overview",
         stage: "Your degree",
         title: "Overview",
-        render: () => <CapstoneHonours data={data} />,
+        render: () => {
+          const handbookUrl = handbookUrlFor(activeDegree, degreeCodeValue);
+          return (
+            <div className="space-y-4">
+              {handbookUrl && (
+                <a
+                  href={handbookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                >
+                  View in the official UNSW Handbook
+                </a>
+              )}
+              <CapstoneHonours data={data} />
+            </div>
+          );
+        },
       },
       {
         key: "structure",
