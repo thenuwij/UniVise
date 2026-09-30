@@ -2,7 +2,6 @@
 import { Check, ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
@@ -395,17 +394,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         </div>
 
         <div className="flex items-center gap-2">
-          <SaveButton
-            itemType="degree"
-            itemId={degreeCode}
-            itemName={`Program Structure — ${degreeCode}`}
-            itemData={{
-              degree_code: degreeCode,
-              total_sections: sections?.length || 0,
-              minimum_uoc: minimumUoc,
-            }}
-          />
-
           <button
             onClick={handleVisualise}
             disabled={!allCourses.length}

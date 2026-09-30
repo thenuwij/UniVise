@@ -7,6 +7,7 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import Pill from "../components/Pill";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
+import ShortlistLink from "../components/ShortlistLink";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
@@ -344,7 +345,12 @@ export default function RoadmapUNSWPage() {
         return <GeneratingMessage title={title} message={message} />;
       }
       if (failed) return <SectionError onRetry={retrySections} />;
-      return content();
+      return (
+        <>
+          <ShortlistLink />
+          {content()}
+        </>
+      );
     };
 
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;

@@ -1,7 +1,6 @@
 import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 import GeneratingMessage from "./GeneratingMessage";
 import { fetchComponentDegrees } from "../utils/programCourses";
@@ -331,19 +330,6 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
           {/* RIGHT-SIDE BUTTON COLUMN */}
           <div className="flex flex-col items-end gap-2">
-            <SaveButton
-              itemType="specialisation"
-              itemId={spec.id}
-              itemName={spec.major_name}
-              itemData={{
-                type: spec.specialisation_type,
-                uoc_required: spec.uoc_required,
-                faculty: spec.faculty,
-                overview: spec.overview_description,
-                degree_code: forDegreeCode,
-              }}
-            />
-
             <button
               onClick={() => handleSelectionChange(type, null, forDegreeCode)}
               className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 
