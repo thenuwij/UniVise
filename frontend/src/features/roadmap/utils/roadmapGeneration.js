@@ -1,5 +1,25 @@
 import { apiFetch } from "@/shared/lib/api";
 
+export async function startRoadmapInBackground({ degreeId, accessToken }) {
+  const res = await apiFetch("/roadmap/unsw", {
+    method: "POST",
+    token: accessToken,
+    credentials: "include",
+    body: { degree_id: degreeId },
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
+
+  const roadmapId = json?.id || json?.roadmap_id;
+  if (roadmapId) {
+    await apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
+      method: "POST",
+      token: accessToken,
+      credentials: "include",
+    });
+  }
+}
+
 export async function handleRoadmapGeneration({
   type,
   degree,

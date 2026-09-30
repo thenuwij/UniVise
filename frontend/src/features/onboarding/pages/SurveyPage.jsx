@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/shared/layout/Header';
 import SurveyForm from '../components/SurveyForm';
 import { UserAuth } from '@/app/AuthContext';
-import { useSurvey } from '@/app/useSurvey';
 import { supabase } from '@/shared/lib/supabase';
+import { hasCompletedSurvey } from '../utils/surveyStatus';
 
 function SurveyPage() {
   const { session } = UserAuth();
-  const { hasCompletedSurvey, loading: surveyLoading } = useSurvey();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [, setFirstName] = useState('');
@@ -35,18 +34,21 @@ function SurveyPage() {
   }, [navigate]);
 
   useEffect(() => {
-    if (surveyLoading) return;
-
     if (!session) {
       navigate("/login", { replace: true });
-    } else if (hasCompletedSurvey) {
-      navigate("/dashboard", { replace: true });
-    } else {
-      setCheckingAccess(false); // Access granted to survey
+      return;
     }
-  }, [session, hasCompletedSurvey, surveyLoading, navigate]);
 
-  if (loading || surveyLoading || checkingAccess) {
+    hasCompletedSurvey(session.user.id).then((completed) => {
+      if (completed) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setCheckingAccess(false);
+      }
+    });
+  }, [session, navigate]);
+
+  if (loading || checkingAccess) {
     return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
   }
 

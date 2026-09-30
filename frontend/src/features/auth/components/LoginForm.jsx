@@ -4,6 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import { pathAfterSignIn } from "@/features/onboarding/utils/surveyStatus";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ export function LoginForm() {
     try {
       const result = await signInUser(email, password);
       if (result.success) {
-        navigate("/dashboard");
+        navigate(await pathAfterSignIn(result.data.user.id));
       } else {
         const msg = result.error?.toLowerCase() ?? "";
         if (msg.includes("already registered") || msg.includes("oauth")) {

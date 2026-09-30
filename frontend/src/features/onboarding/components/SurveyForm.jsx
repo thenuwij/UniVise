@@ -8,6 +8,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
+import { startRoadmapInBackground } from "@/features/roadmap/utils/roadmapGeneration";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ function ProgramPicker({ value, onSelect }) {
   useEffect(() => {
     supabase
       .from("unsw_degrees_final")
-      .select("degree_code, program_name")
+      .select("id, degree_code, program_name")
       .eq("is_offered", true)
       .order("program_name")
       .then(({ data }) => setPrograms((data || []).filter(p => !NON_BACHELOR.test(p.program_name))));
@@ -281,7 +282,11 @@ function SurveyForm() {
       }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       generateRecommendations().catch(console.error);
-      navigate("/quiz/loading");
+      if (program) {
+        startRoadmapInBackground({ degreeId: program.id, accessToken: session?.access_token })
+          .catch(err => console.error("Background roadmap failed:", err));
+      }
+      navigate("/dashboard", { replace: true });
     }
   };
 
