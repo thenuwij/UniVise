@@ -1,12 +1,10 @@
 // src/pages/SavedItemsPage.jsx
 import { useEffect, useState } from "react";
 import {
-  HiAcademicCap,
   HiArrowLeft,
   HiBookmark,
   HiBriefcase,
-  HiClipboard,
-  HiCollection,
+  HiOfficeBuilding,
   HiUsers,
   HiViewGrid,
 } from "react-icons/hi";
@@ -16,6 +14,9 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+
+const SHORTLIST_TYPES = ["career_path", "internship", "society"];
+const CAREERS_STEP = "/roadmap-entryload?step=4";
 
 function SavedItemsPage() {
   const navigate = useNavigate();
@@ -34,28 +35,21 @@ function SavedItemsPage() {
         .select("*")
         .eq("user_id", session.user.id)
         .order("saved_at", { ascending: false });
-      if (!error && data) setSavedItems(data);
+      if (!error && data) setSavedItems(data.filter((i) => SHORTLIST_TYPES.includes(i.item_type)));
       setLoading(false);
     };
     fetchItems();
   }, [session]);
 
-  // Fixed: programs = degree only (no overlap with specialisations)
-  const degreeItems        = savedItems.filter((i) => i.item_type === "degree");
-  const specialisationItems = savedItems.filter((i) => ["major", "minor", "specialisation", "honours"].includes(i.item_type));
-  const courseItems        = savedItems.filter((i) => i.item_type === "course");
-  const communityItems     = savedItems.filter((i) => i.item_type === "society");
-  const industryItems      = savedItems.filter((i) => i.item_type === "internship");
-  const careerItems        = savedItems.filter((i) => i.item_type === "career_path");
+  const careerItems      = savedItems.filter((i) => i.item_type === "career_path");
+  const internshipItems  = savedItems.filter((i) => i.item_type === "internship");
+  const societyItems     = savedItems.filter((i) => i.item_type === "society");
 
   const ALL_TABS = [
-    { id: "all",             label: "All",             icon: <HiViewGrid className="w-4 h-4" />,     items: savedItems },
-    { id: "programs",        label: "Programs",        icon: <HiAcademicCap className="w-4 h-4" />,  items: degreeItems },
-    { id: "specialisations", label: "Specialisations", icon: <HiCollection className="w-4 h-4" />,   items: specialisationItems },
-    { id: "courses",         label: "Courses",         icon: <HiClipboard className="w-4 h-4" />,    items: courseItems },
-    { id: "communities",     label: "Communities",     icon: <HiUsers className="w-4 h-4" />,        items: communityItems },
-    { id: "industry",        label: "Industry",        icon: <HiBriefcase className="w-4 h-4" />,    items: industryItems },
-    { id: "careers",         label: "Careers",         icon: <HiBriefcase className="w-4 h-4" />,    items: careerItems },
+    { id: "all",         label: "All",         icon: <HiViewGrid className="w-4 h-4" />,       items: savedItems },
+    { id: "careers",     label: "Careers",     icon: <HiBriefcase className="w-4 h-4" />,      items: careerItems },
+    { id: "internships", label: "Internships", icon: <HiOfficeBuilding className="w-4 h-4" />, items: internshipItems },
+    { id: "societies",   label: "Societies",   icon: <HiUsers className="w-4 h-4" />,          items: societyItems },
   ];
 
   const visibleTabs = ALL_TABS;
@@ -72,15 +66,7 @@ function SavedItemsPage() {
     if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
-  const emptyActions = {
-    programs:        { action: () => navigate("/explore-by-degree"),  text: "Explore Programs" },
-    specialisations: { action: () => navigate("/roadmap"),            text: "View My Roadmap" },
-    courses:         { action: () => navigate("/explore-by-course"),  text: "Explore Courses" },
-    communities:     { action: () => navigate("/roadmap"),            text: "View My Roadmap" },
-    industry:        { action: () => navigate("/roadmap"),            text: "View My Roadmap" },
-    careers:         { action: () => navigate("/roadmap"),            text: "View My Roadmap" },
-    all:             { action: () => navigate("/roadmap"),            text: "View My Roadmap" },
-  };
+  const openCareers = { action: () => navigate(CAREERS_STEP), text: "Open the Careers stage" };
 
   const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
 
@@ -95,11 +81,11 @@ function SavedItemsPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate("/planner")}
+          onClick={() => navigate(CAREERS_STEP)}
           className="flex items-center gap-2 mt-8 mb-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <HiArrowLeft className="w-4 h-4" />
-          Back to My Planner
+          Back to Careers
         </button>
 
         {/* Page header */}
@@ -107,9 +93,9 @@ function SavedItemsPage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-medium mb-3">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              My Planner
+              Your careers
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Saved Items</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My shortlist</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {savedItems.length} item{savedItems.length !== 1 ? "s" : ""} saved
               {withNotes > 0 && ` · ${withNotes} with notes`}
@@ -165,8 +151,8 @@ function SavedItemsPage() {
           ) : activeItems.length === 0 ? (
             <EmptyState
               tab={activeTab}
-              onAction={emptyActions[activeTab]?.action}
-              actionText={emptyActions[activeTab]?.text}
+              onAction={openCareers.action}
+              actionText={openCareers.text}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -209,7 +195,7 @@ function LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
-      <p className="text-sm text-slate-500 dark:text-slate-400">Loading your saved items...</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">Loading your shortlist...</p>
     </div>
   );
 }
@@ -224,7 +210,7 @@ function EmptyState({ tab, onAction, actionText }) {
         {tab === "all" ? "Nothing saved yet" : `No ${tab} saved yet`}
       </h3>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
-        Save items from your Roadmap, Explore, and other sections to track what interests you.
+        Save careers, internships and societies from the Careers stage of your roadmap to keep them here.
       </p>
       {onAction && (
         <button

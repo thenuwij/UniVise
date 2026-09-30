@@ -12,6 +12,7 @@ from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
 from app.routers import switch_advisor
+from app.routers import course_picks
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -56,3 +57,4 @@ app.include_router(traits.router, prefix="/traits", tags=["Traits"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(compare_programs.router)
 app.include_router(switch_advisor.router)
+app.include_router(course_picks.router)

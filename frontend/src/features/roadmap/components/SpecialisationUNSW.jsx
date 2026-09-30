@@ -1,9 +1,9 @@
 import { Award, BookOpen, Check, ChevronDown, GraduationCap, Info, Layers, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 import GeneratingMessage from "./GeneratingMessage";
+import { fetchComponentDegrees } from "../utils/programCourses";
 
 
 export default function SpecialisationUNSW({ degreeCode }) {
@@ -67,16 +67,8 @@ export default function SpecialisationUNSW({ degreeCode }) {
   }, [degreeCodes, selectedHonours, selectedMajor, selectedMinor]);
 
   const handleVisualise = () => {
-  if (!degreeCode || !allCourses.length) return;
-  
-    // Clear any stale data first
-    localStorage.removeItem("programCourses");
-    
-    // Small delay to ensure clear happens
-    setTimeout(() => {
-      localStorage.setItem("programCourses", JSON.stringify(allCourses));
-      navigate(`/planner/mindmesh?program=${degreeCode}`);
-    }, 10);
+    if (!degreeCode || !allCourses.length) return;
+    navigate(`/coursemesh?program=${degreeCode}&view=specialisations`);
   };
   
   // Get current user
@@ -97,33 +89,9 @@ export default function SpecialisationUNSW({ degreeCode }) {
       setError("");
 
       try {
-        let codesToFetch = [degreeCode];
-        const codeToNameMap = {};
-
-        const { data: degreeData } = await supabase
-          .from("unsw_degrees_final")
-          .select("program_name")
-          .eq("degree_code", degreeCode)
-          .single();
-
-        if (degreeData?.program_name?.includes("/")) {
-          const programNames = degreeData.program_name.split("/").map(n => n.trim());
-
-          // Fetch individual degree codes
-          const { data: individualDegrees } = await supabase
-            .from("unsw_degrees_final")
-            .select("degree_code, program_name")
-            .in("program_name", programNames);
-
-          if (individualDegrees?.length > 0) {
-            codesToFetch = individualDegrees.map(d => d.degree_code);
-            individualDegrees.forEach(d => {
-              codeToNameMap[d.degree_code] = d.program_name;
-            });
-          }
-        } else if (degreeData?.program_name) {
-          codeToNameMap[degreeCode] = degreeData.program_name;
-        }
+        const degrees = await fetchComponentDegrees(degreeCode);
+        const codesToFetch = degrees.map((d) => d.degree_code);
+        const codeToNameMap = Object.fromEntries(degrees.map((d) => [d.degree_code, d.program_name]));
 
         setDegreeCodes(codesToFetch);
         setDegreeNames(codeToNameMap);
@@ -362,19 +330,6 @@ export default function SpecialisationUNSW({ degreeCode }) {
 
           {/* RIGHT-SIDE BUTTON COLUMN */}
           <div className="flex flex-col items-end gap-2">
-            <SaveButton
-              itemType="specialisation"
-              itemId={spec.id}
-              itemName={spec.major_name}
-              itemData={{
-                type: spec.specialisation_type,
-                uoc_required: spec.uoc_required,
-                faculty: spec.faculty,
-                overview: spec.overview_description,
-                degree_code: forDegreeCode,
-              }}
-            />
-
             <button
               onClick={() => handleSelectionChange(type, null, forDegreeCode)}
               className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 
@@ -620,7 +575,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
                         disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <Layers className="h-5 w-5" />
-              Visualise Courses
+              Open in CourseMesh
             </button>
           </div>
         </div>

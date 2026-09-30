@@ -19,7 +19,6 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import SaveButton from "@/shared/ui/SaveButton";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiJson } from "@/shared/lib/api";
@@ -203,20 +202,6 @@ function DegreeDetailPage() {
                 <span>Open on Roadmap</span>
                 <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
-              <SaveButton
-                itemType="degree"
-                itemId={degreeId}
-                itemName={degree.program_name}
-                itemData={{
-                  degree_code: degree.degree_code,
-                  program_name: degree.program_name,
-                  faculty: degree.faculty,
-                  duration: degree.duration,
-                  minimum_uoc: degree.minimum_uoc,
-                  lowest_atar: degree.lowest_atar,
-                  overview_description: degree.overview_description,
-                }}
-              />
             </div>
           </div>
 

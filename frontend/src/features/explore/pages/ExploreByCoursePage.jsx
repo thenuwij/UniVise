@@ -21,11 +21,11 @@ function ExploreByCoursePage() {
         <div className="flex flex-col justify-center h-full px-10 xl:px-20">
 
           <button
-            onClick={() => navigate("/planner")}
+            onClick={() => navigate("/dashboard")}
             className="group inline-flex items-center gap-2 mt-8 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 shadow-sm transition-all"
           >
             <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            Back to My Planner
+            Back to Dashboard
           </button>
 
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-lg p-8 mb-16">

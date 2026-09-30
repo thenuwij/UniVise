@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 
 import {
@@ -179,18 +178,6 @@ function SpecialisationDetailPage({ variant = "major" }) {
                 )}
               </div>
             </div>
-            <SaveButton
-              itemType="specialisation"
-              itemId={id}
-              itemName={spec.major_name}
-              itemData={{
-                major_code: spec.major_code,
-                major_name: spec.major_name,
-                specialisation_type: spec.specialisation_type,
-                faculty: spec.faculty,
-                uoc_required: spec.uoc_required,
-              }}
-            />
           </div>
 
           {spec.overview_description && (

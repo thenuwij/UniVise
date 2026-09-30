@@ -96,7 +96,7 @@ function ProgressPage() {
         currentStep === 3 ? resetAndGoStep4() : goNext();
       }
       if (e.key === "ArrowLeft") {
-        currentStep > 1 ? goBack() : navigate("/planner");
+        currentStep > 1 ? goBack() : navigate("/dashboard");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -481,10 +481,10 @@ function ProgressPage() {
           <div className="bg-gradient-to-r from-slate-300 via-slate-200 to-slate-300 dark:from-slate-600 dark:via-slate-700 dark:to-slate-600 border-b border-slate-400 dark:border-slate-500 px-6 py-5 mb-2 flex items-center">
             {currentStep === 1 && (
               <button
-                onClick={() => navigate("/planner")}
+                onClick={() => navigate("/dashboard")}
                 className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
               >
-                <HiArrowLeft className="w-4 h-4" /> Planner
+                <HiArrowLeft className="w-4 h-4" /> Dashboard
               </button>
             )}
             {currentStep > 1 && currentStep < 4 && (
@@ -514,7 +514,7 @@ function ProgressPage() {
               <ProgramSetupModal
                 onClose={() => {
                   setShowSetupModal(false);
-                  if (!enrolledProgram) navigate("/planner");
+                  if (!enrolledProgram) navigate("/dashboard");
                 }}
                 userId={session.user.id}
                 onComplete={async (programData) => {

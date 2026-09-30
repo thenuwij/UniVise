@@ -5,6 +5,7 @@ from app.main import app
 EXPECTED_ROUTES = {
     ("DELETE", "/roadmap/{mode}"),
     ("GET", "/auth/valid_token"),
+    ("GET", "/course-picks"),
     ("GET", "/health"),
     ("GET", "/roadmap/{mode}"),
     ("GET", "/traits/results"),

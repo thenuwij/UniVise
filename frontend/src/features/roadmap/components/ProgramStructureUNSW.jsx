@@ -2,29 +2,17 @@
 import { Check, ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
+import { fetchMajorSections, hasCourses, parseSections } from "../utils/programCourses";
+import SuggestedNext from "./SuggestedNext";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
-
-function parseSections(raw) {
-  try {
-    let parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn("JSON parse error for sections:", err);
-    return [];
-  }
-}
-
-const hasCourses = (section) => section?.courses?.length > 0;
 
 function NoCourseListNotice({ handbookUrl }) {
   return (
@@ -235,15 +223,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
-    
-    // Clear any stale data first
-    localStorage.removeItem("programCourses");
-    
-    // Small delay to ensure clear happens
-    setTimeout(() => {
-      localStorage.setItem("programCourses", JSON.stringify(allCourses));
-      navigate(`/planner/mindmesh?program=${degreeCode}`);
-    }, 10);
+    navigate(`/coursemesh?program=${degreeCode}`);
   };
 
   // Fetch program structure
@@ -303,30 +283,9 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       return;
     }
     let active = true;
-    const fetchMajor = async () => {
-      const { data: selections } = await supabase
-        .from("user_specialisation_selections")
-        .select("major_id")
-        .eq("user_id", userId)
-        .eq("degree_code", degreeCode)
-        .limit(1);
-      const majorId = selections?.[0]?.major_id;
-      if (!majorId) {
-        if (active) setMajor(null);
-        return;
-      }
-      const { data: spec } = await supabase
-        .from("unsw_specialisations")
-        .select("major_name, sections")
-        .eq("id", majorId)
-        .maybeSingle();
-      if (!active || !spec) return;
-      const majorSections = parseSections(spec.sections).filter(
-        (sec) => hasCourses(sec) && !sec.title?.toLowerCase().includes("overview")
-      );
-      setMajor(majorSections.length ? { name: spec.major_name, sections: majorSections } : null);
-    };
-    fetchMajor();
+    fetchMajorSections(userId, degreeCode).then((found) => {
+      if (active) setMajor(found);
+    });
     return () => { active = false; };
   }, [loading, programHasCourses, degreeCode, userId]);
 
@@ -435,17 +394,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         </div>
 
         <div className="flex items-center gap-2">
-          <SaveButton
-            itemType="degree"
-            itemId={degreeCode}
-            itemName={`Program Structure — ${degreeCode}`}
-            itemData={{
-              degree_code: degreeCode,
-              total_sections: sections?.length || 0,
-              minimum_uoc: minimumUoc,
-            }}
-          />
-
           <button
             onClick={handleVisualise}
             disabled={!allCourses.length}
@@ -456,7 +404,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                       shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
           >
             <Layers className="w-5 h-5" />
-            Visualise Courses
+            Open in CourseMesh
           </button>
         </div>
       </div>
@@ -466,7 +414,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <Info className="h-4 w-4 flex-shrink-0 text-blue-500" />
-          <span>Click sections to expand courses · Click any course for details · Use <span className="text-blue-600 dark:text-blue-400 font-medium">Visualise Courses</span> to see prerequisites</span>
+          <span>Click sections to expand courses · Click any course for details · Use <span className="text-blue-600 dark:text-blue-400 font-medium">Open in CourseMesh</span> to see how courses connect</span>
         </div>
         {hasExpandableSections && (
           <div className="flex gap-2 flex-shrink-0">
@@ -475,6 +423,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         )}
       </div>
+
+      {trackCompletion && <SuggestedNext degreeCode={degreeCode} onCourseClick={handleCourseClick} />}
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">

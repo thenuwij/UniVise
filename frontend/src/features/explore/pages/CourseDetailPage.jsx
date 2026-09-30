@@ -15,7 +15,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import SaveButton from "@/shared/ui/SaveButton";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
@@ -158,18 +157,6 @@ function CourseDetailPage() {
                   <span>{isCompleted ? "Completed" : "Mark as completed"}</span>
                 </button>
               )}
-              <SaveButton
-                itemType="course"
-                itemId={course.code}
-                itemName={course.title}
-                itemData={{
-                  code: course.code,
-                  title: course.title,
-                  faculty: course.faculty,
-                  uoc: course.uoc ? `${course.uoc} Units of Credit` : null,
-                  description: course.overview,
-                }}
-              />
             </div>
           </div>
 

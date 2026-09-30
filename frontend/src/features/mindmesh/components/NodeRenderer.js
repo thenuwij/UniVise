@@ -1,5 +1,6 @@
 // src/components/mindmesh/NodeRenderer.js
 import { roundRect, getLevelColor } from "../utils";
+import { STATUS } from "../utils/availability";
 
 // Color helpers 
 function lighten(hex, percent) {
@@ -25,7 +26,7 @@ function darken(hex, percent) {
 }
 
 export function nodeCanvasObject(node, ctx, state) {
-  const { focusedNode, getDirectNeighbours, colorFor } = state;
+  const { focusedNode, getDirectNeighbours, colorFor, statusOf, isPick } = state;
 
   const connected = focusedNode ? getDirectNeighbours(focusedNode.id) : null;
   const isFocused = focusedNode && connected.has(node.id);
@@ -35,14 +36,15 @@ export function nodeCanvasObject(node, ctx, state) {
     node.level ||
     node.metadata?.level ||
     (node.id?.match(/\d/) ? parseInt(node.id.match(/\d/)[0]) : null);
-  let color = getLevelColor(level) || colorFor(node.type);
+  const base = STATUS[statusOf?.(node.id)]?.color || getLevelColor(level) || colorFor(node.type);
+  let color = base;
 
   // Focus highlight
   if (focusedNode) {
     if (node.id === focusedNode.id) {
-      color = lighten(getLevelColor(level), 18);
+      color = lighten(base, 18);
     } else if (isFocused) {
-      color = lighten(getLevelColor(level), 10);
+      color = lighten(base, 10);
     }
   }
 
@@ -83,6 +85,13 @@ export function nodeCanvasObject(node, ctx, state) {
   ctx.fillStyle = fill;
   roundRect(ctx, node.x - w / 2, node.y - h / 2, w, h, radius);
   ctx.fill();
+
+  if (isPick?.(node.id)) {
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#F59E0B";
+    roundRect(ctx, node.x - w / 2 - 3, node.y - h / 2 - 3, w + 6, h + 6, radius + 3);
+    ctx.stroke();
+  }
 
   ctx.shadowBlur = 0;
   ctx.textAlign = "center";

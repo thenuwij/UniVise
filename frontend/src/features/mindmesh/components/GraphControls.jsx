@@ -1,7 +1,7 @@
 // src/pages/mindmesh/components/GraphControls.jsx
 import { forwardRef, useRef, useImperativeHandle, useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AutoLayoutControls from "./AutoLayoutControls";
 import WelcomeModal from "./WelcomeModal";
 
@@ -22,6 +22,7 @@ export default forwardRef(function GraphControls({
   programCourses,
 }, ref) {
   const navigate = useNavigate();
+  const location = useLocation();
   const layoutControlsRef = useRef(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -29,7 +30,7 @@ export default forwardRef(function GraphControls({
     autoLayout: () => layoutControlsRef.current?.autoLayout?.(),
   }));
 
-  const goBack = () => navigate(-1);
+  const goBack = () => (location.key === "default" ? navigate("/dashboard") : navigate(-1));
 
   return (
     <div className="border-b border-slate-200 dark:border-slate-700
@@ -51,17 +52,17 @@ export default forwardRef(function GraphControls({
                        transition-all duration-200"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to Roadmap
+            Back
           </button>
 
           <div className="flex-shrink-0">
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600
                            dark:from-blue-400 dark:via-sky-400 dark:to-cyan-400
                            bg-clip-text text-transparent tracking-tight leading-tight">
-              MindMesh
+              CourseMesh
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
-              Prerequisite visualizer
+              How your courses connect
             </p>
           </div>
 

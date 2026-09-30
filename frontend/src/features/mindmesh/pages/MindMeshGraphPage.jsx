@@ -1,6 +1,6 @@
 // src/pages/MindMeshGraphPage.jsx
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
@@ -11,6 +11,11 @@ import useMindMeshData from "../hooks/useMindMeshData";
 import { colorFor } from "../utils/index";
 import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
+import StatusLegend from "../components/StatusLegend";
+import PicksPanel from "../components/PicksPanel";
+import { useCoursePicks } from "../hooks/useCoursePicks";
+import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
+import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -29,13 +34,31 @@ export default function MindMeshGraphPage() {
   const graphHistoryRef = useRef([]);
   const lastClickRef = useRef({ id: null, time: 0 });
 
-  const programCode = searchParams.get("program");
+  const { program: enrolled, loading: enrolledLoading } = useEnrolledProgram();
+  const programCode = searchParams.get("program") || enrolled?.degree_code || null;
+  const view = searchParams.get("view");
   const isProgramView = !!programCode;
-  const { graph, setGraph, programCourses, programMeta } = useMindMeshData({
-    isProgramView,
-    session,
-    programCode
+  const { graph, setGraph, programCourses, programMeta, loading, completed, prereqEdges, addPrereqEdges } = useMindMeshData({
+    programCode,
+    view,
+    userId: session?.user?.id,
   });
+  const noProgram = !programCode && !enrolledLoading;
+  const noCourses = !!programCode && !loading && !graph.nodes.length;
+  const groups = useMemo(() => prereqGroups(prereqEdges), [prereqEdges]);
+  const statusOf = useCallback((code) => courseStatus(code, completed, groups), [completed, groups]);
+  const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
+  const coursePicks = useCoursePicks(isOwnProgram);
+  const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
+  const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
+
+  const focusCourse = (code) => {
+    const node = graph.nodes.find((n) => n.id === code);
+    if (!node) return;
+    setShowHint(false);
+    setFocusedNode(node);
+    graphRef.current?.centerAt(node.x, node.y, 600);
+  };
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -168,6 +191,8 @@ export default function MindMeshGraphPage() {
         metadata: { uoc: n.uoc, faculty: n.faculty, school: n.school, level: n.level },
       }));
 
+      await addPrereqEdges(nodes.map((node) => node.id));
+
       const nodeIds = new Set(nodes.map(n => n.id));
       const validEdges = edgesData.filter(e => nodeIds.has(e.from_key) && nodeIds.has(e.to_key));
 
@@ -263,6 +288,38 @@ export default function MindMeshGraphPage() {
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
 
+          {(noProgram || noCourses) && (
+            <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
+              <div className="max-w-md p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm text-center">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                  {noProgram
+                    ? "We don't know your program yet, so there is nothing to show here."
+                    : view === "specialisations"
+                    ? "Choose a major or minor in the Specialisations step of your roadmap to see its courses here."
+                    : "UniVise does not have a course list for this program yet. Choose a major in the Specialisations step of your roadmap to see its courses here."}
+                </p>
+                <Link
+                  to="/roadmap-entryload"
+                  className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                >
+                  Open My Roadmap
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {graph?.nodes?.length > 0 && <StatusLegend />}
+
+          {isOwnProgram && graph?.nodes?.length > 0 && (
+            <PicksPanel
+              picks={coursePicks.picks}
+              loading={coursePicks.loading}
+              failed={coursePicks.failed}
+              onRetry={coursePicks.retry}
+              onSelect={focusCourse}
+            />
+          )}
+
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
@@ -281,7 +338,7 @@ export default function MindMeshGraphPage() {
             onBackgroundClick={onBackgroundClick}
             setHoverLink={setHoverLink}
             nodeCanvasObject={(node, ctx) =>
-              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor })
+              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf, isPick })
             }
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
@@ -294,6 +351,8 @@ export default function MindMeshGraphPage() {
       {/* Bottom info panel — shown when a node is focused */}
       <MindMeshInfoPanel
         focusedNode={focusedNode}
+        status={focusedNode ? statusOf(focusedNode.id) : null}
+        missing={focusedNode ? unmetGroups(focusedNode.id, completed, groups) : []}
         onDismiss={() => setFocusedNode(null)}
       />
     </div>

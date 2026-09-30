@@ -2,8 +2,9 @@
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
+import { STATUS } from "../utils/availability";
 
-export default function MindMeshInfoPanel({ focusedNode, onDismiss }) {
+export default function MindMeshInfoPanel({ focusedNode, status, missing = [], onDismiss }) {
   const navigate = useNavigate();
 
   if (!focusedNode) return null;
@@ -59,6 +60,17 @@ export default function MindMeshInfoPanel({ focusedNode, onDismiss }) {
             {(faculty || school) && (
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                 {faculty || school}
+              </p>
+            )}
+            {STATUS[status] && (
+              <p className="text-xs font-semibold mt-1" style={{ color: STATUS[status].color }}>
+                {STATUS[status].label}
+                {status === "locked" && missing.length > 0 && (
+                  <span className="font-medium text-slate-600 dark:text-slate-300">
+                    {" · Still needs "}
+                    {missing.map((g) => g.codes.join(g.logic === "and" ? " and " : " or ")).join("; ")}
+                  </span>
+                )}
               </p>
             )}
           </div>

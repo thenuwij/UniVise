@@ -8,11 +8,11 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiBriefcase, HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
+import { HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
-import { TbMessageChatbotFilled } from "react-icons/tb";
+import { TbHierarchy3, TbMessageChatbotFilled } from "react-icons/tb";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -38,15 +38,7 @@ export function MenuBar({ isOpen, handleClose }) {
     loadUser();
   }, []);
 
-  const handlePlannerClick = () => {
-    navigate(userType === "high_school" ? "/planner/school" : "/planner");
-    handleClose();
-  };
-
   const isActive = (path) => {
-    if (path === "/planner") {
-      return location.pathname === "/planner" || location.pathname === "/planner/school";
-    }
     if (path === "/roadmap-entryload") {
       return location.pathname === "/roadmap-entryload" || location.pathname === "/roadmap" || location.pathname.startsWith("/roadmap/");
     }
@@ -115,14 +107,14 @@ export function MenuBar({ isOpen, handleClose }) {
                   <SidebarItem onClick={() => { navigate("/roadmap-entryload"); handleClose(); }} icon={RiGuideFill} active={isActive("/roadmap-entryload")} className={isActive("/roadmap-entryload") ? activeClass : ""}>
                     <span className={isActive("/roadmap-entryload") ? "font-semibold" : ""}>My Roadmap</span>
                   </SidebarItem>
+                  <SidebarItem onClick={() => { navigate("/coursemesh"); handleClose(); }} icon={TbHierarchy3} active={isActive("/coursemesh")} className={isActive("/coursemesh") ? activeClass : ""}>
+                    <span className={isActive("/coursemesh") ? "font-semibold" : ""}>CourseMesh</span>
+                  </SidebarItem>
                   {userType !== "high_school" && (
                     <SidebarItem onClick={() => { navigate("/progress"); handleClose(); }} icon={HiSwitchHorizontal} active={isActive("/progress")} className={isActive("/progress") ? activeClass : ""}>
                       <span className={isActive("/progress") ? "font-semibold" : ""}>Program Transfer</span>
                     </SidebarItem>
                   )}
-                  <SidebarItem onClick={handlePlannerClick} icon={HiBriefcase} active={isActive("/planner")} className={isActive("/planner") ? activeClass : ""}>
-                    <span className={isActive("/planner") ? "font-semibold" : ""}>My Planner</span>
-                  </SidebarItem>
                 </SidebarItemGroup>
 
                 <SidebarItemGroup>
