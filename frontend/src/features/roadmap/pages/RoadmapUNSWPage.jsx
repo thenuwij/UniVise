@@ -17,9 +17,20 @@ import SpecialisationUNSW from "../components/SpecialisationUNSW";
 import SectionTitle from "../components/SectionTitle";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { supabase } from "@/shared/lib/supabase";
+import { apiFetch } from "@/shared/lib/api";
+import { UserAuth } from "@/app/AuthContext";
 
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
+
+const INDUSTRY_KEYS = ["industry_societies", "industry_experience", "career_pathways"];
+const SECTION_POLL_MS = 5000;
+const SECTION_GIVE_UP_MS = 90000;
+
+const hasSection = (payload, key) => {
+  const value = payload?.[key];
+  return !!value && Object.keys(value).length > 0;
+};
 
 const KEYBOARD_NAV_KEYS = {
   ARROW_RIGHT: "ArrowRight",
@@ -77,45 +88,17 @@ const extractDegreeCode = (degree) => {
   return finalCode;
 };
 
-const useRoadmapData = (
-  preloadedPayload,
-  preloadedRoadmapId,
-  isRegenerating,
-  setIsRegenerating
-) => {
+const useRoadmapData = (preloadedPayload, preloadedRoadmapId, accessToken) => {
   const [data, setData] = useState(preloadedPayload);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sectionsStatus, setSectionsStatus] = useState("loading");
+  const [pollKey, setPollKey] = useState(0);
   const [header, setHeader] = useState({
     program_name: null,
     uac_code: null,
     degree_code: null, 
   });
-
-  const mergePayloadPreserveMandatoryPlacements = (prevPayload, nextPayload) => {
-    const prev = prevPayload || {};
-    const next = nextPayload || {};
-
-    const prevIE = prev?.industry_experience || {};
-    const nextIE = next?.industry_experience || {};
-
-    // Mandatory placements only change based on main degree program
-    const preservedMandatoryPlacements =
-      prevIE?.mandatory_placements ?? nextIE?.mandatory_placements ?? null;
-
-    return {
-      ...prev,
-      ...next,
-      industry_experience: {
-        ...prevIE,
-        ...nextIE,
-        ...(preservedMandatoryPlacements
-          ? { mandatory_placements: preservedMandatoryPlacements }
-          : {}),
-      },
-    };
-  };
-  
 
   useEffect(() => {
     const fetchByIdIfNeeded = async () => {
@@ -147,100 +130,70 @@ const useRoadmapData = (
     fetchByIdIfNeeded();
   }, [preloadedRoadmapId, data]);
 
-  // Polling effect 
   useEffect(() => {
     if (!preloadedRoadmapId) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const { data: row, error } = await supabase
-          .from("unsw_roadmap")
-          .select("payload")
-          .eq("id", preloadedRoadmapId)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        const newSocieties = row?.payload?.industry_societies;
-        const newExperience = row?.payload?.industry_experience;
-        const newCareers = row?.payload?.career_pathways;
-        const existingSocieties = data?.industry_societies;
-        const existingExperience = data?.industry_experience;
-        const existingCareers = data?.career_pathways;
-
-        if (
-          (newSocieties && !existingSocieties) ||
-          (newExperience && !existingExperience) ||
-          (newCareers && !existingCareers)
-        ) {
-          setData((prev) => mergePayloadPreserveMandatoryPlacements(prev, row.payload));
-
-        }
-      } catch {
-        // polling error — will retry on next interval
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [preloadedRoadmapId, data]);
-
-  useEffect(() => {
-    if (!preloadedRoadmapId || !isRegenerating) return;
-
-    let updateCount = 0;
-    let lastTimestamp = null;
+    let stopped = false;
     let intervalId = null;
+    const startedAt = Date.now();
 
-    const startPolling = async () => {
-      try {
-        // get initial timestamp baseline
-        const { data: initial } = await supabase
-          .from("unsw_roadmap")
-          .select("updated_at")
-          .eq("id", preloadedRoadmapId)
-          .single();
+    const check = async () => {
+      const { data: row, error: pollError } = await supabase
+        .from("unsw_roadmap")
+        .select("payload")
+        .eq("id", preloadedRoadmapId)
+        .maybeSingle();
 
-        lastTimestamp = initial?.updated_at;
-
-        intervalId = setInterval(async () => {
-          try {
-            const { data: row, error } = await supabase
-              .from("unsw_roadmap")
-              .select("payload, updated_at")
-              .eq("id", preloadedRoadmapId)
-              .single();
-
-            if (error) throw error;
-
-            if (row?.updated_at && row.updated_at !== lastTimestamp) {
-              updateCount++;
-              lastTimestamp = row.updated_at;
-
-              // Merge latest payload each time a new bump is detected
-              setData((prev) => mergePayloadPreserveMandatoryPlacements(prev, row.payload));
-
-            }
-
-            // Stop after 3 bumps (all threads done)
-            if (updateCount >= 3) {
-              setIsRegenerating(false);
-              clearInterval(intervalId);
-            }
-          } catch {
-            // polling error — will retry on next interval
-          }
-        }, 3000);
-      } catch {
-        // polling init failed — regeneration not started
+      if (stopped) return true;
+      const timedOut = Date.now() - startedAt > SECTION_GIVE_UP_MS;
+      if (pollError || !row) {
+        if (timedOut) setSectionsStatus("failed");
+        return timedOut;
       }
+
+      const payload = row.payload || {};
+      setData((prev) => ({ ...(prev || {}), ...payload }));
+
+      const failed = payload.industry_failed || [];
+      if (INDUSTRY_KEYS.every((k) => hasSection(payload, k)) && failed.length === 0) {
+        setSectionsStatus("done");
+        return true;
+      }
+      if (failed.length > 0 || timedOut) {
+        setSectionsStatus("failed");
+        return true;
+      }
+      return false;
     };
 
-    startPolling();
+    setSectionsStatus("loading");
+    check().then((finished) => {
+      if (finished || stopped) return;
+      intervalId = setInterval(async () => {
+        if (await check()) clearInterval(intervalId);
+      }, SECTION_POLL_MS);
+    });
 
     return () => {
+      stopped = true;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [preloadedRoadmapId, isRegenerating, setIsRegenerating]);
+  }, [preloadedRoadmapId, pollKey]);
+
+  const retrySections = useCallback(async () => {
+    if (!preloadedRoadmapId) return;
+    setSectionsStatus("loading");
+    try {
+      await apiFetch(`/roadmap/unsw/${preloadedRoadmapId}/industry`, {
+        method: "POST",
+        token: accessToken,
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Retrying roadmap sections failed:", err);
+    }
+    setPollKey((k) => k + 1);
+  }, [preloadedRoadmapId, accessToken]);
 
   const updateHeader = useCallback((degree) => {
     setHeader({
@@ -250,8 +203,27 @@ const useRoadmapData = (
     });
   }, []);
 
-  return { data, loading, error, header, updateHeader };
+  return { data, loading, error, header, updateHeader, sectionsStatus, retrySections };
 };
+
+function SectionError({ onRetry }) {
+  return (
+    <div className="rounded-xl border border-slate-200/30 dark:border-slate-700/30 
+                    bg-white/70 dark:bg-slate-900/60 
+                    p-6 text-center shadow-sm backdrop-blur-sm">
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        This section couldn't be generated.
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="button-primary mt-3 inline-flex items-center justify-center px-5 py-2 rounded-xl text-sm font-semibold"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
 
 const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapId) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -342,23 +314,14 @@ export default function RoadmapUNSWPage() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [userId, setUserId] = useState(null);
+  const { session } = UserAuth();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id);
-    };
-    getUser();
-  }, []);
-
-  const { data, loading, error, header, updateHeader } = useRoadmapData(
+  const { data, loading, error, header, updateHeader, sectionsStatus, retrySections } = useRoadmapData(
     preloadedPayload,
     preloadedRoadmapId,
-    isRegenerating,
-    setIsRegenerating
+    session?.access_token
   );
+
 
   const fetchedDegree = useDegreeData(header.degree_code);
   const activeDegree = degree || fetchedDegree;
@@ -374,6 +337,15 @@ export default function RoadmapUNSWPage() {
 
   const steps = useMemo(() => {
     if (!data) return [];
+
+    const industrySection = (key, content, title, message) => {
+      const failed = data?.industry_failed?.includes(key) || !hasSection(data, key);
+      if (sectionsStatus === "loading" && failed) {
+        return <GeneratingMessage title={title} message={message} />;
+      }
+      if (failed) return <SectionError onRetry={retrySections} />;
+      return content();
+    };
 
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
@@ -435,82 +407,37 @@ export default function RoadmapUNSWPage() {
         key: "career_pathways",
         stage: "Your careers",
         title: "Careers",
-        render: () => {
-          if (isRegenerating) {
-            return (
-              <GeneratingMessage
-                title="Updating with Your Specialisation..."
-                message="Re-mapping personalised career outcomes and graduate pathways for your selected major or honours."
-              />
-            );
-          } 
-
-          const careers = data?.career_pathways;
-          if (!careers || Object.keys(careers).length === 0) {
-            return (
-              <GeneratingMessage
-                title="Generating Career Pathways..."
-                message="Mapping entry-level, mid-career, and senior roles for your field."
-              />
-            );
-          }
-          return <CareerPathways careerPathways={careers} />;
-        },
+        render: () => industrySection(
+          "career_pathways",
+          () => <CareerPathways careerPathways={data.career_pathways} />,
+          "Generating Career Pathways...",
+          "Mapping entry-level, mid-career, and senior roles for your field."
+        ),
       },
       {
         key: "industry_experience",
         stage: "Your careers",
         title: "Internships",
-        render: () => {
-          if (isRegenerating) {
-            return (
-              <GeneratingMessage
-                title="Updating with Your Specialisation..."
-                message="Personalising internship, training, and WIL opportunities based on your selected specialisation."
-              />
-            );
-          }
-
-          const experience = data?.industry_experience;
-          if (!experience || Object.keys(experience).length === 0) {
-            return (
-              <GeneratingMessage
-                title="Generating Industry Experience..."
-                message="Collecting internship programs, recruiting companies, and WIL opportunities."
-              />
-            );
-          }
-          return <IndustryExperience industryExperience={experience} />;
-        },
+        render: () => industrySection(
+          "industry_experience",
+          () => <IndustryExperience industryExperience={data.industry_experience} />,
+          "Generating Industry Experience...",
+          "Collecting internship programs, recruiting companies, and WIL opportunities."
+        ),
       },
       {
         key: "societies",
         stage: "Your careers",
         title: "Societies",
-        render: () => {
-          if (isRegenerating) {
-            return (
-              <GeneratingMessage
-                title="Updating with Your Specialisation..."
-                message="Personalising societies and community recommendations based on your selected major, minor, or honours."
-              />
-            );
-          }
-
-          const societies = data?.industry_societies;
-          if (!societies || Object.keys(societies).length === 0) {
-            return (
-              <GeneratingMessage
-                title="Generating Societies & Community..."
-                message="Finding UNSW societies and community events for your program."
-              />
-            );
-          }
-          return <SocietiesCommunity societies={societies} />;
-        },
+        render: () => industrySection(
+          "industry_societies",
+          () => <SocietiesCommunity societies={data.industry_societies} />,
+          "Generating Societies & Community...",
+          "Finding UNSW societies and community events for your program."
+        ),
       },
     ];
-  }, [data, activeDegree, header, userId, isOwnProgram]);
+  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 
