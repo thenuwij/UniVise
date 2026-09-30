@@ -1,5 +1,5 @@
 // src/pages/MindMeshGraphPage.jsx
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
@@ -11,6 +11,8 @@ import useMindMeshData from "../hooks/useMindMeshData";
 import { colorFor } from "../utils/index";
 import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
+import StatusLegend from "../components/StatusLegend";
+import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
 export default function MindMeshGraphPage() {
@@ -34,13 +36,15 @@ export default function MindMeshGraphPage() {
   const programCode = searchParams.get("program") || enrolled?.degree_code || null;
   const view = searchParams.get("view");
   const isProgramView = !!programCode;
-  const { graph, setGraph, programCourses, programMeta, loading } = useMindMeshData({
+  const { graph, setGraph, programCourses, programMeta, loading, completed, prereqEdges, addPrereqEdges } = useMindMeshData({
     programCode,
     view,
     userId: session?.user?.id,
   });
   const noProgram = !programCode && !enrolledLoading;
   const noCourses = !!programCode && !loading && !graph.nodes.length;
+  const groups = useMemo(() => prereqGroups(prereqEdges), [prereqEdges]);
+  const statusOf = useCallback((code) => courseStatus(code, completed, groups), [completed, groups]);
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -173,6 +177,8 @@ export default function MindMeshGraphPage() {
         metadata: { uoc: n.uoc, faculty: n.faculty, school: n.school, level: n.level },
       }));
 
+      await addPrereqEdges(nodes.map((node) => node.id));
+
       const nodeIds = new Set(nodes.map(n => n.id));
       const validEdges = edgesData.filter(e => nodeIds.has(e.from_key) && nodeIds.has(e.to_key));
 
@@ -288,6 +294,8 @@ export default function MindMeshGraphPage() {
             </div>
           )}
 
+          {graph?.nodes?.length > 0 && <StatusLegend />}
+
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
@@ -306,7 +314,7 @@ export default function MindMeshGraphPage() {
             onBackgroundClick={onBackgroundClick}
             setHoverLink={setHoverLink}
             nodeCanvasObject={(node, ctx) =>
-              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor })
+              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf })
             }
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
@@ -319,6 +327,8 @@ export default function MindMeshGraphPage() {
       {/* Bottom info panel — shown when a node is focused */}
       <MindMeshInfoPanel
         focusedNode={focusedNode}
+        status={focusedNode ? statusOf(focusedNode.id) : null}
+        missing={focusedNode ? unmetGroups(focusedNode.id, completed, groups) : []}
         onDismiss={() => setFocusedNode(null)}
       />
     </div>

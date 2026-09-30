@@ -6,12 +6,37 @@ import {
   fetchProgramCourseCodes,
   fetchSpecialisationCourseCodes,
 } from "@/features/roadmap/utils/programCourses";
+import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
+
+const EDGE_FIELDS = "from_key,to_key,edge_type,confidence,logic_type,group_id";
 
 export default function useMindMeshData({ programCode, view, userId }) {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
   const [programCourses, setProgramCourses] = useState([]);
   const [programMeta, setProgramMeta] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [completed, setCompleted] = useState(new Set());
+  const [prereqEdges, setPrereqEdges] = useState([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchCompletedCourses(userId).then((rows) => {
+      setCompleted(new Set(rows.filter((r) => r.is_completed).map((r) => r.course_code)));
+    });
+  }, [userId]);
+
+  const addPrereqEdges = useCallback(async (codes) => {
+    if (!codes.length) return;
+    const { data } = await supabase
+      .from("mindmesh_edges_global")
+      .select(EDGE_FIELDS)
+      .eq("edge_type", "prereq")
+      .in("to_key", codes);
+    setPrereqEdges((prev) => {
+      const seen = new Set(prev.map((e) => `${e.from_key}|${e.to_key}|${e.group_id}`));
+      return [...prev, ...(data || []).filter((e) => !seen.has(`${e.from_key}|${e.to_key}|${e.group_id}`))];
+    });
+  }, []);
 
   const fetchGraph = useCallback(async () => {
     if (!programCode || !userId) return;
@@ -73,13 +98,14 @@ export default function useMindMeshData({ programCode, view, userId }) {
     const [{ data: edgesFrom }, { data: edgesTo }] = await Promise.all([
       supabase
         .from("mindmesh_edges_global")
-        .select("from_key,to_key,edge_type,confidence,logic_type,group_id")
+        .select(EDGE_FIELDS)
         .in("from_key", programCoursesCodes),
       supabase
         .from("mindmesh_edges_global")
-        .select("from_key,to_key,edge_type,confidence,logic_type,group_id")
+        .select(EDGE_FIELDS)
         .in("to_key", programCoursesCodes),
     ]);
+    setPrereqEdges((edgesTo || []).filter((e) => e.edge_type === "prereq"));
 
     const allEdges = [...(edgesFrom || []), ...(edgesTo || [])];
 
@@ -172,5 +198,5 @@ export default function useMindMeshData({ programCode, view, userId }) {
     fetchGraph();
   }, [fetchGraph]);
 
-  return { graph, setGraph, programCourses, programMeta, loading };
+  return { graph, setGraph, programCourses, programMeta, loading, completed, prereqEdges, addPrereqEdges };
 }

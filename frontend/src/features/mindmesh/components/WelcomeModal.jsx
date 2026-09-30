@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { X, MousePointer2, MousePointerClick, Hand, Network } from "lucide-react";
+import { STATUS } from "../utils/availability";
 
 export default function WelcomeModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -56,21 +57,19 @@ export default function WelcomeModal({ isOpen, onClose }) {
             </div>
           </section>
 
-          {/* Course Node Levels */}
+          {/* Course Colours */}
           <section>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Course Levels</h3>
-            <div className="grid grid-cols-4 gap-2">
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Course Colours</h3>
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { level: "Level 1", code: "1xxx", color: "#2F8DDB" },
-                { level: "Level 2", code: "2xxx", color: "#2563EB" },
-                { level: "Level 3", code: "3xxx", color: "#178756" },
-                { level: "Level 4+", code: "4xxx", color: "#8A4FF7" },
-              ].map(({ level, code, color }) => (
-                <div key={level} className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: color }}>
-                    {code}
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{level}</p>
+                { key: "completed", desc: "You marked it as done" },
+                { key: "available", desc: "Its prerequisites are done" },
+                { key: "locked", desc: "A prerequisite is still missing" },
+              ].map(({ key, desc }) => (
+                <div key={key} className="flex flex-col items-center gap-2 text-center">
+                  <div className="w-12 h-10 rounded-lg shadow-sm" style={{ backgroundColor: STATUS[key].color }} />
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{STATUS[key].label}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{desc}</p>
                 </div>
               ))}
             </div>
