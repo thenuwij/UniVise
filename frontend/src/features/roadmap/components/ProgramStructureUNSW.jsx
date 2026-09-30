@@ -1,9 +1,11 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
+import { UserAuth } from "@/app/AuthContext";
+import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
@@ -52,7 +54,28 @@ function InfoSection({ section }) {
 }
 
 // Expandable Section Card with courses 
-function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
+function DoneToggle({ done, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-pressed={done}
+      className={`ml-2 flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border-2 transition-all ${
+        done
+          ? "bg-green-500 border-green-500 text-white"
+          : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-green-500 hover:text-green-600"
+      }`}
+    >
+      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      Done
+    </button>
+  );
+}
+
+function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, onToggleDone }) {
   const total = section.uoc ?? sumUoC(section.courses);
 
   return (
@@ -140,6 +163,12 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
                     {c.uoc} UOC
                   </span>
                 )}
+                {onToggleDone && (
+                  <DoneToggle
+                    done={!!completed?.[c.code]?.is_completed}
+                    onClick={() => onToggleDone(c, section.title)}
+                  />
+                )}
               </div>
 
             ))}
@@ -159,8 +188,12 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick }) {
 }
 
 // Main 
-export default function ProgramStructureUNSW({ degreeCode, sections: propSections }) {
+export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false }) {
   const navigate = useNavigate();
+  const { session } = UserAuth();
+  const userId = session?.user?.id;
+  const [completed, setCompleted] = useState({});
+  const pendingRef = useRef(new Set());
   const [sections, setSections] = useState([]);
   const [openMap, setOpenMap] = useState({});
   const [loading, setLoading] = useState(false);
@@ -251,6 +284,30 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
     fetchStructure();
   }, [degreeCode, propSections]);
+
+  useEffect(() => {
+    if (!trackCompletion || !userId) return;
+    fetchCompletedCourses(userId).then((rows) => {
+      setCompleted(Object.fromEntries(rows.map((r) => [r.course_code, r])));
+    });
+  }, [trackCompletion, userId]);
+
+  const toggleDone = async (course, category) => {
+    if (!userId || pendingRef.current.has(course.code)) return;
+    pendingRef.current.add(course.code);
+    const existing = completed[course.code];
+    const isCompleted = !existing?.is_completed;
+    setCompleted((prev) => ({ ...prev, [course.code]: { ...existing, course_code: course.code, is_completed: isCompleted } }));
+    try {
+      const row = await setCourseCompleted({ userId, course, existing, isCompleted, category });
+      setCompleted((prev) => ({ ...prev, [course.code]: row }));
+    } catch (err) {
+      console.error("Error saving course:", err);
+      setCompleted((prev) => ({ ...prev, [course.code]: existing }));
+    } finally {
+      pendingRef.current.delete(course.code);
+    }
+  };
 
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
   
@@ -410,6 +467,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                     isOpen={!!openMap[key]}
                     onToggle={() => toggleSection(key)}
                     onCourseClick={handleCourseClick}
+                    completed={completed}
+                    onToggleDone={trackCompletion ? toggleDone : null}
                   />
                 </div>
               );

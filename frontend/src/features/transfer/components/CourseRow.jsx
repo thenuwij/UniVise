@@ -1,41 +1,7 @@
 // src/components/CourseRow.jsx
 import { useState } from "react";
 import { HiCheckCircle } from "react-icons/hi";
-import { supabase } from "@/shared/lib/supabase";
-
-async function recalculateStats(userId) {
-  const { data: courses } = await supabase
-    .from("user_completed_courses")
-    .select("*")
-    .eq("user_id", userId);
-
-  if (!courses) return;
-
-  const uocCompleted = courses
-    .filter((c) => c.is_completed)
-    .reduce((sum, c) => sum + c.uoc, 0);
-
-  const { data: currentStats } = await supabase
-    .from("user_progress_stats")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  if (!currentStats) return;
-
-  const coursesCompletedCount = courses.filter((c) => c.is_completed).length;
-  const uocRemaining = currentStats.total_uoc_required - uocCompleted;
-
-  await supabase
-    .from("user_progress_stats")
-    .update({
-      uoc_completed: uocCompleted,
-      uoc_remaining: uocRemaining,
-      courses_completed_count: coursesCompletedCount,
-      last_updated: new Date().toISOString(),
-    })
-    .eq("user_id", userId);
-}
+import { setCourseCompleted } from "../utils/completedCourses";
 
 export default function CourseRow({
   course,
@@ -51,26 +17,20 @@ export default function CourseRow({
     const newCompletedState = !isCompleted;
     setIsCompleted(newCompletedState);
 
-    if (completed) {
-      await supabase
-        .from("user_completed_courses")
-        .update({ is_completed: newCompletedState })
-        .eq("id", completed.id);
-    } else {
-      await supabase.from("user_completed_courses").insert({
-        user_id: userId,
-        course_code: course.code,
-        course_name: course.name,
-        uoc: course.uoc,
-        is_completed: newCompletedState,
-        category: category,
-        source_type: courseSource?.source_type || 'program',
-        source_code: courseSource?.source_code || null,
+    try {
+      await setCourseCompleted({
+        userId,
+        course,
+        existing: completed,
+        isCompleted: newCompletedState,
+        category,
+        source: courseSource,
       });
+      onUpdate();
+    } catch (err) {
+      console.error("Error saving course:", err);
+      setIsCompleted(!newCompletedState);
     }
-
-    await recalculateStats(userId);
-    onUpdate();
   };
 
   return (
@@ -84,7 +44,11 @@ export default function CourseRow({
     >
       <div className="flex items-center gap-3 flex-1">
         <button
-          onClick={handleToggleComplete}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleComplete();
+          }}
           className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
             isCompleted
               ? "bg-green-500 border-green-500"

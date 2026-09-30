@@ -11,27 +11,26 @@ import {
   HiClipboardList,
   HiCollection,
 } from "react-icons/hi";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import SaveButton from "@/shared/ui/SaveButton";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 
 function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { session } = UserAuth();
-
-  const sectionName = searchParams.get("section");
+  const userId = session?.user?.id;
 
   const [course, setCourse] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
-  const [addingToProgress, setAddingToProgress] = useState(false);
-  const [addedSuccess, setAddedSuccess] = useState(false);
+  const [completedRow, setCompletedRow] = useState(null);
+  const [savingCompleted, setSavingCompleted] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -51,37 +50,32 @@ function CourseDetailPage() {
     return () => { alive = false; };
   }, [courseId]);
 
-  const handleAddToProgress = async () => {
-    if (!session?.user?.id || !course || !sectionName) {
-      toast.error("Unable to add course. Please ensure you're logged in and came from a progress section.");
-      return;
-    }
-    setAddingToProgress(true);
-    try {
-      const uocNumber = course.uoc ? parseInt(course.uoc.match(/\d+/)?.[0] || 0) : 0;
-      const { error } = await supabase
-        .from("user_custom_courses")
-        .insert({
-          user_id: session.user.id,
-          course_code: course.code,
-          course_name: course.title,
-          uoc: uocNumber,
-          section_name: sectionName,
-        });
+  useEffect(() => {
+    if (!userId || !course?.code) return;
+    fetchCompletedCourses(userId).then((rows) => {
+      setCompletedRow(rows.find((r) => r.course_code === course.code) || null);
+    });
+  }, [userId, course?.code]);
 
-      if (error) {
-        console.error("Error adding course:", error);
-        toast.error("Failed to add course to progress. It may already be added.");
-      } else {
-        setAddedSuccess(true);
-        toast.success("Course added to your progress");
-        setTimeout(() => { navigate("/progress"); }, 1500);
-      }
+  const isCompleted = !!completedRow?.is_completed;
+
+  const handleToggleCompleted = async () => {
+    if (!userId || !course) return;
+    setSavingCompleted(true);
+    try {
+      const row = await setCourseCompleted({
+        userId,
+        course: { code: course.code, name: course.title, uoc: String(course.uoc ?? "").match(/\d+/)?.[0] },
+        existing: completedRow,
+        isCompleted: !isCompleted,
+      });
+      setCompletedRow(row);
+      toast.success(row.is_completed ? "Marked as completed" : "Removed from completed courses");
     } catch (err) {
-      console.error("Error:", err);
-      toast.error("An error occurred while adding the course.");
+      console.error("Error saving course:", err);
+      toast.error("Couldn't save. Please try again.");
     } finally {
-      setAddingToProgress(false);
+      setSavingCompleted(false);
     }
   };
 
@@ -122,27 +116,6 @@ function CourseDetailPage() {
           Back
         </button>
 
-        {/* Success Message */}
-        {addedSuccess && (
-          <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
-            <div className="flex items-center gap-3">
-              <HiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-              <p className="text-green-800 dark:text-green-200 font-semibold text-sm">
-                Course added to progress! Redirecting...
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Section Info Banner */}
-        {sectionName && !addedSuccess && (
-          <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-            <p className="text-blue-800 dark:text-blue-200 text-sm font-medium">
-              Adding to: <span className="font-bold">{sectionName}</span>
-            </p>
-          </div>
-        )}
-
         {/* Header */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 mb-6">
           <div className="flex items-start justify-between gap-6">
@@ -171,28 +144,18 @@ function CourseDetailPage() {
             </div>
 
             <div className="flex-shrink-0 flex gap-3">
-              {sectionName && (
+              {userId && (
                 <button
-                  onClick={handleAddToProgress}
-                  disabled={addingToProgress || addedSuccess}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleToggleCompleted}
+                  disabled={savingCompleted}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isCompleted
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "bg-white dark:bg-slate-800 border border-emerald-600 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  }`}
                 >
-                  {addingToProgress ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Adding...</span>
-                    </>
-                  ) : addedSuccess ? (
-                    <>
-                      <HiCheckCircle className="w-4 h-4" />
-                      <span>Added!</span>
-                    </>
-                  ) : (
-                    <>
-                      <HiAcademicCap className="w-4 h-4" />
-                      <span>Add to Progress</span>
-                    </>
-                  )}
+                  {isCompleted ? <HiCheckCircle className="w-4 h-4" /> : <HiAcademicCap className="w-4 h-4" />}
+                  <span>{isCompleted ? "Completed" : "Mark as completed"}</span>
                 </button>
               )}
               <SaveButton

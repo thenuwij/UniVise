@@ -413,7 +413,7 @@ export default function RoadmapUNSWPage() {
               </div>
             );
           }
-          return <ProgramStructureUNSW degreeCode={degreeCodeValue} />;
+          return <ProgramStructureUNSW degreeCode={degreeCodeValue} trackCompletion={isOwnProgram} />;
         },
       },
       {
@@ -510,7 +510,7 @@ export default function RoadmapUNSWPage() {
         },
       },
     ];
-  }, [data, activeDegree, header, userId]);
+  }, [data, activeDegree, header, userId, isOwnProgram]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 
