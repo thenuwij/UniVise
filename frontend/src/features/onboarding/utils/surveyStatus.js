@@ -3,7 +3,7 @@ import { supabase } from "@/shared/lib/supabase";
 export async function hasCompletedSurvey(userId) {
   const { data } = await supabase
     .from("student_uni_data")
-    .select("id")
+    .select("user_id")
     .eq("user_id", userId)
     .limit(1);
   return (data?.length ?? 0) > 0;
