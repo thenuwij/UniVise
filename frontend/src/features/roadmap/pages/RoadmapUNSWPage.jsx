@@ -7,7 +7,6 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import Pill from "../components/Pill";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
-import EntryRequirementsCardUnsw from "../components/EntryRequirementsUnsw";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
@@ -68,12 +67,6 @@ const extractDegreeCode = (degree) => {
     // no degree code available — caller handles null return
   }
   return finalCode;
-};
-
-const getSelectionRank = (entryRequirements) => {
-  return entryRequirements?.selectionRank ?? 
-    entryRequirements?.selection_rank ?? 
-    null;
 };
 
 const useRoadmapData = (
@@ -378,22 +371,14 @@ export default function RoadmapUNSWPage() {
 
     return [
       {
-        key: "entry",
-        title: "Requirements",
-        render: () => (
-          <EntryRequirementsCardUnsw 
-            atar={activeDegree?.lowest_atar ?? data?.entry_requirements?.atar}
-            selectionRank={
-              activeDegree?.lowest_selection_rank ??
-              getSelectionRank(data?.entry_requirements)
-            }
-            subjects={data?.entry_requirements?.subjects || []}
-            notes={data?.entry_requirements?.notes}
-          />
-        ),
-      }, 
+        key: "overview",
+        stage: "Your degree",
+        title: "Overview",
+        render: () => <CapstoneHonours data={data} />,
+      },
       {
         key: "structure",
+        stage: "Your courses",
         title: "Structure",
         render: () => {
           if (!degreeCodeValue) {
@@ -408,6 +393,7 @@ export default function RoadmapUNSWPage() {
       },
       {
         key: "specialisation",
+        stage: "Your courses",
         title: "Specialisations",
         render: () => {
           if (!degreeCodeValue) {
@@ -421,37 +407,34 @@ export default function RoadmapUNSWPage() {
         },
       },
       {
-        key: "capstone",
-        title: "Highlights",
-        render: () => <CapstoneHonours data={data} />,
-      },
-      {
-        key: "societies",
-        title: "Societies",
+        key: "career_pathways",
+        stage: "Your careers",
+        title: "Careers",
         render: () => {
           if (isRegenerating) {
             return (
               <GeneratingMessage
                 title="Updating with Your Specialisation..."
-                message="Personalising societies and community recommendations based on your selected major, minor, or honours."
+                message="Re-mapping personalised career outcomes and graduate pathways for your selected major or honours."
               />
             );
-          }
+          } 
 
-          const societies = data?.industry_societies;
-          if (!societies || Object.keys(societies).length === 0) {
+          const careers = data?.career_pathways;
+          if (!careers || Object.keys(careers).length === 0) {
             return (
               <GeneratingMessage
-                title="Generating Societies & Community..."
-                message="Finding UNSW societies and community events for your program."
+                title="Generating Career Pathways..."
+                message="Mapping entry-level, mid-career, and senior roles for your field."
               />
             );
           }
-          return <SocietiesCommunity societies={societies} />;
+          return <CareerPathways careerPathways={careers} />;
         },
       },
       {
         key: "industry_experience",
+        stage: "Your careers",
         title: "Internships",
         render: () => {
           if (isRegenerating) {
@@ -476,28 +459,29 @@ export default function RoadmapUNSWPage() {
         },
       },
       {
-        key: "career_pathways",
-        title: "Careers",
+        key: "societies",
+        stage: "Your careers",
+        title: "Societies",
         render: () => {
           if (isRegenerating) {
             return (
               <GeneratingMessage
                 title="Updating with Your Specialisation..."
-                message="Re-mapping personalised career outcomes and graduate pathways for your selected major or honours."
-              />
-            );
-          } 
-
-          const careers = data?.career_pathways;
-          if (!careers || Object.keys(careers).length === 0) {
-            return (
-              <GeneratingMessage
-                title="Generating Career Pathways..."
-                message="Mapping entry-level, mid-career, and senior roles for your field."
+                message="Personalising societies and community recommendations based on your selected major, minor, or honours."
               />
             );
           }
-          return <CareerPathways careerPathways={careers} />;
+
+          const societies = data?.industry_societies;
+          if (!societies || Object.keys(societies).length === 0) {
+            return (
+              <GeneratingMessage
+                title="Generating Societies & Community..."
+                message="Finding UNSW societies and community events for your program."
+              />
+            );
+          }
+          return <SocietiesCommunity societies={societies} />;
         },
       },
     ];

@@ -7,6 +7,7 @@
     "src/features/roadmap/components/CareersSection.jsx",
     "src/features/roadmap/components/EntryRequirementsCard.jsx",
     "src/features/roadmap/components/IndustrySection.jsx",
-    "src/features/roadmap/components/ProgramStructure.jsx"
+    "src/features/roadmap/components/ProgramStructure.jsx",
+    "src/features/roadmap/components/EntryRequirementsUnsw.jsx"
   ]
 }
