@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List
 from app.core.database import supabase
 import json
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +48,11 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
         return []
     
 
+COURSE_CODE = re.compile(r"^[A-Z]{4}\d{4}$")
+
+
 def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
-    courses: Dict[str, str] = {}
+    courses: Dict[str, Dict[str, str]] = {}
     if degree_code:
         try:
             result = (
@@ -63,12 +67,20 @@ def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = 
                 if not isinstance(section, dict):
                     continue
                 for course in section.get("courses") or []:
-                    if isinstance(course, dict) and course.get("code"):
-                        courses.setdefault(course["code"].strip().upper(), course.get("name") or "")
+                    code = (course.get("code") or "").strip().upper() if isinstance(course, dict) else ""
+                    if COURSE_CODE.match(code):
+                        courses.setdefault(code, {
+                            "name": course.get("name") or "",
+                            "section": section.get("title") or "",
+                            "section_rule": (section.get("description") or "").strip()[:160],
+                        })
         except Exception as e:
             logger.error(f"fetch_program_course_list failed for {degree_code}: {e}")
 
-    missing = [c.strip().upper() for c in extra_codes or [] if c and c.strip().upper() not in courses]
+    missing = [
+        c.strip().upper() for c in extra_codes or []
+        if c and COURSE_CODE.match(c.strip().upper()) and c.strip().upper() not in courses
+    ]
     if missing:
         titles: Dict[str, str] = {}
         try:
@@ -77,9 +89,9 @@ def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = 
         except Exception as e:
             logger.error(f"Course title lookup failed: {e}")
         for code in missing:
-            courses.setdefault(code, titles.get(code, ""))
+            courses.setdefault(code, {"name": titles.get(code, ""), "section": "Chosen specialisation", "section_rule": ""})
 
-    return [{"code": code, "name": name} for code, name in courses.items()]
+    return [{"code": code, **details} for code, details in courses.items()]
 
 
 def parse_sections_json(sections_data) -> list:

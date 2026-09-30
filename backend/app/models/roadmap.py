@@ -61,6 +61,7 @@ class SocietiesSection(BaseModel):
 class MandatoryPlacements(BaseModel):
     required: bool
     details: str
+    course_codes: list[str]
 
 class InternshipProgram(BaseModel):
     program_name: str
@@ -78,6 +79,7 @@ class IndustryExperience(BaseModel):
     top_recruiting_companies: list[str]
     career_fairs: str
     wil_opportunities: str
+    wil_course_codes: list[str]
 
 class IndustryExperienceSection(BaseModel):
     industry_experience: IndustryExperience

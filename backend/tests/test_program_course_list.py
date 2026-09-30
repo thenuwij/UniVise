@@ -12,6 +12,7 @@ SECTIONS = [
     {"title": "Overview", "courses": []},
     {"title": "Level 1 Core", "courses": [{"code": "COMP1511", "name": "Programming Fundamentals"}]},
     {"title": "Prescribed Electives", "courses": [{"code": "comp1531", "name": "Software Engineering Fundamentals"}, {"code": "COMP1511", "name": "Programming Fundamentals"}]},
+    {"title": "Majors", "courses": [{"code": "COMPA1", "name": "Computer Science"}]},
 ]
 
 
@@ -46,12 +47,12 @@ def test_lists_program_and_specialisation_courses(monkeypatch):
         "unsw_courses": [{"code": "COMP3311", "title": "Database Systems"}],
     }))
 
-    courses = unsw_queries.fetch_program_course_list("3778", ["COMP3311", "COMP1511"])
+    courses = unsw_queries.fetch_program_course_list("3778", ["COMP3311", "COMP1511", "COMPA1"])
 
     assert courses == [
-        {"code": "COMP1511", "name": "Programming Fundamentals"},
-        {"code": "COMP1531", "name": "Software Engineering Fundamentals"},
-        {"code": "COMP3311", "name": "Database Systems"},
+        {"code": "COMP1511", "name": "Programming Fundamentals", "section": "Level 1 Core", "section_rule": ""},
+        {"code": "COMP1531", "name": "Software Engineering Fundamentals", "section": "Prescribed Electives", "section_rule": ""},
+        {"code": "COMP3311", "name": "Database Systems", "section": "Chosen specialisation", "section_rule": ""},
     ]
 
 
@@ -62,5 +63,5 @@ def test_program_without_sections_still_lists_specialisation_courses(monkeypatch
     }))
 
     assert unsw_queries.fetch_program_course_list("3778", ["COMP3311"]) == [
-        {"code": "COMP3311", "name": "Database Systems"},
+        {"code": "COMP3311", "name": "Database Systems", "section": "Chosen specialisation", "section_rule": ""},
     ]

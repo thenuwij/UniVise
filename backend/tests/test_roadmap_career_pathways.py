@@ -17,8 +17,8 @@ CONTEXT = {
     "program_name": "Bachelor of Commerce",
     "faculty": "UNSW Business School",
     "program_courses": [
-        {"code": "ACCT1501", "name": "Accounting and Financial Management 1A"},
-        {"code": "COMM1140", "name": "Financial Management"},
+        {"code": "ACCT1501", "name": "Accounting and Financial Management 1A", "section": "Core", "section_rule": ""},
+        {"code": "COMM1140", "name": "Financial Management", "section": "Core", "section_rule": ""},
     ],
 }
 
@@ -107,7 +107,7 @@ def test_drops_course_codes_outside_the_program(monkeypatch):
     role["degree_path"] = "Start with FAKE9999 and ACCT1501."
 
     async def reply(prompt, schema, **kwargs):
-        assert "ACCT1501: Accounting and Financial Management 1A" in prompt
+        assert "Core\n- ACCT1501: Accounting and Financial Management 1A" in prompt
         return CareerPathwaysSection.model_validate(invented)
 
     monkeypatch.setattr(industry, "ask_gpt_structured", reply)

@@ -22,8 +22,15 @@ COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
 def course_list_for_prompt(courses: list) -> str:
     if not courses:
         return "The program's course list is not available, so do not name any course codes."
-    lines = "\n".join(f"- {c['code']}: {c['name']}" for c in courses)
-    return f"The program's real courses. Only ever name course codes from this list, never invent one:\n{lines}"
+    sections: Dict[str, list] = {}
+    for c in courses:
+        sections.setdefault((c.get("section") or "Other", c.get("section_rule") or ""), []).append(c)
+    blocks = []
+    for (title, rule), items in sections.items():
+        header = f"{title}: {rule}" if rule else title
+        blocks.append(header + "\n" + "\n".join(f"- {c['code']}: {c['name']}" for c in items))
+    listing = "\n\n".join(blocks)
+    return f"The program's real courses, grouped by the Handbook section and its rule. Only ever name course codes from this list, never invent one:\n{listing}"
 
 
 def keep_listed_codes(codes: list, allowed: set, limit: int) -> list:
@@ -245,6 +252,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     A. MANDATORY PLACEMENTS
       - Whether required for degree completion
       - Duration, timing, and key requirements if applicable
+      - course_codes: the placement or industrial training courses from the course list below (for example an industrial training course, if it is listed). If none is in the list, return an empty list and say "not listed" in details.
 
     B. INTERNSHIP PROGRAMS (4-6 programs)
       - ONLY include real, well-known graduate internship programs that are verified to exist
@@ -264,6 +272,9 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     D. CAREER EVENTS & WIL
       - Major career fairs or employer events
       - Work Integrated Learning subjects or co-op programs
+      - wil_course_codes: WIL or industry project courses from the course list below. If none is in the list, return an empty list and say "not listed" in wil_opportunities.
+
+    {course_list_for_prompt(context.get("program_courses") or [])}
 
     REQUIRED JSON OUTPUT:
     {{
@@ -298,7 +309,15 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     try:
         section = await ask_claude_structured(prompt, IndustryExperienceSection, model="claude-haiku-4-5-20251001")
         result = section.model_dump()
-        programs = result.get("industry_experience", {}).get("internship_programs", [])
+        experience = result["industry_experience"]
+        allowed = {c["code"] for c in context.get("program_courses") or []}
+        placements = experience["mandatory_placements"]
+        placements["course_codes"] = keep_listed_codes(placements["course_codes"], allowed, 10)
+        placements["details"] = replace_unlisted_codes(placements["details"], allowed)
+        experience["wil_course_codes"] = keep_listed_codes(experience["wil_course_codes"], allowed, 10)
+        experience["wil_opportunities"] = replace_unlisted_codes(experience["wil_opportunities"], allowed)
+        experience["career_fairs"] = replace_unlisted_codes(experience["career_fairs"], allowed)
+        programs = experience.get("internship_programs", [])
         logger.info(f"Industry generated {len(programs)} internship programs")
 
         # Validate apply_urls in parallel; replace dead links with fallback search redirect
@@ -319,12 +338,14 @@ You are a UNSW career advisor. Provide industry experience information for {prog
             "industry_experience": {
                 "mandatory_placements": {
                     "required": False,
-                    "details": "Information temporarily unavailable"
+                    "details": "Information temporarily unavailable",
+                    "course_codes": [],
                 },
                 "internship_programs": [],
                 "top_recruiting_companies": [],
                 "career_fairs": "Information temporarily unavailable",
-                "wil_opportunities": "Information temporarily unavailable"
+                "wil_opportunities": "Information temporarily unavailable",
+                "wil_course_codes": [],
             },
             "failed": True,
         }

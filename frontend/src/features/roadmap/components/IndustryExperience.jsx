@@ -17,8 +17,13 @@ export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const internshipPrograms = industryExperience?.internship_programs || [];
   const topCompanies = industryExperience?.top_recruiting_companies || [];
+  const placements = industryExperience?.mandatory_placements;
+  const placementCodes = placements?.course_codes || [];
+  const wilCodes = industryExperience?.wil_course_codes || [];
+  const listedCourses = [...placementCodes, ...wilCodes.filter((code) => !placementCodes.includes(code))];
+  const showPlacements = placements?.required || listedCourses.length > 0;
 
-  if (!internshipPrograms.length && !topCompanies.length) {
+  if (!internshipPrograms.length && !topCompanies.length && !showPlacements) {
     return null;
   }
 
@@ -43,6 +48,33 @@ export default function IndustryExperience({ industryExperience }) {
           </h3>
         </div>
       </div>
+
+      {showPlacements && (
+        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <h5 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-2">
+            Placements and work-integrated learning
+          </h5>
+          {placements?.required && placements.details && (
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2">
+              <span className="font-semibold">Required placement: </span>
+              {placements.details}
+            </p>
+          )}
+          {listedCourses.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {listedCourses.map((code) => (
+                <span
+                  key={code}
+                  className="px-3 py-1 rounded-lg text-sm font-bold bg-blue-50 dark:bg-blue-900/20
+                            border-2 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300"
+                >
+                  {code}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* INTERNSHIP PROGRAMS SECTION */}
       {internshipPrograms.length > 0 && (
