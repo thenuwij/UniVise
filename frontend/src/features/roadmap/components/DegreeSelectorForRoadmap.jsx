@@ -20,6 +20,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
       const { data, error } = await supabase
         .from("unsw_degrees_final")
         .select("*")
+        .eq("is_offered", true)
         .range(0, 2999);
       if (!error && data) {
         setDegrees(data);

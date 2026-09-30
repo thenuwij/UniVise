@@ -15,7 +15,8 @@ function DegreeSearchPlanner() {
       try {
         const { data, error } = await supabase
           .from("unsw_degrees_final")
-          .select("id, program_name, degree_code, faculty, minimum_uoc, duration");
+          .select("id, program_name, degree_code, faculty, minimum_uoc, duration")
+          .eq("is_offered", true);
         if (error) throw error;
         setAllDegrees(data || []);
         const unique = [...new Set(data.map((d) => d.faculty).filter(Boolean))].sort();

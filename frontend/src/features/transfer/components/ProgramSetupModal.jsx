@@ -33,6 +33,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
       const { data } = await supabase
         .from("unsw_degrees_final")
         .select("degree_code, program_name, faculty")
+        .eq("is_offered", true)
         .order("program_name");
       setDegrees(data || []);
     };

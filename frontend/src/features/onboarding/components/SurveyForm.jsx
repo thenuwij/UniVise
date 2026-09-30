@@ -133,6 +133,7 @@ function ProgramPicker({ value, onSelect }) {
     supabase
       .from("unsw_degrees_final")
       .select("degree_code, program_name")
+      .eq("is_offered", true)
       .order("program_name")
       .then(({ data }) => setPrograms((data || []).filter(p => !NON_BACHELOR.test(p.program_name))));
   }, []);
