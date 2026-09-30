@@ -1,6 +1,6 @@
 // src/pages/MindMeshGraphPage.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
@@ -11,6 +11,7 @@ import useMindMeshData from "../hooks/useMindMeshData";
 import { colorFor } from "../utils/index";
 import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
+import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -29,13 +30,17 @@ export default function MindMeshGraphPage() {
   const graphHistoryRef = useRef([]);
   const lastClickRef = useRef({ id: null, time: 0 });
 
-  const programCode = searchParams.get("program");
+  const { program: enrolled, loading: enrolledLoading } = useEnrolledProgram();
+  const programCode = searchParams.get("program") || enrolled?.degree_code || null;
+  const view = searchParams.get("view");
   const isProgramView = !!programCode;
-  const { graph, setGraph, programCourses, programMeta } = useMindMeshData({
-    isProgramView,
-    session,
-    programCode
+  const { graph, setGraph, programCourses, programMeta, loading } = useMindMeshData({
+    programCode,
+    view,
+    userId: session?.user?.id,
   });
+  const noProgram = !programCode && !enrolledLoading;
+  const noCourses = !!programCode && !loading && !graph.nodes.length;
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -262,6 +267,26 @@ export default function MindMeshGraphPage() {
       {/* Graph Canvas */}
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
+
+          {(noProgram || noCourses) && (
+            <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
+              <div className="max-w-md p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm text-center">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                  {noProgram
+                    ? "We don't know your program yet, so there is nothing to show here."
+                    : view === "specialisations"
+                    ? "Choose a major or minor in the Specialisations step of your roadmap to see its courses here."
+                    : "UniVise does not have a course list for this program yet. Choose a major in the Specialisations step of your roadmap to see its courses here."}
+                </p>
+                <Link
+                  to="/roadmap-entryload"
+                  className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                >
+                  Open My Roadmap
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (

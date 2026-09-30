@@ -6,25 +6,13 @@ import SaveButton from "@/shared/ui/SaveButton";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
+import { fetchMajorSections, hasCourses, parseSections } from "../utils/programCourses";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
-
-function parseSections(raw) {
-  try {
-    let parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn("JSON parse error for sections:", err);
-    return [];
-  }
-}
-
-const hasCourses = (section) => section?.courses?.length > 0;
 
 function NoCourseListNotice({ handbookUrl }) {
   return (
@@ -235,15 +223,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
-    
-    // Clear any stale data first
-    localStorage.removeItem("programCourses");
-    
-    // Small delay to ensure clear happens
-    setTimeout(() => {
-      localStorage.setItem("programCourses", JSON.stringify(allCourses));
-      navigate(`/coursemesh?program=${degreeCode}`);
-    }, 10);
+    navigate(`/coursemesh?program=${degreeCode}`);
   };
 
   // Fetch program structure
@@ -303,30 +283,9 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       return;
     }
     let active = true;
-    const fetchMajor = async () => {
-      const { data: selections } = await supabase
-        .from("user_specialisation_selections")
-        .select("major_id")
-        .eq("user_id", userId)
-        .eq("degree_code", degreeCode)
-        .limit(1);
-      const majorId = selections?.[0]?.major_id;
-      if (!majorId) {
-        if (active) setMajor(null);
-        return;
-      }
-      const { data: spec } = await supabase
-        .from("unsw_specialisations")
-        .select("major_name, sections")
-        .eq("id", majorId)
-        .maybeSingle();
-      if (!active || !spec) return;
-      const majorSections = parseSections(spec.sections).filter(
-        (sec) => hasCourses(sec) && !sec.title?.toLowerCase().includes("overview")
-      );
-      setMajor(majorSections.length ? { name: spec.major_name, sections: majorSections } : null);
-    };
-    fetchMajor();
+    fetchMajorSections(userId, degreeCode).then((found) => {
+      if (active) setMajor(found);
+    });
     return () => { active = false; };
   }, [loading, programHasCourses, degreeCode, userId]);
 
