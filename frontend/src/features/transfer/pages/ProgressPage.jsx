@@ -159,6 +159,7 @@ function ProgressPage() {
       const { data: programs } = await supabase
         .from("unsw_degrees_final")
         .select("degree_code, program_name, faculty")
+        .eq("is_offered", true)
         .order("program_name");
       setAvailablePrograms(programs || []);
       setProgramsLoading(false);

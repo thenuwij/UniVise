@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HiCheckCircle, HiX } from "react-icons/hi";
 import toast from "react-hot-toast";
 import { supabase } from "@/shared/lib/supabase";
+import { saveEnrolledProgram } from "../utils/enrolledProgram";
 
 export default function ProgramSetupModal({ onClose, userId, onComplete }) {
   const [selectedDegree, setSelectedDegree] = useState(null);
@@ -32,6 +33,7 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
       const { data } = await supabase
         .from("unsw_degrees_final")
         .select("degree_code, program_name, faculty")
+        .eq("is_offered", true)
         .order("program_name");
       setDegrees(data || []);
     };
@@ -47,52 +49,12 @@ export default function ProgramSetupModal({ onClose, userId, onComplete }) {
     setLoading(true);
 
     try {
-      const { data: degreeData } = await supabase
-        .from("unsw_degrees_final")
-        .select("minimum_uoc")
-        .eq("degree_code", selectedDegree.degree_code)
-        .single();
-
-      const totalUOC = parseInt(degreeData?.minimum_uoc || 0);
-
-      await supabase.from("user_enrolled_program").delete().eq("user_id", userId);
-      await supabase.from("user_progress_stats").delete().eq("user_id", userId);
-      await supabase.from("user_completed_courses").delete().eq("user_id", userId);
-
-      const { data: programData, error: programError } = await supabase
-        .from("user_enrolled_program")
-        .insert({
-          user_id: userId,
-          degree_code: selectedDegree.degree_code,
-          program_name: selectedDegree.program_name,
-          specialisation_codes: [],
-          specialisation_names: [],
-        })
-        .select()
-        .single();
-
-      if (programError) {
-        console.error("Error saving program:", programError);
-        toast.error("Failed to save program. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      await supabase.from("user_progress_stats").insert({
-        user_id: userId,
-        total_uoc_required: totalUOC,
-        uoc_completed: 0,
-        uoc_remaining: totalUOC,
-        current_wam: null,
-        courses_completed_count: 0,
-        courses_remaining_count: 0,
-      });
-
+      const programData = await saveEnrolledProgram(userId, selectedDegree);
       setLoading(false);
       onComplete(programData);
     } catch (error) {
-      console.error("Error in handleSave:", error);
-      toast.error("An error occurred. Please try again.");
+      console.error("Error saving program:", error);
+      toast.error("Failed to save program. Please try again.");
       setLoading(false);
     }
   };

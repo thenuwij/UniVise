@@ -192,7 +192,7 @@ function IndeterminateBar() {
   );
 }
 
-const POLL_INTERVAL_MS = 8_000;
+const POLL_INTERVAL_MS = 3_000;
 const MAX_POLL_MS = 180_000; // 3 minutes
 
 function PreparingState({ onRegenerate, regenerating }) {

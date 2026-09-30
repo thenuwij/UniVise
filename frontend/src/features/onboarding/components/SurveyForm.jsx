@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
@@ -7,6 +7,8 @@ import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
+import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
+import { startRoadmapInBackground } from "@/features/roadmap/utils/roadmapGeneration";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -122,13 +124,68 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
   );
 }
 
+const NON_BACHELOR = /^(Diploma|Undergraduate Certificate)|Preparation|Preparatory|Pathway Program/i;
+
+function ProgramPicker({ value, onSelect }) {
+  const [programs, setPrograms] = useState([]);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("unsw_degrees_final")
+      .select("id, degree_code, program_name")
+      .eq("is_offered", true)
+      .order("program_name")
+      .then(({ data }) => setPrograms((data || []).filter(p => !NON_BACHELOR.test(p.program_name))));
+  }, []);
+
+  const matches = useMemo(() => {
+    const shortName = name => name.replace(/bachelor of /gi, "").trim().toLowerCase();
+    const q = shortName(query);
+    if (!q) return [];
+    return programs
+      .map(p => ({ ...p, short: shortName(p.program_name) }))
+      .filter(p => p.short.includes(q) || p.degree_code.startsWith(q))
+      .sort((a, b) => a.short.indexOf(q) - b.short.indexOf(q) || a.short.length - b.short.length)
+      .slice(0, 8);
+  }, [programs, query]);
+
+  return (
+    <div>
+      {value && (
+        <div className="mb-3">
+          <Chip label={`${value.program_name} (${value.degree_code})`} onRemove={() => onSelect(null)} />
+        </div>
+      )}
+      <StyledInput
+        placeholder="Search by name or code, e.g. Computer Science or 3778"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+      <div className="flex flex-col gap-2 mt-3">
+        {matches.map(p => (
+          <OptionButton
+            key={p.degree_code}
+            label={`${p.program_name} (${p.degree_code})`}
+            selected={value?.degree_code === p.degree_code}
+            onClick={() => onSelect(p)}
+          />
+        ))}
+      </div>
+      {query.trim() && programs.length > 0 && !matches.length && (
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">No matching programs.</p>
+      )}
+    </div>
+  );
+}
+
 // ── Main Form ──────────────────────────────────────────────────────
 
 function SurveyForm() {
   const { session } = UserAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [userType, setUserType] = useState("");
+  const [step, setStep] = useState(2);
+  const [userType, setUserType] = useState("university");
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -202,11 +259,12 @@ function SurveyForm() {
     }
 
     if (userType === "university") {
+      const program = formData.program_not_listed ? null : formData.program;
       const { error } = await supabase.from("student_uni_data").insert([{
         user_id: session?.user?.id,
-        degree_stage: formData.degree_stage_other || formData.degree_stage || null,
+        degree_stage: "Bachelor's Degree",
         academic_year: formData.academic_year_other || formData.academic_year || null,
-        degree_field: formData.degree_field_other || formData.degree_field || null,
+        degree_field: program?.program_name || formData.program_other?.trim() || null,
         interest_areas: formData.interest_areas || [],
         interest_areas_other: formData.interest_areas_other || null,
         priorities: formData.priorities || [],
@@ -215,17 +273,28 @@ function SurveyForm() {
         hobbies_other: formData.hobbies_other || null,
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
+      if (program) {
+        try {
+          await saveEnrolledProgram(session.user.id, program);
+        } catch (err) {
+          console.error("Error saving program:", err);
+        }
+      }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       generateRecommendations().catch(console.error);
-      navigate("/quiz/loading");
+      if (program) {
+        startRoadmapInBackground({ degreeId: program.id, accessToken: session?.access_token })
+          .catch(err => console.error("Background roadmap failed:", err));
+      }
+      navigate("/dashboard", { replace: true });
     }
   };
 
-  const totalSteps = userType === "high_school" ? 8 : 8;
+  const totalSteps = userType === "high_school" ? 8 : 7;
 
   return (
     <div className="w-full max-w-xl">
-      <SurveyProgressBar step={step} totalSteps={userType ? totalSteps : 1} />
+      <SurveyProgressBar step={step - 1} totalSteps={totalSteps - 1} />
 
       {/* ── Step 1: User type ── */}
       {step === 1 && (
@@ -468,19 +537,24 @@ function SurveyForm() {
 
       {userType === "university" && step === 2 && (
         <div>
-          <StepHeading>What stage of study are you in?</StepHeading>
-          <StepSubtitle>We'll tailor recommendations to your level.</StepSubtitle>
-          <div className="flex flex-col gap-2">
-            {["Bachelor's Degree", "Master's Degree", "PhD or Doctoral Program", "Other"].map(o => (
-              <OptionButton key={o} label={o} selected={formData.degree_stage === o} onClick={() => handleChange("degree_stage", o)} />
-            ))}
+          <StepHeading>Which UNSW program are you enrolled in?</StepHeading>
+          <StepSubtitle>UniVise currently supports undergraduate Bachelor's programs.</StepSubtitle>
+          {!formData.program_not_listed && (
+            <ProgramPicker value={formData.program} onSelect={p => handleChange("program", p)} />
+          )}
+          <div className="mt-3">
+            <OptionButton
+              label="My program isn't listed"
+              selected={!!formData.program_not_listed}
+              onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
+            />
           </div>
-          {formData.degree_stage === "Other" && (
+          {formData.program_not_listed && (
             <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.degree_stage_other || ""} onChange={e => handleChange("degree_stage_other", e.target.value)} />
+              <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.degree_stage || (formData.degree_stage === "Other" && !formData.degree_stage_other)} />
+          <NavButtons onNext={handleNext} nextDisabled={formData.program_not_listed ? !formData.program_other?.trim() : !formData.program} />
         </div>
       )}
 
@@ -498,24 +572,6 @@ function SurveyForm() {
       )}
 
       {userType === "university" && step === 4 && (
-        <div>
-          <StepHeading>Which field is your program in?</StepHeading>
-          <StepSubtitle>Select the one that best describes your degree.</StepSubtitle>
-          <div className="grid grid-cols-2 gap-2">
-            {["Commerce & Business","Science","Engineering","Computer Science & IT","Arts & Humanities","Law","Health & Medicine","Media & Communications","Other"].map(o => (
-              <MultiOptionButton key={o} label={o} selected={formData.degree_field === o} onClick={() => handleChange("degree_field", o)} />
-            ))}
-          </div>
-          {formData.degree_field === "Other" && (
-            <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.degree_field_other || ""} onChange={e => handleChange("degree_field_other", e.target.value)} />
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.degree_field || (formData.degree_field === "Other" && !formData.degree_field_other)} />
-        </div>
-      )}
-
-      {userType === "university" && step === 5 && (
         <div>
           <StepHeading>Which areas interest you most?</StepHeading>
           <StepSubtitle>Select all that apply — helps us find the best career matches.</StepSubtitle>
@@ -542,7 +598,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 6 && (
+      {userType === "university" && step === 5 && (
         <div>
           <StepHeading>What matters most to you in your future career?</StepHeading>
           <StepSubtitle>Pick up to 3 — helps us weigh recommendations toward what you actually want.</StepSubtitle>
@@ -582,7 +638,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 7 && (
+      {userType === "university" && step === 6 && (
         <div>
           <StepHeading>How do you like to work?</StepHeading>
           <StepSubtitle>Select all that apply — most people enjoy a mix.</StepSubtitle>
@@ -611,7 +667,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 8 && (
+      {userType === "university" && step === 7 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
           <StepSubtitle>Helps Eunice understand what drives you beyond studies.</StepSubtitle>

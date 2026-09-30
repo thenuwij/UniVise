@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/shared/lib/supabase';
+import { pathAfterSignIn } from '@/features/onboarding/utils/surveyStatus';
 
 function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const redirect = (session) => {
-      const hasStudentType = session.user.user_metadata?.student_type;
-      navigate(hasStudentType ? '/dashboard' : '/survey', { replace: true });
+    const redirect = async (session) => {
+      navigate(await pathAfterSignIn(session.user.id), { replace: true });
     };
 
     // Try getSession first (works if token exchange already completed)

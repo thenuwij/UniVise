@@ -10,7 +10,7 @@ import {
 } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
-import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineUserCircle, HiX } from "react-icons/hi";
+import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineSparkles, HiOutlineUserCircle, HiX } from "react-icons/hi";
 import { HiOutlineIdentification } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
@@ -430,6 +430,20 @@ function ProfilePage() {
                       )}
                     </>
                   )}
+
+                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/traits")}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    <HiOutlineSparkles className="h-5 w-5" />
+                    Discover your personality type
+                  </button>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Optional: a short quiz about how you like to work.
+                  </p>
                 </div>
               </div>
             </div>
