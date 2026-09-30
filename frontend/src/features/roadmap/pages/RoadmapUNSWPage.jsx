@@ -16,6 +16,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import SpecialisationUNSW from "../components/SpecialisationUNSW";
 import SectionTitle from "../components/SectionTitle";
+import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { supabase } from "@/shared/lib/supabase";
 
 const DEFAULT_PROGRAM_NAME = "";
@@ -360,6 +361,9 @@ export default function RoadmapUNSWPage() {
 
   const fetchedDegree = useDegreeData(header.degree_code);
   const activeDegree = degree || fetchedDegree;
+  const { program: enrolledProgram } = useEnrolledProgram();
+  const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
+  const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
 
   useEffect(() => {
     if (degree) { 
@@ -512,7 +516,10 @@ export default function RoadmapUNSWPage() {
     header.program_name ||
     DEFAULT_PROGRAM_NAME;
 
-  const handleBackClick = useCallback(() => navigate("/roadmap"), [navigate]);
+  const handleBackClick = useCallback(
+    () => navigate(isOwnProgram ? "/dashboard" : "/roadmap-entryload"),
+    [navigate, isOwnProgram]
+  );
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
   return (
@@ -529,17 +536,24 @@ export default function RoadmapUNSWPage() {
 
       <div className="mx-20 pt-14 pb-10">
         
-        {/* Back button */}
-        <button
-          onClick={handleBackClick}
-          className="group inline-flex items-center gap-2 
-                     text-slate-600 dark:text-slate-300 
-                     hover:text-sky-600 dark:hover:text-sky-400 
-                     transition-colors duration-200"
-        >
-          <ArrowLeft className="h-4 w-4 opacity-70 group-hover:opacity-100" />
-          <span>Back</span>
-        </button>
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={handleBackClick}
+            className="group inline-flex items-center gap-2 
+                       text-slate-600 dark:text-slate-300 
+                       hover:text-sky-600 dark:hover:text-sky-400 
+                       transition-colors duration-200"
+          >
+            <ArrowLeft className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+            <span>{isOwnProgram ? "Back" : "Back to my roadmap"}</span>
+          </button>
+          <button
+            onClick={() => navigate("/roadmap")}
+            className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Explore a different degree
+          </button>
+        </div>
 
         {/* Hero section */}
         <GradientCard seamless className="w-full mt-3 shadow-sm

@@ -1,6 +1,7 @@
 // src/pages/RoadmapPage.jsx
 import { useCallback, useEffect, useState } from "react";
 import {
+  HiArrowLeft,
   HiArrowRight,
   HiSearch,
   HiStar,
@@ -10,17 +11,14 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import DegreeSelectorSection from "../components/DegreeSelectorSection";
 import GenerateButton from "../components/GenerateButton";
-import RecommendedDegrees from "../components/RecommendedDegrees";
-import { useRoadmapData } from "../hooks/useRoadmapData";
+import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 
 function RoadmapPage() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDegreeId, setSelectedDegreeId] = useState(null);
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const { userType, recommendations, loading: isLoadingRecommendations, error: recommendationsError } = useRoadmapData();
+  const { program: enrolledProgram } = useEnrolledProgram();
 
   const openDrawer = useCallback(() => setIsMenuOpen(true), []);
   const closeDrawer = useCallback(() => setIsMenuOpen(false), []);
@@ -32,15 +30,8 @@ function RoadmapPage() {
   }, [selectedDegreeId]);
 
   const handleProceed = () => {
-    const type =
-      userType === "high_school"
-        ? selectedDegreeObject.source === "unsw_selector"
-          ? "unsw"
-          : "school"
-        : "unsw";
-
     navigate("/roadmap-loading", {
-      state: { type, degree: selectedDegreeObject },
+      state: { type: "unsw", degree: selectedDegreeObject },
       replace: true,
     });
   };
@@ -59,15 +50,24 @@ function RoadmapPage() {
 
           {/* Header - Original Layout with Tag and Button on Right */}
           <div className="mt-8 mb-8">
+            <button
+              onClick={() => navigate(enrolledProgram ? "/roadmap-entryload" : "/dashboard")}
+              className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+            >
+              <HiArrowLeft className="w-4 h-4" />
+              {enrolledProgram ? "Back to my roadmap" : "Back to dashboard"}
+            </button>
             <div className="flex items-end justify-between gap-6">
               <div className="flex-1">
-                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-                  Generate Your{" "}
+                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                  Explore a{" "}
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-sky-600">
-                    Roadmap
+                    Different Degree
                   </span>
                 </h1>
-
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Search any UNSW program to see its roadmap.
+                </p>
               </div>
 
               <div className="flex-shrink-0">
@@ -99,7 +99,7 @@ function RoadmapPage() {
                 </div>
               </div>
               <button
-                onClick={() => { setSelectedDegreeId(null); setSelectedDegreeObject(null); setSearchQuery(""); }}
+                onClick={() => { setSelectedDegreeId(null); setSelectedDegreeObject(null); }}
                 className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               >
                 Clear
@@ -107,91 +107,27 @@ function RoadmapPage() {
             </div>
           )}
 
-          {/* Error Message */}
-          {recommendationsError && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-700">
-              <p className="text-red-700 dark:text-red-300 text-sm font-medium text-center">
-                Failed to load recommendations. Try again later.
-              </p>
-            </div>
-          )}
-
           <div className="mb-20">
-
-            {/* Full-width search bar */}
-            <div className="relative mb-6">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                <HiSearch className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-600 shadow-lg backdrop-blur-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 px-8 py-5 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-900/40">
+                    <HiSearch className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Search UNSW programs</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Click a degree to select it</p>
+                  </div>
+                </div>
               </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Start typing to search all UNSW programs..."
-                className="w-full pl-16 pr-4 py-4 rounded-2xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-600 dark:placeholder-slate-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm"
-                >
-                  Clear
-                </button>
-              )}
+              <div className="p-6">
+                <DegreeSelectorSection
+                  selectedDegreeId={selectedDegreeId}
+                  setSelectedDegreeId={setSelectedDegreeId}
+                  setSelectedDegreeObject={setSelectedDegreeObject}
+                />
+              </div>
             </div>
-
-            {/* Recommendations — hidden when searching */}
-            {!searchQuery && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-600 shadow-lg backdrop-blur-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-8 py-5 border-b border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/40">
-                      <HiStar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Your Recommendations</h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Click a degree to select it</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <RecommendedDegrees
-                    userType={userType}
-                    recommendations={recommendations}
-                    loading={isLoadingRecommendations}
-                    selectedDegreeId={selectedDegreeId}
-                    setSelectedDegreeId={setSelectedDegreeId}
-                    setSelectedDegreeObject={setSelectedDegreeObject}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Search results — shown when searching */}
-            {searchQuery && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-600 shadow-lg backdrop-blur-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 px-8 py-5 border-b border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-900/40">
-                      <HiSearch className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Search Results</h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Click a degree to select it</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <DegreeSelectorSection
-                    selectedDegreeId={selectedDegreeId}
-                    setSelectedDegreeId={setSelectedDegreeId}
-                    setSelectedDegreeObject={setSelectedDegreeObject}
-                    initialQuery={searchQuery}
-                  />
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
       </div>
