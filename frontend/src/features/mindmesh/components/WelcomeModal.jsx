@@ -16,7 +16,7 @@ export default function WelcomeModal({ isOpen, onClose }) {
           <div className="flex items-center gap-3">
             <Network className="h-7 w-7 text-slate-700 dark:text-slate-300" />
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">MindMesh Guide</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">CourseMesh Guide</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">How to read and interact with the course graph</p>
             </div>
           </div>

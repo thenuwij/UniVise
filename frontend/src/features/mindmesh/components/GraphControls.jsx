@@ -58,10 +58,10 @@ export default forwardRef(function GraphControls({
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600
                            dark:from-blue-400 dark:via-sky-400 dark:to-cyan-400
                            bg-clip-text text-transparent tracking-tight leading-tight">
-              MindMesh
+              CourseMesh
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
-              Prerequisite visualizer
+              How your courses connect
             </p>
           </div>
 

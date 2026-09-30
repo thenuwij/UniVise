@@ -75,7 +75,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
     // Small delay to ensure clear happens
     setTimeout(() => {
       localStorage.setItem("programCourses", JSON.stringify(allCourses));
-      navigate(`/planner/mindmesh?program=${degreeCode}`);
+      navigate(`/coursemesh?program=${degreeCode}`);
     }, 10);
   };
   
@@ -620,7 +620,7 @@ export default function SpecialisationUNSW({ degreeCode }) {
                         disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <Layers className="h-5 w-5" />
-              Visualise Courses
+              Open in CourseMesh
             </button>
           </div>
         </div>

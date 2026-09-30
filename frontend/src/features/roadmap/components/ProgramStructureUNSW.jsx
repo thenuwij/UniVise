@@ -242,7 +242,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     // Small delay to ensure clear happens
     setTimeout(() => {
       localStorage.setItem("programCourses", JSON.stringify(allCourses));
-      navigate(`/planner/mindmesh?program=${degreeCode}`);
+      navigate(`/coursemesh?program=${degreeCode}`);
     }, 10);
   };
 
@@ -456,7 +456,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                       shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
           >
             <Layers className="w-5 h-5" />
-            Visualise Courses
+            Open in CourseMesh
           </button>
         </div>
       </div>
@@ -466,7 +466,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <Info className="h-4 w-4 flex-shrink-0 text-blue-500" />
-          <span>Click sections to expand courses · Click any course for details · Use <span className="text-blue-600 dark:text-blue-400 font-medium">Visualise Courses</span> to see prerequisites</span>
+          <span>Click sections to expand courses · Click any course for details · Use <span className="text-blue-600 dark:text-blue-400 font-medium">Open in CourseMesh</span> to see how courses connect</span>
         </div>
         {hasExpandableSections && (
           <div className="flex gap-2 flex-shrink-0">
