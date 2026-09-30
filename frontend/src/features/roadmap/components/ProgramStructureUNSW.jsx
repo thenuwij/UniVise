@@ -7,6 +7,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { fetchMajorSections, hasCourses, parseSections } from "../utils/programCourses";
+import SuggestedNext from "./SuggestedNext";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
@@ -434,6 +435,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         )}
       </div>
+
+      {trackCompletion && <SuggestedNext degreeCode={degreeCode} onCourseClick={handleCourseClick} />}
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">

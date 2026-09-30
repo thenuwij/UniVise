@@ -26,7 +26,7 @@ function darken(hex, percent) {
 }
 
 export function nodeCanvasObject(node, ctx, state) {
-  const { focusedNode, getDirectNeighbours, colorFor, statusOf } = state;
+  const { focusedNode, getDirectNeighbours, colorFor, statusOf, isPick } = state;
 
   const connected = focusedNode ? getDirectNeighbours(focusedNode.id) : null;
   const isFocused = focusedNode && connected.has(node.id);
@@ -85,6 +85,13 @@ export function nodeCanvasObject(node, ctx, state) {
   ctx.fillStyle = fill;
   roundRect(ctx, node.x - w / 2, node.y - h / 2, w, h, radius);
   ctx.fill();
+
+  if (isPick?.(node.id)) {
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#F59E0B";
+    roundRect(ctx, node.x - w / 2 - 3, node.y - h / 2 - 3, w + 6, h + 6, radius + 3);
+    ctx.stroke();
+  }
 
   ctx.shadowBlur = 0;
   ctx.textAlign = "center";

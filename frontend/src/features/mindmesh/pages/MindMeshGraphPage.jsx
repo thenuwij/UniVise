@@ -12,6 +12,8 @@ import { colorFor } from "../utils/index";
 import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
 import StatusLegend from "../components/StatusLegend";
+import PicksPanel from "../components/PicksPanel";
+import { useCoursePicks } from "../hooks/useCoursePicks";
 import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
@@ -45,6 +47,18 @@ export default function MindMeshGraphPage() {
   const noCourses = !!programCode && !loading && !graph.nodes.length;
   const groups = useMemo(() => prereqGroups(prereqEdges), [prereqEdges]);
   const statusOf = useCallback((code) => courseStatus(code, completed, groups), [completed, groups]);
+  const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
+  const coursePicks = useCoursePicks(isOwnProgram);
+  const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
+  const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
+
+  const focusCourse = (code) => {
+    const node = graph.nodes.find((n) => n.id === code);
+    if (!node) return;
+    setShowHint(false);
+    setFocusedNode(node);
+    graphRef.current?.centerAt(node.x, node.y, 600);
+  };
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -296,6 +310,16 @@ export default function MindMeshGraphPage() {
 
           {graph?.nodes?.length > 0 && <StatusLegend />}
 
+          {isOwnProgram && graph?.nodes?.length > 0 && (
+            <PicksPanel
+              picks={coursePicks.picks}
+              loading={coursePicks.loading}
+              failed={coursePicks.failed}
+              onRetry={coursePicks.retry}
+              onSelect={focusCourse}
+            />
+          )}
+
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
@@ -314,7 +338,7 @@ export default function MindMeshGraphPage() {
             onBackgroundClick={onBackgroundClick}
             setHoverLink={setHoverLink}
             nodeCanvasObject={(node, ctx) =>
-              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf })
+              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf, isPick })
             }
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
