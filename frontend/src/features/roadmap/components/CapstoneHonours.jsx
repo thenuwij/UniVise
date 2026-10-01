@@ -130,7 +130,7 @@ export default function CapstoneHonours({ data, handbookUrl }) {
   const card = "rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm";
 
   return (
-    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-12 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       {highlights && (
         <section>
           <SectionHeading>What makes this program special</SectionHeading>

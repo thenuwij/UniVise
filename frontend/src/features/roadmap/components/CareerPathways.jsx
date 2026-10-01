@@ -100,7 +100,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
   const statSource = employmentStats?.source && employmentStats.source !== "Information temporarily unavailable" ? `Source: ${employmentStats.source}` : null;
 
   return (
-    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-12 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       {stats.length > 0 && (
         <section>
           <SectionHeading subtitle={statSource}>Graduate outlook</SectionHeading>

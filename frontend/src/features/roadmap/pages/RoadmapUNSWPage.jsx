@@ -412,7 +412,7 @@ export default function RoadmapUNSWPage() {
         render: () => industrySection(
           "career_pathways",
           () => (
-            <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-12 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+            <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
               <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />
               <IndustryExperience industryExperience={data.industry_experience} />
             </div>

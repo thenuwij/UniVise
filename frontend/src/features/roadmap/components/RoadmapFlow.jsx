@@ -103,7 +103,7 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, hea
         </AnimatePresence>
 
         {(prev || next) && (
-          <div className="mt-14 pt-7 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+          <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
             {prev ? (
               <button
                 onClick={() => goTo(activeIndex - 1)}

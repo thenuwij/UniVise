@@ -27,7 +27,7 @@ export default function SocietiesCommunity({ societies }) {
   const hasProfDev = profDev.student_chapters?.length > 0 || profDev.leadership_note || profDev.skills_gained?.length > 0;
 
   return (
-    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-12 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+    <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       <section>
         <div>
           <SectionHeading subtitle="Everything you need to join clubs and societies at UNSW">
