@@ -411,14 +411,19 @@ export default function RoadmapUNSWPage() {
         title: "Careers",
         render: () => industrySection(
           "career_pathways",
-          () => (
-            <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-              <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />
-              <IndustryExperience industryExperience={data.industry_experience} />
-            </div>
-          ),
+          () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
           "Generating Career Pathways...",
           "Mapping entry-level, mid-career, and senior roles for your field."
+        ),
+      },
+      {
+        key: "industry_experience",
+        title: "Internships",
+        render: () => industrySection(
+          "industry_experience",
+          () => <IndustryExperience industryExperience={data.industry_experience} />,
+          "Generating Internships...",
+          "Finding internship programs and placements for your program."
         ),
       },
     ];

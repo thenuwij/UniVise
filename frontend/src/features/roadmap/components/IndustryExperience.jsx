@@ -20,7 +20,11 @@ export default function IndustryExperience({ industryExperience }) {
   const showPlacements = placements?.required || listedCourses.length > 0;
 
   if (!internshipPrograms.length && !topCompanies.length && !showPlacements) {
-    return null;
+    return (
+      <p className="text-base text-slate-600 dark:text-slate-400">
+        No internship or placement information for this program yet. Try the UNSW career resources at UNSWConnect.
+      </p>
+    );
   }
 
   const displayedPrograms = showAllPrograms ? internshipPrograms : internshipPrograms.slice(0, 3);
@@ -28,7 +32,7 @@ export default function IndustryExperience({ industryExperience }) {
   return (
     <section className="space-y-6">
       <SectionHeading>
-        Getting experience
+        Internships and placements
       </SectionHeading>
 
       {showPlacements && (
