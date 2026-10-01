@@ -261,6 +261,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   };
 
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const expandAll = () =>
+    setOpenMap(Object.fromEntries(courseSections.map((s, i) => [`${s.title}-${i}`, true])));
+
+  const collapseAll = () => setOpenMap({});
   
 
   const handleCourseClick = async (course) => {
@@ -337,6 +342,17 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         <span className="text-base font-semibold">Open in CourseMesh</span>
         <span className="hidden sm:inline text-sm text-blue-100">See how your courses connect</span>
       </button>
+
+      {courseSections.length > 0 && (
+        <div className="-mt-3 flex justify-end gap-2">
+          <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
+            Expand all
+          </button>
+          <button onClick={collapseAll} className="px-3 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            Collapse all
+          </button>
+        </div>
+      )}
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">
