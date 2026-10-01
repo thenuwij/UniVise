@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveButton from "@/shared/ui/SaveButton";
 import { UserAuth } from "@/app/AuthContext";
@@ -53,12 +53,40 @@ function useInterestAreas(enabled) {
   return interestAreas;
 }
 
+function RoleDescription({ text }) {
+  const ref = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || expanded) return;
+    const check = () => setClamped(el.scrollHeight > el.clientHeight + 1);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p ref={ref} className={`mt-4 text-lg text-slate-700 dark:text-slate-300 leading-relaxed ${expanded ? "" : "line-clamp-3"}`}>
+        {text}
+      </p>
+      {(clamped || expanded) && (
+        <button onClick={() => setExpanded(!expanded)} className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </>
+  );
+}
+
 export default function CareerPathways({ careerPathways, personal = false }) {
   const navigate = useNavigate();
   const interestAreas = useInterestAreas(personal);
   const [activeTab, setActiveTab] = useState('entry');
   const [showAllCerts, setShowAllCerts] = useState(false);
-  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   const entryLevel = careerPathways?.entry_level;
   const midCareer = careerPathways?.mid_career;
@@ -78,10 +106,6 @@ export default function CareerPathways({ careerPathways, personal = false }) {
 
   const activeData = tabs.find(t => t.id === activeTab)?.data;
   const displayedCerts = showAllCerts ? certifications : certifications.slice(0, 3);
-
-  const toggleDescription = (idx) => {
-    setExpandedDescriptions(prev => ({ ...prev, [idx]: !prev[idx] }));
-  };
 
   const openCourse = async (code) => {
     const { data: match } = await supabase
@@ -173,18 +197,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                   </div>
                 </div>
 
-                {role.description && (
-                  <>
-                    <p className={`mt-4 text-lg text-slate-700 dark:text-slate-300 leading-relaxed ${!expandedDescriptions[idx] ? "line-clamp-3" : ""}`}>
-                      {role.description}
-                    </p>
-                    {role.description.length > 180 && (
-                      <button onClick={() => toggleDescription(idx)} className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                        {expandedDescriptions[idx] ? "Show less" : "Read more"}
-                      </button>
-                    )}
-                  </>
-                )}
+                {role.description && <RoleDescription key={`${activeTab}-${idx}`} text={role.description} />}
 
                 {personal && (role.degree_path || role.degree_courses?.length > 0) && (
                   <div className="mt-6 p-5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40">
