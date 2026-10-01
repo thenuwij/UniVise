@@ -1,178 +1,130 @@
-import { useEffect, useRef } from "react";
+import { Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 
-export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, verticalOnMobile = true }) {
-  const containerRef = useRef(null);
-  const columns = { gridTemplateColumns: `repeat(${Math.max(steps.length, 1)}, minmax(0, 1fr))` };
+const CONTAINER = "max-w-[1440px] mx-auto px-5 md:px-10";
 
-  // Keyboard nav
-  useEffect(() => {
-    const handler = (e) => {
-      if (!steps.length) return;
-      if (["ArrowRight","ArrowDown"].includes(e.key)) {
-        e.preventDefault();
-        onChange?.(Math.min(activeIndex + 1, steps.length - 1));
-      } else if (["ArrowLeft","ArrowUp"].includes(e.key)) {
-        e.preventDefault();
-        onChange?.(Math.max(activeIndex - 1, 0));
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [activeIndex, steps.length, onChange]);
+function StepBar({ steps, activeIndex, onChange }) {
+  const prev = steps[activeIndex - 1];
+  const next = steps[activeIndex + 1];
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      <nav aria-label="Roadmap steps" className={`${CONTAINER} py-5 flex items-center gap-4 md:gap-8`}>
+        <button
+          onClick={() => onChange?.(activeIndex - 1)}
+          disabled={!prev}
+          className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Back</span>
+        </button>
 
-      {/* PATH and NODES with NAVIGATION BUTTONS */}
-      <div className={`${verticalOnMobile ? "flex-col gap-6" : ""} flex md:flex-col`}>
-        
-        <div className="hidden md:block">
-          <div className="flex items-center gap-4">
-            {/* Previous Button */}
-            <button
-              onClick={() => onChange?.(Math.max(activeIndex - 1, 0))}
-              disabled={activeIndex === 0}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 shadow-md flex-shrink-0
-                ${activeIndex === 0 
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-lg hover:scale-105'
-                }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-              </svg>
-              Previous
-            </button>
-
-            {/* Circles with Path */}
-            <div className="relative flex-1">
-              {/* SVG path */}
-              <svg className="w-full h-20" viewBox="0 0 100 20" preserveAspectRatio="none">
-                <path
-                  d="M2,10 L98,10"
-                  className="stroke-slate-300 dark:stroke-slate-700"
-                  strokeWidth="1"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <path
-                  d={`M2,10 L${2 + (96 * (activeIndex / (Math.max(steps.length - 1, 1))))},10`}
-                  className="stroke-blue-600 dark:stroke-blue-400"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </svg>
-
-              {/* Nodes */}
-              <div className="grid gap-0 -mt-16" style={columns}>
-                {steps.map((s, i) => {
-                  const active = i === activeIndex;
-                  const completed = i < activeIndex;
-                  return (
-                    <button
-                      key={s.key}
-                      onClick={() => onChange?.(i)}
-                      className="group flex flex-col items-center focus:outline-none"
-                      aria-current={active ? "step" : undefined}
-                    >
-                      <div
-                        className={[
-                          "h-6 w-6 rounded-full border-2 transition-all duration-200 cursor-pointer",
-                          "hover:scale-125 hover:shadow-lg",
-                          active
-                            ? "bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 scale-110 shadow-md ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-slate-900"
-                            : completed
-                            ? "bg-blue-400 dark:bg-blue-600 border-blue-400 dark:border-blue-600 flex items-center justify-center"
-                            : "bg-white dark:bg-slate-800 border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-400"
-                        ].join(" ")}
-                        title={s.title}
-                      >
-                        {completed && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className={[
-                        "mt-2 text-[11px] text-center leading-tight max-w-[80px] mx-auto transition-colors font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400",
-                        active
-                          ? "text-blue-600 dark:text-blue-400 font-semibold"
-                          : completed
-                          ? "text-blue-500 dark:text-blue-500"
-                          : "text-slate-600 dark:text-slate-400"
-                      ].join(" ")}>
-                        {s.title}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Next Button */}
-            <button
-              onClick={() => onChange?.(Math.min(activeIndex + 1, steps.length - 1))}
-              disabled={activeIndex === steps.length - 1}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 shadow-md flex-shrink-0
-                ${activeIndex === steps.length - 1
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-lg hover:scale-105'
-                }`}
-            >
-              Next
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile vertical nodes */}
-        <div className="md:hidden space-y-4">
+        <div className="flex-1 flex items-center min-w-0">
           {steps.map((s, i) => {
+            const done = i < activeIndex;
             const active = i === activeIndex;
-            const completed = i < activeIndex;
             return (
-              <div key={s.key}>
+              <Fragment key={s.key}>
                 <button
                   onClick={() => onChange?.(i)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-200"
+                  aria-current={active ? "step" : undefined}
+                  className="flex-shrink-0 flex items-center gap-3 group"
                 >
                   <span
-                    className={[
-                      "h-4 w-4 rounded-full border-2",
+                    className={`h-10 w-10 flex-shrink-0 rounded-full inline-flex items-center justify-center text-base font-bold transition-all ${
                       active
-                        ? "bg-blue-600 border-blue-600 dark:bg-blue-500 dark:border-blue-500"
-                        : completed
-                        ? "bg-blue-400 border-blue-400 dark:bg-blue-600 dark:border-blue-600"
-                        : "bg-white border-blue-300 dark:bg-slate-800 dark:border-blue-700"
-                    ].join(" ")}
-                  />
-                  <span className={`text-sm font-medium ${active ? "text-blue-600 dark:text-blue-400" : "text-slate-600 dark:text-slate-400"}`}>
+                        ? "text-white bg-gradient-to-br from-blue-600 to-indigo-600 ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-lg shadow-blue-600/30"
+                        : done
+                        ? "text-white bg-blue-600"
+                        : "text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-blue-800 group-hover:border-blue-400"
+                    }`}
+                  >
+                    {done ? <Check className="h-5 w-5" strokeWidth={3} /> : i + 1}
+                  </span>
+                  <span
+                    className={`text-lg whitespace-nowrap ${
+                      active
+                        ? "font-bold text-slate-900 dark:text-white"
+                        : `hidden md:inline font-semibold ${done ? "text-slate-700 dark:text-slate-200" : "text-slate-400 dark:text-slate-500"} group-hover:text-blue-700 dark:group-hover:text-blue-300`
+                    }`}
+                  >
                     {s.title}
                   </span>
                 </button>
-              </div>
+                {i < steps.length - 1 && (
+                  <span aria-hidden className="flex-1 h-1 mx-3 md:mx-5 rounded-full bg-blue-100 dark:bg-slate-800 overflow-hidden">
+                    <span
+                      className={`block h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-500 ${i < activeIndex ? "w-full" : "w-0"}`}
+                    />
+                  </span>
+                )}
+              </Fragment>
             );
           })}
         </div>
-      </div>
 
-      {/* CONTENT */}
-      <div className="mt-8">
+        <button
+          onClick={() => onChange?.(activeIndex + 1)}
+          disabled={!next}
+          className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/30 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, header = null }) {
+  const prev = steps[activeIndex - 1];
+  const next = steps[activeIndex + 1];
+
+  const goTo = (i) => {
+    onChange?.(i);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <div className="w-full">
+      {header}
+      <StepBar steps={steps} activeIndex={activeIndex} onChange={onChange} />
+
+      <div className={`${CONTAINER} py-12`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={steps[activeIndex]?.key || "empty"}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.22 }}
           >
             {steps[activeIndex]?.render?.()}
           </motion.div>
         </AnimatePresence>
+
+        {(prev || next) && (
+          <div className="mt-14 pt-7 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+            {prev ? (
+              <button
+                onClick={() => goTo(activeIndex - 1)}
+                className="inline-flex items-center gap-2 text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                <ArrowLeft className="h-5 w-5" /> {prev.title}
+              </button>
+            ) : <span />}
+            {next && (
+              <button
+                onClick={() => goTo(activeIndex + 1)}
+                className="group inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-600/30 hover:shadow-xl transition-all"
+              >
+                Next: {next.title}
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

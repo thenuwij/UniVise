@@ -1,21 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Bookmark } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import GradientCard from "../components/GradientCard";
 import { ArrowLeft } from "../components/InlineIcons";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import Pill from "../components/Pill";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
-import ShortlistLink from "../components/ShortlistLink";
+import CourseProgress from "../components/CourseProgress";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
-import SectionTitle from "../components/SectionTitle";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
+import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
@@ -262,13 +261,16 @@ const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapI
   return { activeIndex, setActiveIndex };
 };
 
-const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange }) => {
+const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header }) => {
   if (!data && loading) {
     return (
       <>
-        <SkeletonCard lines={4} />
-        <SkeletonCard lines={6} />
-        <SkeletonCard lines={4} />
+        {header}
+        <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-12 space-y-4">
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={6} />
+          <SkeletonCard lines={4} />
+        </div>
       </>
     );
   }
@@ -279,23 +281,32 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
         steps={steps} 
         activeIndex={activeIndex} 
         onChange={onIndexChange} 
+        header={header}
       />
     );
   }
 
   if (!data && !loading && !error) {
     return (
-      <div className="text-center py-10 text-secondary">
-        Ready when you are. Your UNSW roadmap will appear here.
-      </div>
+      <>
+        {header}
+        <div className="text-center py-16 text-secondary">
+          Ready when you are. Your UNSW roadmap will appear here.
+        </div>
+      </>
     );
   }
 
   if (error && !loading) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50/70 dark:border-red-700 dark:bg-red-900/40 p-4 text-sm text-red-700 dark:text-red-300 mt-4">
-        {error}
-      </div>
+      <>
+        {header}
+        <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-12">
+          <div className="rounded-2xl border border-red-200 bg-red-50/70 dark:border-red-700 dark:bg-red-900/40 p-4 text-sm text-red-700 dark:text-red-300">
+            {error}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -313,7 +324,6 @@ export default function RoadmapUNSWPage() {
   const preloadedRoadmapId = state?.roadmap_id || searchParams.get('id') || null;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [descExpanded, setDescExpanded] = useState(false);
   const { session } = UserAuth();
 
   const { data, loading, error, header, updateHeader, sectionsStatus, retrySections } = useRoadmapData(
@@ -328,6 +338,15 @@ export default function RoadmapUNSWPage() {
   const { program: enrolledProgram } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
+  const [specNames, setSpecNames] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchChosenSpecialisations(shownDegreeCode, session?.user?.id).then((specs) => {
+      if (active) setSpecNames(specs.map((s) => s.name));
+    });
+    return () => { active = false; };
+  }, [shownDegreeCode, session?.user?.id]);
 
   useEffect(() => {
     if (degree) { 
@@ -344,12 +363,7 @@ export default function RoadmapUNSWPage() {
         return <GeneratingMessage title={title} message={message} />;
       }
       if (failed) return <SectionError onRetry={retrySections} />;
-      return (
-        <>
-          <ShortlistLink />
-          {content()}
-        </>
-      );
+      return content();
     };
 
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
@@ -359,22 +373,7 @@ export default function RoadmapUNSWPage() {
         key: "overview",
         title: "Overview",
         render: () => {
-          const handbookUrl = handbookUrlFor(activeDegree, degreeCodeValue);
-          return (
-            <div className="space-y-4">
-              {handbookUrl && (
-                <a
-                  href={handbookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
-                >
-                  View in the official UNSW Handbook
-                </a>
-              )}
-              <CapstoneHonours data={data} />
-            </div>
-          );
+          return <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} />;
         },
       },
       {
@@ -413,10 +412,10 @@ export default function RoadmapUNSWPage() {
         render: () => industrySection(
           "career_pathways",
           () => (
-            <>
+            <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-12 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
               <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />
               <IndustryExperience industryExperience={data.industry_experience} />
-            </>
+            </div>
           ),
           "Generating Career Pathways...",
           "Mapping entry-level, mid-career, and senior roles for your field."
@@ -444,136 +443,82 @@ export default function RoadmapUNSWPage() {
   );
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 text-primary transition-colors duration-500">
-      
-      {/* background glow */}
-      <div aria-hidden>
-        <div className="roadmap-glow-top" />
-        <div className="roadmap-glow-bottom" />
-      </div>
+  const years = String(activeDegree?.duration || "").match(/\d+(\.\d+)?/)?.[0];
+  const headerFacts = [
+    ["Faculty", activeDegree?.faculty?.replace(/^Faculty of\s+/i, "")],
+    ["Duration", years && `${years} ${years === "1" ? "year" : "years"}`],
+    ["Program code", shownDegreeCode],
+    ["UAC code", activeDegree?.uac_code],
+  ].filter(([, value]) => value);
 
-      <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
-      <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
-
-      <div className="mx-20 pt-14 pb-10">
-        
+  const programHeader = (
+    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-600 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+      <div aria-hidden className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
+      <div aria-hidden className="absolute -bottom-44 left-1/3 h-[420px] w-[420px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
+      <div className="relative max-w-[1440px] mx-auto px-5 md:px-10 pt-7 pb-10">
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={handleBackClick}
-            className="group inline-flex items-center gap-2 
-                       text-slate-600 dark:text-slate-300 
-                       hover:text-sky-600 dark:hover:text-sky-400 
-                       transition-colors duration-200"
+            className="inline-flex items-center gap-2 text-[15px] font-medium text-white/85 hover:text-white transition-colors"
           >
-            <ArrowLeft className="h-4 w-4 opacity-70 group-hover:opacity-100" />
-            <span>{isOwnProgram ? "Back" : "Back to my roadmap"}</span>
+            <ArrowLeft className="h-4 w-4" />
+            {isOwnProgram ? "Back" : "Back to my roadmap"}
           </button>
-          <button
-            onClick={() => navigate("/roadmap")}
-            className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Explore a different degree
-          </button>
-        </div>
-
-        {/* Hero section */}
-        <GradientCard seamless className="w-full mt-3 shadow-sm
-                                 bg-white/60 dark:bg-slate-900/40
-                                 border border-slate-200/30 dark:border-slate-700/25
-                                 backdrop-blur-md">
-          <div className="relative p-5">
-            <SectionTitle
-              tags={data && (
-                <>
-                  {/* Faculty */}
-                  {activeDegree?.faculty && (
-                    <Pill>
-                      Faculty:{" "}
-                      <span className="ml-1 font-medium">
-                        {activeDegree.faculty.replace(/^Faculty of\s+/i, "")}
-                      </span>
-                    </Pill>
-                  )}
-
-                  {/* UAC code */}
-                  {activeDegree?.uac_code && (
-                    <Pill>
-                      UAC: <span className="ml-1 font-medium">{activeDegree.uac_code}</span>
-                    </Pill>
-                  )}
-
-                  {/* CRICOS */}
-                  {activeDegree?.cricos_code && (
-                    <Pill>
-                      CRICOS: <span className="ml-1 font-medium">{activeDegree.cricos_code}</span>
-                    </Pill>
-                  )}
-
-                  {/* Duration */}
-                  {activeDegree?.duration && (
-                    <Pill>
-                      Duration:{" "}
-                      <span className="ml-1 font-medium">
-                        {activeDegree.duration.toString().includes("year")
-                          ? activeDegree.duration
-                          : `${activeDegree.duration} years`}
-                      </span>
-                    </Pill>
-                  )}
-
-                  {/* Degree Code */}
-                  {activeDegree?.degree_code && (
-                    <Pill>
-                      Code: <span className="ml-1 font-medium">{activeDegree.degree_code}</span>
-                    </Pill>
-                  )}
-                </>
-              )}
-            >
-              {headerProgramName ? (
-                <span className="font-extrabold text-transparent bg-clip-text
-                                 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
-                                 dark:from-white dark:via-slate-200 dark:to-white">
-                  <span className="font-extrabold">{headerProgramName}</span>
-                </span>
-              ) : (
-                <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
-              )}
-            </SectionTitle>
-
-            {data && (
-              <div className="mt-3 text-slate-700 dark:text-slate-300">
-                <p className={`text-base leading-relaxed transition-all duration-200 ${descExpanded ? "" : "line-clamp-4"}`}>
-                  {activeDegree?.overview_description || data?.summary || "—"}
-                </p>
-                <button
-                  onClick={() => setDescExpanded(prev => !prev)}
-                  className="mt-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {descExpanded ? "Show less" : "Read more"}
-                </button>
-              </div>
-            )}
+          <div className="flex items-center gap-6">
+            <Link to="/saved" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
+              <Bookmark className="h-4 w-4" />
+              My shortlist
+            </Link>
+            <button onClick={() => navigate("/roadmap")} className="text-[15px] font-semibold text-white hover:underline">
+              Explore a different degree
+            </button>
           </div>
-        </GradientCard>
-
-        {/* Content */}
-        <div className="mt-4">
-          <GradientCard seamless className="w-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm">
-            <div className="p-4 md:p-6">
-              <ContentSection
-                data={data}
-                loading={loading}
-                error={error}
-                steps={steps}
-                activeIndex={activeIndex}
-                onIndexChange={setActiveIndex}
-              />
-            </div>
-          </GradientCard>
         </div>
+
+        <p className="mt-9 text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
+          {isOwnProgram ? "Your degree" : "Exploring"}
+        </p>
+        {headerProgramName ? (
+          <h1 className="mt-2.5 text-4xl md:text-[54px] md:leading-[1.08] font-bold tracking-tight text-white">
+            {headerProgramName}
+          </h1>
+        ) : (
+          <div className="mt-2.5 h-12 w-80 bg-white/20 rounded-xl animate-pulse" />
+        )}
+        {specNames.length > 0 && (
+          <p className="mt-2.5 text-lg md:text-xl text-blue-100">{specNames.join(" · ")}</p>
+        )}
+
+        <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <dl className="flex flex-wrap gap-x-10 gap-y-4">
+            {headerFacts.map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-[13px] text-blue-200">{label}</dt>
+                <dd className="mt-1 text-[17px] font-semibold text-white">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          {isOwnProgram && <CourseProgress degreeCode={shownDegreeCode} />}
+        </div>
+
       </div>
+    </section>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#f5f7fb] dark:bg-slate-950 text-primary transition-colors duration-500">
+      <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
+      <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
+
+      <ContentSection
+        header={programHeader}
+        data={data}
+        loading={loading}
+        error={error}
+        steps={steps}
+        activeIndex={activeIndex}
+        onIndexChange={setActiveIndex}
+      />
     </div>
   );
 }
