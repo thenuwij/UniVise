@@ -7,6 +7,8 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import FormattedText from "@/shared/ui/FormattedText";
+import { hasContent } from "@/shared/lib/format";
 import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
@@ -21,19 +23,16 @@ const VARIANTS = {
     loadingLabel: "major",
     structureTitle: "Structure",
     relatedTitle: "Programs offering this major",
-    preserveSectionWhitespace: false,
   },
   minor: {
     loadingLabel: "minor",
     structureTitle: "Structure",
     relatedTitle: "Programs offering this minor",
-    preserveSectionWhitespace: false,
   },
   honours: {
     loadingLabel: "honours specialisation",
     structureTitle: "Structure",
     relatedTitle: "Programs offering this honours stream",
-    preserveSectionWhitespace: true,
   },
 };
 
@@ -142,9 +141,9 @@ function SpecialisationDetailPage({ variant = "major" }) {
 
           {/* ── Left: main content ── */}
           <div className="flex-1 min-w-0">
-            {spec.overview_description && (
+            {hasContent(spec.overview_description) && (
               <DetailSection title="Overview">
-                <p className="max-w-[68ch] text-base leading-relaxed text-ink whitespace-pre-line">{spec.overview_description}</p>
+                <FormattedText text={spec.overview_description} />
               </DetailSection>
             )}
 
@@ -163,10 +162,10 @@ function SpecialisationDetailPage({ variant = "major" }) {
                           </span>
                         )}
                       </div>
-                      {section.description && (
-                        <p className={`text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed${config.preserveSectionWhitespace ? " whitespace-pre-line" : ""}`}>
-                          {section.description}
-                        </p>
+                      {hasContent(section.description) && (
+                        <div className="mb-3">
+                          <FormattedText text={section.description} collapsedHeight="7rem" className="text-sm text-ink-muted" />
+                        </div>
                       )}
                       {section.courses?.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -231,12 +230,10 @@ function SpecialisationDetailPage({ variant = "major" }) {
             )}
 
             {/* Important Notes */}
-            {spec.special_notes && spec.special_notes !== "Not specified" && (
+            {hasContent(spec.special_notes) && (
               <DetailSection title="Important notes">
-                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-                  <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {spec.special_notes}
-                  </p>
+                <div className="p-4 rounded-xl bg-pick-soft border border-amber-200 dark:border-amber-900">
+                  <FormattedText text={spec.special_notes} className="text-sm text-ink" />
                 </div>
               </DetailSection>
             )}

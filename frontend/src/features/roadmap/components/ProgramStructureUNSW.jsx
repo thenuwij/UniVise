@@ -8,6 +8,8 @@ import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/u
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchChosenSpecialisations, hasCourses, parseSections } from "../utils/programCourses";
 import SuggestedNext from "./SuggestedNext";
 import SectionHeading from "@/shared/ui/SectionHeading";
+import FormattedText from "@/shared/ui/FormattedText";
+import { hasContent } from "@/shared/lib/format";
 import { card } from "@/shared/ui/cardStyles";
 
 function sumUoC(list = []) {
@@ -46,11 +48,15 @@ function InfoSection({ section }) {
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-5 py-4">
       <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
-      {section.description && (
-        <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed">{section.description}</p>
+      {hasContent(section.description) && (
+        <div className="mt-1">
+          <FormattedText text={section.description} collapsedHeight="7rem" className="text-[15px] text-ink" />
+        </div>
       )}
-      {section.notes && (
-        <p className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[15px] text-slate-600 dark:text-slate-300">{section.notes}</p>
+      {hasContent(section.notes) && (
+        <div className="mt-2 pt-2 border-t border-line">
+          <FormattedText text={section.notes} collapsedHeight={null} className="text-[15px] text-ink" />
+        </div>
       )}
     </div>
   );
@@ -278,26 +284,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     if (match?.id) navigate(`/course/${match.id}`);
   };
 
-  // Format special notes with better structure
-  function formatSpecialNotes(text = "") {
-    if (!text) return "";
-
-    const sentences = text
-      .split(/(?<=[.!?])\s+/)
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    if (sentences.length <= 1) {
-      return `<p class="text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">${sentences[0] ?? ""}</p>`;
-    }
-
-    return `<ul class="space-y-1.5">${sentences.map(s =>
-      `<li class="flex gap-2 text-sm leading-relaxed font-medium text-slate-900 dark:text-slate-100">
-        <span class="text-amber-500 flex-shrink-0 mt-0.5">•</span>
-        <span>${s}</span>
-      </li>`
-    ).join('')}</ul>`;
-  }
 
   return (
     <div className="space-y-6">
@@ -406,15 +392,12 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       </div>
 
       {/* Special Notes - ORANGE/AMBER THEME FOR IMPORTANT INFO */}
-      {specialNotes && (
+      {hasContent(specialNotes) && (
         <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30">
           <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
             Important information
           </h4>
-          <div
-            className="text-slate-800 dark:text-slate-200 space-y-2"
-            dangerouslySetInnerHTML={{ __html: formatSpecialNotes(specialNotes) }}
-          />
+          <FormattedText text={specialNotes} className="text-sm font-medium text-ink-strong" />
         </div>
       )}
     </div>

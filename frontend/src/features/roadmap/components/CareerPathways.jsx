@@ -20,6 +20,7 @@ import {
   ListChecks
 } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
+import { hasContent } from "@/shared/lib/format";
 import { card } from "@/shared/ui/cardStyles";
 
 const INTEREST_PATTERNS = {
@@ -117,12 +118,12 @@ export default function CareerPathways({ careerPathways, personal = false }) {
   };
 
   const stats = [
-    [CheckCircle2, "Employment rate", employmentStats?.employment_rate, "Data not available"],
-    [DollarSign, "Starting salary", employmentStats?.median_starting_salary, "Data not available"],
-    [Target, "Market demand", marketInsights?.demand_level, "Data unavailable"],
-  ].filter(([, , value, missing]) => value && value !== missing);
+    [CheckCircle2, "Employment rate", employmentStats?.employment_rate],
+    [DollarSign, "Starting salary", employmentStats?.median_starting_salary],
+    [Target, "Market demand", marketInsights?.demand_level],
+  ].filter(([, , value]) => hasContent(value));
   const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
-  const statSource = employmentStats?.source && employmentStats.source !== "Information temporarily unavailable" ? `Source: ${employmentStats.source}` : null;
+  const statSource = hasContent(employmentStats?.source) ? `Source: ${employmentStats.source}` : null;
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">

@@ -4,6 +4,7 @@ import { Bookmark } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
 import CourseProgress from "../components/CourseProgress";
@@ -448,10 +449,9 @@ export default function RoadmapUNSWPage() {
   );
   const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
-  const years = String(activeDegree?.duration || "").match(/\d+(\.\d+)?/)?.[0];
   const headerFacts = [
     ["Faculty", activeDegree?.faculty?.replace(/^Faculty of\s+/i, "")],
-    ["Duration", years && `${years} ${years === "1" ? "year" : "years"}`],
+    ["Duration", formatDuration(activeDegree?.duration_years, activeDegree?.duration)],
     ["Program code", shownDegreeCode],
     ["UAC code", activeDegree?.uac_code],
   ].filter(([, value]) => value);
