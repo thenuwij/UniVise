@@ -19,6 +19,7 @@ import {
   ListChecks
 } from "lucide-react";
 import SectionHeading from "./SectionHeading";
+import { card } from "../utils/cardStyles";
 
 const INTEREST_PATTERNS = {
   "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,
@@ -96,7 +97,6 @@ export default function CareerPathways({ careerPathways, personal = false }) {
     [Target, "Market demand", marketInsights?.demand_level, "Data unavailable"],
   ].filter(([, , value, missing]) => value && value !== missing);
   const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
-  const raised = "rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm";
   const statSource = employmentStats?.source && employmentStats.source !== "Information temporarily unavailable" ? `Source: ${employmentStats.source}` : null;
 
   return (
@@ -106,7 +106,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           <SectionHeading subtitle={statSource}>Graduate outlook</SectionHeading>
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
             {stats.map(([Icon, label, value]) => (
-              <div key={label} className={`${raised} p-6`}>
+              <div key={label} className={`${card} p-6`}>
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                   <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
                 </p>
@@ -152,7 +152,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
         {activeData?.roles?.length > 0 && (
           <div className="mt-6 space-y-6">
             {activeData.roles.map((role, idx) => (
-              <article key={idx} className={`${raised} p-6 md:p-8`}>
+              <article key={idx} className={`${card} p-6 md:p-8`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <h5 className="text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">{role.title}</h5>
@@ -286,7 +286,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           <SectionHeading subtitle="Credentials that strengthen your qualifications">
             Professional certifications
           </SectionHeading>
-          <div className={`${raised} mt-6 px-6 md:px-8 divide-y divide-slate-100 dark:divide-slate-700`}>
+          <div className={`${card} mt-6 px-6 md:px-8 divide-y divide-slate-100 dark:divide-slate-700`}>
             {displayedCerts.map((cert, idx) => (
               <div key={idx} className="flex items-start justify-between gap-4 py-5">
                 <div className="min-w-0">
@@ -335,7 +335,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
             {Object.entries(topEmployers).map(([sector, companies], idx) => (
-              <div key={idx} className={`${raised} p-6`}>
+              <div key={idx} className={`${card} p-6`}>
                 <p className="text-base font-semibold text-slate-900 dark:text-white">{sector}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {companies.map((company, cIdx) => (

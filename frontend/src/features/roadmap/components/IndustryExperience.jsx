@@ -2,8 +2,7 @@ import { useState } from "react";
 import { AlertCircle, Building2, Calendar, ChevronDown, ChevronUp, Clock, ExternalLink, GraduationCap } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "./SectionHeading";
-
-const raised = "rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm";
+import { card } from "../utils/cardStyles";
 
 const RESOURCES = [
   ["UNSWConnect", "Internships, part-time jobs and graduate roles", "https://unswconnect.unsw.edu.au"],
@@ -61,7 +60,7 @@ export default function IndustryExperience({ industryExperience }) {
           <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Internship programs</h4>
           <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {displayedPrograms.map((program, idx) => (
-              <div key={idx} className={`${raised} p-6 flex flex-col hover:shadow-md transition-shadow`}>
+              <div key={idx} className={`${card} p-6 flex flex-col hover:shadow-md transition-shadow`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h5 className="text-lg font-semibold text-slate-900 dark:text-white leading-snug">{program.program_name}</h5>
@@ -130,7 +129,7 @@ export default function IndustryExperience({ industryExperience }) {
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${raised} group p-6 flex items-start justify-between gap-3 hover:shadow-md transition-shadow`}
+              className={`${card} group p-6 flex items-start justify-between gap-3 hover:shadow-md transition-shadow`}
             >
               <span>
                 <span className="block text-lg font-semibold text-slate-900 dark:text-white">{name}</span>

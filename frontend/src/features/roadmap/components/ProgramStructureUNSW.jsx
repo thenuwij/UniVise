@@ -8,6 +8,7 @@ import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/u
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchChosenSpecialisations, hasCourses, parseSections } from "../utils/programCourses";
 import SuggestedNext from "./SuggestedNext";
 import SectionHeading from "./SectionHeading";
+import { card } from "../utils/cardStyles";
 
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
@@ -81,7 +82,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
   const total = section.uoc ?? sumUoC(section.courses);
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <div className={`${card} hover:shadow-md transition-shadow overflow-hidden`}>
       <button
         onClick={onToggle}
         aria-expanded={isOpen}

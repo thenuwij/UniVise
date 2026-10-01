@@ -2,8 +2,7 @@ import { ChevronDown, ChevronUp, Clock, Heart, Info, Star } from "lucide-react";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "./SectionHeading";
-
-const raised = "rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm";
+import { card } from "../utils/cardStyles";
 
 export default function SocietiesCommunity({ societies }) {
   const [showAll, setShowAll] = useState(false);
@@ -36,7 +35,7 @@ export default function SocietiesCommunity({ societies }) {
           {facts.length > 0 && (
             <div className="mt-6 grid sm:grid-cols-3 gap-4">
               {facts.map(([Icon, label, value]) => (
-                <div key={label} className={`${raised} flex items-start gap-3 p-5`}>
+                <div key={label} className={`${card} flex items-start gap-3 p-5`}>
                   <Icon className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
@@ -76,7 +75,7 @@ export default function SocietiesCommunity({ societies }) {
             {displayedSocieties.map((society, idx) => {
               const open = !!expandedSocieties[idx];
               return (
-                <div key={idx} className={`${raised} overflow-hidden transition-shadow hover:shadow-md`}>
+                <div key={idx} className={`${card} overflow-hidden transition-shadow hover:shadow-md`}>
                   <div
                     className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer"
                     onClick={() => toggleSociety(idx)}
@@ -146,7 +145,7 @@ export default function SocietiesCommunity({ societies }) {
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
             {crossFaculty.map((s, idx) => (
-              <div key={idx} className={`${raised} p-6 hover:shadow-md transition-shadow`}>
+              <div key={idx} className={`${card} p-6 hover:shadow-md transition-shadow`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.name}</p>
@@ -165,7 +164,7 @@ export default function SocietiesCommunity({ societies }) {
           <SectionHeading subtitle="Build leadership skills and industry connections">
             Professional societies
           </SectionHeading>
-          <div className={`${raised} mt-6 p-6 md:p-8 space-y-6`}>
+          <div className={`${card} mt-6 p-6 md:p-8 space-y-6`}>
             {profDev.student_chapters?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {profDev.student_chapters.map((ch, i) => (

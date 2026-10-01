@@ -2,6 +2,7 @@ import { ChevronRight, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { getLevelColor } from "@/features/mindmesh/utils";
 import SectionHeading from "./SectionHeading";
+import { card } from "../utils/cardStyles";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -127,7 +128,6 @@ export default function CapstoneHonours({ data, handbookUrl }) {
 
   const hasHonours = overviewSections.length > 0 || classes.length > 0 || awards || careerOutcomes;
   const levelOf = (code) => Number(String(code).match(/\d/)?.[0]) || null;
-  const card = "rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm";
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
