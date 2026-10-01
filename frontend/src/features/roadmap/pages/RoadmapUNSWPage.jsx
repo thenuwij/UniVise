@@ -475,31 +475,37 @@ export default function RoadmapUNSWPage() {
           </div>
         </div>
 
-        <p className="mt-5 text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
-          {isOwnProgram ? "Your degree" : "Exploring"}
-        </p>
-        {headerProgramName ? (
-          <h1 className="mt-2 text-4xl md:text-[42px] md:leading-[1.1] font-bold tracking-tight text-white">
-            {headerProgramName}
-          </h1>
-        ) : (
-          <div className="mt-2 h-11 w-80 bg-white/20 rounded-xl animate-pulse" />
-        )}
-        {specNames.length > 0 && (
-          <p className="mt-2.5 text-lg md:text-xl text-blue-100">{specNames.join(" · ")}</p>
-        )}
-
-        <div className="mt-5 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <dl className="flex flex-wrap gap-x-10 gap-y-4">
-            {headerFacts.map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-[13px] text-blue-200">{label}</dt>
-                <dd className="mt-1 text-[17px] font-semibold text-white">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          {isOwnProgram && <CourseProgress degreeCode={shownDegreeCode} />}
+        <div className="mt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
+          <div className="min-w-0">
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
+              {isOwnProgram ? "Your degree" : "Exploring"}
+            </p>
+            {headerProgramName ? (
+              <h1 className="mt-2 text-4xl md:text-[42px] md:leading-[1.1] font-bold tracking-tight text-white">
+                {headerProgramName}
+              </h1>
+            ) : (
+              <div className="mt-2 h-11 w-80 bg-white/20 rounded-xl animate-pulse" />
+            )}
+            {specNames.length > 0 && (
+              <p className="mt-2.5 text-lg md:text-xl text-blue-100">{specNames.join(" · ")}</p>
+            )}
+          </div>
+          {isOwnProgram && (
+            <div className="flex-shrink-0">
+              <CourseProgress degreeCode={shownDegreeCode} />
+            </div>
+          )}
         </div>
+
+        <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-4">
+          {headerFacts.map(([label, value]) => (
+            <div key={label}>
+              <dt className="text-[13px] text-blue-200">{label}</dt>
+              <dd className="mt-1 text-[17px] font-semibold text-white">{value}</dd>
+            </div>
+          ))}
+        </dl>
 
       </div>
     </section>
