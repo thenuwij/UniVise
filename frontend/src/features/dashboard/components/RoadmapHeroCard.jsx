@@ -14,16 +14,16 @@ export default function RoadmapHeroCard() {
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 bg-blue-50/70 dark:bg-blue-900/20 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
               <RiGuideFill className="h-3.5 w-3.5" />
-              Start here
+              Your roadmap
             </div>
 
             <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-tight">
-              Build your academic roadmap
+              Your degree, courses and careers
             </h2>
 
             <p className="mt-3 text-base font-normal text-slate-600 dark:text-slate-400">
-              Discover where a UNSW degree can take you, from study pathways to student communities
-              and future careers.
+              See your program structure, the courses you can take next, societies to join and where
+              your degree leads.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -34,7 +34,7 @@ export default function RoadmapHeroCard() {
                 pill
               >
                 <RiGuideFill className="mr-2 h-5 w-5" />
-                Build my roadmap
+                Open my roadmap
               </Button>
             </div>
           </div>

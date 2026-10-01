@@ -8,7 +8,7 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
+import { HiBookOpen, HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { MdDashboard } from "react-icons/md";
 import { RiGuideFill } from "react-icons/ri";
@@ -41,6 +41,9 @@ export function MenuBar({ isOpen, handleClose }) {
   const isActive = (path) => {
     if (path === "/roadmap-entryload") {
       return location.pathname === "/roadmap-entryload" || location.pathname === "/roadmap" || location.pathname.startsWith("/roadmap/");
+    }
+    if (path === "/handbook") {
+      return ["/handbook", "/degrees/", "/course/", "/specialisation/"].some((p) => location.pathname.startsWith(p));
     }
     return location.pathname === path;
   };
@@ -112,9 +115,12 @@ export function MenuBar({ isOpen, handleClose }) {
                   </SidebarItem>
                   {userType !== "high_school" && (
                     <SidebarItem onClick={() => { navigate("/progress"); handleClose(); }} icon={HiSwitchHorizontal} active={isActive("/progress")} className={isActive("/progress") ? activeClass : ""}>
-                      <span className={isActive("/progress") ? "font-semibold" : ""}>Program Transfer</span>
+                      <span className={isActive("/progress") ? "font-semibold" : ""}>Switch Degree</span>
                     </SidebarItem>
                   )}
+                  <SidebarItem onClick={() => { navigate("/handbook"); handleClose(); }} icon={HiBookOpen} active={isActive("/handbook")} className={isActive("/handbook") ? activeClass : ""}>
+                    <span className={isActive("/handbook") ? "font-semibold" : ""}>Handbook</span>
+                  </SidebarItem>
                 </SidebarItemGroup>
 
                 <SidebarItemGroup>

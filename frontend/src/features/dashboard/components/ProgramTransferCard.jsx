@@ -24,7 +24,7 @@ export default function ProgramTransferCard() {
         <div className="mt-auto pt-6">
           <Button onClick={() => navigate("/progress")} pill className="button-primary w-full">
             <HiSwitchHorizontal className="mr-2 h-4 w-4" />
-            Program Transfer
+            Switch Degree
           </Button>
         </div>
       </div>
