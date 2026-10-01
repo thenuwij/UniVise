@@ -1,5 +1,5 @@
 // src/pages/DegreeDetailPage.jsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   HiAcademicCap,
   HiArrowLeft,
@@ -12,53 +12,23 @@ import {
   HiDocumentText,
   HiExternalLink,
   HiInformationCircle,
-  HiLightBulb,
   HiLocationMarker,
-  HiSparkles,
 } from "react-icons/hi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { apiJson } from "@/shared/lib/api";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
 
 function DegreeDetailPage() {
-  const { session } = UserAuth();
   const { degreeId } = useParams();
   const navigate = useNavigate();
   const goBack = useBackToHandbook();
 
   const [degree, setDegree] = useState(null);
-  const [advisorSummary, setAdvisorSummary] = useState(null);
-  const [loadingSummary, setLoadingSummary] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
-  const [summaryErr, setSummaryErr] = useState(false);
   const [courseIdByCode, setCourseIdByCode] = useState({});
-
-  const advisorRef = useRef(null);
-
-  const fetchSmartAdvisor = async () => {
-    setLoadingSummary(true);
-    setAdvisorSummary(null);
-    setSummaryErr(false);
-    try {
-      const data = await apiJson("/smart-summary/degree", {
-        method: "POST",
-        retry: true,
-        token: session?.access_token,
-        body: { degree_id: degreeId },
-      });
-      setAdvisorSummary(data.summary);
-      advisorRef.current?.scrollIntoView({ behavior: "smooth" });
-    } catch {
-      setSummaryErr(true);
-    } finally {
-      setLoadingSummary(false);
-    }
-  };
 
   useEffect(() => {
     let alive = true;
@@ -208,48 +178,6 @@ function DegreeDetailPage() {
 
           {/* ── Left: main content ── */}
           <div className="flex-1 min-w-0 space-y-6">
-
-            {/* Smart Advisor */}
-            <div ref={advisorRef} className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-700 shadow-sm p-6">
-              {loadingSummary ? (
-                <div className="text-center py-4">
-                  <HiSparkles className="w-7 h-7 text-emerald-600 dark:text-emerald-400 animate-pulse mx-auto mb-3" />
-                  <p className="text-emerald-800 dark:text-emerald-300 font-semibold text-sm">
-                    Generating your personalised Smart Advisor summary…
-                  </p>
-                </div>
-              ) : advisorSummary ? (
-                <>
-                  <SectionHeader icon={<HiLightBulb className="w-5 h-5" />} title="Smart Advisor Summary" colour="text-emerald-700 dark:text-emerald-300" />
-                  <div className="mt-4 p-5 bg-white dark:bg-slate-900 rounded-xl border border-emerald-200 dark:border-emerald-700">
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                      {advisorSummary}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <HiLightBulb className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      <h3 className="text-base font-semibold text-emerald-900 dark:text-emerald-100">Need Personalised Guidance?</h3>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {summaryErr
-                        ? "We couldn't generate your summary. The AI service may be busy, please try again in a moment."
-                        : "Get an AI-powered summary of how this degree aligns with your goals and interests."}
-                    </p>
-                  </div>
-                  <button
-                    onClick={fetchSmartAdvisor}
-                    className="flex-shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow hover:shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all flex items-center gap-2"
-                  >
-                    <HiSparkles className="w-4 h-4" />
-                    {summaryErr ? "Try again" : "Generate Summary"}
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* Program Structure */}
             {degree.program_structure && (
@@ -444,15 +372,6 @@ function FlatSection({ title, icon, children }) {
         <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
       </div>
       {children}
-    </div>
-  );
-}
-
-function SectionHeader({ icon, title, colour = "text-slate-900 dark:text-slate-100" }) {
-  return (
-    <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
-      <div className="text-slate-500 dark:text-slate-400">{icon}</div>
-      <h2 className={`text-base font-semibold ${colour}`}>{title}</h2>
     </div>
   );
 }

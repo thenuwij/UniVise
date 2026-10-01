@@ -1,5 +1,6 @@
 import { HiX } from "react-icons/hi";
 import AdvisorReport from "./AdvisorReport";
+import DegreeFitSummary from "./DegreeFitSummary";
 
 // Step 4: loading, error and result states for the transfer recommendation.
 function StepTransferReport({
@@ -61,16 +62,19 @@ function StepTransferReport({
       )}
 
       {!reportLoading && !reportError && comparisonData && aiReport && (
-        <AdvisorReport
-          comparisonData={comparisonData}
-          aiReport={aiReport}
-          currentProgram={baseProgram}
-          targetProgram={targetProgram}
-          baseSelectedSpecs={baseSelectedSpecs}
-          targetSelectedSpecs={targetSelectedSpecs}
-          baseSpecsOptions={baseSpecsOptions}
-          targetSpecsOptions={targetSpecsOptions}
-        />
+        <>
+          <AdvisorReport
+            comparisonData={comparisonData}
+            aiReport={aiReport}
+            currentProgram={baseProgram}
+            targetProgram={targetProgram}
+            baseSelectedSpecs={baseSelectedSpecs}
+            targetSelectedSpecs={targetSelectedSpecs}
+            baseSpecsOptions={baseSpecsOptions}
+            targetSpecsOptions={targetSpecsOptions}
+          />
+          {targetProgram && <DegreeFitSummary key={targetProgram.code} program={targetProgram} />}
+        </>
       )}
     </div>
   );
