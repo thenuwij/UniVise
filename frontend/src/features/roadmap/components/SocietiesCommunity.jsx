@@ -87,7 +87,7 @@ export default function SocietiesCommunity({ societies }) {
                     onClick={() => toggleSociety(idx)}
                   >
                     <div className="min-w-0">
-                      <h5 className="text-lg font-semibold text-slate-900 dark:text-white">{society.name}</h5>
+                      <h5 className="text-xl font-semibold text-blue-900 dark:text-blue-300">{society.name}</h5>
                       <p className="mt-1.5 text-base text-slate-600 dark:text-slate-300">{society.relevance}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -154,7 +154,7 @@ export default function SocietiesCommunity({ societies }) {
               <div key={idx} className={`${card} p-6`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.name}</p>
+                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-300">{s.name}</p>
                     <p className="mt-2 text-base text-slate-600 dark:text-slate-300 leading-relaxed">{s.why_join}</p>
                   </div>
                   <SaveButton itemType="society" itemId={s.name} itemName={s.name} itemData={{ why_join: s.why_join }} />
