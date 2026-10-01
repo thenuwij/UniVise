@@ -7,12 +7,12 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import { DetailSection, FactRow, bandButton, courseTile } from "../components/DetailLayout";
 
 import {
-  HiAcademicCap,
   HiExternalLink,
 } from "react-icons/hi";
 
@@ -114,20 +114,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
     fetchMeta();
   }, [spec]);
 
-  if (!spec) {
-    return (
-      <div className="min-h-screen app-page flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-            <HiAcademicCap className="w-12 h-12 text-slate-400 animate-pulse" />
-          </div>
-          <p className="text-slate-600 dark:text-slate-300 text-lg">
-            {loadErr ? `Error: ${loadErr}` : `Loading ${config.loadingLabel}...`}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!spec) return <DetailLoading failed={!!loadErr} what={config.loadingLabel} />;
 
   return (
     <div className="min-h-screen app-page">

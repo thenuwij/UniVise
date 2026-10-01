@@ -169,10 +169,10 @@ function UniItemCard({ rec, onOpen }) {
 
 function ItemSkeleton() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/70 p-5 animate-pulse">
-      <div className="h-5 w-1/3 bg-slate-200 rounded" />
-      <div className="mt-3 h-3 w-2/3 bg-slate-200 rounded" />
-      <div className="mt-3 h-2.5 w-full bg-slate-200 rounded" />
+    <div className="rounded-2xl border border-line bg-surface p-5 animate-pulse">
+      <div className="h-5 w-1/3 bg-line rounded" />
+      <div className="mt-3 h-3 w-2/3 bg-line rounded" />
+      <div className="mt-3 h-2.5 w-full bg-line rounded" />
     </div>
   );
 }

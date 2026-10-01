@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
+import { courseTile } from "./DetailLayout";
 
 const INITIAL_VISIBLE = 6;
 
@@ -64,7 +65,7 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {visible.map((deg) => (
           <Link key={deg.id} to={`/degrees/${deg.id}`}>
-            <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
+            <div className={courseTile}>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{deg.program_name}</p>
                 {deg.faculty && (
@@ -84,7 +85,7 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
         <button
           type="button"
           onClick={() => setShowAll((value) => !value)}
-          className="text-sm font-semibold text-sky-700 dark:text-sky-300 hover:underline"
+          className="text-sm font-semibold text-link hover:underline"
         >
           {showAll ? "Show fewer" : `Show all ${items.length} programs`}
         </button>
