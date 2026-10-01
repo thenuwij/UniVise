@@ -108,7 +108,7 @@ export default function IndustryExperience({ industryExperience }) {
           {internshipPrograms.length > 3 && (
             <button
               onClick={() => setShowAllPrograms(!showAllPrograms)}
-              className="mt-5 inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
             >
               {showAllPrograms ? (
                 <>Show fewer <ChevronUp className="h-5 w-5" /></>
