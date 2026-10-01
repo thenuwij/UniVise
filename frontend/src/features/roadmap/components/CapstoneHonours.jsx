@@ -2,7 +2,7 @@ import { ChevronRight, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { getLevelColor } from "@/features/mindmesh/utils";
 import SectionHeading from "./SectionHeading";
-import { card, clickable } from "../utils/cardStyles";
+import { card, clickable } from "@/shared/ui/cardStyles";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";

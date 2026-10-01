@@ -6,7 +6,7 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
 import { supabase } from "@/shared/lib/supabase";
 import { toSearchTerm } from "@/shared/lib/search";
-import { card, clickable } from "@/features/roadmap/utils/cardStyles";
+import { card, clickable } from "@/shared/ui/cardStyles";
 
 const MIN_CHARS = 2;
 const DEBOUNCE_MS = 250;

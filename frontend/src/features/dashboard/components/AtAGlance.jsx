@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Layers } from "lucide-react";
-import { card, clickable } from "@/features/roadmap/utils/cardStyles";
+import { card, clickable } from "@/shared/ui/cardStyles";
 
 function Tile({ icon: Icon, label, children, to }) {
   const body = (

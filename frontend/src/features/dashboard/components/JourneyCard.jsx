@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { card, clickable } from "@/features/roadmap/utils/cardStyles";
+import { card, clickable } from "@/shared/ui/cardStyles";
 
 const STEPS = ["Overview", "Structure", "Societies", "Careers", "Internships"];
 const roadmapStep = (n) => `/roadmap-entryload?step=${n}`;
