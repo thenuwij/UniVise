@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   HiAcademicCap,
-  HiBookOpen,
   HiCheckCircle,
   HiExternalLink,
   HiSparkles,
@@ -11,6 +10,7 @@ import {
 import { Link, useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import { DetailSection, FactRow, bandButton, bandButtonSolid } from "../components/DetailLayout";
@@ -83,20 +83,7 @@ function CourseDetailPage() {
     }
   };
 
-  if (!course) {
-    return (
-      <div className="min-h-screen app-page flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-            <HiBookOpen className="w-12 h-12 text-slate-400 animate-pulse" />
-          </div>
-          <p className="text-slate-700 dark:text-slate-300 text-lg">
-            {loadErr ? `Error: ${loadErr}` : "Loading course details..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!course) return <DetailLoading failed={!!loadErr} what="course" />;
 
   const normalizedTerms = Array.isArray(course.offering_terms)
     ? course.offering_terms.join(", ")

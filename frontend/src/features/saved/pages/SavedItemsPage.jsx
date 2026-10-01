@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { card } from "@/shared/ui/cardStyles";
 import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -189,7 +190,7 @@ function LoadingState() {
 
 function EmptyState({ tab, onAction, actionText }) {
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-12 text-center">
+    <div className={`${card} p-12 text-center`}>
       <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
         <HiBookmark className="w-7 h-7 text-slate-400" />
       </div>
@@ -202,7 +203,7 @@ function EmptyState({ tab, onAction, actionText }) {
       {onAction && (
         <button
           onClick={onAction}
-          className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
+          className="button-primary px-5 py-2.5 rounded-xl text-sm font-bold"
         >
           {actionText}
         </button>
