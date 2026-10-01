@@ -7,7 +7,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchChosenSpecialisations, hasCourses, parseSections } from "../utils/programCourses";
 import SuggestedNext from "./SuggestedNext";
-import SectionHeading from "./SectionHeading";
+import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 
 function sumUoC(list = []) {

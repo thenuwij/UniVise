@@ -19,7 +19,7 @@ import {
   GraduationCap,
   ListChecks
 } from "lucide-react";
-import SectionHeading from "./SectionHeading";
+import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 
 const INTEREST_PATTERNS = {

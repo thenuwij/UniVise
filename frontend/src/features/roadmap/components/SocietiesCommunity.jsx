@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
-import SectionHeading from "./SectionHeading";
+import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 
 export default function SocietiesCommunity({ societies }) {
