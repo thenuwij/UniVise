@@ -5,13 +5,13 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 
 import {
   HiAcademicCap,
   HiArrowRight,
-  HiArrowLeft,
   HiCheckCircle,
   HiCheck,
   HiSwitchHorizontal,
@@ -438,12 +438,10 @@ function ProgressPage() {
   // ─── LOADING ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <div>
-        <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
-          <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-        </div>
-        <div className="pt-16 sm:pt-20 flex items-center justify-center min-h-screen">
+      <div className="min-h-screen app-page">
+        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
+        <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+        <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
               <HiAcademicCap className="w-8 h-8 text-slate-400 animate-pulse" />
@@ -469,50 +467,29 @@ function ProgressPage() {
   const nav = navConfig[currentStep] || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
-        <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-      </div>
+    <div className="min-h-screen app-page">
+      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
+      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      <div className="pt-16 sm:pt-20">
+      <div>
         <div className="" ref={contentRef}>
-          {/* ═══ STEP INDICATOR ═══════════════════════════════════ */}
-          <div className="bg-gradient-to-r from-slate-300 via-slate-200 to-slate-300 dark:from-slate-600 dark:via-slate-700 dark:to-slate-600 border-b border-slate-400 dark:border-slate-500 px-6 py-5 mb-2 flex items-center">
-            {currentStep === 1 && (
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
-              >
-                <HiArrowLeft className="w-4 h-4" /> Dashboard
-              </button>
-            )}
-            {currentStep > 1 && currentStep < 4 && (
-              <button
-                onClick={goBack}
-                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
-              >
-                <HiArrowLeft className="w-4 h-4" /> Back
-              </button>
-            )}
-            {currentStep === 4 && (
-              <button
-                onClick={() => setCurrentStep(3)}
-                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 text-sm font-semibold transition-colors"
-              >
-                <HiArrowLeft className="w-4 h-4" /> Back
-              </button>
-            )}
-            <span className="ml-4 pl-4 border-l border-slate-400 dark:border-slate-500 text-base font-bold text-slate-800 dark:text-slate-100">
-              Switch Degree
-            </span>
-            <span className="ml-auto text-slate-500 dark:text-slate-400 text-xs font-semibold tracking-widest uppercase">
-              {currentStep < 4 ? `Step ${currentStep} of 3` : "Your Analysis"}
-            </span>
-          </div>
+          <PageHeader
+            back={
+              currentStep === 1
+                ? { label: "Dashboard", onClick: () => navigate("/dashboard") }
+                : { label: "Back", onClick: currentStep === 4 ? () => setCurrentStep(3) : goBack }
+            }
+            eyebrow="Switch Degree"
+            title={currentStep === 4 && baseProgram && targetProgram ? `${baseProgram.name} to ${targetProgram.name}` : STEPS[currentStep - 1].label}
+            subtitle={
+              currentStep === 4 && baseProgram && targetProgram
+                ? `${baseProgram.code} to ${targetProgram.code}`
+                : `Step ${currentStep} of 3 · ${STEPS[currentStep - 1].desc}`
+            }
+          />
 
           {/* ═══ STEP CONTENT ════════════════════════════════════= */}
-          <div className="max-w-6xl mx-auto px-6 mb-8">
+          <div className="max-w-6xl mx-auto px-6 mt-8 mb-8">
             {showSetupModal && (
               <ProgramSetupModal
                 onClose={() => {

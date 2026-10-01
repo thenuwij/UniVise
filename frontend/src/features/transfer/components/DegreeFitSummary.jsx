@@ -3,7 +3,7 @@ import { HiSparkles } from "react-icons/hi";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
 import { supabase } from "@/shared/lib/supabase";
-import { card } from "@/features/roadmap/utils/cardStyles";
+import { card } from "@/shared/ui/cardStyles";
 
 export default function DegreeFitSummary({ program }) {
   const { session } = UserAuth();

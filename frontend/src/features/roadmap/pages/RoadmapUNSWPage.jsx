@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bookmark } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { ArrowLeft } from "../components/InlineIcons";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
 import CourseProgress from "../components/CourseProgress";
@@ -457,67 +457,37 @@ export default function RoadmapUNSWPage() {
   ].filter(([, value]) => value);
 
   const programHeader = (
-    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-600 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <div aria-hidden className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
-      <div aria-hidden className="absolute -bottom-44 left-1/3 h-[420px] w-[420px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
-      <div className="relative max-w-[1440px] mx-auto px-5 md:px-10 pt-5 pb-7">
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={handleBackClick}
-            className="inline-flex items-center gap-2 text-[15px] font-medium text-white/85 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {isOwnProgram ? "Back" : "Back to my roadmap"}
+    <PageHeader
+      back={{ label: isOwnProgram ? "Back" : "Back to my roadmap", onClick: handleBackClick }}
+      actions={
+        <>
+          <Link to="/saved" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
+            <Bookmark className="h-4 w-4" />
+            My shortlist
+          </Link>
+          <button onClick={() => navigate("/roadmap")} className="text-[15px] font-semibold text-white hover:underline">
+            Explore a different degree
           </button>
-          <div className="flex items-center gap-6">
-            <Link to="/saved" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
-              <Bookmark className="h-4 w-4" />
-              My shortlist
-            </Link>
-            <button onClick={() => navigate("/roadmap")} className="text-[15px] font-semibold text-white hover:underline">
-              Explore a different degree
-            </button>
+        </>
+      }
+      eyebrow={isOwnProgram ? "Your degree" : "Exploring"}
+      title={headerProgramName}
+      subtitle={specNames.length > 0 ? specNames.join(" · ") : null}
+      aside={isOwnProgram ? <CourseProgress degreeCode={shownDegreeCode} /> : null}
+    >
+      <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-4">
+        {headerFacts.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-[13px] text-band-soft">{label}</dt>
+            <dd className="mt-1 text-[17px] font-semibold text-band-ink">{value}</dd>
           </div>
-        </div>
-
-        <div className="mt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
-          <div className="min-w-0">
-            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
-              {isOwnProgram ? "Your degree" : "Exploring"}
-            </p>
-            {headerProgramName ? (
-              <h1 className="mt-2 text-4xl md:text-[42px] md:leading-[1.1] font-bold tracking-tight text-white">
-                {headerProgramName}
-              </h1>
-            ) : (
-              <div className="mt-2 h-11 w-80 bg-white/20 rounded-xl animate-pulse" />
-            )}
-            {specNames.length > 0 && (
-              <p className="mt-2.5 text-lg md:text-xl text-blue-100">{specNames.join(" · ")}</p>
-            )}
-          </div>
-          {isOwnProgram && (
-            <div className="flex-shrink-0">
-              <CourseProgress degreeCode={shownDegreeCode} />
-            </div>
-          )}
-        </div>
-
-        <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-4">
-          {headerFacts.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-[13px] text-blue-200">{label}</dt>
-              <dd className="mt-1 text-[17px] font-semibold text-white">{value}</dd>
-            </div>
-          ))}
-        </dl>
-
-      </div>
-    </section>
+        ))}
+      </dl>
+    </PageHeader>
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] dark:bg-slate-950 text-primary transition-colors duration-500">
+    <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 

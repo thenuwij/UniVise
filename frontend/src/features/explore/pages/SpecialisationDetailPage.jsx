@@ -7,41 +7,32 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import PageHeader from "@/shared/layout/PageHeader";
+import { card } from "@/shared/ui/cardStyles";
+import { DetailSection, FactRow, bandButton, courseTile } from "../components/DetailLayout";
 
 import {
   HiAcademicCap,
-  HiArrowLeft,
-  HiBookOpen,
-  HiChartBar,
-  HiCollection,
-  HiDocumentText,
   HiExternalLink,
-  HiInformationCircle,
 } from "react-icons/hi";
 
 const VARIANTS = {
   major: {
     loadingLabel: "major",
-    typeBadgeClass:
-      "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700",
-    structureTitle: "Specialisation Structure",
-    relatedTitle: "Programs Offering This Major",
+    structureTitle: "Structure",
+    relatedTitle: "Programs offering this major",
     preserveSectionWhitespace: false,
   },
   minor: {
     loadingLabel: "minor",
-    typeBadgeClass:
-      "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700",
-    structureTitle: "Minor Structure",
-    relatedTitle: "Programs Offering This Minor",
+    structureTitle: "Structure",
+    relatedTitle: "Programs offering this minor",
     preserveSectionWhitespace: false,
   },
   honours: {
     loadingLabel: "honours specialisation",
-    typeBadgeClass:
-      "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700",
-    structureTitle: "Honours Structure",
-    relatedTitle: "Programs Offering This Honours Stream",
+    structureTitle: "Structure",
+    relatedTitle: "Programs offering this honours stream",
     preserveSectionWhitespace: true,
   },
 };
@@ -125,7 +116,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
 
   if (!spec) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen app-page flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
             <HiAcademicCap className="w-12 h-12 text-slate-400 animate-pulse" />
@@ -139,66 +130,41 @@ function SpecialisationDetailPage({ variant = "major" }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <main className="max-w-[1400px] mx-auto px-6 py-10">
+      <PageHeader
+        back={{ label: "Back", onClick: goBack }}
+        eyebrow={[spec.specialisation_type, spec.major_code].filter(Boolean).join(" · ")}
+        title={spec.major_name}
+        subtitle={spec.faculty}
+        aside={
+          spec.source_url ? (
+            <a href={spec.source_url} target="_blank" rel="noopener noreferrer" className={bandButton}>
+              Official Handbook
+              <HiExternalLink className="w-4 h-4" />
+            </a>
+          ) : null
+        }
+      />
 
-        {/* Back */}
-        <button
-          onClick={goBack}
-          className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
-        >
-          <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Back
-        </button>
-
-        {/* Header */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 mb-6">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
-                {spec.major_name}
-              </h1>
-              <div className="flex flex-wrap gap-2">
-                {spec.faculty && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    {spec.faculty}
-                  </span>
-                )}
-                {spec.major_code && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-700">
-                    {spec.major_code}
-                  </span>
-                )}
-                {spec.specialisation_type && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${config.typeBadgeClass}`}>
-                    {spec.specialisation_type}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {spec.overview_description && (
-            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
-                {spec.overview_description}
-              </p>
-            </div>
-          )}
-        </div>
-
+      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         {/* Two-column layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
           {/* ── Left: main content ── */}
-          <div className="flex-1 min-w-0 space-y-0">
+          <div className="flex-1 min-w-0">
+            {spec.overview_description && (
+              <DetailSection title="Overview">
+                <p className="max-w-[68ch] text-base leading-relaxed text-ink whitespace-pre-line">{spec.overview_description}</p>
+              </DetailSection>
+            )}
+
 
             {/* Structure */}
             {spec.sections?.length > 0 && (
-              <FlatSection title={config.structureTitle} icon={<HiBookOpen className="w-4 h-4" />}>
+              <DetailSection title={config.structureTitle}>
                 <div className="space-y-8">
                   {spec.sections.map((section, idx) => (
                     <div key={idx}>
@@ -221,9 +187,9 @@ function SpecialisationDetailPage({ variant = "major" }) {
                             const meta = courseDetailsByCode[course.code];
                             const link = meta ? `/course/${meta.id}` : null;
                             const row = (
-                              <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
+                              <div className={courseTile}>
                                 <div className="flex items-center gap-3 min-w-0">
-                                  <span className="text-sm font-bold text-sky-700 dark:text-sky-400 flex-shrink-0">{course.code}</span>
+                                  <span className="text-sm font-bold text-link flex-shrink-0">{course.code}</span>
                                   <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{course.name}</span>
                                 </div>
                               </div>
@@ -239,12 +205,12 @@ function SpecialisationDetailPage({ variant = "major" }) {
                     </div>
                   ))}
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
             {/* Related Degrees */}
             {spec.related_degrees?.length > 0 && (
-              <FlatSection title={config.relatedTitle} icon={<HiAcademicCap className="w-4 h-4" />}>
+              <DetailSection title={config.relatedTitle}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {spec.related_degrees.map((deg, i) => {
                     const mapped = degreeDetailsByCode[deg.degree_code];
@@ -274,52 +240,37 @@ function SpecialisationDetailPage({ variant = "major" }) {
                     );
                   })}
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
             {/* Important Notes */}
             {spec.special_notes && spec.special_notes !== "Not specified" && (
-              <FlatSection title="Important Notes" icon={<HiInformationCircle className="w-4 h-4" />}>
+              <DetailSection title="Important notes">
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
                   <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-300 leading-relaxed">
                     {spec.special_notes}
                   </p>
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
-            {/* Handbook link */}
-            {spec.source_url && (
-              <div className="py-7">
-                <a
-                  href={spec.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all"
-                >
-                  <HiDocumentText className="w-4 h-4" />
-                  View Official UNSW Handbook
-                  <HiExternalLink className="w-3.5 h-3.5 opacity-80" />
-                </a>
-              </div>
-            )}
           </div>
 
           {/* ── Right: sticky sidebar ── */}
           <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 space-y-4 lg:sticky lg:top-24">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                At a Glance
+            <div className={`${card} p-5`}>
+              <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-link mb-4">
+                At a glance
               </h3>
               <div className="space-y-3">
                 {spec.specialisation_type && (
-                  <StatRow icon={<HiCollection className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Type" value={spec.specialisation_type} />
+                  <FactRow label="Type" value={spec.specialisation_type} />
                 )}
                 {spec.uoc_required && (
-                  <StatRow icon={<HiChartBar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="UOC Required" value={spec.uoc_required} />
+                  <FactRow label="UOC required" value={spec.uoc_required} />
                 )}
                 {spec.major_code && (
-                  <StatRow icon={<HiDocumentText className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Code" value={spec.major_code} />
+                  <FactRow label="Code" value={spec.major_code} />
                 )}
                 {spec.faculty && (
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
@@ -337,30 +288,5 @@ function SpecialisationDetailPage({ variant = "major" }) {
   );
 }
 
-function FlatSection({ title, icon, children }) {
-  return (
-    <div className="py-7 border-b border-slate-200 dark:border-slate-800 last:border-0">
-      <div className="flex items-center gap-2.5 mb-5">
-        <div className="p-1.5 rounded-md bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
-          {icon}
-        </div>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function StatRow({ icon, label, value }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 min-w-0">
-        {icon}
-        <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</span>
-      </div>
-      <span className="text-sm font-semibold text-slate-900 dark:text-white flex-shrink-0">{value}</span>
-    </div>
-  );
-}
 
 export default SpecialisationDetailPage;

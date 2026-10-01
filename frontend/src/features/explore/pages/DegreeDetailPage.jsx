@@ -2,23 +2,17 @@
 import { useEffect, useState } from "react";
 import {
   HiAcademicCap,
-  HiArrowLeft,
   HiArrowRight,
-  HiBookOpen,
-  HiBriefcase,
-  HiChartBar,
-  HiClock,
-  HiCollection,
-  HiDocumentText,
   HiExternalLink,
-  HiInformationCircle,
-  HiLocationMarker,
 } from "react-icons/hi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import PageHeader from "@/shared/layout/PageHeader";
+import { card } from "@/shared/ui/cardStyles";
+import { DetailSection, FactRow, bandButton, bandButtonSolid, courseTile } from "../components/DetailLayout";
 
 function DegreeDetailPage() {
   const { degreeId } = useParams();
@@ -90,7 +84,7 @@ function DegreeDetailPage() {
 
   if (!degree) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen app-page flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
             <HiAcademicCap className="w-12 h-12 text-slate-400 animate-pulse" />
@@ -104,84 +98,47 @@ function DegreeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <main className="max-w-[1400px] mx-auto px-6 py-10">
-
-        {/* Back */}
-        <button
-          onClick={goBack}
-          className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
-        >
-          <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Back
-        </button>
-
-        {/* Header */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 mb-6">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
-                {degree.program_name}
-              </h1>
-              <div className="flex flex-wrap gap-2">
-                {degree.faculty && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    {degree.faculty}
-                  </span>
-                )}
-                {degree.other_faculty && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    {degree.other_faculty}
-                  </span>
-                )}
-                {degree.program_code && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-700">
-                    {degree.program_code}
-                  </span>
-                )}
-                {degree.level && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700">
-                    {degree.level}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => navigate(`/roadmap?program=${degree.degree_code}`)}
-                className="group flex items-center gap-2 px-4 py-2 rounded-xl
-                           bg-gradient-to-r from-purple-600 to-blue-600
-                           hover:from-purple-700 hover:to-blue-700
-                           text-white font-semibold text-sm whitespace-nowrap
-                           shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <span>View this degree's roadmap</span>
-                <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
+      <PageHeader
+        back={{ label: "Back", onClick: goBack }}
+        eyebrow={[degree.degree_code, degree.level].filter(Boolean).join(" · ")}
+        title={degree.program_name}
+        subtitle={[degree.faculty, degree.other_faculty].filter(Boolean).join(" · ")}
+        aside={
+          <div className="flex flex-wrap gap-3">
+            {degree.source_url && (
+              <a href={degree.source_url} target="_blank" rel="noopener noreferrer" className={bandButton}>
+                Official Handbook
+                <HiExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            <button onClick={() => navigate(`/roadmap?program=${degree.degree_code}`)} className={`group ${bandButtonSolid}`}>
+              View this degree's roadmap
+              <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
+        }
+      />
 
-          {degree.overview_description && (
-            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
-                {degree.overview_description}
-              </p>
-            </div>
-          )}
-        </div>
-
+      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         {/* Two-column layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
           {/* ── Left: main content ── */}
-          <div className="flex-1 min-w-0 space-y-6">
+          <div className="flex-1 min-w-0">
+            {degree.overview_description && (
+              <DetailSection title="Overview">
+                <p className="max-w-[68ch] text-base leading-relaxed text-ink whitespace-pre-line">{degree.overview_description}</p>
+              </DetailSection>
+            )}
+
 
             {/* Program Structure */}
             {degree.program_structure && (
-              <FlatSection title="Program Structure" icon={<HiCollection className="w-4 h-4" />}>
+              <DetailSection title="Program structure">
                 <div className="space-y-3">
                   {formatStructureText(degree.program_structure).map((block, idx) => (
                     <div key={idx} className={`text-sm text-slate-700 dark:text-slate-300 leading-relaxed ${block.type === "numbered" ? "flex gap-3 items-start" : ""}`}>
@@ -195,12 +152,12 @@ function DegreeDetailPage() {
                     </div>
                   ))}
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
             {/* Detailed Requirements */}
             {degree.sections && degree.sections.length > 0 && (
-              <FlatSection title="Detailed Requirements" icon={<HiBookOpen className="w-4 h-4" />}>
+              <DetailSection title="Requirements">
                 <div className="space-y-6">
                   {degree.sections.map((section, idx) => (
                     <div key={idx}>
@@ -225,9 +182,9 @@ function DegreeDetailPage() {
                           {section.courses.map((course, cIdx) => {
                             const courseId = courseIdByCode[course.code];
                             const card = (
-                              <div className="flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/60 dark:from-slate-800/70 dark:to-sky-900/20 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:from-sky-50 hover:to-sky-100/60 hover:shadow-sm dark:hover:from-slate-800 dark:hover:to-sky-900/30 transition-all cursor-pointer">
+                              <div className={courseTile}>
                                 <div className="flex items-center gap-3 min-w-0">
-                                  <span className="text-sm font-bold text-sky-700 dark:text-sky-400 flex-shrink-0">{course.code}</span>
+                                  <span className="text-sm font-bold text-link flex-shrink-0">{course.code}</span>
                                   <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{course.name}</span>
                                 </div>
                                 {course.uoc > 0 && (
@@ -249,12 +206,12 @@ function DegreeDetailPage() {
                     </div>
                   ))}
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
             {/* Career Outcomes */}
             {degree.career_outcomes?.length > 0 && (
-              <FlatSection title="Career Outcomes" icon={<HiBriefcase className="w-4 h-4" />}>
+              <DetailSection title="Career outcomes">
                 <div className="flex flex-wrap gap-2">
                   {degree.career_outcomes.map((outcome, idx) => (
                     <span key={idx} className="px-3.5 py-1.5 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
@@ -262,55 +219,40 @@ function DegreeDetailPage() {
                     </span>
                   ))}
                 </div>
-              </FlatSection>
+              </DetailSection>
             )}
 
             {/* Special Notes */}
             {degree.special_notes && (
-              <FlatSection title="Important Notes" icon={<HiInformationCircle className="w-4 h-4" />}>
+              <DetailSection title="Important notes">
                 <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                   {degree.special_notes}
                 </p>
-              </FlatSection>
+              </DetailSection>
             )}
 
-            {/* Handbook link */}
-            {degree.source_url && (
-              <div className="py-4">
-                <a
-                  href={degree.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all"
-                >
-                  <HiDocumentText className="w-4 h-4" />
-                  View Official UNSW Handbook
-                  <HiExternalLink className="w-3.5 h-3.5 opacity-80" />
-                </a>
-              </div>
-            )}
           </div>
 
           {/* ── Right: sticky sidebar ── */}
           <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 space-y-4 lg:sticky lg:top-24">
 
             {/* Key stats */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                At a Glance
+            <div className={`${card} p-5`}>
+              <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-link mb-4">
+                At a glance
               </h3>
               <div className="space-y-3">
                 {degree.duration && (
-                  <StatRow icon={<HiClock className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Duration" value={`${degree.duration} year${degree.duration > 1 ? "s" : ""}`} />
+                  <FactRow label="Duration" value={`${degree.duration} year${degree.duration > 1 ? "s" : ""}`} />
                 )}
                 {degree.minimum_uoc && (
-                  <StatRow icon={<HiChartBar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Total UOC" value={`${degree.minimum_uoc} UOC`} />
+                  <FactRow label="Total UOC" value={`${degree.minimum_uoc} UOC`} />
                 )}
                 {degree.uac_code && (
-                  <StatRow icon={<HiDocumentText className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="UAC Code" value={degree.uac_code} />
+                  <FactRow label="UAC code" value={degree.uac_code} />
                 )}
                 {degree.cricos_code && (
-                  <StatRow icon={<HiLocationMarker className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="CRICOS" value={degree.cricos_code} />
+                  <FactRow label="CRICOS" value={degree.cricos_code} />
                 )}
               </div>
             </div>
@@ -323,10 +265,10 @@ function DegreeDetailPage() {
                 </h3>
                 <div className="space-y-3">
                   {degree.lowest_selection_rank && (
-                    <StatRow icon={<HiInformationCircle className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />} label="Selection Rank" value={degree.lowest_selection_rank} />
+                    <FactRow label="Selection Rank" value={degree.lowest_selection_rank} />
                   )}
                   {degree.lowest_atar && (
-                    <StatRow icon={<HiInformationCircle className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />} label="Lowest ATAR" value={degree.lowest_atar} />
+                    <FactRow label="Lowest ATAR" value={degree.lowest_atar} />
                   )}
                   {degree.assumed_knowledge && (
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
@@ -362,30 +304,5 @@ function formatStructureText(text) {
     });
 }
 
-function FlatSection({ title, icon, children }) {
-  return (
-    <div className="py-7 border-b border-slate-200 dark:border-slate-800 last:border-0">
-      <div className="flex items-center gap-2.5 mb-5">
-        <div className="p-1.5 rounded-md bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
-          {icon}
-        </div>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function StatRow({ icon, label, value }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 min-w-0">
-        {icon}
-        <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</span>
-      </div>
-      <span className="text-sm font-semibold text-slate-900 dark:text-white flex-shrink-0">{value}</span>
-    </div>
-  );
-}
 
 export default DegreeDetailPage;

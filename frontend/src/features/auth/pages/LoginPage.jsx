@@ -3,7 +3,7 @@ import { Header } from "@/shared/layout/Header";
 
 function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen flex flex-col app-page">
       <Header />
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="flex flex-col items-center gap-8 w-full max-w-md">

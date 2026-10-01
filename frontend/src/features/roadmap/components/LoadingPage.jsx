@@ -1,7 +1,7 @@
 
 function LoadingPage({ message = "Loading...", progress = 0 }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-primary dark:bg-primary px-4 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col items-center justify-center app-page px-4 transition-colors duration-300">
       <div className="text-center mb-6">
         <div className="animate-pulse text-xl font-semibold text-primary dark:text-secondary">
           {message}

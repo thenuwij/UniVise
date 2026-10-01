@@ -15,7 +15,7 @@ export default function ChatbotPage() {
   const closeDrawer = () => setIsOpen(false);
 
  return (
-  <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+  <div className="flex flex-col h-screen app-page">
     {/*  Top navbars */}
     <div>
       <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />

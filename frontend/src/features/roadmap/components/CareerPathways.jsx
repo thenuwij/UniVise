@@ -19,8 +19,8 @@ import {
   GraduationCap,
   ListChecks
 } from "lucide-react";
-import SectionHeading from "./SectionHeading";
-import { card } from "../utils/cardStyles";
+import SectionHeading from "@/shared/ui/SectionHeading";
+import { card } from "@/shared/ui/cardStyles";
 
 const INTEREST_PATTERNS = {
   "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,

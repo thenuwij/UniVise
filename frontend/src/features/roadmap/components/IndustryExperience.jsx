@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AlertCircle, Building2, Calendar, ChevronDown, ChevronUp, Clock, ExternalLink, GraduationCap } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
-import SectionHeading from "./SectionHeading";
-import { card, clickable } from "../utils/cardStyles";
+import SectionHeading from "@/shared/ui/SectionHeading";
+import { card, clickable } from "@/shared/ui/cardStyles";
 
 const RESOURCES = [
   ["UNSWConnect", "Internships, part-time jobs and graduate roles", "https://unswconnect.unsw.edu.au"],

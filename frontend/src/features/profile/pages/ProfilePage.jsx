@@ -10,11 +10,12 @@ import {
 } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
-import { HiArrowLeft, HiOutlineAcademicCap, HiOutlineSparkles, HiOutlineUserCircle, HiX } from "react-icons/hi";
+import { HiOutlineAcademicCap, HiOutlineSparkles, HiOutlineUserCircle, HiX } from "react-icons/hi";
 import { HiOutlineIdentification } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import { supabase } from "@/shared/lib/supabase";
 
 function Panel({ title, icon: Icon, children, hint }) {
@@ -205,39 +206,30 @@ function ProfilePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-6 pb-16">
-        {/* Page header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-            >
-              <HiArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </button>
-            <span className="text-slate-300 dark:text-slate-600">|</span>
-            <h1 className="text-xl font-bold">My Account</h1>
-          </div>
+      <PageHeader
+        back={{ label: "Back to Dashboard", onClick: () => navigate("/dashboard") }}
+        actions={
+          isEditing ? (
+            <div className="flex gap-2">
+              <Button pill size="sm" color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
+              <Button pill size="sm" color="light" type="submit" form="profileForm">Save changes</Button>
+            </div>
+          ) : (
+            <Button pill size="sm" color="light" onClick={() => setIsEditing(true)}>
+              <FaRegEdit className="mr-1.5 h-4 w-4" />
+              Edit
+            </Button>
+          )
+        }
+        eyebrow="Profile"
+        title="My account"
+      />
 
-          <div>
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Button pill size="sm" color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button pill size="sm" type="submit" form="profileForm">Save changes</Button>
-              </div>
-            ) : (
-              <Button size="sm" className="button-primary border-0" onClick={() => setIsEditing(true)}>
-                <FaRegEdit className="mr-1.5 h-4 w-4" />
-                Edit
-              </Button>
-            )}
-          </div>
-        </div>
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-16">
 
         {isEditing ? (
           <form id="profileForm" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-5">
