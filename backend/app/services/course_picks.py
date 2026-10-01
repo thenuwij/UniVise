@@ -7,7 +7,7 @@ from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
 from app.models.course_picks import CoursePicks
 from app.services.roadmap.industry import replace_unlisted_codes
-from app.services.roadmap.unsw_queries import COURSE_CODE, fetch_program_course_list, parse_sections_json
+from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
 
 logger = logging.getLogger(__name__)
 
@@ -49,21 +49,12 @@ def available_courses(courses: list, completed: set, groups: dict, preferred: se
     return open_courses[:MAX_CANDIDATES]
 
 
-def _component_codes(degree_code: str, program_name: str) -> list:
-    codes = [degree_code]
-    if program_name and "/" in program_name:
-        names = [n.strip() for n in program_name.split("/")]
-        rows = supabase.from_("unsw_degrees_final").select("degree_code").in_("program_name", names).execute().data or []
-        codes += [r["degree_code"] for r in rows]
-    return codes
-
-
 def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list]:
     rows = (
         supabase.from_("user_specialisation_selections")
         .select("major_id, minor_id, honours_id")
         .eq("user_id", user_id)
-        .in_("degree_code", _component_codes(degree_code, program_name))
+        .in_("degree_code", component_degree_codes(degree_code, program_name))
         .execute()
         .data
         or []

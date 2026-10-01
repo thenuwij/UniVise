@@ -51,6 +51,38 @@ def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
 COURSE_CODE = re.compile(r"^[A-Z]{4}\d{4}$")
 
 
+def normalise_program_name(name: str) -> str:
+    name = re.sub(r"\s+-\s+[a-z]+(\s*\(hons\))?\s*$", "", (name or "").lower())
+    name = re.sub(r"\(honours\)|\(hons\)|bachelor of", "", name)
+    return re.sub(r"[^a-z]+", " ", name).strip()
+
+
+def component_degree_codes(degree_code: str, program_name: str) -> list:
+    codes = [degree_code]
+    if program_name and "/" in program_name:
+        singles = supabase.from_("unsw_degrees_final").select("degree_code, program_name").not_.like("program_name", "%/%").execute().data or []
+        by_name = {normalise_program_name(r["program_name"]): r["degree_code"] for r in singles}
+        codes += [by_name[n] for n in (normalise_program_name(p) for p in program_name.split("/")) if n in by_name]
+    return codes
+
+
+def fetch_specialisation_ids(user_id: str, degree_code: str, program_name: str) -> List[str]:
+    try:
+        rows = (
+            supabase.from_("user_specialisation_selections")
+            .select("major_id, minor_id, honours_id")
+            .eq("user_id", user_id)
+            .in_("degree_code", component_degree_codes(degree_code, program_name))
+            .execute()
+            .data
+            or []
+        )
+    except Exception as e:
+        logger.error(f"fetch_specialisation_ids failed for {degree_code}: {e}")
+        return []
+    return sorted({r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)})
+
+
 def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
     courses: Dict[str, Dict[str, str]] = {}
     if degree_code:
