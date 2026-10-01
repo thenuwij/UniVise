@@ -297,41 +297,46 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   return (
     <div className="space-y-6">
 
-      <SectionHeading
-        subtitle={
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {minimumUoc && <span>{minimumUoc} UOC required</span>}
-            {minimumUoc && specs && <span aria-hidden>·</span>}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <SectionHeading>Your courses</SectionHeading>
+        {(minimumUoc || specs) && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {minimumUoc && (
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm shadow-blue-600/20">
+                {minimumUoc} UOC required
+              </span>
+            )}
             {specs && (
-              <>
-                <span>Specialisation:</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
+              <span className="inline-flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full border border-blue-100 dark:border-slate-700 bg-gradient-to-r from-white to-blue-50 dark:from-slate-900 dark:to-blue-950/50 shadow-sm">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Specialisation</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">
                   {specs.length ? specs.map((s) => s.name).join(", ") : "None chosen yet"}
                 </span>
                 {onChangeSpecialisation && (
-                  <button onClick={onChangeSpecialisation} className="font-semibold text-blue-700 dark:text-blue-300 hover:underline">
+                  <button
+                    onClick={onChangeSpecialisation}
+                    className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                  >
                     {specs.length ? "Change" : "Choose one"}
                   </button>
                 )}
-              </>
+              </span>
             )}
-          </span>
-        }
-        action={
-          <button
-            onClick={handleVisualise}
-            disabled={!allCourses.length}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 hover:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Layers className="w-5 h-5" />
-            Open in CourseMesh
-          </button>
-        }
-      >
-        Your courses
-      </SectionHeading>
+          </div>
+        )}
+      </div>
 
       {trackCompletion && <SuggestedNext degreeCode={degreeCode} onCourseClick={handleCourseClick} />}
+
+      <button
+        onClick={handleVisualise}
+        disabled={!allCourses.length}
+        className="group w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+      >
+        <Layers className="h-5 w-5 flex-shrink-0" />
+        <span className="text-base font-semibold">Open in CourseMesh</span>
+        <span className="hidden sm:inline text-sm text-blue-100">See how your courses connect</span>
+      </button>
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">
