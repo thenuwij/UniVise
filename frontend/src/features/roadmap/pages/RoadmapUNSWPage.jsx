@@ -357,7 +357,6 @@ export default function RoadmapUNSWPage() {
     return [
       {
         key: "overview",
-        stage: "Your degree",
         title: "Overview",
         render: () => {
           const handbookUrl = handbookUrlFor(activeDegree, degreeCodeValue);
@@ -380,7 +379,6 @@ export default function RoadmapUNSWPage() {
       },
       {
         key: "structure",
-        stage: "Your courses",
         title: "Structure",
         render: () => {
           if (!degreeCodeValue) {
@@ -400,36 +398,28 @@ export default function RoadmapUNSWPage() {
         },
       },
       {
-        key: "career_pathways",
-        stage: "Your careers",
-        title: "Careers",
-        render: () => industrySection(
-          "career_pathways",
-          () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
-          "Generating Career Pathways...",
-          "Mapping entry-level, mid-career, and senior roles for your field."
-        ),
-      },
-      {
-        key: "industry_experience",
-        stage: "Your careers",
-        title: "Internships",
-        render: () => industrySection(
-          "industry_experience",
-          () => <IndustryExperience industryExperience={data.industry_experience} />,
-          "Generating Industry Experience...",
-          "Collecting internship programs, recruiting companies, and WIL opportunities."
-        ),
-      },
-      {
         key: "societies",
-        stage: "Your careers",
         title: "Societies",
         render: () => industrySection(
           "industry_societies",
           () => <SocietiesCommunity societies={data.industry_societies} />,
           "Generating Societies & Community...",
           "Finding UNSW societies and community events for your program."
+        ),
+      },
+      {
+        key: "career_pathways",
+        title: "Careers",
+        render: () => industrySection(
+          "career_pathways",
+          () => (
+            <>
+              <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />
+              <IndustryExperience industryExperience={data.industry_experience} />
+            </>
+          ),
+          "Generating Career Pathways...",
+          "Mapping entry-level, mid-career, and senior roles for your field."
         ),
       },
     ];

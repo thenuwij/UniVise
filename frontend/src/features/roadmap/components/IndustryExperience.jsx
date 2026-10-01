@@ -44,7 +44,7 @@ export default function IndustryExperience({ industryExperience }) {
             <Briefcase className="h-5 w-5 text-slate-50" strokeWidth={2.5} />
           </div>
           <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Internship Programs
+            Getting experience
           </h3>
         </div>
       </div>
@@ -79,6 +79,7 @@ export default function IndustryExperience({ industryExperience }) {
       {/* INTERNSHIP PROGRAMS SECTION */}
       {internshipPrograms.length > 0 && (
         <div className="space-y-4">
+          <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">Internship programs</h4>
           {displayedPrograms.map((program, idx) => (
             <div
               key={idx}

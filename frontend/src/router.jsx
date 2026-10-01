@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
   { path: "/chat", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/chat/:conversationId", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>},
-  { path: "/recommendation/:id", element: <Navigate to="/roadmap-entryload?step=3" replace /> },
+  { path: "/recommendation/:id", element: <Navigate to="/roadmap-entryload?step=4" replace /> },
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },

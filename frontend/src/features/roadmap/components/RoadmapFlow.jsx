@@ -1,19 +1,8 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-function groupStages(steps) {
-  const groups = [];
-  steps.forEach((s, i) => {
-    const last = groups[groups.length - 1];
-    if (last && last.stage === s.stage) last.end = i;
-    else groups.push({ stage: s.stage, start: i, end: i });
-  });
-  return groups;
-}
-
 export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, verticalOnMobile = true }) {
   const containerRef = useRef(null);
-  const stages = steps.some((s) => s.stage) ? groupStages(steps) : [];
   const columns = { gridTemplateColumns: `repeat(${Math.max(steps.length, 1)}, minmax(0, 1fr))` };
 
   // Keyboard nav
@@ -58,26 +47,6 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
 
             {/* Circles with Path */}
             <div className="relative flex-1">
-              {stages.length > 0 && (
-                <div className="grid mb-1" style={columns}>
-                  {stages.map((g) => {
-                    const current = activeIndex >= g.start && activeIndex <= g.end;
-                    return (
-                      <div
-                        key={g.stage}
-                        style={{ gridColumn: `${g.start + 1} / ${g.end + 2}` }}
-                        className={`mx-2 pb-1 border-b-2 text-center text-[11px] font-semibold uppercase tracking-wider ${
-                          current
-                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                            : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
-                        }`}
-                      >
-                        {g.stage}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
               {/* SVG path */}
               <svg className="w-full h-20" viewBox="0 0 100 20" preserveAspectRatio="none">
                 <path
@@ -165,14 +134,8 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, ver
           {steps.map((s, i) => {
             const active = i === activeIndex;
             const completed = i < activeIndex;
-            const stageStart = s.stage && (i === 0 || steps[i - 1].stage !== s.stage);
             return (
               <div key={s.key}>
-                {stageStart && (
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    {s.stage}
-                  </p>
-                )}
                 <button
                   onClick={() => onChange?.(i)}
                   className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-200"
