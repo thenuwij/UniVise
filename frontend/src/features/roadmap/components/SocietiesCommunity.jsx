@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Clock, Heart, Info, Star } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "./SectionHeading";
@@ -45,22 +45,28 @@ export default function SocietiesCommunity({ societies }) {
               ))}
             </div>
           )}
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 grid sm:grid-cols-2 gap-4">
             <a
               href="https://campus.hellorubric.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 hover:border-blue-400 transition-colors"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
             >
-              <Star className="h-4 w-4" /> Hello Rubric
+              <Star className="h-5 w-5 flex-shrink-0" />
+              <span className="text-base font-semibold">Hello Rubric</span>
+              <span className="hidden md:inline text-sm text-blue-700 dark:text-blue-200">Events and club sign-ups</span>
+              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
             </a>
             <a
               href="https://www.arc.unsw.edu.au/clubs/find-a-club"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-slate-800 dark:text-white bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-400 transition-colors"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-emerald-800 dark:text-emerald-50 bg-gradient-to-r from-emerald-100 to-green-200 dark:from-emerald-800 dark:to-green-700 border border-emerald-200 dark:border-emerald-700 shadow-md shadow-emerald-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-all"
             >
-              <Heart className="h-4 w-4 text-rose-500" /> Arc UNSW directory
+              <Heart className="h-5 w-5 flex-shrink-0" />
+              <span className="text-base font-semibold">Arc UNSW directory</span>
+              <span className="hidden md:inline text-sm text-emerald-700 dark:text-emerald-200">Every club at UNSW</span>
+              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
             </a>
           </div>
         </div>
