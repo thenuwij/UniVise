@@ -134,7 +134,7 @@ export default function CapstoneHonours({ data, handbookUrl }) {
       {highlights && (
         <section>
           <SectionHeading>What makes this program special</SectionHeading>
-          <p className="mt-6 text-lg md:text-[19px] leading-relaxed text-slate-700 dark:text-slate-300">{highlights}</p>
+          <p className="mt-6 text-base md:text-[17px] leading-relaxed text-slate-700 dark:text-slate-300">{highlights}</p>
         </section>
       )}
 
