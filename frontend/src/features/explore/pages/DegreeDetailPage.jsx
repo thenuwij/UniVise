@@ -22,11 +22,13 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiJson } from "@/shared/lib/api";
+import { useBackToHandbook } from "../hooks/useBackToHandbook";
 
 function DegreeDetailPage() {
   const { session } = UserAuth();
   const { degreeId } = useParams();
   const navigate = useNavigate();
+  const goBack = useBackToHandbook();
 
   const [degree, setDegree] = useState(null);
   const [advisorSummary, setAdvisorSummary] = useState(null);
@@ -140,7 +142,7 @@ function DegreeDetailPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
         >
           <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -186,7 +188,7 @@ function DegreeDetailPage() {
                            text-white font-semibold text-sm whitespace-nowrap
                            shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <span>Open on Roadmap</span>
+                <span>View this degree's roadmap</span>
                 <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
