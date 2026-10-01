@@ -179,20 +179,7 @@ function DegreeDetailPage() {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
-                onClick={() =>
-                  navigate("/roadmap-loading", {
-                    state: {
-                      type: "unsw",
-                      degree: {
-                        id: degree.id,
-                        degree_id: degree.id,
-                        degree_code: degree.degree_code,
-                        uac_code: degree.uac_code,
-                        program_name: degree.program_name,
-                      },
-                    },
-                  })
-                }
+                onClick={() => navigate(`/roadmap?program=${degree.degree_code}`)}
                 className="group flex items-center gap-2 px-4 py-2 rounded-xl
                            bg-gradient-to-r from-purple-600 to-blue-600
                            hover:from-purple-700 hover:to-blue-700

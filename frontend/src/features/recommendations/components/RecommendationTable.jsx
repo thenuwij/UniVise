@@ -360,7 +360,7 @@ export function RecommendationTable() {
             userType === "high_school" ? (
               <HSItemCard key={rec.id} rec={rec} onOpen={() => navigate(`/recommendation/${rec.id}`, { state: { rec } })} />
             ) : (
-              <UniItemCard key={rec.id} rec={rec} onOpen={() => navigate("/roadmap-entryload?step=4")} />
+              <UniItemCard key={rec.id} rec={rec} onOpen={() => navigate("/roadmap-entryload?step=3")} />
             )
           )
         ) : null}

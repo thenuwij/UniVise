@@ -16,7 +16,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 
 const SHORTLIST_TYPES = ["career_path", "internship", "society"];
-const CAREERS_STEP = "/roadmap-entryload?step=4";
+const CAREERS_STEP = "/roadmap-entryload?step=3";
 
 function SavedItemsPage() {
   const navigate = useNavigate();

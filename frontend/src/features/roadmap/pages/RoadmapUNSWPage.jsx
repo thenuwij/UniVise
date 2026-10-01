@@ -14,7 +14,6 @@ import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
-import SpecialisationUNSW from "../components/SpecialisationUNSW";
 import SectionTitle from "../components/SectionTitle";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { supabase } from "@/shared/lib/supabase";
@@ -391,22 +390,13 @@ export default function RoadmapUNSWPage() {
               </div>
             );
           }
-          return <ProgramStructureUNSW degreeCode={degreeCodeValue} trackCompletion={isOwnProgram} />;
-        },
-      },
-      {
-        key: "specialisation",
-        stage: "Your courses",
-        title: "Specialisations",
-        render: () => {
-          if (!degreeCodeValue) {
-            return (
-              <div className="text-center py-10 text-secondary">
-                Unable to load specialisations. Please try again.
-              </div>
-            );
-          }
-          return <SpecialisationUNSW degreeCode={degreeCodeValue} />;
+          return (
+            <ProgramStructureUNSW
+              degreeCode={degreeCodeValue}
+              trackCompletion={isOwnProgram}
+              onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+            />
+          );
         },
       },
       {
@@ -443,7 +433,7 @@ export default function RoadmapUNSWPage() {
         ),
       },
     ];
-  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections]);
+  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 

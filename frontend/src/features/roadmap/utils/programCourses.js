@@ -83,6 +83,28 @@ export async function fetchMyCourses(degreeCode, userId) {
   };
 }
 
+async function fetchSelectionRows(degreeCode, userId) {
+  const degrees = await fetchComponentDegrees(degreeCode);
+  const codes = Array.from(new Set([degreeCode, ...degrees.map((d) => d.degree_code)]));
+  const { data } = await supabase
+    .from("user_specialisation_selections")
+    .select("degree_code, major_id, minor_id, honours_id, major:major_id(id, major_name, specialisation_type), honours:honours_id(id, major_name, specialisation_type)")
+    .eq("user_id", userId)
+    .in("degree_code", codes);
+  return data || [];
+}
+
+export async function fetchSpecialisationIds(degreeCode, userId) {
+  const rows = await fetchSelectionRows(degreeCode, userId);
+  const ids = rows.flatMap((r) => [r.major_id, r.minor_id, r.honours_id]).filter(Boolean);
+  return Array.from(new Set(ids)).sort();
+}
+
+export async function fetchSavedChoices(degreeCode, userId) {
+  const rows = await fetchSelectionRows(degreeCode, userId);
+  return Object.fromEntries(rows.map((r) => [r.degree_code, r.major || r.honours || null]));
+}
+
 export async function saveChoices(userId, choices) {
   const rows = Object.entries(choices || {}).map(([degreeCode, spec]) => ({
     user_id: userId,
