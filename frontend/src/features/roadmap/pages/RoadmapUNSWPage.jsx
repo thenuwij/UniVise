@@ -455,7 +455,7 @@ export default function RoadmapUNSWPage() {
     <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-600 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
       <div aria-hidden className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
       <div aria-hidden className="absolute -bottom-44 left-1/3 h-[420px] w-[420px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
-      <div className="relative max-w-[1440px] mx-auto px-5 md:px-10 pt-7 pb-10">
+      <div className="relative max-w-[1440px] mx-auto px-5 md:px-10 pt-5 pb-7">
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={handleBackClick}
@@ -475,21 +475,21 @@ export default function RoadmapUNSWPage() {
           </div>
         </div>
 
-        <p className="mt-9 text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
+        <p className="mt-5 text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">
           {isOwnProgram ? "Your degree" : "Exploring"}
         </p>
         {headerProgramName ? (
-          <h1 className="mt-2.5 text-4xl md:text-[54px] md:leading-[1.08] font-bold tracking-tight text-white">
+          <h1 className="mt-2 text-4xl md:text-[42px] md:leading-[1.1] font-bold tracking-tight text-white">
             {headerProgramName}
           </h1>
         ) : (
-          <div className="mt-2.5 h-12 w-80 bg-white/20 rounded-xl animate-pulse" />
+          <div className="mt-2 h-11 w-80 bg-white/20 rounded-xl animate-pulse" />
         )}
         {specNames.length > 0 && (
           <p className="mt-2.5 text-lg md:text-xl text-blue-100">{specNames.join(" · ")}</p>
         )}
 
-        <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <div className="mt-5 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <dl className="flex flex-wrap gap-x-10 gap-y-4">
             {headerFacts.map(([label, value]) => (
               <div key={label}>
