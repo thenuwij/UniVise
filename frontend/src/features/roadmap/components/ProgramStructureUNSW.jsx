@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { fetchMajorSections, hasCourses, parseSections } from "../utils/programCourses";
+import { THIN_PROGRAM_COURSES, courseCodesOf, fetchChosenSpecialisations, hasCourses, parseSections } from "../utils/programCourses";
 import SuggestedNext from "./SuggestedNext";
 
 function sumUoC(list = []) {
@@ -14,18 +14,25 @@ function sumUoC(list = []) {
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
 
-function NoCourseListNotice({ handbookUrl }) {
+function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
   return (
     <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
       <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-        UniVise does not have a course list for this program yet, so there is nothing to visualise here.
-        Its courses may sit inside a major or stream. Choose a major in the Specialisations step to see its courses here.
+        Most of this program's courses sit inside its majors or streams. Choose yours to see its courses here and in CourseMesh.
       </p>
+      {onChoose && (
+        <button
+          onClick={onChoose}
+          className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+        >
+          Choose your major or stream
+        </button>
+      )}
       <a
         href={handbookUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+        className="block mt-3 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
       >
         View the full structure in the official UNSW Handbook
       </a>
@@ -189,7 +196,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
 }
 
 // Main 
-export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false }) {
+export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation }) {
   const navigate = useNavigate();
   const { session } = UserAuth();
   const userId = session?.user?.id;
@@ -203,21 +210,23 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [specialNotes, setSpecialNotes] = useState("");
   const [handbookUrl, setHandbookUrl] = useState("");
   
-  const [major, setMajor] = useState(null);
+  const [specs, setSpecs] = useState(null);
   
   const firstExpandableSectionRef = useRef(null);
 
-  const programHasCourses = useMemo(() => sections.some(hasCourses), [sections]);
+  const programCourseSections = useMemo(() => sections.filter(hasCourses), [sections]);
 
   const courseSections = useMemo(
-    () => (programHasCourses ? sections.filter(hasCourses) : major?.sections || []),
-    [programHasCourses, sections, major]
+    () => [
+      ...programCourseSections,
+      ...(specs || []).flatMap((spec) => spec.sections.map((sec) => ({ ...sec, title: `${spec.name}: ${sec.title}` }))),
+    ],
+    [programCourseSections, specs]
   );
 
-  const allCourses = useMemo(() => {
-    const codes = courseSections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
-    return Array.from(new Set(codes));
-  }, [courseSections]);
+  const allCourses = useMemo(() => courseCodesOf(courseSections), [courseSections]);
+
+  const thin = specs?.length === 0 && courseCodesOf(programCourseSections).length <= THIN_PROGRAM_COURSES;
 
   const hasExpandableSections = courseSections.length > 0;
 
@@ -278,16 +287,13 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   }, [degreeCode, propSections]);
 
   useEffect(() => {
-    if (loading || programHasCourses || !degreeCode || !userId) {
-      setMajor(null);
-      return;
-    }
     let active = true;
-    fetchMajorSections(userId, degreeCode).then((found) => {
-      if (active) setMajor(found);
+    setSpecs(null);
+    fetchChosenSpecialisations(degreeCode, userId).then((found) => {
+      if (active) setSpecs(found);
     });
     return () => { active = false; };
-  }, [loading, programHasCourses, degreeCode, userId]);
+  }, [degreeCode, userId]);
 
   useEffect(() => {
     if (!trackCompletion || !userId) return;
@@ -410,6 +416,20 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       </div>
     </div>
 
+      {specs && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-600 dark:text-slate-400">Specialisation:</span>
+          <span className="font-semibold text-slate-900 dark:text-slate-100">
+            {specs.length ? specs.map((s) => s.name).join(", ") : "None chosen yet"}
+          </span>
+          {onChangeSpecialisation && (
+            <button onClick={onChangeSpecialisation} className="font-semibold text-blue-700 dark:text-blue-300 hover:underline">
+              {specs.length ? "Change" : "Choose one"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Controls & Info */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
@@ -442,15 +462,14 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                         border-2 border-red-300 dark:border-red-700 shadow-sm">
             <p className="text-sm text-red-700 dark:text-red-300 font-medium">{err}</p>
           </div>
-        ) : sections.length > 0 || major ? (
+        ) : (
           <>
-            {!programHasCourses && (major ? (
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Showing the courses of your major: <span className="font-bold">{major.name}</span>
-              </p>
-            ) : (
-              <NoCourseListNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />
-            ))}
+            {thin && (
+              <ChooseSpecialisationCard
+                handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`}
+                onChoose={onChangeSpecialisation}
+              />
+            )}
             {courseSections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
               return (
@@ -475,8 +494,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
               </div>
             )}
           </>
-        ) : (
-          <NoCourseListNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />
         )}
       </div>
 

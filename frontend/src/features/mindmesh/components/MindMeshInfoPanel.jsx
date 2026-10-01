@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { STATUS } from "../utils/availability";
 
-export default function MindMeshInfoPanel({ focusedNode, status, missing = [], onDismiss }) {
+export default function MindMeshInfoPanel({ focusedNode, status, missing = [], onToggleDone, saving, onDismiss }) {
   const navigate = useNavigate();
 
   if (!focusedNode) return null;
@@ -81,6 +81,19 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
           <p className="text-xs text-slate-400 dark:text-slate-500 hidden md:block">
             Double-click to expand prerequisites
           </p>
+          {onToggleDone && (
+            <button
+              onClick={() => onToggleDone(focusedNode)}
+              disabled={saving}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all disabled:opacity-60 ${
+                status === "completed"
+                  ? "border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  : "border-green-500 bg-green-500 text-white hover:bg-green-600"
+              }`}
+            >
+              {status === "completed" ? "Undo done" : "Mark as done"}
+            </button>
+          )}
           <button
             onClick={handleViewCourse}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white

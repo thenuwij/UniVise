@@ -1,5 +1,7 @@
 import { supabase } from "@/shared/lib/supabase";
 
+export const THIN_PROGRAM_COURSES = 5;
+
 export function parseSections(raw) {
   try {
     let parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -13,30 +15,20 @@ export function parseSections(raw) {
 
 export const hasCourses = (section) => section?.courses?.length > 0;
 
-function courseCodesOf(sections) {
+const isOverview = (section) => section?.title?.toLowerCase().includes("overview");
+
+export function courseCodesOf(sections) {
   const codes = sections.flatMap((s) => s.courses || []).map((c) => c.code).filter(Boolean);
   return Array.from(new Set(codes));
 }
 
-export async function fetchMajorSections(userId, degreeCode) {
-  const { data: selections } = await supabase
-    .from("user_specialisation_selections")
-    .select("major_id")
-    .eq("user_id", userId)
-    .eq("degree_code", degreeCode)
-    .limit(1);
-  const majorId = selections?.[0]?.major_id;
-  if (!majorId) return null;
-  const { data: spec } = await supabase
-    .from("unsw_specialisations")
-    .select("major_name, sections")
-    .eq("id", majorId)
-    .maybeSingle();
-  if (!spec) return null;
-  const sections = parseSections(spec.sections).filter(
-    (sec) => hasCourses(sec) && !sec.title?.toLowerCase().includes("overview")
-  );
-  return sections.length ? { name: spec.major_name, sections } : null;
+function normaliseProgramName(name = "") {
+  return name
+    .toLowerCase()
+    .replace(/\s+-\s+[a-z]+(\s*\(hons\))?\s*$/i, "")
+    .replace(/\(honours\)|\(hons\)|bachelor of/g, "")
+    .replace(/[^a-z]+/g, " ")
+    .trim();
 }
 
 export async function fetchComponentDegrees(degreeCode) {
@@ -47,37 +39,46 @@ export async function fetchComponentDegrees(degreeCode) {
     .maybeSingle();
   const name = degree?.program_name;
   if (name?.includes("/")) {
-    const { data: parts } = await supabase
+    const { data: singles } = await supabase
       .from("unsw_degrees_final")
       .select("degree_code, program_name")
-      .in("program_name", name.split("/").map((n) => n.trim()));
-    if (parts?.length) return parts;
+      .not("program_name", "like", "%/%");
+    const byName = new Map((singles || []).map((d) => [normaliseProgramName(d.program_name), d]));
+    const parts = name.split("/").map((part) => byName.get(normaliseProgramName(part))).filter(Boolean);
+    if (parts.length) return parts;
   }
-  return name ? [{ degree_code: degreeCode, program_name: name }] : [{ degree_code: degreeCode, program_name: degreeCode }];
+  return [{ degree_code: degreeCode, program_name: name || degreeCode }];
 }
 
-export async function fetchProgramCourseCodes(degreeCode, userId) {
-  const { data } = await supabase
-    .from("unsw_degrees_final")
-    .select("sections")
-    .eq("degree_code", degreeCode)
-    .maybeSingle();
-  const sections = parseSections(data?.sections).filter(hasCourses);
-  if (sections.length) return courseCodesOf(sections);
-  const major = userId ? await fetchMajorSections(userId, degreeCode) : null;
-  return courseCodesOf(major?.sections || []);
-}
-
-export async function fetchSpecialisationCourseCodes(degreeCode, userId) {
+export async function fetchChosenSpecialisations(degreeCode, userId) {
+  if (!degreeCode || !userId) return [];
   const degrees = await fetchComponentDegrees(degreeCode);
+  const codes = Array.from(new Set([degreeCode, ...degrees.map((d) => d.degree_code)]));
   const { data: rows } = await supabase
     .from("user_specialisation_selections")
-    .select("major:major_id(sections), minor:minor_id(sections), honours:honours_id(sections)")
+    .select("major:major_id(id, major_name, sections), minor:minor_id(id, major_name, sections), honours:honours_id(id, major_name, sections)")
     .eq("user_id", userId)
-    .in("degree_code", degrees.map((d) => d.degree_code));
-  const sections = (rows || [])
+    .in("degree_code", codes);
+  const seen = new Set();
+  return (rows || [])
     .flatMap((r) => [r.major, r.minor, r.honours])
-    .filter(Boolean)
-    .flatMap((spec) => parseSections(spec.sections));
-  return courseCodesOf(sections);
+    .filter((spec) => spec && !seen.has(spec.id) && seen.add(spec.id))
+    .map((spec) => ({
+      name: spec.major_name,
+      sections: parseSections(spec.sections).filter((s) => hasCourses(s) && !isOverview(s)),
+    }))
+    .filter((spec) => spec.sections.length);
+}
+
+export async function fetchMyCourses(degreeCode, userId) {
+  const [{ data }, specialisations] = await Promise.all([
+    supabase.from("unsw_degrees_final").select("sections").eq("degree_code", degreeCode).maybeSingle(),
+    fetchChosenSpecialisations(degreeCode, userId),
+  ]);
+  const programCodes = courseCodesOf(parseSections(data?.sections).filter(hasCourses));
+  const codes = Array.from(new Set([...programCodes, ...courseCodesOf(specialisations.flatMap((s) => s.sections))]));
+  return {
+    codes,
+    thin: !specialisations.length && programCodes.length <= THIN_PROGRAM_COURSES,
+  };
 }

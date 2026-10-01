@@ -16,6 +16,7 @@ import PicksPanel from "../components/PicksPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
+import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -36,21 +37,44 @@ export default function MindMeshGraphPage() {
 
   const { program: enrolled, loading: enrolledLoading } = useEnrolledProgram();
   const programCode = searchParams.get("program") || enrolled?.degree_code || null;
-  const view = searchParams.get("view");
   const isProgramView = !!programCode;
-  const { graph, setGraph, programCourses, programMeta, loading, completed, prereqEdges, addPrereqEdges } = useMindMeshData({
-    programCode,
-    view,
-    userId: session?.user?.id,
-  });
+  const userId = session?.user?.id;
+  const {
+    graph, setGraph, programCourses, programMeta, loading, thin,
+    completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges,
+  } = useMindMeshData({ programCode, userId });
   const noProgram = !programCode && !enrolledLoading;
   const noCourses = !!programCode && !loading && !graph.nodes.length;
+  const needsSpecialisation = !!programCode && !loading && thin;
+  const [savingDone, setSavingDone] = useState(false);
   const groups = useMemo(() => prereqGroups(prereqEdges), [prereqEdges]);
   const statusOf = useCallback((code) => courseStatus(code, completed, groups), [completed, groups]);
   const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
   const coursePicks = useCoursePicks(isOwnProgram);
   const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
   const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
+
+  const toggleDone = async (node) => {
+    if (!userId || savingDone) return;
+    const existing = completedRows[node.id];
+    const isCompleted = !existing?.is_completed;
+    setSavingDone(true);
+    setCompletedRows((prev) => ({ ...prev, [node.id]: { ...existing, course_code: node.id, is_completed: isCompleted } }));
+    try {
+      const row = await setCourseCompleted({
+        userId,
+        course: { code: node.id, name: node.label, uoc: node.metadata?.uoc },
+        existing,
+        isCompleted,
+      });
+      setCompletedRows((prev) => ({ ...prev, [node.id]: row }));
+    } catch (err) {
+      console.error("Error saving course:", err);
+      setCompletedRows((prev) => ({ ...prev, [node.id]: existing }));
+    } finally {
+      setSavingDone(false);
+    }
+  };
 
   const focusCourse = (code) => {
     const node = graph.nodes.find((n) => n.id === code);
@@ -288,21 +312,19 @@ export default function MindMeshGraphPage() {
       <div className="flex-grow flex justify-center px-4 relative">
         <div ref={containerRef} className="w-full max-w-[1600px] relative">
 
-          {(noProgram || noCourses) && (
+          {(noProgram || noCourses || needsSpecialisation) && (
             <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
               <div className="max-w-md p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm text-center">
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                   {noProgram
                     ? "We don't know your program yet, so there is nothing to show here."
-                    : view === "specialisations"
-                    ? "Choose a major or minor in the Specialisations step of your roadmap to see its courses here."
-                    : "UniVise does not have a course list for this program yet. Choose a major in the Specialisations step of your roadmap to see its courses here."}
+                    : "Most of this program's courses sit inside its majors or streams. Choose yours in your roadmap to see them here."}
                 </p>
                 <Link
-                  to="/roadmap-entryload"
+                  to={noProgram ? "/roadmap-entryload" : `/roadmap?program=${programCode}`}
                   className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
                 >
-                  Open My Roadmap
+                  {noProgram ? "Open My Roadmap" : "Choose your major or stream"}
                 </Link>
               </div>
             </div>
@@ -353,6 +375,8 @@ export default function MindMeshGraphPage() {
         focusedNode={focusedNode}
         status={focusedNode ? statusOf(focusedNode.id) : null}
         missing={focusedNode ? unmetGroups(focusedNode.id, completed, groups) : []}
+        onToggleDone={isOwnProgram ? toggleDone : null}
+        saving={savingDone}
         onDismiss={() => setFocusedNode(null)}
       />
     </div>
