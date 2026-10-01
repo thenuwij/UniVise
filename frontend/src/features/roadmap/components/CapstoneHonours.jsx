@@ -2,7 +2,7 @@ import { ChevronRight, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { getLevelColor } from "@/features/mindmesh/utils";
 import SectionHeading from "./SectionHeading";
-import { card } from "../utils/cardStyles";
+import { card, clickable } from "../utils/cardStyles";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -148,7 +148,7 @@ export default function CapstoneHonours({ data, handbookUrl }) {
                 <button
                   key={course.id}
                   onClick={() => handleCourseClick(course.id)}
-                  className={`${card} group flex items-center justify-between gap-3 px-6 py-5 text-left hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all`}
+                  className={`${card} ${clickable} group flex items-center justify-between gap-3 px-6 py-5 text-left`}
                 >
                   <span className="min-w-0">
                     <span className="block text-xs font-bold uppercase tracking-wider" style={{ color: getLevelColor(level) }}>

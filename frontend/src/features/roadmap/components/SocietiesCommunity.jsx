@@ -75,9 +75,9 @@ export default function SocietiesCommunity({ societies }) {
             {displayedSocieties.map((society, idx) => {
               const open = !!expandedSocieties[idx];
               return (
-                <div key={idx} className={`${card} overflow-hidden transition-shadow hover:shadow-md`}>
+                <div key={idx} className={`${card} overflow-hidden`}>
                   <div
-                    className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer"
+                    className="group flex items-center justify-between gap-4 px-6 py-5 cursor-pointer hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
                     onClick={() => toggleSociety(idx)}
                   >
                     <div className="min-w-0">
@@ -94,7 +94,7 @@ export default function SocietiesCommunity({ societies }) {
                       <button
                         onClick={() => toggleSociety(idx)}
                         aria-expanded={open}
-                        className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+                        className="p-2 rounded-xl text-slate-500 group-hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         {open ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
                       </button>
@@ -145,7 +145,7 @@ export default function SocietiesCommunity({ societies }) {
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
             {crossFaculty.map((s, idx) => (
-              <div key={idx} className={`${card} p-6 hover:shadow-md transition-shadow`}>
+              <div key={idx} className={`${card} p-6`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.name}</p>

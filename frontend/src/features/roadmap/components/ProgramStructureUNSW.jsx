@@ -82,11 +82,11 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
   const total = section.uoc ?? sumUoC(section.courses);
 
   return (
-    <div className={`${card} hover:shadow-md transition-shadow overflow-hidden`}>
+    <div className={`${card} overflow-hidden`}>
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+        className="group w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
       >
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
@@ -98,7 +98,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
           <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
             {section.courses?.length || 0} courses · {total} UOC
           </span>
-          {isOpen ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+          {isOpen ? <ChevronUp className="h-5 w-5 text-slate-400 group-hover:text-blue-600" /> : <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-blue-600" />}
         </div>
       </button>
 
@@ -109,7 +109,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
               <div
                 key={c.code || i}
                 onClick={() => onCourseClick?.(c)}
-                className="group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                className="group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md transition-all"
               >
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">{c.code}</span>

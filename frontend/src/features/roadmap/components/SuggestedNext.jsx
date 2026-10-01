@@ -37,7 +37,7 @@ export default function SuggestedNext({ degreeCode, onCourseClick }) {
             <button
               key={p.code}
               onClick={() => onCourseClick(p)}
-              className="text-left rounded-xl px-4 py-3.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900 hover:border-amber-400 hover:shadow-sm transition-all"
+              className="text-left rounded-xl px-4 py-3.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900 hover:border-amber-400 hover:-translate-y-0.5 hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
               <span className="block text-[15px] font-bold text-blue-700 dark:text-blue-300">{p.code}</span>
               <span className="block text-xs font-medium text-slate-800 dark:text-slate-200 line-clamp-1">{p.name}</span>
