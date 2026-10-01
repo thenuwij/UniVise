@@ -82,3 +82,17 @@ export async function fetchMyCourses(degreeCode, userId) {
     thin: !specialisations.length && programCodes.length <= THIN_PROGRAM_COURSES,
   };
 }
+
+export async function saveChoices(userId, choices) {
+  const rows = Object.entries(choices || {}).map(([degreeCode, spec]) => ({
+    user_id: userId,
+    degree_code: degreeCode,
+    major_id: spec?.specialisation_type === "Major" ? spec.id : null,
+    honours_id: spec?.specialisation_type === "Honours" ? spec.id : null,
+  }));
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("user_specialisation_selections")
+    .upsert(rows, { onConflict: "user_id,degree_code" });
+  if (error) throw error;
+}

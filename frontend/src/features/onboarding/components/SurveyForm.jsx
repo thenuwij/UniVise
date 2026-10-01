@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
@@ -8,7 +8,9 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
-import { startRoadmapInBackground } from "@/features/roadmap/utils/roadmapGeneration";
+import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
+import { saveChoices } from "@/features/roadmap/utils/programCourses";
+import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -228,6 +230,29 @@ function SurveyForm() {
   ];
 
   const handleNext = () => setStep(s => s + 1);
+  const startedRef = useRef({ program: null, build: null });
+
+  const handleProgramNext = async () => {
+    handleNext();
+    const program = formData.program_not_listed ? null : formData.program;
+    const userId = session?.user?.id;
+    if (!program || !userId) return;
+    try {
+      if (startedRef.current.program !== program.degree_code) {
+        await saveEnrolledProgram(userId, program);
+        startedRef.current.program = program.degree_code;
+      }
+      await saveChoices(userId, formData.specialisations);
+    } catch (err) {
+      console.error("Error saving program:", err);
+      return;
+    }
+    const buildKey = JSON.stringify([program.degree_code, Object.values(formData.specialisations || {}).map(s => s?.id || null)]);
+    if (startedRef.current.build === buildKey) return;
+    startedRef.current.build = buildKey;
+    buildRoadmap({ degreeId: program.id, accessToken: session?.access_token })
+      .catch(err => console.error("Background roadmap failed:", err));
+  };
   const handlePrev = () => setStep(s => s - 1);
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
@@ -273,19 +298,8 @@ function SurveyForm() {
         hobbies_other: formData.hobbies_other || null,
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
-      if (program) {
-        try {
-          await saveEnrolledProgram(session.user.id, program);
-        } catch (err) {
-          console.error("Error saving program:", err);
-        }
-      }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       generateRecommendations().catch(console.error);
-      if (program) {
-        startRoadmapInBackground({ degreeId: program.id, accessToken: session?.access_token })
-          .catch(err => console.error("Background roadmap failed:", err));
-      }
       navigate("/dashboard", { replace: true });
     }
   };
@@ -540,7 +554,15 @@ function SurveyForm() {
           <StepHeading>Which UNSW program are you enrolled in?</StepHeading>
           <StepSubtitle>UniVise currently supports undergraduate Bachelor's programs.</StepSubtitle>
           {!formData.program_not_listed && (
-            <ProgramPicker value={formData.program} onSelect={p => handleChange("program", p)} />
+            <ProgramPicker value={formData.program} onSelect={p => setFormData(f => ({ ...f, program: p, specialisations: {} }))} />
+          )}
+          {!formData.program_not_listed && formData.program && (
+            <SpecialisationPicker
+              key={formData.program.degree_code}
+              degreeCode={formData.program.degree_code}
+              value={formData.specialisations}
+              onChange={v => handleChange("specialisations", v)}
+            />
           )}
           <div className="mt-3">
             <OptionButton
@@ -554,7 +576,7 @@ function SurveyForm() {
               <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
             </div>
           )}
-          <NavButtons onNext={handleNext} nextDisabled={formData.program_not_listed ? !formData.program_other?.trim() : !formData.program} />
+          <NavButtons onNext={handleProgramNext} nextDisabled={formData.program_not_listed ? !formData.program_other?.trim() : !formData.program} />
         </div>
       )}
 
