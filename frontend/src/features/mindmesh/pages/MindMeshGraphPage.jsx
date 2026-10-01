@@ -5,6 +5,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import GraphControls from "../components/GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "../components/NodeRenderer";
 import useMindMeshData from "../hooks/useMindMeshData";
@@ -37,7 +38,6 @@ export default function MindMeshGraphPage() {
 
   const { program: enrolled, loading: enrolledLoading } = useEnrolledProgram();
   const programCode = searchParams.get("program") || enrolled?.degree_code || null;
-  const isProgramView = !!programCode;
   const userId = session?.user?.id;
   const {
     graph, setGraph, programCourses, programMeta, loading, thin,
@@ -283,12 +283,17 @@ export default function MindMeshGraphPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100
-                    dark:from-slate-900 dark:via-slate-900 dark:to-slate-950
-                    text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div className="flex flex-col min-h-screen app-page text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+
+      <PageHeader
+        compact
+        eyebrow="CourseMesh"
+        title={programMeta?.program_name || (programCode ? programCode : "How your courses connect")}
+        subtitle={programCourses?.length ? `How your courses connect · ${programCourses.length} courses` : "How your courses connect"}
+      />
 
       <GraphControls
         ref={controlsRef}
@@ -303,9 +308,6 @@ export default function MindMeshGraphPage() {
         canvasSize={canvasSize}
         graphRef={graphRef}
         setFrozen={setFrozen}
-        isProgramView={isProgramView}
-        programMeta={programMeta}
-        programCourses={programCourses}
       />
 
       {/* Graph Canvas */}

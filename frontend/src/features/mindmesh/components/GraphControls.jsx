@@ -17,9 +17,6 @@ export default forwardRef(function GraphControls({
   canvasSize,
   graphRef,
   setFrozen,
-  isProgramView,
-  programMeta,
-  programCourses,
 }, ref) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,7 +36,7 @@ export default forwardRef(function GraphControls({
 
       <div className="px-4 py-2.5 flex items-center justify-between gap-4">
 
-        {/* Left: back button + title + program badge */}
+        {/* Left: back button */}
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={goBack}
@@ -54,33 +51,6 @@ export default forwardRef(function GraphControls({
             <ChevronLeft className="h-4 w-4" />
             Back
           </button>
-
-          <div className="flex-shrink-0">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600
-                           dark:from-blue-400 dark:via-sky-400 dark:to-cyan-400
-                           bg-clip-text text-transparent tracking-tight leading-tight">
-              CourseMesh
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
-              How your courses connect
-            </p>
-          </div>
-
-          {/* Program badge */}
-          {isProgramView && programMeta && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg min-w-0
-                           bg-blue-50 dark:bg-blue-900/30
-                           border border-blue-200 dark:border-blue-700">
-              <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 truncate max-w-[200px]">
-                {programMeta.program_name || programMeta.degree_code}
-              </span>
-              {programCourses?.length > 0 && (
-                <span className="text-xs text-blue-500 dark:text-blue-400 flex-shrink-0">
-                  · {programCourses.length} courses
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Right: compact toolbar */}

@@ -1,7 +1,6 @@
 // src/pages/SavedItemsPage.jsx
 import { useEffect, useState } from "react";
 import {
-  HiArrowLeft,
   HiBookmark,
   HiBriefcase,
   HiOfficeBuilding,
@@ -11,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -73,36 +73,22 @@ function SavedItemsPage() {
 
   return (
     <div className="min-h-screen app-page">
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
-        <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
-      </div>
+      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
+      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <div className="pt-16 sm:pt-20 px-4 sm:px-10 xl:px-20 max-w-7xl mx-auto">
+      <PageHeader
+        back={{
+          label: activeTab === "internships" ? "Back to Internships" : "Back to Careers",
+          onClick: () => navigate(activeTab === "internships" ? INTERNSHIPS_STEP : CAREERS_STEP),
+        }}
+        eyebrow="Your careers"
+        title="My shortlist"
+        subtitle={`${savedItems.length} item${savedItems.length !== 1 ? "s" : ""} saved${withNotes > 0 ? ` · ${withNotes} with notes` : ""}`}
+      />
 
-        {/* Back */}
-        <button
-          onClick={() => navigate(activeTab === "internships" ? INTERNSHIPS_STEP : CAREERS_STEP)}
-          className="flex items-center gap-2 mt-8 mb-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <HiArrowLeft className="w-4 h-4" />
-          {activeTab === "internships" ? "Back to Internships" : "Back to Careers"}
-        </button>
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
 
-        {/* Page header */}
-        <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-medium mb-3">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              Your careers
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My shortlist</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {savedItems.length} item{savedItems.length !== 1 ? "s" : ""} saved
-              {withNotes > 0 && ` · ${withNotes} with notes`}
-            </p>
-          </div>
-
+        <div className="flex items-start justify-end mt-8 mb-6 gap-4 flex-wrap">
           {/* Mini stat pills */}
           {!loading && savedItems.length > 0 && (
             <div className="flex flex-wrap gap-2">

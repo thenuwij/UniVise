@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ChevronRight, Search, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import PageHeader from "@/shared/layout/PageHeader";
 import { supabase } from "@/shared/lib/supabase";
 import { toSearchTerm } from "@/shared/lib/search";
 import { card, clickable } from "@/features/roadmap/utils/cardStyles";
@@ -168,35 +169,29 @@ export default function HandbookPage() {
       <DashboardNavBar onMenuClick={() => setIsMenuOpen(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => setIsMenuOpen(false)} />
 
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-600 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-        <div aria-hidden className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
-        <div className="relative max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-9">
-          <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-blue-200">UNSW 2026</p>
-          <h1 className="mt-2 text-4xl md:text-[42px] md:leading-[1.1] font-bold tracking-tight text-white">Handbook</h1>
-          <p className="mt-2 text-lg text-blue-100">Search UNSW degrees, majors and courses</p>
-          <div className="relative mt-6 max-w-3xl">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
-            <input
-              type="search"
-              autoFocus
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="Try COMP1511, Computer Science or Finance"
-              aria-label="Search the Handbook"
-              className="w-full pl-13 pr-12 py-4 rounded-2xl text-lg text-slate-900 dark:text-white bg-white dark:bg-slate-900 border-0 shadow-lg shadow-blue-950/20 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-300/60 [&::-webkit-search-cancel-button]:hidden"
-            />
-            {query && (
-              <button
-                onClick={() => onQueryChange("")}
-                aria-label="Clear search"
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+      <PageHeader eyebrow="UNSW 2026" title="Handbook" subtitle="Search UNSW degrees, majors and courses">
+        <div className="relative mt-6 max-w-3xl">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+          <input
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder="Try COMP1511, Computer Science or Finance"
+            aria-label="Search the Handbook"
+            className="w-full pl-13 pr-12 py-4 rounded-2xl text-lg text-slate-900 dark:text-white bg-white dark:bg-slate-900 border-0 shadow-lg shadow-blue-950/20 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-300/60 [&::-webkit-search-cancel-button]:hidden"
+          />
+          {query && (
+            <button
+              onClick={() => onQueryChange("")}
+              aria-label="Clear search"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
-      </section>
+      </PageHeader>
 
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         <div className="flex flex-wrap gap-2">
