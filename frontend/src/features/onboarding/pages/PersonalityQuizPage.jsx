@@ -22,7 +22,7 @@ const PersonalityQuizPage = () => {
   return (
     <div>
       <motion.div
-        className="min-h-screen flex flex-col items-center relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800"
+        className="min-h-screen flex flex-col items-center relative app-page"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

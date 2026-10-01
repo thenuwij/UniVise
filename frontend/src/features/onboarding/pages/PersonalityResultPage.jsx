@@ -126,7 +126,7 @@ const PersonalityResultPage = () => {
 
   if (loading) {
     return (
-      <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="h-screen app-page flex items-center justify-center">
         <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">Loading your result…</div>
       </div>
     );
@@ -185,7 +185,7 @@ const PersonalityResultPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="h-screen flex flex-col overflow-hidden app-page">
       <Header />
 
       {/* Main content — fills remaining height, no scroll */}

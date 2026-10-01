@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
 
 const UniversityOnlyNotice = ({ onSignOut }) => (
-  <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+  <div className="min-h-screen flex items-center justify-center px-4 app-page">
     <div className="max-w-md w-full rounded-2xl p-8 shadow-2xl card-glass-spotlight text-center">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
         UniVise is for university students only

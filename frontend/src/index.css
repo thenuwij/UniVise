@@ -132,6 +132,14 @@
    GLOBAL STYLES
 ======================================== */
 
+.app-page {
+  background: radial-gradient(1200px 360px at 50% -140px, rgba(99, 102, 241, 0.08), transparent 70%), var(--color-page);
+}
+
+.dark .app-page {
+  background: radial-gradient(1200px 360px at 50% -140px, rgba(99, 102, 241, 0.14), transparent 70%), var(--color-page);
+}
+
 /* Global Application Background */
 body {
   background: var(--color-page);

@@ -72,7 +72,7 @@ function SavedItemsPage() {
   const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen app-page">
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
         <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />

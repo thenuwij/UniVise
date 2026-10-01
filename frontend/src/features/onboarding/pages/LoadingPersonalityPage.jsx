@@ -22,7 +22,7 @@ const LoadingPersonalityPage = () => {
   }, [navigate, session]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen flex flex-col justify-center items-center app-page">
       <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 mb-4 text-center">
         Let’s find out your personality!
       </h1>

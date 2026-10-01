@@ -517,7 +517,7 @@ export default function RoadmapUNSWPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] dark:bg-slate-950 text-primary transition-colors duration-500">
+    <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
 

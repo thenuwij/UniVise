@@ -164,7 +164,7 @@ export default function HandbookPage() {
   const total = results ? visibleGroups.reduce((sum, g) => sum + results[g.key].count, 0) : 0;
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] dark:bg-slate-950 text-primary transition-colors duration-500">
+    <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <DashboardNavBar onMenuClick={() => setIsMenuOpen(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => setIsMenuOpen(false)} />
 

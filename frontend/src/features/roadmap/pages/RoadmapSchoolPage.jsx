@@ -163,7 +163,7 @@ export default function RoadmapSchoolPage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 text-primary transition-colors duration-500"
+      className="min-h-screen app-page text-primary transition-colors duration-500"
     >
       {/* background glow */}
       <div aria-hidden>

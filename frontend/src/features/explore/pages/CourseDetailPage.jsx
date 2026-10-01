@@ -87,7 +87,7 @@ function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen app-page flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
             <HiBookOpen className="w-12 h-12 text-slate-400 animate-pulse" />
@@ -110,7 +110,7 @@ function CourseDetailPage() {
   const handbookUrl = `${HANDBOOK_COURSE_URL}/${level}/courses/2026/${course.code}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
