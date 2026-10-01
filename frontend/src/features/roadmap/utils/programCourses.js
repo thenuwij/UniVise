@@ -31,7 +31,7 @@ function normaliseProgramName(name = "") {
     .trim();
 }
 
-export async function fetchComponentDegrees(degreeCode) {
+async function fetchComponentDegrees(degreeCode) {
   const { data: degree } = await supabase
     .from("unsw_degrees_final")
     .select("program_name")
@@ -48,6 +48,20 @@ export async function fetchComponentDegrees(degreeCode) {
     if (parts.length) return parts;
   }
   return [{ degree_code: degreeCode, program_name: name || degreeCode }];
+}
+
+export async function fetchSpecialisationOptions(degreeCode) {
+  const degrees = await fetchComponentDegrees(degreeCode);
+  const groups = await Promise.all(degrees.map(async (d) => {
+    const { data } = await supabase
+      .from("unsw_specialisations")
+      .select("id, major_name, specialisation_type")
+      .contains("sections_degrees", JSON.stringify([{ degree_code: d.degree_code }]))
+      .in("specialisation_type", ["Major", "Honours"])
+      .order("major_name");
+    return { ...d, options: data || [] };
+  }));
+  return groups.filter((g) => g.options.length);
 }
 
 export async function fetchChosenSpecialisations(degreeCode, userId) {
