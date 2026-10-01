@@ -10,6 +10,8 @@ import {
 import { Link, useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import FormattedText from "@/shared/ui/FormattedText";
+import { hasContent } from "@/shared/lib/format";
 import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
@@ -103,7 +105,7 @@ function CourseDetailPage() {
         back={{ label: "Back", onClick: goBack }}
         eyebrow={[course.code, course.uoc && `${course.uoc} UOC`].filter(Boolean).join(" · ")}
         title={course.title}
-        subtitle={course.school || course.faculty}
+        subtitle={hasContent(course.school) ? course.school : course.faculty}
         aside={
           <div className="flex flex-wrap gap-3">
             <a href={handbookUrl} target="_blank" rel="noopener noreferrer" className={bandButton}>
@@ -149,19 +151,17 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {course.overview && (
+            {hasContent(course.overview) && (
               <DetailSection title="About this course">
-                <p className="max-w-[68ch] text-base leading-relaxed text-ink">{course.overview}</p>
+                <FormattedText text={course.overview} />
               </DetailSection>
             )}
 
             {/* Enrolment Requirements */}
-            {course.conditions_for_enrolment && (
+            {hasContent(course.conditions_for_enrolment) && (
               <DetailSection title="Before you enrol">
-                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                    {course.conditions_for_enrolment}
-                  </p>
+                <div className="p-4 rounded-xl bg-pick-soft border border-amber-200 dark:border-amber-900">
+                  <FormattedText text={course.conditions_for_enrolment} collapsedHeight={null} lists={false} className="text-sm text-ink" />
                 </div>
               </DetailSection>
             )}

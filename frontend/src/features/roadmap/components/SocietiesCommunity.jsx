@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, Clock, ExternalLink, Heart, Info, Star } from "
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
+import { hasContent } from "@/shared/lib/format";
 import { card } from "@/shared/ui/cardStyles";
 
 export default function SocietiesCommunity({ societies }) {
@@ -180,7 +181,7 @@ export default function SocietiesCommunity({ societies }) {
                 ))}
               </div>
             )}
-            {profDev.leadership_note && profDev.leadership_note !== "Information temporarily unavailable" && (
+            {hasContent(profDev.leadership_note) && (
               <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
                 <span className="font-semibold text-emerald-700 dark:text-emerald-300">Leadership opportunities: </span>
                 {profDev.leadership_note}

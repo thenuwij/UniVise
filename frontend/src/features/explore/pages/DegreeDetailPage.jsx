@@ -9,6 +9,8 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
+import FormattedText from "@/shared/ui/FormattedText";
+import { formatDuration, hasContent } from "@/shared/lib/format";
 import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
@@ -116,29 +118,16 @@ function DegreeDetailPage() {
 
           {/* ── Left: main content ── */}
           <div className="flex-1 min-w-0">
-            {degree.overview_description && (
+            {hasContent(degree.overview_description) && (
               <DetailSection title="Overview">
-                <p className="max-w-[68ch] text-base leading-relaxed text-ink whitespace-pre-line">{degree.overview_description}</p>
+                <FormattedText text={degree.overview_description} />
               </DetailSection>
             )}
 
-
             {/* Program Structure */}
-            {degree.program_structure && (
+            {hasContent(degree.program_structure) && (
               <DetailSection title="Program structure">
-                <div className="space-y-3">
-                  {formatStructureText(degree.program_structure).map((block, idx) => (
-                    <div key={idx} className={`text-sm text-slate-700 dark:text-slate-300 leading-relaxed ${block.type === "numbered" ? "flex gap-3 items-start" : ""}`}>
-                      {block.type === "numbered" && (
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-xs font-bold flex items-center justify-center mt-0.5">
-                          {block.num}
-                        </span>
-                      )}
-                      {block.type === "bullet" && <span className="mr-2 text-slate-400 text-base">•</span>}
-                      <p className="flex-1 text-sm leading-relaxed">{block.text}</p>
-                    </div>
-                  ))}
-                </div>
+                <FormattedText text={degree.program_structure} />
               </DetailSection>
             )}
 
@@ -156,13 +145,15 @@ function DegreeDetailPage() {
                           </span>
                         )}
                       </div>
-                      {section.description && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">{section.description}</p>
+                      {hasContent(section.description) && (
+                        <div className="mb-3">
+                          <FormattedText text={section.description} collapsedHeight="7rem" className="text-sm text-ink-muted" />
+                        </div>
                       )}
-                      {section.notes && (
-                        <p className="text-base text-amber-700 dark:text-amber-400 mb-3 leading-relaxed">
-                          <strong>Note:</strong> {section.notes}
-                        </p>
+                      {hasContent(section.notes) && (
+                        <div className="mb-3 p-3 rounded-xl bg-pick-soft">
+                          <FormattedText text={`Note: ${section.notes}`} collapsedHeight={null} className="text-sm text-pick-ink" />
+                        </div>
                       )}
                       {section.courses?.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -210,11 +201,9 @@ function DegreeDetailPage() {
             )}
 
             {/* Special Notes */}
-            {degree.special_notes && (
+            {hasContent(degree.special_notes) && (
               <DetailSection title="Important notes">
-                <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                  {degree.special_notes}
-                </p>
+                <FormattedText text={degree.special_notes} />
               </DetailSection>
             )}
 
@@ -229,8 +218,8 @@ function DegreeDetailPage() {
                 At a glance
               </h3>
               <div className="space-y-3">
-                {degree.duration && (
-                  <FactRow label="Duration" value={`${degree.duration} year${degree.duration > 1 ? "s" : ""}`} />
+                {formatDuration(degree.duration_years, degree.duration) && (
+                  <FactRow label="Duration" value={formatDuration(degree.duration_years, degree.duration)} />
                 )}
                 {degree.minimum_uoc && (
                   <FactRow label="Total UOC" value={`${degree.minimum_uoc} UOC`} />
@@ -273,23 +262,5 @@ function DegreeDetailPage() {
     </div>
   );
 }
-
-// ── Helpers ──────────────────────────────────────────────────────
-
-function formatStructureText(text) {
-  if (!text) return [];
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const numbered = line.match(/^(\d+)\.\s+(.+)/);
-      if (numbered) return { type: "numbered", num: numbered[1], text: numbered[2] };
-      if (line.startsWith("•") || line.startsWith("-"))
-        return { type: "bullet", text: line.replace(/^[•-]\s*/, "") };
-      return { type: "text", text: line };
-    });
-}
-
 
 export default DegreeDetailPage;
