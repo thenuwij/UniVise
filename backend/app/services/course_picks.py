@@ -118,8 +118,9 @@ def load_inputs(user_id: str) -> dict | None:
         or []
     )
     interests = (survey[0].get("interest_areas") if survey else None) or []
+    saved_careers = [s["item_name"] for s in saved if s.get("item_name")]
     careers = [r["career_title"] for r in recs if r.get("career_title")]
-    careers += [s["item_name"] for s in saved if s.get("item_name") and s["item_name"] not in careers]
+    careers += [name for name in saved_careers if name not in careers]
 
     return {
         "degree_code": degree_code,
@@ -127,6 +128,7 @@ def load_inputs(user_id: str) -> dict | None:
         "specialisations": spec_names,
         "interests": [interests] if isinstance(interests, str) else list(interests),
         "careers": careers,
+        "saved_careers": saved_careers,
         "completed": sorted(completed),
         "candidates": available_courses(courses, completed, prereq_groups(edges), set(spec_codes)),
     }

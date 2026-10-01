@@ -10,20 +10,27 @@ import {
   HiCheckCircle,
   HiClipboardList,
   HiCollection,
+  HiExternalLink,
+  HiSparkles,
 } from "react-icons/hi";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
+import { useBackToHandbook } from "../hooks/useBackToHandbook";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
+import { MYPLAN_URL, useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
+
+const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au";
 
 function CourseDetailPage() {
   const { courseId } = useParams();
-  const navigate = useNavigate();
+  const goBack = useBackToHandbook();
   const { session } = UserAuth();
   const userId = session?.user?.id;
+  const { picks } = useCoursePicks();
 
   const [course, setCourse] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +105,9 @@ function CourseDetailPage() {
     : typeof course.offering_terms === "string"
     ? course.offering_terms
     : null;
+  const pick = picks.find((p) => p.code === course.code);
+  const level = course.study_level === "Postgraduate" ? "postgraduate" : "undergraduate";
+  const handbookUrl = `${HANDBOOK_COURSE_URL}/${level}/courses/2026/${course.code}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
@@ -108,7 +118,7 @@ function CourseDetailPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
         >
           <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -160,6 +170,25 @@ function CourseDetailPage() {
             </div>
           </div>
 
+          {pick && (
+            <div className="mt-6 p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <p className="flex items-center gap-2 text-sm font-bold text-amber-800 dark:text-amber-300">
+                <HiSparkles className="w-4 h-4" />
+                Recommended for you
+              </p>
+              <p className="mt-1.5 text-base text-slate-700 dark:text-slate-300">{pick.reason}</p>
+              <a
+                href={MYPLAN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300 hover:underline"
+              >
+                Plan it in myPlan
+                <HiExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          )}
+
           {course.overview && (
             <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -209,13 +238,16 @@ function CourseDetailPage() {
                 {normalizedTerms && (
                   <StatRow icon={<HiCalendar className="w-4 h-4 text-sky-600 dark:text-sky-400" />} label="Offered In" value={normalizedTerms} />
                 )}
-                {course.field_of_education && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Field of Education</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{course.field_of_education}</p>
-                  </div>
-                )}
               </div>
+              <a
+                href={handbookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all"
+              >
+                View in the official UNSW Handbook
+                <HiExternalLink className="w-3.5 h-3.5 opacity-80" />
+              </a>
             </div>
           </div>
 

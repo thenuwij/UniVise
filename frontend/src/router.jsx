@@ -9,9 +9,7 @@ import ProfilePage from './features/profile/pages/ProfilePage';
 import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
 import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
-import ExploreByDegreePage from "./features/explore/pages/ExploreByDegreePage";
-import ExploreBySpecialisationPage from "./features/explore/pages/ExploreBySpecialisationPage";
-import ExploreByCoursePage from "./features/explore/pages/ExploreByCoursePage";
+import HandbookPage from "./features/explore/pages/HandbookPage";
 import DegreeDetailPage from "./features/explore/pages/DegreeDetailPage";
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import CourseDetailPage from "./features/explore/pages/CourseDetailPage";
@@ -42,9 +40,10 @@ export const router = createBrowserRouter([
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
-  { path: "/explore-by-degree", element: <PrivateRoute><ExploreByDegreePage /></PrivateRoute> },
-  { path: "/explore-by-specialisation", element: <PrivateRoute><ExploreBySpecialisationPage /></PrivateRoute> },
-  { path: "/explore-by-course", element: <PrivateRoute><ExploreByCoursePage /></PrivateRoute> },
+  { path: "/handbook", element: <PrivateRoute><HandbookPage /></PrivateRoute> },
+  { path: "/explore-by-degree", element: <Navigate to="/handbook?type=degrees" replace /> },
+  { path: "/explore-by-specialisation", element: <Navigate to="/handbook?type=specialisations" replace /> },
+  { path: "/explore-by-course", element: <Navigate to="/handbook?type=courses" replace /> },
   { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
   { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
   { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },

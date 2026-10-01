@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
-import RoadmapHeroCard from '../components/RoadmapHeroCard.jsx';
-import ProgramTransferCard from '../components/ProgramTransferCard.jsx';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import JourneyCard from '../components/JourneyCard.jsx';
+import AtAGlance from '../components/AtAGlance.jsx';
+import { useDashboardFacts } from '../hooks/useDashboardFacts';
 import { RecommendationTable } from '@/features/recommendations/components/RecommendationTable';
 import { UserAuth } from '@/app/AuthContext';
 
@@ -11,6 +14,7 @@ import { UserAuth } from '@/app/AuthContext';
 function DashboardPage() {
   const { session } = UserAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const facts = useDashboardFacts();
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
@@ -26,9 +30,6 @@ function DashboardPage() {
 
   // Fixed greeting
   const greeting = "Hi";
-
-  const studentType = session?.user?.user_metadata?.student_type;
-  const isUniversity = studentType !== "high_school";
 
   const today = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -55,16 +56,20 @@ function DashboardPage() {
             </p>
           </div>
 
-          {/* Primary row — Roadmap hero (main) + Program Transfer (secondary) */}
-          <div className="mt-7 flex flex-col lg:flex-row items-stretch gap-4">
-            <div className={isUniversity ? "lg:basis-[68%] min-w-0" : "w-full"}>
-              <RoadmapHeroCard />
+          <div className="mt-7 space-y-8">
+            <JourneyCard facts={facts} />
+            <AtAGlance facts={facts} />
+            <div className="flex flex-wrap gap-x-8 gap-y-2 text-base">
+              <Link to="/progress" className="group inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                Thinking of switching degrees?
+                <span className="font-semibold text-blue-700 dark:text-blue-300 group-hover:underline">Switch Degree</span>
+                <ArrowRight className="h-4 w-4 text-blue-700 dark:text-blue-300 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <Link to="/saved" className="group inline-flex items-center gap-1.5 font-semibold text-blue-700 dark:text-blue-300">
+                <span className="group-hover:underline">My shortlist</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
             </div>
-            {isUniversity && (
-              <div className="lg:basis-[32%] min-w-0">
-                <ProgramTransferCard />
-              </div>
-            )}
           </div>
 
           {/* Recommendations */}

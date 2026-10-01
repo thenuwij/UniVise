@@ -2,10 +2,11 @@
 // Shared detail view for majors, minors and honours streams. All three read the
 // same unsw_specialisations row and differ only in labelling and accent colour.
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
+import { useBackToHandbook } from "../hooks/useBackToHandbook";
 
 import {
   HiAcademicCap,
@@ -48,7 +49,7 @@ const VARIANTS = {
 function SpecialisationDetailPage({ variant = "major" }) {
   const config = VARIANTS[variant] ?? VARIANTS.major;
   const { id } = useParams();
-  const navigate = useNavigate();
+  const goBack = useBackToHandbook();
   const [spec, setSpec] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
@@ -146,7 +147,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
 
         {/* Back */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="group inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 shadow-sm transition-all"
         >
           <HiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />

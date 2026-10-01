@@ -38,7 +38,7 @@ const STEPS = [
   { id: 1, label: "Current Program", desc: "Confirm your enrolled program", icon: HiAcademicCap },
   { id: 2, label: "Your Progress", desc: "Mark completed courses", icon: HiCheckCircle },
   { id: 3, label: "Target Program", desc: "Choose your target program", icon: HiSwitchHorizontal },
-  { id: 4, label: "Transfer Recommendation", desc: "Get your personalised analysis", icon: HiCheckCircle },
+  { id: 4, label: "Your recommendation", desc: "Get your personalised analysis", icon: HiCheckCircle },
 ];
 
 function ProgressPage() {
@@ -503,6 +503,9 @@ function ProgressPage() {
                 <HiArrowLeft className="w-4 h-4" /> Back
               </button>
             )}
+            <span className="ml-4 pl-4 border-l border-slate-400 dark:border-slate-500 text-base font-bold text-slate-800 dark:text-slate-100">
+              Switch Degree
+            </span>
             <span className="ml-auto text-slate-500 dark:text-slate-400 text-xs font-semibold tracking-widest uppercase">
               {currentStep < 4 ? `Step ${currentStep} of 3` : "Your Analysis"}
             </span>

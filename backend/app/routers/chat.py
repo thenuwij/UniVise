@@ -12,6 +12,7 @@ from app.services.user_profile import (
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_stream
 from app.services.chat import build_system_prompt
+from app.services.chat_context import safe_student_summary
 from fastapi.responses import StreamingResponse
 
 router = APIRouter()
@@ -61,7 +62,8 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             role = "assistant" if row["sender"] == "bot" else "user"
             history.append({"role": role, "content": row["content"]})
 
-        system_prompt = build_system_prompt(student_type, user_info, recommendations)
+        student_summary = await safe_student_summary(user.id)
+        system_prompt = build_system_prompt(student_type, user_info, recommendations, student_summary)
 
         token_stream = ask_gpt_stream(
             history,
