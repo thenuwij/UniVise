@@ -1,4 +1,4 @@
-def build_system_prompt(student_type: str, user_info: dict, recommendations: list) -> str:
+def build_system_prompt(student_type: str, user_info: dict, recommendations: list, student_summary: str | None = None) -> str:
     is_hs = student_type == "high_school"
 
     # Format user profile cleanly
@@ -41,13 +41,18 @@ def build_system_prompt(student_type: str, user_info: dict, recommendations: lis
 
     profile_block = "\n".join(profile_lines)
     rec_block = "\n".join(rec_lines) if rec_lines else "  - No recommendations available yet"
+    summary_block = f"## Student Summary\n{student_summary}\n\n" if student_summary else ""
 
     return (
         f"{persona}\n\n"
         f"{focus}\n\n"
         f"## Student Profile\n{profile_block}\n\n"
         f"## Their Top Recommendations\n{rec_block}\n\n"
+        f"{summary_block}"
         "## How to respond\n"
+        "- Always start with a real, specific answer to the question, using the student summary: their program, completed courses, the courses they can take now, their picks and their careers.\n"
+        "- Only after that, and only when official rules (enrolment, progression, prerequisites) or term planning matter, add one short pointer to UNSW myPlan or the UNSW Handbook. Never reply with only a redirect.\n"
+        "- Only name course codes that appear in the student summary or that the student mentions. Do not invent courses.\n"
         "- Speak like a trusted advisor in a one-on-one session — warm, direct, and genuinely helpful.\n"
         "- Keep replies focused and conversational. No long essays.\n"
         "- Use Markdown formatting (bold key points, bullet lists where helpful, short headings if needed).\n"
