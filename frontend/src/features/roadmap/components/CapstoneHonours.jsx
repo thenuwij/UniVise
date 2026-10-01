@@ -167,7 +167,7 @@ export default function CapstoneHonours({ data, handbookUrl }) {
 
       {hasHonours && (
         <section>
-          <SectionHeading subtitle="How your honours class is worked out">Honours</SectionHeading>
+          <SectionHeading>Honours</SectionHeading>
           <div className={`${card} mt-6 p-6 md:p-8`}>
             <div className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="inline-flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
