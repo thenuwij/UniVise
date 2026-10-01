@@ -29,7 +29,7 @@ export default function SocietiesCommunity({ societies }) {
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       <section>
         <div>
-          <SectionHeading subtitle="Everything you need to join clubs and societies at UNSW">
+          <SectionHeading>
             Getting started
           </SectionHeading>
           {facts.length > 0 && (
@@ -74,7 +74,7 @@ export default function SocietiesCommunity({ societies }) {
 
       {facultySpecific.length > 0 && (
         <section>
-          <SectionHeading subtitle="Societies specific to your field of study">
+          <SectionHeading>
             Your faculty societies
           </SectionHeading>
           <div className="mt-6 space-y-4">
@@ -146,7 +146,7 @@ export default function SocietiesCommunity({ societies }) {
 
       {crossFaculty.length > 0 && (
         <section>
-          <SectionHeading subtitle="Open to students from every faculty">
+          <SectionHeading>
             Cross-faculty societies
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
@@ -167,7 +167,7 @@ export default function SocietiesCommunity({ societies }) {
 
       {hasProfDev && (
         <section>
-          <SectionHeading subtitle="Build leadership skills and industry connections">
+          <SectionHeading>
             Professional societies
           </SectionHeading>
           <div className={`${card} mt-6 p-6 md:p-8 space-y-6`}>

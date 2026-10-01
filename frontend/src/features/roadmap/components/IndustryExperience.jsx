@@ -27,7 +27,7 @@ export default function IndustryExperience({ industryExperience }) {
 
   return (
     <section className="space-y-6">
-      <SectionHeading subtitle="Placements, internships and where to find them">
+      <SectionHeading>
         Getting experience
       </SectionHeading>
 

@@ -119,7 +119,6 @@ export default function CareerPathways({ careerPathways, personal = false }) {
 
       <section>
         <SectionHeading
-          subtitle="Roles at each stage of your career"
           action={
 <div className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="inline-flex gap-1 p-1.5 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 ring-1 ring-slate-200/70 dark:ring-slate-700/60">
@@ -283,7 +282,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
 
       {certifications.length > 0 && (
         <section>
-          <SectionHeading subtitle="Credentials that strengthen your qualifications">
+          <SectionHeading>
             Professional certifications
           </SectionHeading>
           <div className={`${card} mt-6 px-6 md:px-8 divide-y divide-slate-100 dark:divide-slate-700`}>
@@ -330,7 +329,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
 
       {Object.keys(topEmployers).length > 0 && (
         <section>
-          <SectionHeading subtitle="Leading organisations across industries">
+          <SectionHeading>
             Top employers by sector
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
