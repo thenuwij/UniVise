@@ -1,5 +1,5 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { Check, ChevronDown, ChevronUp, Info, Layers, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Layers, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
@@ -155,7 +155,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   
   const [specs, setSpecs] = useState(null);
   
-  const firstExpandableSectionRef = useRef(null);
 
   const programCourseSections = useMemo(() => sections.filter(hasCourses), [sections]);
 
@@ -170,8 +169,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const allCourses = useMemo(() => courseCodesOf(courseSections), [courseSections]);
 
   const thin = specs?.length === 0 && courseCodesOf(programCourseSections).length <= THIN_PROGRAM_COURSES;
-
-  const hasExpandableSections = courseSections.length > 0;
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
@@ -264,25 +261,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
   
-  const expandAll = () => {
-    const newMap = {};
-    courseSections.forEach((s, i) => {
-      newMap[`${s.title}-${i}`] = true;
-    });
-    setOpenMap(newMap);
-    
-    // Auto-scroll to first expandable section after a short delay
-    setTimeout(() => {
-      if (firstExpandableSectionRef.current) {
-        firstExpandableSectionRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start'
-        });
-      }
-    }, 100);
-  };
-  
-  const collapseAll = () => setOpenMap({});
 
   const handleCourseClick = async (course) => {
     if (!course?.code) return;
@@ -352,20 +330,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         Your courses
       </SectionHeading>
 
-      {/* Controls & Info */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <Info className="h-4 w-4 flex-shrink-0 text-blue-500" />
-          <span>Click sections to expand courses · Click any course for details · Use <span className="text-blue-600 dark:text-blue-400 font-medium">Open in CourseMesh</span> to see how courses connect</span>
-        </div>
-        {hasExpandableSections && (
-          <div className="flex gap-2 flex-shrink-0">
-            <button onClick={expandAll} className="text-xs px-3 py-1.5 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all">Expand All</button>
-            <button onClick={collapseAll} className="text-xs px-3 py-1.5 rounded-lg font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 transition-all">Collapse All</button>
-          </div>
-        )}
-      </div>
-
       {trackCompletion && <SuggestedNext degreeCode={degreeCode} onCourseClick={handleCourseClick} />}
 
       {/* PROGRAM SECTIONS */}
@@ -395,7 +359,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             {courseSections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
               return (
-                <div key={key} ref={i === 0 ? firstExpandableSectionRef : null}>
+                <div key={key}>
                   <CourseSection
                     section={sec}
                     isOpen={!!openMap[key]}
