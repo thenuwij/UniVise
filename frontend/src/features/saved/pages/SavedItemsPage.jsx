@@ -17,6 +17,7 @@ import { supabase } from "@/shared/lib/supabase";
 
 const SHORTLIST_TYPES = ["career_path", "internship", "society"];
 const CAREERS_STEP = "/roadmap-entryload?step=4";
+const INTERNSHIPS_STEP = "/roadmap-entryload?step=5";
 
 function SavedItemsPage() {
   const navigate = useNavigate();
@@ -81,11 +82,11 @@ function SavedItemsPage() {
 
         {/* Back */}
         <button
-          onClick={() => navigate(CAREERS_STEP)}
+          onClick={() => navigate(activeTab === "internships" ? INTERNSHIPS_STEP : CAREERS_STEP)}
           className="flex items-center gap-2 mt-8 mb-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <HiArrowLeft className="w-4 h-4" />
-          Back to Careers
+          {activeTab === "internships" ? "Back to Internships" : "Back to Careers"}
         </button>
 
         {/* Page header */}

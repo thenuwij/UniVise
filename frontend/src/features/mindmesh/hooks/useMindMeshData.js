@@ -1,27 +1,29 @@
 import { Graph } from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase";
-import {
-  fetchProgramCourseCodes,
-  fetchSpecialisationCourseCodes,
-} from "@/features/roadmap/utils/programCourses";
+import { fetchMyCourses } from "@/features/roadmap/utils/programCourses";
 import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
 
 const EDGE_FIELDS = "from_key,to_key,edge_type,confidence,logic_type,group_id";
 
-export default function useMindMeshData({ programCode, view, userId }) {
+export default function useMindMeshData({ programCode, userId }) {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
   const [programCourses, setProgramCourses] = useState([]);
   const [programMeta, setProgramMeta] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [completed, setCompleted] = useState(new Set());
+  const [completedRows, setCompletedRows] = useState({});
+  const [thin, setThin] = useState(false);
+  const completed = useMemo(
+    () => new Set(Object.values(completedRows).filter((r) => r?.is_completed).map((r) => r.course_code)),
+    [completedRows]
+  );
   const [prereqEdges, setPrereqEdges] = useState([]);
 
   useEffect(() => {
     if (!userId) return;
     fetchCompletedCourses(userId).then((rows) => {
-      setCompleted(new Set(rows.filter((r) => r.is_completed).map((r) => r.course_code)));
+      setCompletedRows(Object.fromEntries(rows.map((r) => [r.course_code, r])));
     });
   }, [userId]);
 
@@ -56,10 +58,8 @@ export default function useMindMeshData({ programCode, view, userId }) {
       setProgramMeta(null);
     }
 
-    const programCoursesCodes =
-      view === "specialisations"
-        ? await fetchSpecialisationCourseCodes(programCode, userId)
-        : await fetchProgramCourseCodes(programCode, userId);
+    const { codes: programCoursesCodes, thin: thinProgram } = await fetchMyCourses(programCode, userId);
+    setThin(thinProgram);
 
     if (!programCoursesCodes.length) {
       setProgramCourses([]);
@@ -192,11 +192,11 @@ export default function useMindMeshData({ programCode, view, userId }) {
     }
 
     setLoading(false);
-  }, [programCode, view, userId]);
+  }, [programCode, userId]);
 
   useEffect(() => {
     fetchGraph();
   }, [fetchGraph]);
 
-  return { graph, setGraph, programCourses, programMeta, loading, completed, prereqEdges, addPrereqEdges };
+  return { graph, setGraph, programCourses, programMeta, loading, thin, completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges };
 }

@@ -14,13 +14,17 @@ function LoadingRoadmapEntryPage() {
   const userId = session?.user?.id;
   const step = searchParams.get("step");
 
+  const accessToken = session?.access_token;
+
   useEffect(() => {
     if (!userId) return;
-    openOwnRoadmap({ userId, navigate, step }).catch((err) => {
+    let active = true;
+    openOwnRoadmap({ userId, accessToken, navigate, step, isActive: () => active }).catch((err) => {
       console.error("Opening roadmap failed:", err);
-      setError(err);
+      if (active) setError(err);
     });
-  }, [userId, navigate, step, attempt]);
+    return () => { active = false; };
+  }, [userId, accessToken, navigate, step, attempt]);
 
   if (error) {
     return (
@@ -36,7 +40,7 @@ function LoadingRoadmapEntryPage() {
     );
   }
 
-  return <LoadingPage message="Opening your roadmap..." progress={30} />;
+  return <LoadingPage message="Getting your roadmap ready..." progress={30} />;
 }
 
 export default LoadingRoadmapEntryPage;

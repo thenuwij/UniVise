@@ -1,6 +1,6 @@
 import { apiFetch } from "@/shared/lib/api";
 
-export async function startRoadmapInBackground({ degreeId, accessToken }) {
+export async function buildRoadmap({ degreeId, accessToken }) {
   const res = await apiFetch("/roadmap/unsw", {
     method: "POST",
     token: accessToken,
@@ -12,12 +12,14 @@ export async function startRoadmapInBackground({ degreeId, accessToken }) {
 
   const roadmapId = json?.id || json?.roadmap_id;
   if (roadmapId) {
-    await apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
+    const industry = await apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
       method: "POST",
       token: accessToken,
       credentials: "include",
     });
+    if (!industry.ok) console.error("Careers, internships and societies failed:", industry.status);
   }
+  return roadmapId;
 }
 
 export async function handleRoadmapGeneration({
@@ -79,80 +81,24 @@ export async function handleRoadmapGeneration({
 
     if (type === "unsw") {
       if (!degree) throw new Error("Missing degree context for UNSW flow.");
-      
-      const body = {
-        degree_id: degree?.degree_id ?? degree?.id ?? null,
-        uac_code: degree?.uac_code ?? null,
-        program_name: degree?.degree_name || degree?.program_name || undefined,
-        specialisation: degree?.specialisation || undefined,
-      };
 
-      // Stage 1: Call API to start generation
       setProgress(5);
-
-      // Start smooth progress animation BEFORE the blocking fetch
       let currentProgress = 5;
       const progressInterval = setInterval(() => {
-        currentProgress = Math.min(currentProgress + 0.5, 90); // Slowly move to 90%
+        currentProgress = Math.min(currentProgress + 0.15, 95);
         setProgress(currentProgress);
-      }, 100); // Update every 100ms
+      }, 100);
 
-      // This blocks while backend AI generates (~10-15 seconds)
-      let res;
+      let roadmapId;
       try {
-        res = await apiFetch("/roadmap/unsw", {
-          method: "POST",
-          token: accessToken,
-          credentials: "include",
-          body,
-        });
+        roadmapId = await buildRoadmap({ degreeId: degree?.degree_id ?? degree?.id ?? null, accessToken });
       } finally {
-        // Stop animation once backend responds
         clearInterval(progressInterval);
       }
 
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.detail || `Failed to generate (HTTP ${res.status})`);
-
-      const roadmapId = json?.id || json?.roadmap_id;
-      let finalPayload = json?.payload || {};
-
-      // Quick final push to 95%
-      setProgress(95);
-
-      console.log("Initial generation complete. Navigating to roadmap...");
-      console.log("Note: Flexibility, societies, and careers will continue loading in background");
-
-      // Kick off societies / industry experience / career pathways. This is a
-      // separate request on purpose: the backend runs on Lambda, which freezes
-      // the execution environment once a response is sent, so work started
-      // after the /roadmap/unsw response never finishes. We deliberately do NOT
-      // await it — the roadmap page polls Supabase for these sections and
-      // renders them as they land.
-      if (roadmapId) {
-        apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
-          method: "POST",
-          token: accessToken,
-          credentials: "include",
-        }).catch((err) =>
-          console.error("Industry section generation request failed:", err)
-        );
-      }
-
-      // Navigate to roadmap
       setProgress(100);
-      const destination = returnToStep
-        ? `/roadmap/unsw?step=${returnToStep}`
-        : "/roadmap/unsw";
-      navigate(destination, {
-        state: {
-          degree,
-          payload: finalPayload,
-          roadmap_id: roadmapId,
-          backgroundLoading: true,
-        },
-        replace: true,
-      });
+      const stepQuery = returnToStep ? `&step=${returnToStep}` : "";
+      navigate(`/roadmap/unsw?id=${roadmapId}${stepQuery}`, { replace: true });
       return;
     }
 

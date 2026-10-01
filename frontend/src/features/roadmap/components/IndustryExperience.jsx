@@ -1,17 +1,13 @@
 import { useState } from "react";
+import { AlertCircle, Building2, Calendar, ChevronDown, ChevronUp, Clock, ExternalLink, GraduationCap } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
+import SectionHeading from "./SectionHeading";
+import { card, clickable } from "../utils/cardStyles";
 
-import {
-  AlertCircle,
-  Briefcase,
-  Building2,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Info,
-} from "lucide-react";
-
+const RESOURCES = [
+  ["UNSWConnect", "Internships, part-time jobs and graduate roles", "https://unswconnect.unsw.edu.au"],
+  ["UNSW Prosple", "Graduate programs and early career opportunities", "https://unsw.prosple.com"],
+];
 
 export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
@@ -24,50 +20,37 @@ export default function IndustryExperience({ industryExperience }) {
   const showPlacements = placements?.required || listedCourses.length > 0;
 
   if (!internshipPrograms.length && !topCompanies.length && !showPlacements) {
-    return null;
+    return (
+      <p className="text-base text-slate-600 dark:text-slate-400">
+        No internship or placement information for this program yet. Try the UNSW career resources at UNSWConnect.
+      </p>
+    );
   }
 
   const displayedPrograms = showAllPrograms ? internshipPrograms : internshipPrograms.slice(0, 3);
 
   return (
-    <div className="p-6 space-y-8">
-
-      {/* HEADER */}
-      <div className="relative bg-slate-50/80 dark:bg-slate-800/60
-                      px-6 py-4 -mx-6 -mt-6 mb-5 border-b-2 border-slate-200 dark:border-slate-700
-                      rounded-t-2xl">
-
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:from-transparent dark:via-slate-600 dark:to-transparent rounded-t-2xl" />
-
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 shadow-md">
-            <Briefcase className="h-5 w-5 text-slate-50" strokeWidth={2.5} />
-          </div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Internship Programs
-          </h3>
-        </div>
-      </div>
+    <section className="space-y-6">
+      <SectionHeading>
+        Internships and placements
+      </SectionHeading>
 
       {showPlacements && (
-        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <h5 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-2">
+        <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30">
+          <p className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <GraduationCap className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             Placements and work-integrated learning
-          </h5>
+          </p>
           {placements?.required && placements.details && (
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2">
+            <p className="mt-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
               <span className="font-semibold">Required placement: </span>
               {placements.details}
             </p>
           )}
           {listedCourses.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {listedCourses.map((code) => (
-                <span
-                  key={code}
-                  className="px-3 py-1 rounded-lg text-sm font-bold bg-blue-50 dark:bg-blue-900/20
-                            border-2 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300"
-                >
+                <span key={code} className="px-3.5 py-1.5 rounded-xl text-sm font-bold text-amber-800 dark:text-amber-200 bg-white dark:bg-slate-800 ring-1 ring-amber-200 dark:ring-amber-800 shadow-sm">
                   {code}
                 </span>
               ))}
@@ -76,191 +59,91 @@ export default function IndustryExperience({ industryExperience }) {
         </div>
       )}
 
-      {/* INTERNSHIP PROGRAMS SECTION */}
       {internshipPrograms.length > 0 && (
-        <div className="space-y-4">
-          {displayedPrograms.map((program, idx) => (
-            <div
-              key={idx}
-              className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
-            >
-              {/* Top row — name, company, paid badge, save */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0">
-                  <h5 className="font-semibold text-lg text-slate-900 dark:text-slate-100 leading-snug">
-                    {program.program_name}
-                  </h5>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Building2 className="h-4 w-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                    <p className="text-base text-slate-600 dark:text-slate-400 font-medium">{program.company}</p>
+        <div>
+          <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Internship programs</h4>
+          <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {displayedPrograms.map((program, idx) => (
+              <div key={idx} className={`${card} p-6 flex flex-col`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h5 className="text-lg font-semibold text-slate-900 dark:text-white leading-snug">{program.program_name}</h5>
+                    <p className="mt-1 flex items-center gap-1.5 text-base text-slate-600 dark:text-slate-400">
+                      <Building2 className="h-4 w-4 flex-shrink-0" /> {program.company}
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {program.paid && (
-                    <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-lg">
-                      Paid
-                    </span>
-                  )}
                   <SaveButton itemType="internship" itemId={`${program.company}-${program.program_name}`} itemName={program.program_name} itemData={program} />
                 </div>
-              </div>
 
-              {/* Compact info row */}
-              <div className="flex flex-wrap gap-3 mb-3">
-                {program.duration && (
-                  <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                    <Clock className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="font-medium">{program.duration}</span>
-                  </div>
-                )}
-                {program.timing && (
-                  <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                    <Calendar className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="font-medium">{program.timing}</span>
-                  </div>
-                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {program.paid && (
+                    <span className="px-3 py-1 rounded-full text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">Paid</span>
+                  )}
+                  {program.duration && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60">
+                      <Clock className="h-3.5 w-3.5" /> {program.duration}
+                    </span>
+                  )}
+                  {program.timing && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60">
+                      <Calendar className="h-3.5 w-3.5" /> {program.timing}
+                    </span>
+                  )}
+                </div>
                 {program.application_period && (
-                  <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="font-medium">Apply: {program.application_period}</span>
-                  </div>
+                  <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+                    <AlertCircle className="h-4 w-4 text-amber-500" /> Apply: {program.application_period}
+                  </p>
+                )}
+
+                {program.apply_url && (
+                  <a
+                    href={program.apply_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 self-start inline-flex items-center gap-2 text-base font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                  >
+                    Apply now <ExternalLink className="h-4 w-4" />
+                  </a>
                 )}
               </div>
-
-              {/* Apply button */}
-              {program.apply_url && (
-                <a
-                  href={program.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200"
-                >
-                  Apply Now
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              )}
-            </div>
-          ))}
-
-          {/* Show More/Less Button */}
+            ))}
+          </div>
           {internshipPrograms.length > 3 && (
             <button
               onClick={() => setShowAllPrograms(!showAllPrograms)}
-              className="mt-5 w-full py-2.5 text-sm font-bold
-                       text-white dark:text-white
-                       transition-all flex items-center justify-center gap-2
-                       rounded-xl bg-blue-600 dark:bg-blue-600
-                       hover:bg-blue-700 dark:hover:bg-blue-700
-                       border-2 border-blue-700 dark:border-blue-800
-                       shadow-md hover:shadow-lg hover:scale-105"
+              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
             >
               {showAllPrograms ? (
-                <>Show Less <ChevronUp className="h-5 w-5" /></>
+                <>Show fewer <ChevronUp className="h-5 w-5" /></>
               ) : (
-                <>Show {internshipPrograms.length - 3} More {internshipPrograms.length === 4 ? 'Program' : 'Programs'} <ChevronDown className="h-5 w-5" /></>
+                <>Show {internshipPrograms.length - 3} more {internshipPrograms.length === 4 ? "program" : "programs"} <ChevronDown className="h-5 w-5" /></>
               )}
             </button>
           )}
         </div>
       )}
 
-      {/* UNSW CAREER RESOURCES SECTION */}
-      <div className="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border-2 border-blue-300 dark:border-blue-700 shadow-md">
-        <div className="flex items-start gap-4 mb-5 pb-4 border-b-2 border-blue-200 dark:border-blue-600">
-          <div className="p-2.5 rounded-xl bg-blue-600 dark:bg-blue-600 shadow-md flex-shrink-0">
-            <Info className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
-              UNSW Career Resources
-            </h4>
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-              Official platforms for internships and graduate opportunities
-            </p>
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          {/* UNSWConnect */}
-          <a
-            href="https://unswconnect.unsw.edu.au"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group p-4 rounded-xl
-                      bg-white dark:bg-slate-900
-                      border-2 border-slate-300 dark:border-slate-600
-                      hover:border-blue-400 dark:hover:border-blue-500
-                      hover:shadow-lg hover:scale-105
-                      transition-all duration-200"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <h5 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1.5">
-                  UNSWConnect
-                </h5>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                  Find internships, part-time jobs, and graduate opportunities
-                </p>
-              </div>
-              <svg
-                className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2
-                        group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </div>
-          </a>
-
-          {/* UNSW Prosple */}
-          <a
-            href="https://unsw.prosple.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group p-4 rounded-xl
-                      bg-white dark:bg-slate-900
-                      border-2 border-slate-300 dark:border-slate-600
-                      hover:border-blue-400 dark:hover:border-blue-500
-                      hover:shadow-lg hover:scale-105
-                      transition-all duration-200"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <h5 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1.5">
-                  UNSW Prosple
-                </h5>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                  Explore graduate programs and early career opportunities
-                </p>
-              </div>
-              <svg
-                className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2
-                        group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </div>
-          </a>
+      <div>
+        <h4 className="text-lg font-semibold text-slate-900 dark:text-white">UNSW career resources</h4>
+        <div className="mt-4 grid sm:grid-cols-2 gap-5">
+          {RESOURCES.map(([name, desc, url]) => (
+            <a
+              key={name}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${card} ${clickable} group p-6 flex items-start justify-between gap-3`}
+            >
+              <span>
+                <span className="block text-lg font-semibold text-slate-900 dark:text-white">{name}</span>
+                <span className="mt-1 block text-base text-slate-600 dark:text-slate-400">{desc}</span>
+              </span>
+              <ExternalLink className="h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-blue-600 transition-colors" />
+            </a>
+          ))}
         </div>
       </div>
-
-    </div>
+    </section>
   );
 }

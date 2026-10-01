@@ -21,10 +21,10 @@ const getProgressMessage = (progress, isRegeneration, type) => {
     return "Almost done...";
   }
 
-  if (progress < 20) return "Generating roadmap structure...";
-  if (progress < 60) return "Analyzing program details...";
-  if (progress < 95) return "Finalizing your roadmap...";
-  return "Almost done...";
+  if (progress < 25) return "Building your degree overview...";
+  if (progress < 50) return "Mapping the careers your degree leads to...";
+  if (progress < 75) return "Finding internships and societies for you...";
+  return "Almost ready...";
 };
 
 function LoadingRoadmapPage() {

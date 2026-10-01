@@ -7,8 +7,8 @@ export default function SuggestedNext({ degreeCode, onCourseClick }) {
   if (!loading && !failed && (programCode !== degreeCode || picks.length === 0)) return null;
 
   return (
-    <div className="p-5 rounded-xl border-2 border-amber-300 dark:border-amber-700 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 shadow-sm">
-      <div className="flex items-center justify-between gap-3 mb-3">
+    <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30">
+      <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-500" />
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Suggested for you next</h3>
@@ -37,9 +37,9 @@ export default function SuggestedNext({ degreeCode, onCourseClick }) {
             <button
               key={p.code}
               onClick={() => onCourseClick(p)}
-              className="text-left rounded-xl px-3.5 py-3 bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-800 hover:border-amber-400 hover:shadow-md transition-all"
+              className="text-left rounded-xl px-4 py-3.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900 hover:border-amber-400 hover:-translate-y-0.5 hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <span className="block text-sm font-bold text-blue-800 dark:text-blue-300">{p.code}</span>
+              <span className="block text-[15px] font-bold text-blue-700 dark:text-blue-300">{p.code}</span>
               <span className="block text-xs font-medium text-slate-800 dark:text-slate-200 line-clamp-1">{p.name}</span>
               <span className="block text-xs text-slate-600 dark:text-slate-400 mt-1 leading-snug">{p.reason}</span>
             </button>
