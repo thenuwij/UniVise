@@ -8,7 +8,8 @@ from app.services.roadmap.unsw_queries import (
     fetch_degree_by_identifier,
     fetch_program_core_courses,
     format_core_courses_for_prompt,
-    fetch_user_specialisation_context,
+    fetch_specialisation_context,
+    fetch_specialisation_ids,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,14 +53,10 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
                 logger.debug(f"... and {len(core_courses) - 5} more courses")
 
     faculty = degree.get("faculty")
-    
-    specialisations = {}
-    if user_id and degree_code:
-        try:
-            specialisations = fetch_user_specialisation_context(user_id, degree_code)
-            logger.debug(f"[TIMING] Fetched specialisations: {specialisations.get('selected_honours_name', 'None')}")
-        except Exception as e:
-            logger.error(f"[ERROR] Failed to fetch specialisations: {e}")
+    program_name = degree.get("program_name") or req.program_name
+
+    specialisation_ids = fetch_specialisation_ids(user_id, degree_code, program_name or "") if user_id and degree_code else []
+    specialisations = fetch_specialisation_context(specialisation_ids)
 
 
     # Return complete context
@@ -67,7 +64,7 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "user_id": user_id,
         "degree_id": degree_id,
         "degree_code": degree_code,
-        "program_name": degree.get("program_name") or req.program_name,
+        "program_name": program_name,
         "uac_code": degree.get("uac_code"),
         "faculty": faculty,
         "description": degree.get("overview_description"),
@@ -75,9 +72,9 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "handbook_url": degree.get("source_url"),
         "core_courses": core_courses,
         "core_courses_formatted": core_courses_formatted,
+        "specialisation_ids": specialisation_ids,
         "selected_honours_name": specialisations.get("selected_honours_name"),
         "selected_honours_courses": specialisations.get("selected_honours_courses", []),
-        "selected_honours_overview": specialisations.get("selected_honours_overview"),
         "selected_major_name": specialisations.get("selected_major_name"),
         "selected_major_courses": specialisations.get("selected_major_courses", []),
         "selected_minor_name": specialisations.get("selected_minor_name"),

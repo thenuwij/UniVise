@@ -14,7 +14,7 @@ from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
-from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_user_specialisation_context
+from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_specialisation_context
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
 
@@ -571,15 +571,8 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         "faculty": faculty or "Not specified",
     }
 
-    # Fetch user specialisations ONCE — both society and career generations
-    # read the same context, so there's no need to hit the DB twice.
-    user_id = roadmap_data.get("user_id")
-    if user_id and degree_code:
-        try:
-            spec = fetch_user_specialisation_context(user_id, degree_code)
-            base_context.update(spec)
-        except Exception as e:
-            logger.error(f"Failed to load specialisations: {e}")
+    existing = roadmap_data.get("payload") or {}
+    base_context.update(fetch_specialisation_context(existing.get("specialisation_ids") or []))
 
     specialisation_codes = [
         *(base_context.get("selected_major_courses") or []),
@@ -596,7 +589,6 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         "industry_experience": (ai_generate_industry_experience, "industry_experience"),
         "career_pathways": (ai_generate_career_pathways, "career_pathways"),
     }
-    existing = roadmap_data.get("payload") or {}
     previously_failed = set(existing.get("industry_failed") or [])
     todo = [k for k in generators if not existing.get(k) or k in previously_failed]
 

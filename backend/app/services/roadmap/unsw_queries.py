@@ -83,6 +83,42 @@ def fetch_specialisation_ids(user_id: str, degree_code: str, program_name: str) 
     return sorted({r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)})
 
 
+SPECIALISATION_SLOTS = {"Honours": "honours", "Minor": "minor"}
+
+
+def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any]:
+    context: Dict[str, Any] = {}
+    for slot in ("major", "minor", "honours"):
+        context[f"selected_{slot}_name"] = None
+        context[f"selected_{slot}_courses"] = []
+    if not specialisation_ids:
+        return context
+    try:
+        rows = (
+            supabase.from_("unsw_specialisations")
+            .select("id, major_name, specialisation_type, sections")
+            .in_("id", specialisation_ids)
+            .execute()
+            .data
+            or []
+        )
+    except Exception as e:
+        logger.error(f"fetch_specialisation_context failed: {e}")
+        return context
+    names: Dict[str, List[str]] = {"major": [], "minor": [], "honours": []}
+    for row in sorted(rows, key=lambda r: specialisation_ids.index(r["id"])):
+        slot = SPECIALISATION_SLOTS.get(row.get("specialisation_type"), "major")
+        if row.get("major_name"):
+            names[slot].append(row["major_name"])
+        for code in extract_core_course_codes_from_sections(row.get("sections")):
+            if code not in context[f"selected_{slot}_courses"]:
+                context[f"selected_{slot}_courses"].append(code)
+    for slot, found in names.items():
+        if found:
+            context[f"selected_{slot}_name"] = " and ".join(found)
+    return context
+
+
 def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
     courses: Dict[str, Dict[str, str]] = {}
     if degree_code:
@@ -339,113 +375,6 @@ def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
     return formatted
 
 # Fetches the user's selected specialisations with CORE COURSES.
-def fetch_user_specialisation_context(user_id: str, degree_code: str) -> Dict[str, Any]:
-
-    if not user_id or not degree_code:
-        return {
-            "selected_major_name": None,
-            "selected_major_courses": [],
-            "selected_minor_name": None,
-            "selected_minor_courses": [],
-            "selected_honours_name": None,
-            "selected_honours_courses": [],
-        }
-
-    try:
-        # Get specialisation IDs.
-        # NOTE: Do NOT use .maybe_single() or .single() here. Both cause
-        # PostgREST to return HTTP 406 (PGRST116) when no row matches, and
-        # supabase-py logs that 406 at the HTTP client layer BEFORE any
-        # exception handler sees it — so even a targeted except APIError
-        # cannot suppress the log line. Using .limit(1) instead returns an
-        # empty list with HTTP 200 on no-match, so the "student has no
-        # specialisations yet" case is completely silent in the logs.
-        response = (
-            supabase.from_("user_specialisation_selections")
-            .select("major_id, minor_id, honours_id")
-            .eq("user_id", user_id)
-            .eq("degree_code", degree_code)
-            .limit(1)
-            .execute()
-        )
-        rows = getattr(response, "data", None) or []
-        data = rows[0] if rows else None
-
-        if not data:
-            return {
-                "selected_major_name": None,
-                "selected_major_courses": [],
-                "selected_minor_name": None,
-                "selected_minor_courses": [],
-                "selected_honours_name": None,
-                "selected_honours_courses": [],
-            }
-
-        result = {
-            "selected_major_name": None,
-            "selected_major_courses": [],
-            "selected_minor_name": None,
-            "selected_minor_courses": [],
-            "selected_honours_name": None,
-            "selected_honours_courses": [],
-        }
-
-        # Fetch details from unsw_specialisations
-        if data.get("major_id"):
-            major_resp = supabase.from_("unsw_specialisations")\
-                .select("major_name, sections, overview_description")\
-                .eq("id", data["major_id"])\
-                .maybe_single()\
-                .execute()
-            
-            if major_resp.data:
-                result["selected_major_name"] = major_resp.data.get("major_name")
-                result["selected_major_overview"] = major_resp.data.get("overview_description")
-                result["selected_major_courses"] = extract_core_course_codes_from_sections(
-                    major_resp.data.get("sections")
-                )
-
-        if data.get("minor_id"):
-            minor_resp = supabase.from_("unsw_specialisations")\
-                .select("major_name, sections, overview_description")\
-                .eq("id", data["minor_id"])\
-                .maybe_single()\
-                .execute()
-            
-            if minor_resp.data:
-                result["selected_minor_name"] = minor_resp.data.get("major_name")
-                result["selected_minor_overview"] = minor_resp.data.get("overview_description")
-                result["selected_minor_courses"] = extract_core_course_codes_from_sections(
-                    minor_resp.data.get("sections")
-                )
-
-        if data.get("honours_id"):
-            honours_resp = supabase.from_("unsw_specialisations")\
-                .select("major_name, sections, overview_description")\
-                .eq("id", data["honours_id"])\
-                .maybe_single()\
-                .execute()
-            
-            if honours_resp.data:
-                result["selected_honours_name"] = honours_resp.data.get("major_name")
-                result["selected_honours_overview"] = honours_resp.data.get("overview_description")
-                result["selected_honours_courses"] = extract_core_course_codes_from_sections(
-                    honours_resp.data.get("sections")
-                )
-
-        return result
-
-    except Exception as e:
-        logger.error(f"[fetch_user_specialisation_context] Error: {e}")
-        return {
-            "selected_major_name": None,
-            "selected_major_courses": [],
-            "selected_minor_name": None,
-            "selected_minor_courses": [],
-            "selected_honours_name": None,
-            "selected_honours_courses": [],
-        }
-
 # Extract CORE course codes from sections JSON. 
 # Filters out electives and only returns core/required courses.
 def extract_core_course_codes_from_sections(sections_data) -> List[str]:
