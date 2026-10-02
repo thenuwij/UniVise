@@ -36,7 +36,6 @@ def section(apply_urls):
                 }
                 for index, url in enumerate(apply_urls)
             ],
-            "top_recruiting_companies": ["Example Co"],
             "career_fairs": "UNSW Careers Fair in Term 1.",
             "wil_opportunities": "COMM2233 Industry Consulting Project.",
             "wil_course_codes": ["COMM2233"],

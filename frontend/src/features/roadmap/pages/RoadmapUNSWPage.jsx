@@ -16,6 +16,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
+import { ROADMAP_STEPS } from "../utils/roadmapSteps";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
@@ -369,65 +370,45 @@ export default function RoadmapUNSWPage() {
 
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
-    return [
-      {
-        key: "overview",
-        title: "Overview",
-        render: () => {
-          return <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} />;
-        },
-      },
-      {
-        key: "structure",
-        title: "Structure",
-        render: () => {
-          if (!degreeCodeValue) {
-            return (
-              <div className="text-center py-10 text-secondary">
-                Unable to load program structure. Please try again.
-              </div>
-            );
-          }
+    const renderers = {
+      overview: () => <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty} />,
+      structure: () => {
+        if (!degreeCodeValue) {
           return (
-            <ProgramStructureUNSW
-              degreeCode={degreeCodeValue}
-              trackCompletion={isOwnProgram}
-              onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
-            />
+            <div className="text-center py-10 text-secondary">
+              Unable to load program structure. Please try again.
+            </div>
           );
-        },
+        }
+        return (
+          <ProgramStructureUNSW
+            degreeCode={degreeCodeValue}
+            trackCompletion={isOwnProgram}
+            onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+          />
+        );
       },
-      {
-        key: "societies",
-        title: "Societies",
-        render: () => industrySection(
-          "industry_societies",
-          () => <SocietiesCommunity societies={data.industry_societies} />,
-          "Generating Societies & Community...",
-          "Finding UNSW societies and community events for your program."
-        ),
-      },
-      {
-        key: "career_pathways",
-        title: "Careers",
-        render: () => industrySection(
-          "career_pathways",
-          () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
-          "Generating Career Pathways...",
-          "Mapping entry-level, mid-career, and senior roles for your field."
-        ),
-      },
-      {
-        key: "industry_experience",
-        title: "Internships",
-        render: () => industrySection(
-          "industry_experience",
-          () => <IndustryExperience industryExperience={data.industry_experience} />,
-          "Generating Internships...",
-          "Finding internship programs and placements for your program."
-        ),
-      },
-    ];
+      careers: () => industrySection(
+        "career_pathways",
+        () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
+        "Generating Career Pathways...",
+        "Mapping entry-level, mid-career, and senior roles for your field."
+      ),
+      internships: () => industrySection(
+        "industry_experience",
+        () => <IndustryExperience industryExperience={data.industry_experience} />,
+        "Generating Internships...",
+        "Finding internship programs and placements for your program."
+      ),
+      societies: () => industrySection(
+        "industry_societies",
+        () => <SocietiesCommunity societies={data.industry_societies} />,
+        "Generating Societies & Community...",
+        "Finding UNSW societies and community events for your program."
+      ),
+    };
+
+    return ROADMAP_STEPS.map((step) => ({ ...step, render: renderers[step.key] }));
   }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate]);
 
   const { activeIndex, setActiveIndex } = useStepNavigation(

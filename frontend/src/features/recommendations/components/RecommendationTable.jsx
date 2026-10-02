@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 // Utils
 const toPercent = (v) => {
@@ -360,7 +361,7 @@ export function RecommendationTable() {
             userType === "high_school" ? (
               <HSItemCard key={rec.id} rec={rec} onOpen={() => navigate(`/recommendation/${rec.id}`, { state: { rec } })} />
             ) : (
-              <UniItemCard key={rec.id} rec={rec} onOpen={() => navigate("/roadmap-entryload?step=4")} />
+              <UniItemCard key={rec.id} rec={rec} onOpen={() => navigate(roadmapStepUrl("careers"))} />
             )
           )
         ) : null}

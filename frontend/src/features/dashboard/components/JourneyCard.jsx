@@ -2,9 +2,7 @@ import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { card, clickable } from "@/shared/ui/cardStyles";
-
-const STEPS = ["Overview", "Structure", "Societies", "Careers", "Internships"];
-const roadmapStep = (n) => `/roadmap-entryload?step=${n}`;
+import { ROADMAP_STEPS, roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 function nextStep(facts) {
   if (!facts.program) {
@@ -21,10 +19,10 @@ function nextStep(facts) {
     return {
       label: "Tick the courses you've done",
       reason: "Your progress, what you can take next and your course picks all come from these ticks.",
-      to: roadmapStep(2),
+      to: roadmapStepUrl("structure"),
     };
   }
-  return { label: "Explore your career paths", reason: "See the roles your degree leads to and how your courses get you there.", to: roadmapStep(4) };
+  return { label: "Explore your career paths", reason: "See the roles your degree leads to and how your courses get you there.", to: roadmapStepUrl("careers") };
 }
 
 export default function JourneyCard({ facts }) {
@@ -42,9 +40,9 @@ export default function JourneyCard({ facts }) {
 
       {facts.program && (
         <nav aria-label="Roadmap steps" className="mt-7 flex items-center">
-          {STEPS.map((title, i) => (
-            <Fragment key={title}>
-              <button onClick={() => navigate(roadmapStep(i + 1))} className="group flex-shrink-0 flex items-center gap-2.5">
+          {ROADMAP_STEPS.map(({ key, title }, i) => (
+            <Fragment key={key}>
+              <button onClick={() => navigate(roadmapStepUrl(key))} className="group flex-shrink-0 flex items-center gap-2.5">
                 <span className="h-9 w-9 rounded-full inline-flex items-center justify-center text-sm font-bold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-blue-800 group-hover:border-blue-500 group-hover:bg-blue-50 dark:group-hover:bg-slate-800 transition-colors">
                   {i + 1}
                 </span>
@@ -52,7 +50,7 @@ export default function JourneyCard({ facts }) {
                   {title}
                 </span>
               </button>
-              {i < STEPS.length - 1 && <span aria-hidden className="flex-1 h-1 mx-2 md:mx-4 rounded-full bg-gradient-to-r from-blue-200 to-indigo-200 dark:from-slate-700 dark:to-slate-700" />}
+              {i < ROADMAP_STEPS.length - 1 && <span aria-hidden className="flex-1 h-1 mx-2 md:mx-4 rounded-full bg-gradient-to-r from-blue-200 to-indigo-200 dark:from-slate-700 dark:to-slate-700" />}
             </Fragment>
           ))}
         </nav>

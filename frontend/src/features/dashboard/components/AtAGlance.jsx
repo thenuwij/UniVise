@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { BookOpen, GraduationCap, Layers } from "lucide-react";
 import { card, clickable } from "@/shared/ui/cardStyles";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 function Tile({ icon: Icon, label, children, to }) {
   const body = (
@@ -38,7 +39,7 @@ export default function AtAGlance({ facts }) {
     <section>
       <h2 className="text-xl font-bold tracking-tight text-slate-700 dark:text-slate-200">At a glance</h2>
       <div className="mt-4 grid sm:grid-cols-3 gap-4">
-        <Tile icon={GraduationCap} label="UOC completed" to="/roadmap-entryload?step=2">
+        <Tile icon={GraduationCap} label="UOC completed" to={roadmapStepUrl("structure")}>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">
             {facts.uocDone}
             {facts.minimumUoc && <span className="text-base font-semibold text-slate-500 dark:text-slate-400"> of {facts.minimumUoc} UOC</span>}

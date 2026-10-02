@@ -32,12 +32,6 @@ class CrossFacultySociety(BaseModel):
     name: str
     why_join: str
 
-class SocietyEvent(BaseModel):
-    event_name: str
-    description: str
-    frequency: str
-    typical_timing: str
-
 class SocietyProfessionalDevelopment(BaseModel):
     student_chapters: list[str]
     leadership_note: str
@@ -46,12 +40,10 @@ class SocietyProfessionalDevelopment(BaseModel):
 class SocietyGettingStarted(BaseModel):
     join_timing: str
     how_to_find: str
-    cost_range: str
 
 class Societies(BaseModel):
     faculty_specific: list[FacultySociety]
     cross_faculty: list[CrossFacultySociety]
-    major_events: list[SocietyEvent]
     professional_development: SocietyProfessionalDevelopment
     getting_started: SocietyGettingStarted
 
@@ -76,7 +68,6 @@ class InternshipProgram(BaseModel):
 class IndustryExperience(BaseModel):
     mandatory_placements: MandatoryPlacements
     internship_programs: list[InternshipProgram]
-    top_recruiting_companies: list[str]
     career_fairs: str
     wil_opportunities: str
     wil_course_codes: list[str]

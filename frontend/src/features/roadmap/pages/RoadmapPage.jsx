@@ -14,6 +14,7 @@ import GenerateButton from "../components/GenerateButton";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import SpecialisationPicker from "../components/SpecialisationPicker";
 import { fetchSavedChoices, saveChoices } from "../utils/programCourses";
+import { stepNumber } from "../utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 
@@ -73,7 +74,7 @@ function RoadmapPage() {
       console.error("Error saving specialisation:", err);
     }
     navigate("/roadmap-loading", {
-      state: { type: "unsw", degree: { ...selectedDegreeObject, degree_id: selectedDegreeObject.id }, returnToStep: isChange ? 2 : null },
+      state: { type: "unsw", degree: { ...selectedDegreeObject, degree_id: selectedDegreeObject.id }, returnToStep: isChange ? stepNumber("structure") : null },
       replace: true,
     });
   };

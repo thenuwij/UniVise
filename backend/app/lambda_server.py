@@ -10,6 +10,7 @@
 # then exposed as env vars before the app is imported by uvicorn.
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 # Put the backend root (/var/task) on sys.path so the `app.*` imports resolve
 # when this script is launched as `python app/lambda_server.py`. Self-locating
@@ -26,13 +27,14 @@ _SECRETS = {
 
 
 def _load_secrets() -> None:
-    client = None  # created lazily — skipped when all secrets are env-provided
-    for env_name, secret_id in _SECRETS.items():
-        if os.environ.get(env_name):
-            continue
-        if client is None:
-            client = boto3.client("secretsmanager")
-        os.environ[env_name] = client.get_secret_value(SecretId=secret_id)["SecretString"]
+    missing = {env_name: secret_id for env_name, secret_id in _SECRETS.items() if not os.environ.get(env_name)}
+    if not missing:
+        return
+    client = boto3.client("secretsmanager")
+    with ThreadPoolExecutor(max_workers=len(missing)) as pool:
+        values = pool.map(lambda secret_id: client.get_secret_value(SecretId=secret_id)["SecretString"], missing.values())
+    for env_name, value in zip(missing, values):
+        os.environ[env_name] = value
 
 
 if __name__ == "__main__":

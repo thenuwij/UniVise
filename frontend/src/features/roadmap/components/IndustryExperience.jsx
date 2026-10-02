@@ -12,14 +12,13 @@ const RESOURCES = [
 export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const internshipPrograms = industryExperience?.internship_programs || [];
-  const topCompanies = industryExperience?.top_recruiting_companies || [];
   const placements = industryExperience?.mandatory_placements;
   const placementCodes = placements?.course_codes || [];
   const wilCodes = industryExperience?.wil_course_codes || [];
   const listedCourses = [...placementCodes, ...wilCodes.filter((code) => !placementCodes.includes(code))];
   const showPlacements = placements?.required || listedCourses.length > 0;
 
-  if (!internshipPrograms.length && !topCompanies.length && !showPlacements) {
+  if (!internshipPrograms.length && !showPlacements) {
     return (
       <p className="text-base text-slate-600 dark:text-slate-400">
         No internship or placement information for this program yet. Try the UNSW career resources at UNSWConnect.
@@ -103,7 +102,8 @@ export default function IndustryExperience({ industryExperience }) {
                     rel="noopener noreferrer"
                     className="mt-5 self-start inline-flex items-center gap-2 text-base font-semibold text-blue-700 dark:text-blue-300 hover:underline"
                   >
-                    Apply now <ExternalLink className="h-4 w-4" />
+                    {program.apply_url.startsWith("https://www.google.com/search") ? "Search for this program" : "Apply now"}
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
               </div>

@@ -4,7 +4,6 @@ Supabase and the AI call are faked; these check the payload shape the
 frontend reads and the fallback when generation fails.
 """
 import asyncio
-from types import SimpleNamespace
 
 import pytest
 
@@ -26,14 +25,6 @@ SECTION = {
             }
         ],
         "cross_faculty": [{"name": "Arc Volunteering", "why_join": "Builds leadership experience."}],
-        "major_events": [
-            {
-                "event_name": "Careers Fair",
-                "description": "Meet graduate employers.",
-                "frequency": "Annual",
-                "typical_timing": "Week 3 Term 1",
-            }
-        ],
         "professional_development": {
             "student_chapters": ["CPA Australia"],
             "leadership_note": "Exec roles show initiative to employers.",
@@ -42,7 +33,6 @@ SECTION = {
         "getting_started": {
             "join_timing": "O-Week",
             "how_to_find": "Arc website",
-            "cost_range": "$5 to $15",
         },
     }
 }
@@ -51,20 +41,22 @@ SECTION = {
 @pytest.fixture(autouse=True)
 def fake_society_list(monkeypatch):
     rows = [{"name": "Commerce Society", "arc_category": "Faculty", "short_name": "CommSoc"}]
-    query = SimpleNamespace(select=lambda *args: SimpleNamespace(execute=lambda: SimpleNamespace(data=rows)))
-    monkeypatch.setattr(industry, "supabase", SimpleNamespace(table=lambda name: query))
+    monkeypatch.setattr(industry, "fetch_society_rows", lambda: rows)
 
 
 def test_returns_societies_as_plain_dict(monkeypatch):
     async def reply(prompt, schema, **kwargs):
         assert schema is SocietiesSection
         assert "Commerce Society [Faculty] (CommSoc)" in prompt
+        assert "CPA Australia" in prompt and "Never write a URL" in prompt
         return SocietiesSection.model_validate(SECTION)
 
     monkeypatch.setattr(industry, "ask_claude_structured", reply)
 
     result = asyncio.run(industry.ai_generate_societies(CONTEXT))
 
+    bodies = result["societies"]["professional_development"].pop("professional_bodies")
+    assert bodies == [{"name": "CPA Australia", "url": "https://www.cpaaustralia.com.au"}]
     assert result == SECTION
 
 
@@ -78,3 +70,35 @@ def test_returns_fallback_when_generation_fails(monkeypatch):
 
     assert result["failed"] is True
     assert result["societies"]["faculty_specific"] == []
+
+
+def test_society_list_only_includes_degree_related_categories(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.services.roadmap import unsw_queries
+
+    rows = [
+        {"name": "Commerce Society", "arc_category": "Faculty & Constituent", "short_name": "CommSoc"},
+        {"name": "Climbing Club", "arc_category": "Sport & Recreation", "short_name": None},
+    ]
+
+    class Query:
+        def __init__(self):
+            self.rows = list(rows)
+
+        def select(self, *args):
+            return self
+
+        def in_(self, column, values):
+            self.rows = [r for r in self.rows if r[column] in values]
+            return self
+
+        def order(self, *args):
+            return self
+
+        def execute(self):
+            return SimpleNamespace(data=self.rows)
+
+    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(table=lambda name: Query()))
+
+    assert [r["name"] for r in unsw_queries.fetch_society_rows()] == ["Commerce Society"]

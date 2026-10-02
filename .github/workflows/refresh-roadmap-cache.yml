@@ -1,0 +1,59 @@
+name: Refresh Roadmap Cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 16 * * 0"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: refresh-roadmap-cache
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-2
+
+jobs:
+  refresh:
+    name: Refresh cached roadmaps
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+
+      - name: Load secrets
+        run: |
+          for pair in \
+            SUPABASE_SERVICE_ROLE_KEY=univise/staging/supabase-service-role-key \
+            OPENAI_API_KEY=univise/staging/openai-api-key \
+            ANTHROPIC_API_KEY=univise/staging/anthropic-api-key; do
+            name="${pair%%=*}"
+            value=$(aws secretsmanager get-secret-value --secret-id "${pair#*=}" --query SecretString --output text)
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Refresh and prune
+        working-directory: backend
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+        run: python -m scripts.roadmap_cache_fill apply --refresh-days "${{ vars.ROADMAP_REFRESH_DAYS || '30' }}" --prune

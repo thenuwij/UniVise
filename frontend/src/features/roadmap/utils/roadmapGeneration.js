@@ -12,12 +12,15 @@ export async function buildRoadmap({ degreeId, accessToken }) {
 
   const roadmapId = json?.id || json?.roadmap_id;
   if (roadmapId) {
-    const industry = await apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
+    apiFetch(`/roadmap/unsw/${roadmapId}/industry`, {
       method: "POST",
       token: accessToken,
       credentials: "include",
-    });
-    if (!industry.ok) console.error("Careers, internships and societies failed:", industry.status);
+    })
+      .then((industry) => {
+        if (!industry.ok) console.error("Careers, internships and societies failed:", industry.status);
+      })
+      .catch((err) => console.error("Careers, internships and societies failed:", err));
   }
   return roadmapId;
 }

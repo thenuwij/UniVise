@@ -23,6 +23,7 @@ import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDet
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
 import ProgressPage from "./features/transfer/pages/ProgressPage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
+import { roadmapStepUrl } from "./features/roadmap/utils/roadmapSteps";
 
 
 
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([
   { path: "/chat", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/chat/:conversationId", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>},
-  { path: "/recommendation/:id", element: <Navigate to="/roadmap-entryload?step=4" replace /> },
+  { path: "/recommendation/:id", element: <Navigate to={roadmapStepUrl("careers")} replace /> },
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },

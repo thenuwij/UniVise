@@ -51,3 +51,41 @@ def test_no_choices_gives_an_empty_list(monkeypatch):
     monkeypatch.setattr(unsw_queries, "component_degree_codes", lambda code, name: [code])
 
     assert unsw_queries.fetch_specialisation_ids("u1", "3707", "Bachelor of Engineering (Honours)") == []
+
+
+SPECIALISATIONS = [
+    {"id": "b-major", "major_name": "Computer Science", "specialisation_type": "Major", "sections": [
+        {"title": "Core Courses", "courses": [{"code": "COMP2521"}, {"code": "MATH1081"}]},
+        {"title": "Prescribed Electives", "courses": [{"code": "COMP3311"}]},
+    ]},
+    {"id": "a-major", "major_name": "Accounting", "specialisation_type": "Major", "sections": [
+        {"title": "Core Courses", "courses": [{"code": "ACCT1511"}, {"code": "MATH1081"}]},
+    ]},
+    {"id": "c-minor", "major_name": "Economics", "specialisation_type": "Minor", "sections": [
+        {"title": "Core", "courses": [{"code": "ECON1101"}]},
+    ]},
+    {"id": "d-honours", "major_name": "Finance Honours", "specialisation_type": "Honours", "sections": []},
+]
+
+
+def test_context_joins_both_halves_and_groups_by_type(monkeypatch):
+    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(SPECIALISATIONS))))
+
+    context = unsw_queries.fetch_specialisation_context(["a-major", "b-major", "c-minor", "d-honours"])
+
+    assert context["selected_major_name"] == "Accounting and Computer Science"
+    assert context["selected_major_courses"] == ["ACCT1511", "MATH1081", "COMP2521"]
+    assert context["selected_minor_name"] == "Economics"
+    assert context["selected_minor_courses"] == ["ECON1101"]
+    assert context["selected_honours_name"] == "Finance Honours"
+    assert context["selected_honours_courses"] == []
+
+
+def test_no_ids_gives_an_empty_context_without_a_query(monkeypatch):
+    monkeypatch.setattr(unsw_queries, "supabase", None)
+
+    context = unsw_queries.fetch_specialisation_context([])
+
+    assert context["selected_major_name"] is None
+    assert context["selected_major_courses"] == []
+    assert context["selected_honours_name"] is None

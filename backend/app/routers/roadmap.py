@@ -7,11 +7,11 @@ from app.core.auth import get_current_user
 logger = logging.getLogger(__name__)
 
 from app.models.roadmap import SchoolReq, UNSWReq, RoadmapResp
+from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
 from app.services.roadmap.common import ensure, table_for_mode
 from app.services.roadmap.school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from app.services.roadmap.unsw import gather_unsw_context, ai_generate_unsw_payload
 from app.services.roadmap.industry import generate_and_update_all_industry
-from app.services.roadmap.unsw_queries import fetch_specialisation_ids
 from app.services.user_profile import UNIVERSITY_ONLY
 
 router = APIRouter(tags=["roadmap"])
@@ -56,10 +56,10 @@ async def create_unsw(
 
     # Build roadmap context & payload 
     ctx = await gather_unsw_context(user.id, body)
-    payload = await ai_generate_unsw_payload(ctx)
-    payload["specialisation_ids"] = fetch_specialisation_ids(
-        user.id, ctx.get("degree_code"), ctx.get("program_name") or body.program_name or ""
-    )
+    cache_key = roadmap_cache_key(ctx)
+    payload = read_cached_roadmap(cache_key) or await ai_generate_unsw_payload(ctx)
+    payload["specialisation_ids"] = ctx["specialisation_ids"]
+    payload["cache_key"] = cache_key
 
     logger.debug(f"[TIMING] After AI generation: {time.time() - endpoint_start:.1f}s")
 
