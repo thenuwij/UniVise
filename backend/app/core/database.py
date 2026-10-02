@@ -1,7 +1,12 @@
-from supabase import Client, create_client
+import httpx
+from supabase import Client, ClientOptions, create_client
 from app.core.config import SUPABASE_URL, SUPABASE_ROLE_KEY
 
 if not all([SUPABASE_ROLE_KEY, SUPABASE_URL]):
     raise EnvironmentError("One or more Supabase Env Variables are missing")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_ROLE_KEY)
+supabase: Client = create_client(
+    SUPABASE_URL,
+    SUPABASE_ROLE_KEY,
+    options=ClientOptions(httpx_client=httpx.Client(timeout=30, follow_redirects=True)),
+)
