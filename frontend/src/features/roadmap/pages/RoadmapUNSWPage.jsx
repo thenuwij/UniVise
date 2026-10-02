@@ -371,7 +371,7 @@ export default function RoadmapUNSWPage() {
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
     const renderers = {
-      overview: () => <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} />,
+      overview: () => <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty} />,
       structure: () => {
         if (!degreeCodeValue) {
           return (

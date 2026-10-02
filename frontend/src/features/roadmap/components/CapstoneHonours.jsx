@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { getLevelColor } from "@/features/mindmesh/utils";
 import SectionHeading from "@/shared/ui/SectionHeading";
@@ -9,11 +9,19 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 
 
-export default function CapstoneHonours({ data, handbookUrl }) {
+const honoursRuleSet = (faculty = "") => {
+  const f = faculty.toLowerCase();
+  if (/business|commerce|economics/.test(f)) return "Business School";
+  if (f.includes("engineering")) return "Engineering";
+  return "UNSW";
+};
+
+export default function CapstoneHonours({ data, handbookUrl, faculty }) {
   const navigate = useNavigate();
   const [validCourses, setValidCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
+  const [honoursOpen, setHonoursOpen] = useState(false);
 
   // Fetch and validate courses on mount
   useEffect(() => {
@@ -81,6 +89,7 @@ export default function CapstoneHonours({ data, handbookUrl }) {
     });
   };
 
+  const summary = data?.summary;
   const highlights = data?.capstone?.highlights;
 
   const honours = data?.honours || {};
@@ -131,6 +140,13 @@ export default function CapstoneHonours({ data, handbookUrl }) {
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+      {summary && (
+        <section>
+          <SectionHeading>About this program</SectionHeading>
+          <p className="mt-6 text-base md:text-[17px] leading-relaxed text-slate-700 dark:text-slate-300">{summary}</p>
+        </section>
+      )}
+
       {highlights && (
         <section>
           <SectionHeading>What makes this program special</SectionHeading>
@@ -167,65 +183,80 @@ export default function CapstoneHonours({ data, handbookUrl }) {
 
       {hasHonours && (
         <section>
-          <SectionHeading>Honours</SectionHeading>
-          <div className={`${card} mt-6 p-6 md:p-8`}>
-            <div className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="inline-flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-                {honoursTabs.map((tab, i) => (
-                  <button
-                    key={tab.label}
-                    onClick={() => setActiveTab(i)}
-                    className={`relative px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
-                      activeTab === i ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    {activeTab === i && (
-                      <motion.span layoutId="honours-tab" className="absolute inset-0 rounded-lg bg-white dark:bg-slate-700 shadow" transition={{ type: "spring", stiffness: 450, damping: 38 }} />
-                    )}
-                    <span className="relative">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-6">
-              {honoursTabs[activeTab]?.sections.map((sec) => (
-                <div key={sec.title}>
-                  <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">{sec.title}</h4>
-                  <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(sec.text)}</div>
-                </div>
-              ))}
-
-              {honoursTabs[activeTab]?.extra === "classes" && classes.length > 0 && (
-                <div>
-                  <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Classes of honours</h4>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {classes.map((cls) => (
-                      <span key={cls} className="px-3.5 py-1.5 rounded-full text-sm font-medium text-indigo-800 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-900/30">
-                        {cls}
-                      </span>
+          <div className={`${card} overflow-hidden`}>
+            <button
+              type="button"
+              onClick={() => setHonoursOpen((open) => !open)}
+              aria-expanded={honoursOpen}
+              className="group w-full flex items-center justify-between gap-4 px-6 md:px-8 py-5 text-left hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <span className="min-w-0">
+                <span className="block text-lg font-semibold text-slate-900 dark:text-slate-100">Honours: general {honoursRuleSet(faculty)} rules</span>
+                <span className="mt-1 block text-[15px] text-slate-500 dark:text-slate-400">These are the faculty's general rules. Check the Handbook for your program's exact Honours rules.</span>
+              </span>
+              <ChevronDown className={`h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-blue-600 transition-transform ${honoursOpen ? "rotate-180" : ""}`} />
+            </button>
+            {honoursOpen && (
+              <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2">
+                <div className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="inline-flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+                    {honoursTabs.map((tab, i) => (
+                      <button
+                        key={tab.label}
+                        onClick={() => setActiveTab(i)}
+                        className={`relative px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+                          activeTab === i ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                      >
+                        {activeTab === i && (
+                          <motion.span layoutId="honours-tab" className="absolute inset-0 rounded-lg bg-white dark:bg-slate-700 shadow" transition={{ type: "spring", stiffness: 450, damping: 38 }} />
+                        )}
+                        <span className="relative">{tab.label}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {honoursTabs[activeTab]?.extra === "awards" && (
-                <>
-                  {awards && (
+                <div className="mt-6 space-y-6">
+                  {honoursTabs[activeTab]?.sections.map((sec) => (
+                    <div key={sec.title}>
+                      <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">{sec.title}</h4>
+                      <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(sec.text)}</div>
+                    </div>
+                  ))}
+
+                  {honoursTabs[activeTab]?.extra === "classes" && classes.length > 0 && (
                     <div>
-                      <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Awards and recognition</h4>
-                      <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(awards)}</div>
+                      <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Classes of honours</h4>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {classes.map((cls) => (
+                          <span key={cls} className="px-3.5 py-1.5 rounded-full text-sm font-medium text-indigo-800 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-900/30">
+                            {cls}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {careerOutcomes && (
-                    <div>
-                      <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Career paths and further study</h4>
-                      <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(careerOutcomes)}</div>
-                    </div>
+
+                  {honoursTabs[activeTab]?.extra === "awards" && (
+                    <>
+                      {awards && (
+                        <div>
+                          <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Awards and recognition</h4>
+                          <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(awards)}</div>
+                        </div>
+                      )}
+                      {careerOutcomes && (
+                        <div>
+                          <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">Career paths and further study</h4>
+                          <div className="mt-1.5 text-[17px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">{formatTextContent(careerOutcomes)}</div>
+                        </div>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}
