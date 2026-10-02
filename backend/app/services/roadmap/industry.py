@@ -159,14 +159,6 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
           }}
           // Include 2-4 societies (maximum 4). Only include societies that genuinely benefit students from this specific program. Must be real, currently active Arc UNSW societies.
         ],
-        "major_events": [
-          {{
-            "event_name": "Event name",
-            "description": "One sentence description",
-            "frequency": "Annual/Per term",
-            "typical_timing": "e.g., Week 3 Term 1"
-          }}
-        ],
         "professional_development": {{
           "student_chapters": ["Professional org 1", "Professional org 2"],
           "leadership_note": "One sentence on exec role career value",
@@ -174,8 +166,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
         }},
         "getting_started": {{
           "join_timing": "Under 15 words",
-          "how_to_find": "Under 15 words",
-          "cost_range": "Under 10 words"
+          "how_to_find": "Under 15 words"
         }}
       }}
     }}
@@ -187,8 +178,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
         section = await ask_claude_structured(prompt, SocietiesSection, model="claude-haiku-4-5-20251001")
         result = section.model_dump()
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
-        events_count = len(result.get('societies', {}).get('major_events', []))
-        logger.info(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies, {events_count} events")
+        logger.info(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies")
         return result
         
     except Exception as e:
@@ -197,7 +187,6 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
             "societies": {
                 "faculty_specific": [],
                 "cross_faculty": [],
-                "major_events": [],
                 "professional_development": {
                     "student_chapters": [],
                     "leadership_note": "Information temporarily unavailable",
@@ -205,8 +194,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
                 },
                 "getting_started": {
                     "join_timing": "O-Week and Week 1 each term",
-                    "how_to_find": "Visit arc.unsw.edu.au or attend O-Week stalls",
-                    "cost_range": "$5-15 per year typically"
+                    "how_to_find": "Visit arc.unsw.edu.au or attend O-Week stalls"
                 }
             },
             "failed": True,
@@ -288,7 +276,6 @@ You are a UNSW career advisor. Provide industry experience information for {prog
             "apply_url": "Direct URL to apply or company careers page (e.g., 'https://careers.pwc.com.au/students')"
           }}
         ],
-        "top_recruiting_companies": ["Company 1", "Company 2", "...8-10 total"],
         "career_fairs": "Description of major fairs/events",
         "wil_opportunities": "WIL subjects or co-op info"
       }}
@@ -335,7 +322,6 @@ You are a UNSW career advisor. Provide industry experience information for {prog
                     "course_codes": [],
                 },
                 "internship_programs": [],
-                "top_recruiting_companies": [],
                 "career_fairs": "Information temporarily unavailable",
                 "wil_opportunities": "Information temporarily unavailable",
                 "wil_course_codes": [],

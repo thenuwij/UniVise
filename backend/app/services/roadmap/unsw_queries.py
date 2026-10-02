@@ -83,11 +83,24 @@ def fetch_specialisation_ids(user_id: str, degree_code: str, program_name: str) 
     return sorted({r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)})
 
 
+SOCIETY_CATEGORIES = [
+    "Faculty & Constituent",
+    "Academic",
+    "Professional & Networking",
+    "Technology & Projects",
+    "Creative Arts & Performance",
+    "Charity & Social Impact",
+    "Community & Inclusion",
+    "International & Cultural",
+]
+
+
 def fetch_society_rows() -> List[Dict[str, Any]]:
     try:
         return (
             supabase.table("unsw_societies")
             .select("name, arc_category, short_name")
+            .in_("arc_category", SOCIETY_CATEGORIES)
             .order("name")
             .execute()
             .data

@@ -25,14 +25,6 @@ SECTION = {
             }
         ],
         "cross_faculty": [{"name": "Arc Volunteering", "why_join": "Builds leadership experience."}],
-        "major_events": [
-            {
-                "event_name": "Careers Fair",
-                "description": "Meet graduate employers.",
-                "frequency": "Annual",
-                "typical_timing": "Week 3 Term 1",
-            }
-        ],
         "professional_development": {
             "student_chapters": ["CPA Australia"],
             "leadership_note": "Exec roles show initiative to employers.",
@@ -41,7 +33,6 @@ SECTION = {
         "getting_started": {
             "join_timing": "O-Week",
             "how_to_find": "Arc website",
-            "cost_range": "$5 to $15",
         },
     }
 }
@@ -76,3 +67,35 @@ def test_returns_fallback_when_generation_fails(monkeypatch):
 
     assert result["failed"] is True
     assert result["societies"]["faculty_specific"] == []
+
+
+def test_society_list_only_includes_degree_related_categories(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.services.roadmap import unsw_queries
+
+    rows = [
+        {"name": "Commerce Society", "arc_category": "Faculty & Constituent", "short_name": "CommSoc"},
+        {"name": "Climbing Club", "arc_category": "Sport & Recreation", "short_name": None},
+    ]
+
+    class Query:
+        def __init__(self):
+            self.rows = list(rows)
+
+        def select(self, *args):
+            return self
+
+        def in_(self, column, values):
+            self.rows = [r for r in self.rows if r[column] in values]
+            return self
+
+        def order(self, *args):
+            return self
+
+        def execute(self):
+            return SimpleNamespace(data=self.rows)
+
+    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(table=lambda name: Query()))
+
+    assert [r["name"] for r in unsw_queries.fetch_society_rows()] == ["Commerce Society"]

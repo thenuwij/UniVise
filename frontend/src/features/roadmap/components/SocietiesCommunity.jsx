@@ -12,11 +12,10 @@ export default function SocietiesCommunity({ societies }) {
 
   const facultySpecific = societies?.faculty_specific || [];
   const crossFaculty = societies?.cross_faculty || [];
-  const majorEvents = societies?.major_events || [];
   const profDev = societies?.professional_development || {};
   const gettingStarted = societies?.getting_started || {};
 
-  if (!facultySpecific.length && !crossFaculty.length && !majorEvents.length) return null;
+  if (!facultySpecific.length && !crossFaculty.length) return null;
 
   const displayedSocieties = showAll ? facultySpecific : facultySpecific.slice(0, 3);
   const facts = [

@@ -8,7 +8,7 @@ from app.core.database import supabase
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = 1
+PROMPT_VERSION = 2
 
 HASHED_CONTEXT = (
     "program_name",

@@ -12,14 +12,13 @@ const RESOURCES = [
 export default function IndustryExperience({ industryExperience }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const internshipPrograms = industryExperience?.internship_programs || [];
-  const topCompanies = industryExperience?.top_recruiting_companies || [];
   const placements = industryExperience?.mandatory_placements;
   const placementCodes = placements?.course_codes || [];
   const wilCodes = industryExperience?.wil_course_codes || [];
   const listedCourses = [...placementCodes, ...wilCodes.filter((code) => !placementCodes.includes(code))];
   const showPlacements = placements?.required || listedCourses.length > 0;
 
-  if (!internshipPrograms.length && !topCompanies.length && !showPlacements) {
+  if (!internshipPrograms.length && !showPlacements) {
     return (
       <p className="text-base text-slate-600 dark:text-slate-400">
         No internship or placement information for this program yet. Try the UNSW career resources at UNSWConnect.
