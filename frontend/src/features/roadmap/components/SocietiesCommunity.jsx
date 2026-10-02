@@ -21,58 +21,12 @@ export default function SocietiesCommunity({ societies }) {
   const displayedSocieties = showAll ? facultySpecific : facultySpecific.slice(0, 3);
   const facts = [
     [Clock, "When to join", gettingStarted.join_timing],
-    [Star, "Membership cost", gettingStarted.cost_range],
     [Info, "How to find them", gettingStarted.how_to_find],
   ].filter(([, , value]) => value);
   const hasProfDev = profDev.student_chapters?.length > 0 || profDev.leadership_note || profDev.skills_gained?.length > 0;
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-      <section>
-        <div>
-          <SectionHeading>
-            Getting started
-          </SectionHeading>
-          {facts.length > 0 && (
-            <div className="mt-6 grid sm:grid-cols-3 gap-4">
-              {facts.map(([Icon, label, value]) => (
-                <div key={label} className={`${card} flex items-start gap-3 p-5`}>
-                  <Icon className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-                    <p className="mt-0.5 text-base font-semibold text-slate-900 dark:text-white">{value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="mt-6 grid sm:grid-cols-2 gap-4">
-            <a
-              href="https://campus.hellorubric.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
-            >
-              <Star className="h-5 w-5 flex-shrink-0" />
-              <span className="text-base font-semibold">Hello Rubric</span>
-              <span className="hidden md:inline text-sm text-blue-700 dark:text-blue-200">Events and club sign-ups</span>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
-            </a>
-            <a
-              href="https://www.arc.unsw.edu.au/clubs/find-a-club"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-emerald-800 dark:text-emerald-50 bg-gradient-to-r from-emerald-100 to-green-200 dark:from-emerald-800 dark:to-green-700 border border-emerald-200 dark:border-emerald-700 shadow-md shadow-emerald-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-all"
-            >
-              <Heart className="h-5 w-5 flex-shrink-0" />
-              <span className="text-base font-semibold">Arc UNSW directory</span>
-              <span className="hidden md:inline text-sm text-emerald-700 dark:text-emerald-200">Every club at UNSW</span>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
-            </a>
-          </div>
-        </div>
-      </section>
-
       {facultySpecific.length > 0 && (
         <section>
           <SectionHeading>
@@ -202,6 +156,51 @@ export default function SocietiesCommunity({ societies }) {
           </div>
         </section>
       )}
+
+      <section>
+        <div>
+          <SectionHeading>
+            Getting started
+          </SectionHeading>
+          {facts.length > 0 && (
+            <div className="mt-6 grid sm:grid-cols-3 gap-4">
+              {facts.map(([Icon, label, value]) => (
+                <div key={label} className={`${card} flex items-start gap-3 p-5`}>
+                  <Icon className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+                    <p className="mt-0.5 text-base font-semibold text-slate-900 dark:text-white">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-6 grid sm:grid-cols-2 gap-4">
+            <a
+              href="https://campus.hellorubric.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+            >
+              <Star className="h-5 w-5 flex-shrink-0" />
+              <span className="text-base font-semibold">Hello Rubric</span>
+              <span className="hidden md:inline text-sm text-blue-700 dark:text-blue-200">Events and club sign-ups</span>
+              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
+            </a>
+            <a
+              href="https://www.arc.unsw.edu.au/clubs/find-a-club"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-emerald-800 dark:text-emerald-50 bg-gradient-to-r from-emerald-100 to-green-200 dark:from-emerald-800 dark:to-green-700 border border-emerald-200 dark:border-emerald-700 shadow-md shadow-emerald-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-all"
+            >
+              <Heart className="h-5 w-5 flex-shrink-0" />
+              <span className="text-base font-semibold">Arc UNSW directory</span>
+              <span className="hidden md:inline text-sm text-emerald-700 dark:text-emerald-200">Every club at UNSW</span>
+              <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
