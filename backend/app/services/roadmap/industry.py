@@ -83,7 +83,7 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
     # If fetch fails or returns empty, fall back to unconstrained generation
     # (existing behaviour) so roadmap generation never crashes.
     verified_societies_section = ""
-    rows = fetch_society_rows()
+    rows = context["societies"] if "societies" in context else fetch_society_rows()
     if rows:
         lines = []
         for row in rows:
@@ -544,35 +544,43 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     total_start = time.time()
 
     degree_code = roadmap_data.get("degree_code")
-    faculty = None
-    if degree_code:
+    existing = roadmap_data.get("payload") or {}
+
+    def faculty_lookup():
+        if not degree_code:
+            return None
         try:
-            degree_resp = (
+            rows = (
                 supabase.from_("unsw_degrees_final")
                 .select("faculty")
                 .eq("degree_code", degree_code)
                 .limit(1)
                 .execute()
+                .data
             )
-            if degree_resp.data:
-                faculty = degree_resp.data[0].get("faculty")
+            return rows[0].get("faculty") if rows else None
         except Exception as e:
             logger.error(f"Failed to load faculty for {degree_code}: {e}")
+            return None
+
+    def specialisation_part():
+        context = fetch_specialisation_context(existing.get("specialisation_ids") or [])
+        codes = [*context["selected_major_courses"], *context["selected_minor_courses"], *context["selected_honours_courses"]]
+        return context, fetch_program_course_list(degree_code, codes)
+
+    faculty, (specialisations, program_courses), societies = await asyncio.gather(
+        asyncio.to_thread(faculty_lookup),
+        asyncio.to_thread(specialisation_part),
+        asyncio.to_thread(fetch_society_rows),
+    )
 
     base_context = {
         "program_name": roadmap_data.get("program_name"),
         "faculty": faculty or "Not specified",
+        **specialisations,
+        "program_courses": program_courses,
+        "societies": societies,
     }
-
-    existing = roadmap_data.get("payload") or {}
-    base_context.update(fetch_specialisation_context(existing.get("specialisation_ids") or []))
-
-    specialisation_codes = [
-        *(base_context.get("selected_major_courses") or []),
-        *(base_context.get("selected_minor_courses") or []),
-        *(base_context.get("selected_honours_courses") or []),
-    ]
-    base_context["program_courses"] = fetch_program_course_list(degree_code, specialisation_codes)
 
     # Run all three AI generations in parallel. asyncio.gather with
     # return_exceptions=True ensures a single failure doesn't poison the

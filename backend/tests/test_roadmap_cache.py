@@ -7,8 +7,6 @@ student's own row without any AI call.
 import asyncio
 from types import SimpleNamespace
 
-import pytest
-
 from app.routers import roadmap as roadmap_router
 from app.services.roadmap import cache
 
@@ -21,13 +19,9 @@ CONTEXT = {
     "specialisation_ids": ["a-major"],
     "selected_major_name": "Computer Engineering",
     "selected_major_courses": ["COMP1521"],
+    "program_courses": [{"code": "ENGG1000", "name": "Engineering Design"}],
+    "societies": [{"name": "Engineering Society", "arc_category": "Faculty", "short_name": None}],
 }
-
-
-@pytest.fixture(autouse=True)
-def fake_inputs(monkeypatch):
-    monkeypatch.setattr(cache, "fetch_program_course_list", lambda code, extra: [{"code": "ENGG1000", "name": "Engineering Design"}])
-    monkeypatch.setattr(cache, "fetch_society_rows", lambda: [{"name": "Engineering Society", "arc_category": "Faculty", "short_name": None}])
 
 
 def test_same_inputs_give_the_same_key():

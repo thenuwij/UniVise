@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from app.core.database import supabase
-from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +21,8 @@ HASHED_CONTEXT = (
     "selected_minor_courses",
     "selected_honours_name",
     "selected_honours_courses",
+    "program_courses",
+    "societies",
 )
 
 
@@ -29,14 +30,7 @@ def roadmap_cache_key(ctx: Dict[str, Any]) -> Dict[str, Any] | None:
     degree_code = ctx.get("degree_code")
     if not degree_code:
         return None
-    specialisation_codes = [
-        *(ctx.get("selected_major_courses") or []),
-        *(ctx.get("selected_minor_courses") or []),
-        *(ctx.get("selected_honours_courses") or []),
-    ]
     inputs = {k: ctx.get(k) for k in HASHED_CONTEXT}
-    inputs["program_courses"] = fetch_program_course_list(degree_code, specialisation_codes)
-    inputs["societies"] = fetch_society_rows()
     inputs["prompt_version"] = PROMPT_VERSION
     input_hash = hashlib.sha256(json.dumps(inputs, sort_keys=True, default=str).encode()).hexdigest()
     specialisation_ids = list(ctx.get("specialisation_ids") or [])
