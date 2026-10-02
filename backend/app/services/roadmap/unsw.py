@@ -17,7 +17,7 @@ from app.services.roadmap.unsw_queries import (
 logger = logging.getLogger(__name__)
 
 # Gathers complete context for UNSW degree roadmap generation.
-async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
+async def gather_unsw_context(user_id: str, req, specialisation_ids: list | None = None) -> Dict[str, Any]:
 
     logger.info(f"Gathering UNSW context for request: {req}")
 
@@ -34,12 +34,17 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
     program_name = degree.get("program_name") or req.program_name
 
     def specialisation_part():
-        ids = fetch_specialisation_ids(user_id, degree_code, program_name or "") if user_id and degree_code else []
+        if specialisation_ids is not None:
+            ids = sorted(specialisation_ids)
+        elif user_id and degree_code:
+            ids = fetch_specialisation_ids(user_id, degree_code, program_name or "")
+        else:
+            ids = []
         context = fetch_specialisation_context(ids)
         codes = [*context["selected_major_courses"], *context["selected_minor_courses"], *context["selected_honours_courses"]]
         return ids, context, fetch_program_course_list(degree_code, codes)
 
-    core_courses, (specialisation_ids, specialisations, program_courses), societies = await asyncio.gather(
+    core_courses, (recorded_ids, specialisations, program_courses), societies = await asyncio.gather(
         asyncio.to_thread(fetch_program_core_courses, degree_code),
         asyncio.to_thread(specialisation_part),
         asyncio.to_thread(fetch_society_rows),
@@ -59,7 +64,7 @@ async def gather_unsw_context(user_id: str, req) -> Dict[str, Any]:
         "handbook_url": degree.get("source_url"),
         "core_courses": core_courses,
         "core_courses_formatted": core_courses_formatted,
-        "specialisation_ids": specialisation_ids,
+        "specialisation_ids": recorded_ids,
         "program_courses": program_courses,
         "societies": societies,
         "selected_honours_name": specialisations.get("selected_honours_name"),

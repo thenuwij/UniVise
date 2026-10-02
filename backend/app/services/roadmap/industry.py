@@ -533,12 +533,14 @@ You are a UNSW career advisor with access to current job market data. Provide ca
 # migrating societies generation from Sonnet to Haiku (completion gap went
 # from ~14s to ~2s, so the two background tasks could now finish in either
 # order and overwrite each other's payload writes under load).
-async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
+INDUSTRY_GENERATORS = {
+    "industry_societies": (ai_generate_societies, "societies"),
+    "industry_experience": (ai_generate_industry_experience, "industry_experience"),
+    "career_pathways": (ai_generate_career_pathways, "career_pathways"),
+}
 
-    total_start = time.time()
 
-    degree_code = roadmap_data.get("degree_code")
-    existing = roadmap_data.get("payload") or {}
+async def generate_industry_sections(degree_code: str, program_name: str, existing: dict):
 
     def faculty_lookup():
         if not degree_code:
@@ -569,7 +571,7 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     )
 
     base_context = {
-        "program_name": roadmap_data.get("program_name"),
+        "program_name": program_name,
         "faculty": faculty or "Not specified",
         **specialisations,
         "program_courses": program_courses,
@@ -579,21 +581,38 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     # Run all three AI generations in parallel. asyncio.gather with
     # return_exceptions=True ensures a single failure doesn't poison the
     # others — each result is checked individually below.
-    generators = {
-        "industry_societies": (ai_generate_societies, "societies"),
-        "industry_experience": (ai_generate_industry_experience, "industry_experience"),
-        "career_pathways": (ai_generate_career_pathways, "career_pathways"),
-    }
     previously_failed = set(existing.get("industry_failed") or [])
-    todo = [k for k in generators if not existing.get(k) or k in previously_failed]
+    todo = [k for k in INDUSTRY_GENERATORS if not existing.get(k) or k in previously_failed]
 
     ai_start = time.time()
     results = await asyncio.gather(
-        *[generators[k][0](base_context) for k in todo],
+        *[INDUSTRY_GENERATORS[k][0](base_context) for k in todo],
         return_exceptions=True,
     )
 
     logger.debug(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
+
+    sections = {}
+    failed = []
+    for key, result in zip(todo, results):
+        if isinstance(result, Exception):
+            logger.error(f"{key} generation failed: {result}")
+            result = {}
+        if not result or result.get("failed"):
+            failed.append(key)
+        sections[key] = result.get(INDUSTRY_GENERATORS[key][1], {})
+    return sections, failed
+
+
+async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
+
+    total_start = time.time()
+
+    sections, failed = await generate_industry_sections(
+        roadmap_data.get("degree_code"),
+        roadmap_data.get("program_name"),
+        roadmap_data.get("payload") or {},
+    )
 
     # SINGLE read-modify-write against unsw_roadmap.payload.
     # All three sections are merged in one operation so there is no window
@@ -606,14 +625,7 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
     # Merge (not replace) — any existing keys in payload (e.g. mandatory
     # placements, structure, etc.) are preserved. Only the three industry
     # sections are set/overwritten.
-    failed = []
-    for key, result in zip(todo, results):
-        if isinstance(result, Exception):
-            logger.error(f"{key} generation failed: {result}")
-            result = {}
-        if not result or result.get("failed"):
-            failed.append(key)
-        payload[key] = result.get(generators[key][1], {})
+    payload.update(sections)
     payload["industry_failed"] = failed
 
     supabase.from_("unsw_roadmap").update({
@@ -621,7 +633,7 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
 
-    if not failed and all(payload.get(k) for k in generators):
+    if not failed and all(payload.get(k) for k in INDUSTRY_GENERATORS):
         write_cached_roadmap(payload.get("cache_key"), payload)
 
     logger.info(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")
