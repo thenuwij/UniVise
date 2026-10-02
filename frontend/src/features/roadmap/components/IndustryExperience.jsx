@@ -102,7 +102,8 @@ export default function IndustryExperience({ industryExperience }) {
                     rel="noopener noreferrer"
                     className="mt-5 self-start inline-flex items-center gap-2 text-base font-semibold text-blue-700 dark:text-blue-300 hover:underline"
                   >
-                    Apply now <ExternalLink className="h-4 w-4" />
+                    {program.apply_url.startsWith("https://www.google.com/search") ? "Search for this program" : "Apply now"}
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
               </div>

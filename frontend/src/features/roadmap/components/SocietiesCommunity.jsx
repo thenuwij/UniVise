@@ -22,7 +22,8 @@ export default function SocietiesCommunity({ societies }) {
     [Clock, "When to join", gettingStarted.join_timing],
     [Info, "How to find them", gettingStarted.how_to_find],
   ].filter(([, , value]) => value);
-  const hasProfDev = profDev.student_chapters?.length > 0 || profDev.leadership_note || profDev.skills_gained?.length > 0;
+  const bodies = profDev.professional_bodies || (profDev.student_chapters || []).map((name) => ({ name, url: null }));
+  const hasProfDev = bodies.length > 0 || profDev.leadership_note || profDev.skills_gained?.length > 0;
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
@@ -125,13 +126,26 @@ export default function SocietiesCommunity({ societies }) {
             Professional societies
           </SectionHeading>
           <div className={`${card} mt-6 p-6 md:p-8 space-y-6`}>
-            {profDev.student_chapters?.length > 0 && (
+            {bodies.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {profDev.student_chapters.map((ch, i) => (
-                  <span key={i} className="px-4 py-2 rounded-full text-base font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
-                    {ch}
-                  </span>
-                ))}
+                {bodies.map((body) =>
+                  body.url ? (
+                    <a
+                      key={body.name}
+                      href={body.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800 hover:ring-emerald-400 transition-colors"
+                    >
+                      {body.name}
+                      <ExternalLink className="h-4 w-4 opacity-80" />
+                    </a>
+                  ) : (
+                    <span key={body.name} className="px-4 py-2 rounded-full text-base font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
+                      {body.name}
+                    </span>
+                  )
+                )}
               </div>
             )}
             {hasContent(profDev.leadership_note) && (

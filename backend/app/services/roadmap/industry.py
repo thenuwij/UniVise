@@ -15,6 +15,7 @@ from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
 from app.services.roadmap.cache import write_cached_roadmap
+from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
@@ -132,6 +133,11 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     - This rule applies equally to BOTH "faculty_specific[].name" AND "cross_faculty[].name".
     - This is a formatting rule only. It must not influence which societies you choose, only how you write their names.
 
+    PROFESSIONAL BODIES:
+    - "student_chapters" and "professional_affiliation" may only name bodies from this list, written exactly as shown: {professional_body_names()}.
+    - Choose 1 to 3 bodies relevant to {program_name}. If none fits, return an empty list and use null for professional_affiliation.
+    - Never write a URL.
+
     OTHER FIELD RULES:
     - All descriptions must be 1 sentence maximum, concise and specific
     - Key activities: maximum 3 items, each under 8 words
@@ -149,7 +155,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
             "relevance": "One sentence, why specifically relevant to {program_name} students",
             "key_activities": ["Activity 1 (max 8 words)", "Activity 2", "Activity 3"],
             "membership_benefits": "One sentence, concrete benefits",
-            "professional_affiliation": "Professional body name or null"
+            "professional_affiliation": "A professional body name from the list above, or null"
           }}
         ],
         "cross_faculty": [
@@ -160,7 +166,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
           // Include 2-4 societies (maximum 4). Only include societies that genuinely benefit students from this specific program. Must be real, currently active Arc UNSW societies.
         ],
         "professional_development": {{
-          "student_chapters": ["Professional org 1", "Professional org 2"],
+          "student_chapters": ["Professional body from the list above"],
           "leadership_note": "One sentence on exec role career value",
           "skills_gained": ["Skill 1", "Skill 2", "Skill 3"]
         }},
@@ -177,6 +183,8 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     try:
         section = await ask_claude_structured(prompt, SocietiesSection, model="claude-haiku-4-5-20251001")
         result = section.model_dump()
+        development = result["societies"]["professional_development"]
+        development["professional_bodies"] = link_professional_bodies(development["student_chapters"])
         faculty_count = len(result.get('societies', {}).get('faculty_specific', []))
         logger.info(f"[Stage 1: Societies] ✓ Generated {faculty_count} societies")
         return result

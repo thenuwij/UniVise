@@ -48,12 +48,15 @@ def test_returns_societies_as_plain_dict(monkeypatch):
     async def reply(prompt, schema, **kwargs):
         assert schema is SocietiesSection
         assert "Commerce Society [Faculty] (CommSoc)" in prompt
+        assert "CPA Australia" in prompt and "Never write a URL" in prompt
         return SocietiesSection.model_validate(SECTION)
 
     monkeypatch.setattr(industry, "ask_claude_structured", reply)
 
     result = asyncio.run(industry.ai_generate_societies(CONTEXT))
 
+    bodies = result["societies"]["professional_development"].pop("professional_bodies")
+    assert bodies == [{"name": "CPA Australia", "url": "https://www.cpaaustralia.com.au"}]
     assert result == SECTION
 
 
