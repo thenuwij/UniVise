@@ -34,7 +34,7 @@ The starting point after sign-in. It shows the student's journey through their r
 
 ### Roadmap
 
-A five-step view of the student's own degree: Overview, Structure, Societies, Careers, and Internships. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers shows how the degree leads to specific roles, naming real courses from the student's program.
+A five-step view of the student's own degree: Overview, Structure, Careers, Internships, and Societies. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers shows how the degree leads to specific roles, naming real courses from the student's program.
 
 ### CourseMesh
 

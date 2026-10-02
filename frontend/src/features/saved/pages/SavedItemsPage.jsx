@@ -15,10 +15,11 @@ import { card } from "@/shared/ui/cardStyles";
 import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const SHORTLIST_TYPES = ["career_path", "internship", "society"];
-const CAREERS_STEP = "/roadmap-entryload?step=4";
-const INTERNSHIPS_STEP = "/roadmap-entryload?step=5";
+const CAREERS_STEP = roadmapStepUrl("careers");
+const INTERNSHIPS_STEP = roadmapStepUrl("internships");
 
 function SavedItemsPage() {
   const navigate = useNavigate();
