@@ -4,7 +4,6 @@ Supabase and the AI call are faked; these check the payload shape the
 frontend reads and the fallback when generation fails.
 """
 import asyncio
-from types import SimpleNamespace
 
 import pytest
 
@@ -51,8 +50,7 @@ SECTION = {
 @pytest.fixture(autouse=True)
 def fake_society_list(monkeypatch):
     rows = [{"name": "Commerce Society", "arc_category": "Faculty", "short_name": "CommSoc"}]
-    query = SimpleNamespace(select=lambda *args: SimpleNamespace(execute=lambda: SimpleNamespace(data=rows)))
-    monkeypatch.setattr(industry, "supabase", SimpleNamespace(table=lambda name: query))
+    monkeypatch.setattr(industry, "fetch_society_rows", lambda: rows)
 
 
 def test_returns_societies_as_plain_dict(monkeypatch):

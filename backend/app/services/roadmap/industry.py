@@ -14,7 +14,8 @@ from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
-from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_specialisation_context
+from app.services.roadmap.cache import write_cached_roadmap
+from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
 
@@ -82,27 +83,21 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
     # If fetch fails or returns empty, fall back to unconstrained generation
     # (existing behaviour) so roadmap generation never crashes.
     verified_societies_section = ""
-    try:
-        societies_resp = (
-            supabase.table("unsw_societies")
-            .select("name, arc_category, short_name")
-            .execute()
-        )
-        rows = societies_resp.data or []
-        if rows:
-            lines = []
-            for row in rows:
-                name = (row.get("name") or "").strip()
-                if not name:
-                    continue
-                arc_cat = (row.get("arc_category") or "Uncategorised").strip()
-                short = row.get("short_name")
-                line = f"{name} [{arc_cat}]"
-                if short:
-                    line += f" ({short.strip()})"
-                lines.append(line)
-            verified_list_text = "\n".join(lines)
-            verified_societies_section = f"""
+    rows = fetch_society_rows()
+    if rows:
+        lines = []
+        for row in rows:
+            name = (row.get("name") or "").strip()
+            if not name:
+                continue
+            arc_cat = (row.get("arc_category") or "Uncategorised").strip()
+            short = row.get("short_name")
+            line = f"{name} [{arc_cat}]"
+            if short:
+                line += f" ({short.strip()})"
+            lines.append(line)
+        verified_list_text = "\n".join(lines)
+        verified_societies_section = f"""
 
     VERIFIED ARC UNSW SOCIETY LIST, SELECT ONLY FROM THIS LIST:
 {verified_list_text}
@@ -113,11 +108,9 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
     The bracketed [arc_category] after each name is context only, use it to inform relevance judgements, not as a category rule.
     The faculty_specific vs cross_faculty split is still your decision based on relevance to {program_name} and the Faculty of {faculty}.
 """
-            logger.info(f"[Societies] Injected {len(lines)} verified societies into prompt")
-        else:
-            logger.warning("[Societies] unsw_societies table returned no rows, falling back to unconstrained generation")
-    except Exception as e:
-        logger.warning(f"[Societies] Failed to fetch unsw_societies, falling back to unconstrained generation: {e}")
+        logger.info(f"[Societies] Injected {len(lines)} verified societies into prompt")
+    else:
+        logger.warning("[Societies] unsw_societies table returned no rows, falling back to unconstrained generation")
 
     prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
 
@@ -625,5 +618,8 @@ async def generate_and_update_all_industry(roadmap_id: str, roadmap_data: dict):
         "payload": payload,
         "updated_at": datetime.utcnow().isoformat(),
     }).eq("id", roadmap_id).execute()
+
+    if not failed and all(payload.get(k) for k in generators):
+        write_cached_roadmap(payload.get("cache_key"), payload)
 
     logger.info(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")

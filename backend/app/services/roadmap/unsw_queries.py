@@ -83,6 +83,21 @@ def fetch_specialisation_ids(user_id: str, degree_code: str, program_name: str) 
     return sorted({r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)})
 
 
+def fetch_society_rows() -> List[Dict[str, Any]]:
+    try:
+        return (
+            supabase.table("unsw_societies")
+            .select("name, arc_category, short_name")
+            .order("name")
+            .execute()
+            .data
+            or []
+        )
+    except Exception as e:
+        logger.warning(f"fetch_society_rows failed: {e}")
+        return []
+
+
 SPECIALISATION_SLOTS = {"Honours": "honours", "Minor": "minor"}
 
 
