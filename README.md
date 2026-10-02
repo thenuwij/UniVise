@@ -6,9 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-8B949E?style=flat-square&labelColor=0D1117&logo=postgresql&logoColor=8B949E)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-8B949E?style=flat-square&labelColor=0D1117&logo=awslambda&logoColor=8B949E)
 
-UniVise is an AI-powered academic and career planning platform for UNSW students. It takes thousands of scattered handbook rules, prerequisites, and specialisation requirements and turns them into a clear picture of where a degree leads, what switching programs would actually cost, and which careers it opens up. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
-
-It shares a platform with a parallel Honours thesis by [David Choi](https://github.com/dchoi03) on AI-powered guidance for high school students, so the system serves both prospective and current university students.
+UniVise is an AI-powered academic and career planning platform for UNSW students. It takes thousands of scattered handbook rules, prerequisites, and specialisation requirements and turns them into a clear picture of where a degree leads, which courses to take next, what switching programs would actually cost, and which careers it opens up. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
 
 ---
 
@@ -24,7 +22,7 @@ Degree planning at UNSW is spread across handbook pages, program rules, and spec
 
 4. **Career links are indirect.** Students want to know how program choices map to real roles and employers, but that connection is scattered at best.
 
-UniVise pulls these into one place: structured program data scraped from the UNSW handbook, rule-aware program comparison, prerequisite graph visualisation, and AI-generated advice grounded in that data.
+UniVise pulls these into one place: structured program data from the UNSW Handbook, rule-aware program comparison, a prerequisite graph of the student's own courses, and AI-generated advice grounded in that data.
 
 ---
 
@@ -32,27 +30,27 @@ UniVise pulls these into one place: structured program data scraped from the UNS
 
 ### Dashboard
 
-The planning hub: career matches ranked by suitability and salary, with entry points into roadmap generation and program transfer.
+The starting point after sign-in. It shows the student's journey through their roadmap with one suggested next step, their progress at a glance (units of credit completed, specialisation, and how many courses they can take next), and the careers that fit them.
 
-![UniVise dashboard showing the academic planning hub with roadmap and program transfer entry points, above a ranked list of career matches](docs/images/dashboard.png)
+### Roadmap
 
-### Roadmap Generation
+A five-step view of the student's own degree: Overview, Structure, Societies, Careers, and Internships. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers shows how the degree leads to specific roles, naming real courses from the student's program.
 
-A full program pathway, sequencing courses and showing how requirements are satisfied over time for a chosen specialisation. Societies, industry experience, and career pathways generate in the background, linked through to real employers.
+### CourseMesh
 
-![UniVise roadmap for the Bachelor of Engineering (Honours) showing the stepped pathway navigation and generated internship programs](docs/images/roadmap.png)
+The student's courses as a prerequisite graph, coloured Completed, Can take next, or Not yet. It exposes prerequisite chains and bottleneck courses, and highlights AI-recommended courses the student can take now, each with a one-line reason linked to their career goals.
 
-### Program Transfer
+### Handbook
 
-Compares a current program against a target: what transfers, what does not, what is left, and what it costs in extra terms. An AI advisor weighs those facts alongside the student's personality profile to reach a verdict, not just a score.
+One search across every UNSW degree, major, minor, honours plan, and course, with results grouped by type. Each detail page links to the official UNSW Handbook and to the matching roadmap.
 
-![Program transfer summary showing 73% of courses transferring with zero extra terms, a completion estimate, and key observations about lost credit](docs/images/transfer-advisor.png)
+### Switch Degree
 
-### Prerequisite Graph (MindMesh)
+Compares the student's current program with a target program: what transfers, what does not, what is left, and what it costs in extra terms. An AI advisor weighs those facts to reach a recommendation, and can summarise how the target degree fits the student's interests and goals.
 
-Course dependencies as a force-directed network, exposing prerequisite chains and the bottleneck courses that gate the most options.
+### Ask Eunice
 
-![Prerequisite graph showing UNSW courses as connected nodes, with dependency chains and bottleneck courses across a 38-course program](docs/images/prerequisite-graph.png)
+An AI chat adviser that knows the student's program, specialisation, completed courses, the courses they can take now, and their shortlisted careers, so it answers specifically before pointing to official sources.
 
 ---
 
@@ -64,18 +62,21 @@ A React frontend, a FastAPI backend, and a PostgreSQL database, with an LLM laye
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, Vite, TailwindCSS 4, React Router 7 |
+| Frontend | React 19, Vite, TailwindCSS 4 with design tokens for light and dark mode, React Router 7 |
 | Backend | FastAPI, Python 3.12 |
 | Database | PostgreSQL with row level security policies on every table, managed on Supabase |
-| AI Layer | Anthropic Claude (Sonnet 4.6, Haiku 4.5) and OpenAI (GPT-5.4-mini, GPT-4o mini), selected per task |
+| AI Layer | OpenAI GPT-5.4-mini and Anthropic Claude (Sonnet 5, Haiku 4.5), selected per task, with structured JSON output |
 | Graphs | react-force-graph, graphology |
 | Auth | Google OAuth with JWT bearer tokens, validated on every protected endpoint |
+| Quality | pytest, Vitest, ESLint, and knip, run in GitHub Actions on every pull request |
 
 ### How It Works
 
-A request hits CloudFront, then FastAPI on Lambda. Program rules, course data, and prerequisites come from Postgres, and the backend computes the structured facts first: transfer rates, prerequisite chains, remaining requirements, extra terms. Only then does it call the LLM layer, with independent prompts running in parallel.
+A request hits CloudFront, then FastAPI on Lambda. Program rules, course data, and prerequisites come from Postgres, and the backend computes the structured facts first: transfer rates, prerequisite chains, remaining requirements, courses available next, extra terms. Only then does it call the LLM layer, with independent prompts running in parallel and responses constrained to a schema.
 
-The models reason over facts the backend has already computed, not over raw handbook text. That keeps advice grounded in real program rules rather than in whatever the model recalls about UNSW.
+The models reason over facts the backend has already computed, not over raw handbook text, and any course code a model returns is checked against the student's real program. That keeps advice grounded in real program rules rather than in whatever the model recalls about UNSW.
+
+Handbook data is cleaned before it is displayed. Placeholder values are stored as empty rather than as text, durations are stored as numbers, and one shared formatter turns long handbook text into paragraphs and real lists. A read-only audit script checks every displayed field after each data import.
 
 ### Deployment
 
@@ -93,17 +94,18 @@ The models reason over facts the backend has already computed, not over raw hand
 
 ```
 frontend/src/
-  app/          auth and survey context, route guard
-  shared/       Supabase and API clients, layout, shared UI
-  features/     one folder per product area (roadmap, transfer, mindmesh, explore, ...),
-                each with its own pages/, plus components/ or hooks/ where needed
+  app/          auth context and route guard
+  shared/       Supabase and API clients, display formatting, layout (page header, navigation), shared UI
+  features/     one folder per product area (dashboard, roadmap, mindmesh, explore, transfer, chat, ...),
+                each with its own pages/, plus components/, hooks/ or utils/ where needed
 backend/app/
   routers/      FastAPI endpoints
-  services/     business logic: roadmap generation, program comparison, advisors
-  llm/          OpenAI and Claude clients, parsing of model output
+  services/     business logic: roadmap generation, course picks, program comparison, advisors, chat context
+  llm/          OpenAI and Claude clients, structured output and parsing of model output
   models/       Pydantic request and response schemas
   core/         configuration, database client, JWT auth
-backend/tests/  API route contract and core logic tests
+backend/scripts/  one-off data maintenance: handbook data clean-up, display-data audit, faculty and course-list repairs
+backend/tests/    API route contract and core logic tests
 supabase/migrations/  database schema and row level security policies as SQL migrations
 ```
 
@@ -111,10 +113,11 @@ supabase/migrations/  database schema and row level security policies as SQL mig
 
 ## Using It
 
-1. Sign in with Google, then complete the short onboarding survey and personality quiz.
-2. Generate a roadmap for your program, and open MindMesh inside it to see prerequisite chains and bottleneck courses.
-3. In **Program Transfer**, pick your current and target program, with specialisations.
-4. Review the transfer summary and recommendation.
+1. Sign in with Google and complete the short onboarding survey, including your UNSW program and, optionally, your major or stream.
+2. Open your dashboard. Your roadmap is already being built, and the dashboard suggests your next step.
+3. Tick the courses you have completed in the roadmap's Structure step, then open CourseMesh to see what you can take next and why.
+4. Use **Handbook** to look up any degree, major, or course, and **Switch Degree** to compare your program with another.
+5. Ask Eunice anything about your courses or career plans.
 
 ---
 
