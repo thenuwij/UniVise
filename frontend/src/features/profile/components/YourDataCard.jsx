@@ -15,6 +15,28 @@ export default function YourDataCard() {
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
+
+  const downloadData = async () => {
+    setDownloading(true);
+    setDownloadError("");
+    try {
+      const res = await apiFetch("/user/me/export", { token: session?.access_token });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `univise-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setDownloadError("Could not prepare your data. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const closeDelete = () => {
     if (deleting) return;
@@ -47,9 +69,15 @@ export default function YourDataCard() {
           <HiOutlineCircleStack className="h-5 w-5 text-slate-500" />
           <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Your data</h2>
         </div>
-        <Button pill size="sm" color="red" outline className="w-full" onClick={() => setShowDelete(true)}>
-          Delete my account
-        </Button>
+        <div className="space-y-3">
+          <Button pill size="sm" color="light" className="w-full" onClick={downloadData} disabled={downloading}>
+            {downloading ? "Preparing your data..." : "Download my data"}
+          </Button>
+          {downloadError && <p className="text-sm text-red-600 dark:text-red-400">{downloadError}</p>}
+          <Button pill size="sm" color="red" outline className="w-full" onClick={() => setShowDelete(true)}>
+            Delete my account
+          </Button>
+        </div>
       </div>
 
       <Modal show={showDelete} size="md" onClose={closeDelete} popup>

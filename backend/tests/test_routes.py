@@ -7,6 +7,7 @@ EXPECTED_ROUTES = {
     ("GET", "/course-picks"),
     ("GET", "/health"),
     ("GET", "/traits/results"),
+    ("GET", "/user/me/export"),
     ("POST", "/chat/conversations/{conv_id}/reply/stream"),
     ("POST", "/compare"),
     ("POST", "/final-unsw-degrees/"),
