@@ -392,7 +392,7 @@ function ProgressPage() {
       setAiReport(aiData);
     } catch (err) {
       console.error(err);
-      setReportError(err.message || "Something went wrong. Please try again.");
+      setReportError("Something went wrong. Please try again.");
     } finally {
       setReportLoading(false);
     }

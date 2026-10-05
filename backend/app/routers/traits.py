@@ -1,8 +1,12 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.core.auth import get_current_user
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt
 from postgrest.exceptions import APIError  # catch DB errors
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,7 +22,8 @@ def result_description(user=Depends(get_current_user)):
             .execute()
         )
     except APIError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[traits] results lookup failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load your results. Please try again.")
 
     rows = resp.data or []
     if not rows:
@@ -65,8 +70,9 @@ def result_description(user=Depends(get_current_user)):
             "user_id", user.id
         ).execute()
     except APIError as e:
+        logger.error(f"[traits] description update failed for user {user.id}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to update description: {str(e)}"
+            status_code=500, detail="Could not save the description. Please try again."
         )
 
     return {"status": "success", "description": resp_text}

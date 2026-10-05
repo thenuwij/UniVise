@@ -339,4 +339,4 @@ async def compare_programs(
         raise
     except Exception as e:
         logger.error(f"Error in program comparison: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error comparing programs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Could not compare the programs. Please try again.")

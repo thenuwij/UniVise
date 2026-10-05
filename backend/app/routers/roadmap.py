@@ -32,7 +32,8 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
             .execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+        logger.exception(f"School roadmap insert failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not save the roadmap. Please try again.")
     if not ins.data:
         raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
@@ -80,7 +81,8 @@ async def create_unsw(
             .execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+        logger.exception(f"UNSW roadmap insert failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not save the roadmap. Please try again.")
 
     logger.debug(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
 
@@ -115,7 +117,8 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
             .select("*").eq("id", roadmap_id).single().execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lookup failed: {e}")
+        logger.exception(f"Roadmap lookup failed for {roadmap_id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load the roadmap. Please try again.")
 
     rec = res.data
     if not rec:
@@ -133,8 +136,8 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
     try:
         await generate_and_update_all_industry(roadmap_id, rec)
     except Exception as e:
-        logger.error(f"Industry generation failed for {roadmap_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Industry generation failed: {e}")
+        logger.exception(f"Industry generation failed for {roadmap_id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not finish the roadmap. Please try again.")
 
     return {"status": "generated"}
 

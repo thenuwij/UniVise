@@ -171,6 +171,8 @@ async def get_switch_advice(
             courses_lost=context.get("wasted_count", 0),
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Switch advisor error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Switch advisor error: {e}")
+        raise HTTPException(status_code=500, detail="Could not create the switch advice. Please try again.")

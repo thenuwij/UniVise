@@ -61,7 +61,7 @@ class TestParseJsonOr500:
         with pytest.raises(HTTPException) as exc:
             parse_json_or_500("no json here")
         assert exc.value.status_code == 500
-        assert exc.value.detail.startswith("Failed to parse AI JSON")
+        assert exc.value.detail == "Could not read the AI response. Please try again."
 
 
 class TestCleanOpenaiResponse:
