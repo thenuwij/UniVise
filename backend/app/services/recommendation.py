@@ -216,8 +216,7 @@ Output raw JSON only.
             }
 
         logger.info(f"[explain_rec] upserting to {response_table}…")
-        upsert_resp = supabase.table(response_table).upsert(details).execute()
-        logger.info(f"[explain_rec] upsert response: {upsert_resp}")
+        supabase.table(response_table).upsert(details).execute()
         logger.info(f"[explain_rec] ✓ {rec_id} written to {response_table}")
 
     except Exception as e:
