@@ -73,7 +73,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
           onClick={() => {navigate('/dashboard')}}
         >
           <img src={logo} className="h-14 w-14 mb-1"/>
-          <span className="self-center whitespace-nowrap text-4xl mb-3 font-bold tracking-tight">UniVise</span>
+          <span className="self-center whitespace-nowrap text-4xl mb-3 font-bold font-heading tracking-tight">UniVise</span>
         </NavbarBrand>
         <div className="flex items-center gap-4">
           <button

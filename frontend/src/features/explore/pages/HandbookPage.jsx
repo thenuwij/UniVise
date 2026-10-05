@@ -69,7 +69,7 @@ function ResultGroup({ group, result }) {
 
   return (
     <section>
-      <h2 className="flex items-baseline gap-2 text-[22px] md:text-2xl font-bold tracking-tight text-slate-700 dark:text-slate-200">
+      <h2 className="flex items-baseline gap-2 text-[22px] md:text-2xl font-bold text-slate-700 dark:text-slate-200">
         {group.label}
         <span className="text-base font-semibold text-slate-400 dark:text-slate-500">{result.count}</span>
       </h2>
