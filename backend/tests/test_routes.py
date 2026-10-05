@@ -3,6 +3,7 @@ from fastapi.routing import APIRoute
 from app.main import app
 
 EXPECTED_ROUTES = {
+    ("DELETE", "/user/me"),
     ("GET", "/course-picks"),
     ("GET", "/health"),
     ("GET", "/traits/results"),
