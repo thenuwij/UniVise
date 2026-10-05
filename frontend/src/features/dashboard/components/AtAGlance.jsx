@@ -37,7 +37,7 @@ export default function AtAGlance({ facts }) {
 
   return (
     <section>
-      <h2 className="text-xl font-bold tracking-tight text-slate-700 dark:text-slate-200">At a glance</h2>
+      <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">At a glance</h2>
       <div className="mt-4 grid sm:grid-cols-3 gap-4">
         <Tile icon={GraduationCap} label="UOC completed" to={roadmapStepUrl("structure")}>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">

@@ -40,7 +40,7 @@ export default function DegreeFitSummary({ program }) {
     <section className={`${card} mt-8 p-6 md:p-8`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="flex items-center gap-2 text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+          <h3 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-100">
             <HiSparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             How {program.name} fits you
           </h3>

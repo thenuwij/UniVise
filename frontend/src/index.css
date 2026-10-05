@@ -8,7 +8,8 @@
    CSS VARIABLES - DESIGN SYSTEM
 ======================================== */
 @theme static {
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   --color-brand-navy: #1e3a8a;
   --color-brand-blue: #1d4ed8;
@@ -153,6 +154,17 @@ h1,
 h2,
 h3 {
   text-wrap: balance;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
 }
 
 #root {

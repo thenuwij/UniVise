@@ -27,7 +27,7 @@ export function Header() {
       <div className="flex items-center justify-between px-6 h-16 backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
         <Link to="/" className="flex items-center gap-1">
           <img src={logo} alt="UniVise Logo" className="h-12 w-12" />
-          <span className="whitespace-nowrap text-4xl font-bold tracking-tight">
+          <span className="whitespace-nowrap text-4xl font-bold font-heading tracking-tight">
             UniVise
           </span>
         </Link>

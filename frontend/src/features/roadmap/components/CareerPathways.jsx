@@ -136,7 +136,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                   <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
                 </p>
-                <p className={`mt-2 text-[34px] leading-none font-bold tracking-tight ${label === "Market demand" && /high|growing/i.test(value) ? "text-green-700 dark:text-green-400" : "text-slate-900 dark:text-white"}`}>{value}</p>
+                <p className={`mt-2 text-[34px] leading-none font-heading font-bold ${label === "Market demand" && /high|growing/i.test(value) ? "text-green-700 dark:text-green-400" : "text-slate-900 dark:text-white"}`}>{value}</p>
               </div>
             ))}
           </div>
@@ -180,7 +180,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
               <article key={idx} className={`${card} p-6 md:p-8`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h5 className="text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">{role.title}</h5>
+                    <h5 className="text-[22px] font-bold text-slate-900 dark:text-white">{role.title}</h5>
                     {personal && matchesInterests(role.title, interestAreas) && (
                       <span className="mt-2 inline-block px-3 py-1 rounded-full text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
                         Matches your interests

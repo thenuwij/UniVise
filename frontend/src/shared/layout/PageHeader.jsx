@@ -25,7 +25,7 @@ export default function PageHeader({ eyebrow, title, subtitle, back, actions, as
           <div className="min-w-0">
             {eyebrow && <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-band-soft">{eyebrow}</p>}
             {title ? (
-              <h1 className={`mt-2 font-extrabold tracking-tight text-band-ink ${compact ? "text-2xl md:text-3xl" : "text-4xl md:text-[42px] md:leading-[1.1]"}`}>
+              <h1 className={`mt-2 font-extrabold text-band-ink ${compact ? "text-2xl md:text-3xl" : "text-4xl md:text-[42px] md:leading-[1.1]"}`}>
                 {title}
               </h1>
             ) : (
