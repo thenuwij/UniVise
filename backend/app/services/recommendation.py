@@ -30,7 +30,7 @@ def replace_career_recommendations(user_id: str, recommendations: list[CareerRec
 async def explain_recommendation(rec_id: str, user) -> None:
     """
     Core explain logic — called concurrently for all recs in a single
-    background task. Uses async Claude client so it never blocks the loop.
+    background task. Uses the async OpenAI client so it never blocks the loop.
     """
     try:
         logger.info(f"[explain_rec] ── START {rec_id} ──────────────────────────")
@@ -46,7 +46,7 @@ async def explain_recommendation(rec_id: str, user) -> None:
             table          = "career_recommendations"
             response_table = "career_rec_details"
 
-        # ── Cache check: skip Claude if details already exist ────────────
+        # ── Cache check: skip GPT if details already exist ────────────
         cached = (
             supabase.table(response_table)
             .select("id")
@@ -167,7 +167,7 @@ Output raw JSON only.
 """
 
         logger.info(f"[explain_rec] prompt length (chars): {len(prompt)}")
-        logger.info("[explain_rec] calling Claude (max_tokens=1500, temperature=0.5)…")
+        logger.info("[explain_rec] calling GPT (max_tokens=1500, temperature=0.5)…")
 
         raw_response = await ask_gpt_async(prompt, max_tokens=1500, temperature=0.5)
 
@@ -216,8 +216,7 @@ Output raw JSON only.
             }
 
         logger.info(f"[explain_rec] upserting to {response_table}…")
-        upsert_resp = supabase.table(response_table).upsert(details).execute()
-        logger.info(f"[explain_rec] upsert response: {upsert_resp}")
+        supabase.table(response_table).upsert(details).execute()
         logger.info(f"[explain_rec] ✓ {rec_id} written to {response_table}")
 
     except Exception as e:

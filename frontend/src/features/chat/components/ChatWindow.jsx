@@ -7,6 +7,7 @@ import { UserAuth } from "@/app/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/shared/lib/api";
+import { readStreamText, withCutOffNote } from "../utils/streamText";
 
 export default function ChatWindow({ convId }) {
   const { session } = UserAuth();
@@ -51,14 +52,19 @@ export default function ChatWindow({ convId }) {
     setLoading(true);
     setStreamStarted(false)
     // insert user message
-    await supabase
+    const { error: saveError } = await supabase
       .from("conversation_messages")
       .insert({
         conversation_id: convId,
         sender: "user",
         content: text,
-      })
-      .single();
+      });
+
+    if (saveError) {
+      setLoading(false);
+      setMessages(ms => [...ms, { sender: "bot", text: "Your message wasn't sent. Please try again.", created_at: new Date().toISOString() }]);
+      return;
+    }
 
     setMessages(m => [...m, {
       sender: "user",
@@ -95,27 +101,36 @@ export default function ChatWindow({ convId }) {
       { sender: "bot", text: "", created_at: new Date().toISOString() }
     ]);
 
-    // 2. Stream tokens and append to the last message
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
+    // 2. Stream tokens and replace the last message's text
+    const showReply = (replyText) =>
+      setMessages(ms => [...ms.slice(0, -1), { ...ms[ms.length - 1], text: replyText }]);
 
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunk = decoder.decode(value || new Uint8Array());
-      setLoading(false);
+    let raw = "";
+    let cutOff = false;
+    try {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
 
-      if (chunk && !streamStarted) {
-        setStreamStarted(true);
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunk = decoder.decode(value || new Uint8Array(), { stream: !done });
+        raw += chunk;
+        setLoading(false);
+
+        if (chunk && !streamStarted) {
+          setStreamStarted(true);
+        }
+        showReply(readStreamText(raw, done).text);
       }
-      setMessages(ms => {
-        const last = ms[ms.length - 1];
-        // update its text field
-        const updated = { ...last, text: last.text + chunk };
-        return [...ms.slice(0, -1), updated];
-      });
+    } catch {
+      cutOff = true;
     }
+
+    const reply = readStreamText(raw, true);
+    setLoading(false);
+    if (cutOff || reply.cutOff) showReply(withCutOffNote(reply.text));
   }
 
     // ─── ChatBubble in same file ─────────────────────────────

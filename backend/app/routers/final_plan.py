@@ -16,6 +16,8 @@ async def get_final_recommendations(user=Depends(get_current_user)):
         logger.info(f"Plan generated successfully for user {user.id}")
         return plan
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception(f"/final-unsw-degrees/ failed for user {user.id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Could not match degrees to your careers. Please try again.")

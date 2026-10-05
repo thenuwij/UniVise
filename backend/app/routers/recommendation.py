@@ -81,9 +81,13 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
         try:
             parsed = extract_json(recommendation_raw)
         except Exception as e:
+            logger.error(
+                f"[get_recommendation_prompts] JSON parse failed for user {user.id}: {e}\n"
+                f"Raw: {recommendation_raw[:500]}"
+            )
             raise HTTPException(
                 status_code=500,
-                detail=f"Error parsing recommendation JSON: {e}\nRaw: {recommendation_raw[:500]}",
+                detail="Could not read the recommendations. Please try again.",
             ) from e
 
         # ── Wipe existing data so this endpoint is fully idempotent ──────────────

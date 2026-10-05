@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 from app.models.roadmap import SchoolReq, UNSWReq, RoadmapResp
 from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
-from app.services.roadmap.common import ensure, table_for_mode
+from app.services.roadmap.common import ensure
 from app.services.roadmap.school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from app.services.roadmap.unsw import gather_unsw_context, ai_generate_unsw_payload
 from app.services.roadmap.industry import generate_and_update_all_industry
@@ -32,7 +32,8 @@ async def create_school(body: SchoolReq, user=Depends(get_current_user)):
             .execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+        logger.exception(f"School roadmap insert failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not save the roadmap. Please try again.")
     if not ins.data:
         raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
     rec = ins.data[0]
@@ -80,7 +81,8 @@ async def create_unsw(
             .execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Insert failed: {e}")
+        logger.exception(f"UNSW roadmap insert failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not save the roadmap. Please try again.")
 
     logger.debug(f"[TIMING] DB insert: {time.time() - db_start:.1f}s")
 
@@ -115,7 +117,8 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
             .select("*").eq("id", roadmap_id).single().execute()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lookup failed: {e}")
+        logger.exception(f"Roadmap lookup failed for {roadmap_id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load the roadmap. Please try again.")
 
     rec = res.data
     if not rec:
@@ -133,42 +136,7 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
     try:
         await generate_and_update_all_industry(roadmap_id, rec)
     except Exception as e:
-        logger.error(f"Industry generation failed for {roadmap_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Industry generation failed: {e}")
+        logger.exception(f"Industry generation failed for {roadmap_id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not finish the roadmap. Please try again.")
 
     return {"status": "generated"}
-
-# Get user's most recent roadmap by mode
-@router.get("/{mode}", response_model=RoadmapResp)
-async def get_latest(mode: str, user=Depends(get_current_user)):
-    table = table_for_mode(mode)
-    try:
-        res = (
-            supabase.from_(table)
-            .select("*").eq("user_id", user.id)
-            .order("created_at", desc=True).limit(1).execute()
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Query failed: {e}")
-    if not res.data:
-        raise HTTPException(status_code=404, detail="No roadmap saved.")
-    rec = res.data[0]
-    return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
-
-# Delete user's most recent roadmap by mode
-@router.delete("/{mode}")
-async def delete_latest(mode: str, user=Depends(get_current_user)):
-    table = table_for_mode(mode)
-    try:
-        latest = (
-            supabase.from_(table)
-            .select("id").eq("user_id", user.id)
-            .order("created_at", desc=True).limit(1).execute()
-        )
-        if not latest.data:
-            return {"deleted": False}
-        rid = latest.data[0]["id"]
-        supabase.from_(table).delete().eq("id", rid).execute()
-        return {"deleted": True, "id": rid}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Delete failed: {e}")

@@ -17,6 +17,7 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
 import { supabase } from "@/shared/lib/supabase";
+import YourDataCard from "../components/YourDataCard";
 
 function Panel({ title, icon: Icon, children, hint }) {
   return (
@@ -441,7 +442,7 @@ function ProfilePage() {
             </div>
 
             {/* Right: Profile Picture */}
-            <div>
+            <div className="space-y-5">
               <div className="card-glass-spotlight">
                 <div />
                 <div className="relative p-6">
@@ -457,6 +458,7 @@ function ProfilePage() {
 
                 </div>
               </div>
+              <YourDataCard />
             </div>
           </div>
         )}

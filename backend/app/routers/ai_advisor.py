@@ -1,10 +1,14 @@
 # app/routers/ai_advisor.py
 
+import logging
+
 from fastapi import APIRouter, Request, Depends, HTTPException
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async
 from app.services.user_context import get_user_context
 from app.core.auth import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -80,4 +84,5 @@ async def get_degree_summary(request: Request, user=Depends(get_current_user)):
         summary = await ask_gpt_async(prompt, temperature=0.3, model="gpt-5.4-mini")
         return {"summary": summary}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OpenAI error: {str(e)}")
+        logger.exception(f"Degree summary failed for user {user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Could not create the degree summary. Please try again.")

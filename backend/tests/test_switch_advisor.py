@@ -87,3 +87,4 @@ def test_returns_500_when_ai_reply_is_unusable(client, monkeypatch):
     response = client.post("/switch-advisor", json=REQUEST)
 
     assert response.status_code == 500
+    assert response.json() == {"detail": "Could not create the switch advice. Please try again."}

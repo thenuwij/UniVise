@@ -74,30 +74,20 @@ async def get_switch_advice(
             or _transfer_in.get("completed_uoc")
             or 0
         )
-        logger.info(f"[Transfer Debug] RAW INPUTS — user={user.id}")
-        logger.info(
+        logger.debug(f"[Transfer Debug] RAW INPUTS — user={user.id}")
+        logger.debug(
             f"[Transfer Debug] current: name='{_base_in.get('name','')}' "
             f"code={request.base_program_code} total_uoc={_base_in.get('total_uoc','')}"
         )
         logger.debug(f"[Transfer Debug] completed_uoc={_completed_uoc_in}")
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] target: name='{_target_in.get('name','')}' "
             f"code={request.target_program_code} "
             f"summary.estimated_terms={_summary_in.get('estimated_terms','')}"
         )
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] base_spec={request.base_specialisation_codes} "
             f"target_spec={request.target_specialisation_codes}"
-        )
-        logger.info(
-            f"[Transfer Debug] personality_top_types={personality_data.get('top_types', [])}"
-        )
-        logger.info(
-            f"[Transfer Debug] academic_year={survey_data.get('academic_year','')} "
-            f"study_feelings={survey_data.get('study_feelings','')}"
-        )
-        logger.info(
-            f"[Transfer Debug] interest_areas={survey_data.get('interest_areas', [])}"
         )
 
         context = build_context(comparison, personality_data, survey_data)
@@ -107,21 +97,21 @@ async def get_switch_advice(
         # and base_terms_remaining. base_total_uoc isn't exposed in the
         # returned context dict, so recompute it locally from the breakdown.
         _base_total_uoc_calc = safe_int(_base_in.get("total_uoc") or 0)
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] CALCULATED — base_total_uoc={_base_total_uoc_calc} "
             f"completed_uoc={context.get('total_completed_uoc', 0)} "
             f"transferred_uoc={context.get('transferred_uoc', 0)}"
         )
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] base_terms_remaining={int(context.get('base_terms_remaining', 0))} (whole terms) "
             f"estimated_terms={int(context.get('estimated_terms', 0))} "
             f"additional_terms={int(context.get('additional_terms', 0))}"
         )
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] estimated_completion='{context.get('estimated_completion','')}' "
             f"transfer_rate_courses={context.get('transfer_rate_courses', 0)}"
         )
-        logger.info(
+        logger.debug(
             f"[Transfer Debug] courses_transferred={context.get('transferred_count', 0)} "
             f"courses_lost={context.get('wasted_count', 0)}"
         )
@@ -140,12 +130,12 @@ async def get_switch_advice(
             _band = "3-6 (real cost)"
         else:
             _band = "6+ (only if essential)"
-        logger.info(
+        logger.debug(
             "[Transfer Debug] AI INPUT — verdict bands: "
             "recommended / conditional / not_recommended"
         )
-        logger.info(f"[Transfer Debug] additional_terms band={_band}")
-        logger.info(
+        logger.debug(f"[Transfer Debug] additional_terms band={_band}")
+        logger.debug(
             f"[Transfer Debug] system_prompt_chars={len(build_system_prompt())} "
             f"user_prompt_chars={len(user_prompt)}"
         )
@@ -181,6 +171,8 @@ async def get_switch_advice(
             courses_lost=context.get("wasted_count", 0),
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Switch advisor error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Switch advisor error: {e}")
+        raise HTTPException(status_code=500, detail="Could not create the switch advice. Please try again.")

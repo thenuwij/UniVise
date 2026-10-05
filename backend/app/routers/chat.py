@@ -18,6 +18,7 @@ from fastapi.responses import StreamingResponse
 router = APIRouter()
 
 MAX_HISTORY_MESSAGES = 20  # keep last 20 turns to avoid token bloat
+STREAM_ERROR_MARKER = "[STREAM_ERROR]"
 
 
 @router.post("/conversations/{conv_id}/reply/stream")
@@ -80,6 +81,11 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
                     full_response += token
                     if token:
                         yield token
+            except Exception as e:
+                logger.error(f"[chat] Stream failed for conv {conv_id}, user {user.id}: {e}")
+                yield STREAM_ERROR_MARKER
+                return
+            try:
                 supabase.table("conversation_messages").insert(
                     {
                         "conversation_id": conv_id,
@@ -88,8 +94,7 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
                     }
                 ).execute()
             except Exception as e:
-                logger.error(f"[chat] Stream failed for conv {conv_id}, user {user.id}: {e}")
-                yield "data: [STREAM_ERROR]\n\n"
+                logger.error(f"[chat] Reply save failed for conv {conv_id}, user {user.id}: {e}")
 
         return StreamingResponse(
             event_generator(),
