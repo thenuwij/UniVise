@@ -2,7 +2,6 @@ import logging
 
 from fastapi import HTTPException
 from typing import Optional, Any, Dict, List
-from app.llm.json_parsing import extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -10,20 +9,6 @@ logger = logging.getLogger(__name__)
 def ensure(cond: bool, msg: str):
     if not cond:
         raise HTTPException(status_code=400, detail=msg)
-
-def table_for_mode(mode: str) -> str:
-    mapping = {"school": "school_roadmap", "unsw": "unsw_roadmap"}
-    tbl = mapping.get(mode)
-    if not tbl:
-        raise HTTPException(status_code=404, detail="Invalid mode")
-    return tbl
-
-def parse_json_or_500(raw: str) -> Dict[str, Any]:
-    try:
-        return extract_json(raw)
-    except Exception as e:
-        logger.error(f"Failed to parse AI JSON: {e}")
-        raise HTTPException(500, detail="Could not read the AI response. Please try again.")
 
 def assert_keys(payload: Dict[str, Any], required: List[str], where: str):
     missing = [k for k in required if k not in payload]

@@ -1,7 +1,5 @@
 import pytest
-from fastapi import HTTPException
 
-from app.services.roadmap.common import parse_json_or_500
 from app.llm.json_parsing import clean_openai_response, extract_json, sanitize_and_parse_json
 
 BOTH_PARSE = [
@@ -51,17 +49,6 @@ class TestSanitizeAndParseJson:
     def test_raises_when_nothing_parses(self, text):
         with pytest.raises(ValueError):
             sanitize_and_parse_json(text)
-
-
-class TestParseJsonOr500:
-    def test_returns_parsed_json(self):
-        assert parse_json_or_500('x {"a": 1} y') == {"a": 1}
-
-    def test_raises_http_500_on_failure(self):
-        with pytest.raises(HTTPException) as exc:
-            parse_json_or_500("no json here")
-        assert exc.value.status_code == 500
-        assert exc.value.detail == "Could not read the AI response. Please try again."
 
 
 class TestCleanOpenaiResponse:

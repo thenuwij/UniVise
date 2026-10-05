@@ -3,18 +3,11 @@ from fastapi.routing import APIRoute
 from app.main import app
 
 EXPECTED_ROUTES = {
-    ("DELETE", "/roadmap/{mode}"),
-    ("GET", "/auth/valid_token"),
     ("GET", "/course-picks"),
     ("GET", "/health"),
-    ("GET", "/roadmap/{mode}"),
     ("GET", "/traits/results"),
-    ("GET", "/user/student_type"),
-    ("GET", "/user/user_info"),
-    ("GET", "/user/user_recommendations"),
     ("POST", "/chat/conversations/{conv_id}/reply/stream"),
     ("POST", "/compare"),
-    ("POST", "/final-degree-plan/"),
     ("POST", "/final-unsw-degrees/"),
     ("POST", "/recommendation/prompt"),
     ("POST", "/recommendation/{rec_id}/explain"),

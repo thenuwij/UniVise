@@ -8,18 +8,12 @@ load_dotenv(dotenv_path)
 
 # Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 SUPABASE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-# OpenAI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Check for missing vars
 REQUIRED_VARS = [
     ("SUPABASE_URL", SUPABASE_URL),
-    ("SUPABASE_ANON_KEY", SUPABASE_ANON_KEY),
-    ("SUPABASE_ROLE_KEY", SUPABASE_ROLE_KEY),
-    ("OPENAI_API_KEY", OPENAI_API_KEY),
+    ("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_ROLE_KEY),
 ]
 
 missing_vars = [name for name, value in REQUIRED_VARS if not value]
