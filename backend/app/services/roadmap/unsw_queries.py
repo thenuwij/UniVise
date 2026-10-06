@@ -150,6 +150,29 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
     return context
 
 
+def fetch_specialisation_options(degree_code: str, program_name: str) -> List[Dict[str, str]]:
+    options: Dict[str, Dict[str, str]] = {}
+    try:
+        for code in component_degree_codes(degree_code, program_name):
+            rows = (
+                supabase.from_("unsw_specialisations")
+                .select("id, major_code, major_name")
+                .contains("sections_degrees", json.dumps([{"degree_code": code}]))
+                .in_("specialisation_type", ["Major", "Honours"])
+                .order("major_name")
+                .execute()
+                .data
+                or []
+            )
+            for row in rows:
+                if row.get("major_code") and row.get("major_name"):
+                    options.setdefault(row["major_code"], {"id": row["id"], "code": row["major_code"], "name": row["major_name"]})
+    except Exception as e:
+        logger.error(f"fetch_specialisation_options failed for {degree_code}: {e}")
+        return []
+    return list(options.values())
+
+
 def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
     courses: Dict[str, Dict[str, str]] = {}
     if degree_code:

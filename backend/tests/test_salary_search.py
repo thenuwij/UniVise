@@ -2,8 +2,9 @@
 
 The search call is faked; these check how salary text is read, and that a
 salary only counts as sourced when its page is on an approved site and was
-actually among the search results, and that the page is about the same role
-is a salary page rather than a single job ad, and is not for another state.
+actually among the search results, and that the page is about the same role,
+is a market salary page rather than a single job ad or one employer's pay,
+and is not for another state.
 """
 import asyncio
 
@@ -58,3 +59,12 @@ def test_search_returns_only_sourced_roles(monkeypatch):
     found = asyncio.run(salary_search.search_role_salaries([{"title": "Graduate Civil Engineer"}, {"title": "Project Engineer"}], "Civil Engineering"))
 
     assert list(found) == ["graduate civil engineer"]
+
+
+def test_one_employers_salary_page_does_not_count():
+    assert not page_matches_role("https://www.seek.com.au/companies/aurecon-432740/salaries/electrical-engineer", "Electrical Engineer")
+    assert not page_matches_role("https://au.indeed.com/cmp/Atlassian/salaries/Software-Engineer", "Software Engineer")
+    assert not page_matches_role("https://www.payscale.com/research/AU/Employer=Telstra/Salary", "Network Engineer at Telstra")
+    assert not page_matches_role("https://www.glassdoor.com.au/Salary/Atlassian-Software-Engineer-Salaries-E115699_D_KO10,27.htm", "Software Engineer")
+    assert page_matches_role("https://www.seek.com.au/career-advice/role/electrical-engineer/salary", "Electrical Engineer")
+    assert page_matches_role("https://www.payscale.com/research/AU/Job=Software_Engineer/Salary", "Software Engineer")

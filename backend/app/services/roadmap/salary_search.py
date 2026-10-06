@@ -76,11 +76,16 @@ def distinctive_stems(title: str) -> List[str]:
     return [word[:6] for word in words if word not in GENERIC_WORDS and len(word) > 1]
 
 
+EMPLOYER_PAGE = re.compile(r"/companies/|/cmp/|employer=|-e\d+[_.]")
+
+
 def page_matches_role(url: str, title: str) -> bool:
     path = unquote(urlsplit(url or "").path).lower()
     if "salar" not in path:
         return False
     if any(place in path for place in OTHER_PLACES):
+        return False
+    if EMPLOYER_PAGE.search(path):
         return False
     location = re.search(r"/in-([^/]+)", path)
     if location and not re.search(r"nsw|sydney", location.group(1)):

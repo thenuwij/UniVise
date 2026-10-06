@@ -3,7 +3,8 @@
 The AI calls, salary search and link checks are faked; these check that roles
 can only use occupations allowed for the degree, that sourced salaries replace
 the AI estimate, that each role only names courses from the program's real
-course list, and the fallback when generation fails.
+course list, that programs with few courses of their own suggest real
+specialisations instead, and the fallback when generation fails.
 """
 import asyncio
 import copy
@@ -34,6 +35,7 @@ ROLE = {
     "requirements": "Accounting major; Excel",
     "degree_path": "The accounting major leads straight into graduate audit roles.",
     "degree_courses": ["ACCT1501", "COMM1140"],
+    "specialisations": [],
     "next_steps": ["Join the Accounting Society", "Apply for a summer vacation program"],
 }
 
@@ -191,3 +193,77 @@ def test_prompt_says_no_codes_without_a_course_list(fakes):
     assert "do not name any course codes" in fakes["prompts"][0]
     assert fakes["schemas"][0] is CareerPathwaysSection
     assert result["career_pathways"]["entry_level"]["roles"][0]["degree_courses"] == []
+
+
+OPTIONS = [
+    {"id": "spec-ai", "code": "COMPI1", "name": "Computer Science (Artificial Intelligence)"},
+    {"id": "spec-sec", "code": "COMPY1", "name": "Computer Science (Security Engineering)"},
+]
+
+
+def test_thin_program_suggests_real_specialisations_instead_of_courses(fakes):
+    suggested = copy.deepcopy(GENERATED)
+    for stage in ("entry_level", "mid_career", "senior"):
+        suggested["career_pathways"][stage]["roles"] = [
+            {**role, "specialisations": ["COMPI1", "COMPI1"]} for role in suggested["career_pathways"][stage]["roles"]
+        ]
+    fakes["generated"] = suggested
+    context = {**CONTEXT, "specialisation_options": OPTIONS}
+
+    result = asyncio.run(industry.ai_generate_career_pathways(context))
+
+    prompt = fakes["prompts"][0]
+    assert "- COMPI1: Computer Science (Artificial Intelligence)" in prompt
+    assert "do not name any course codes" in prompt
+    assert "ACCT1501: Accounting" not in prompt
+    role = result["career_pathways"]["entry_level"]["roles"][0]
+    assert role["specialisations"] == [OPTIONS[0]]
+    assert role["degree_courses"] == []
+
+
+def test_schema_rejects_a_specialisation_outside_the_program():
+    schema = career_pathways_schema(["2211"], ["COMPI1", "COMPY1"])
+    invented = copy.deepcopy(GENERATED)
+    for stage in ("entry_level", "mid_career", "senior"):
+        invented["career_pathways"][stage]["roles"] = [
+            {**role, "specialisations": ["COMPI1"]} for role in invented["career_pathways"][stage]["roles"]
+        ]
+    schema.model_validate(invented)
+    invented["career_pathways"]["senior"]["roles"][0]["specialisations"] = ["MADE01"]
+
+    with pytest.raises(ValidationError):
+        schema.model_validate(invented)
+
+
+def test_programs_with_courses_ask_for_no_specialisations(fakes):
+    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
+
+    assert "- specialisations: an empty list" in fakes["prompts"][0]
+    assert "SPECIALISATIONS:" not in fakes["prompts"][0]
+    assert result["career_pathways"]["entry_level"]["roles"][0]["specialisations"] == []
+
+
+@pytest.mark.parametrize(
+    "chosen, course_count, expected",
+    [([], 0, OPTIONS), ([], 5, OPTIONS), ([], 6, []), (["spec-ai"], 0, [])],
+)
+def test_options_only_load_for_thin_programs_without_a_choice(monkeypatch, chosen, course_count, expected):
+    seen = {}
+
+    async def careers(context):
+        seen["options"] = context["specialisation_options"]
+        return {"career_pathways": {"entry_level": {"roles": []}}}
+
+    empty_context = {"selected_major_courses": [], "selected_minor_courses": [], "selected_honours_courses": [], "selected_major_codes": []}
+    monkeypatch.setattr(industry, "supabase", None)
+    monkeypatch.setattr(industry, "fetch_specialisation_context", lambda ids: dict(empty_context))
+    monkeypatch.setattr(industry, "fetch_program_course_list", lambda code, extra: [{"code": f"COMP{1000 + i}"} for i in range(course_count)])
+    monkeypatch.setattr(industry, "fetch_career_occupations", lambda code, majors: [])
+    monkeypatch.setattr(industry, "fetch_specialisation_options", lambda code, name: OPTIONS)
+    monkeypatch.setattr(industry, "fetch_society_rows", lambda: [])
+    monkeypatch.setitem(industry.INDUSTRY_GENERATORS, "career_pathways", (careers, "career_pathways"))
+
+    existing = {"industry_societies": {"x": 1}, "industry_experience": {"x": 1}, "specialisation_ids": chosen}
+    asyncio.run(industry.generate_industry_sections("3778", "Bachelor of Computer Science", existing))
+
+    assert seen["options"] == expected

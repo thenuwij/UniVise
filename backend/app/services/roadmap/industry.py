@@ -18,9 +18,10 @@ from app.services.roadmap.cache import write_cached_roadmap
 from app.services.roadmap.career_data import fetch_career_occupations
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
 from app.services.roadmap.salary_search import search_role_salaries
-from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context
+from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
+THIN_PROGRAM_COURSES = 5
 
 
 def course_list_for_prompt(courses: list) -> str:
@@ -353,6 +354,17 @@ def occupation_list_for_prompt(occupations: list) -> str:
     )
 
 
+def specialisation_list_for_prompt(options: list) -> str:
+    if not options:
+        return ""
+    listing = "\n".join(f"- {o['code']}: {o['name']}" for o in options)
+    return (
+        "SPECIALISATIONS: the student has not chosen a specialisation, and this program has few courses of its own, "
+        "so suggest specialisations instead of courses. For each role, put the codes of the 1 to 2 specialisations below "
+        "that best prepare a student for it in specialisations, and name them in degree_path.\n" + listing
+    )
+
+
 async def check_certification_links(certifications: list) -> None:
     flags = await asyncio.gather(*[validate_url(c.get("url", "")) for c in certifications])
     for cert, is_valid in zip(certifications, flags):
@@ -379,6 +391,8 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
     faculty = context.get("faculty", "Not specified")
     occupations = context.get("career_occupations") or []
     occupation_titles = {o["code"]: o["title"] for o in occupations}
+    options = {o["code"]: o for o in context.get("specialisation_options") or []}
+    courses = [] if options else context.get("program_courses") or []
 
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
@@ -400,6 +414,8 @@ You are a UNSW career advisor. Describe the career pathways open to {program_nam
 {specialisation_context}
 {occupation_list_for_prompt(occupations)}
 
+{specialisation_list_for_prompt(list(options.values()))}
+
 A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C. SENIOR ROLES (2 roles, 8+ years). For every role:
   - title: a job title as it appears in Australian job ads (e.g. 'Graduate Accountant', 'Junior Data Analyst')
   - salary_range: your best estimate of a typical Australian annual salary for the role, as "$X - $Y" (it is checked against current sources later)
@@ -407,29 +423,31 @@ A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C.
   - requirements: a semicolon-separated list of at most 5 discrete skills
   - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
   - degree_courses: 2 to 3 course codes from the course list below that build the skills this role needs. Only codes from the list. Return an empty list if none fit or the list is not available.
+  - specialisations: {"1 to 2 codes from the SPECIALISATIONS list above" if options else "an empty list"}
   - next_steps: up to 3 short, concrete actions a current student can take now towards this role
 
 D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommended/Optional), timeline, optional notes, and url: the official page for that certification (it is link-checked).
 
 E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geographic_notes (where in Australia the work is).
 
-{course_list_for_prompt(context.get("program_courses") or [])}
+{course_list_for_prompt(courses)}
 """
 
     logger.info("Career Pathways Generating...")
 
     try:
         section = await ask_gpt_structured(
-            prompt, career_pathways_schema(list(occupation_titles)), max_tokens=5000, model="gpt-5.4-mini"
+            prompt, career_pathways_schema(list(occupation_titles), list(options)), max_tokens=5000, model="gpt-5.4-mini"
         )
         result = section.model_dump()
         pathways = result["career_pathways"]
-        allowed = {c["code"] for c in context.get("program_courses") or []}
+        allowed = {c["code"] for c in courses}
         roles = [role for stage in ("entry_level", "mid_career", "senior") for role in pathways[stage]["roles"]]
         for role in roles:
             role["degree_courses"] = keep_listed_codes(role["degree_courses"], allowed, 3)
             role["degree_path"] = replace_unlisted_codes(role["degree_path"], allowed)
             role["occupation_title"] = occupation_titles.get(role["anzsco_code"])
+            role["specialisations"] = [options[c] for c in dict.fromkeys(role["specialisations"]) if c in options][:2]
         salaries, _ = await asyncio.gather(
             search_role_salaries(roles, program_name),
             check_certification_links(pathways["certifications"]),
@@ -496,11 +514,15 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
             return None
 
     def specialisation_part():
-        context = fetch_specialisation_context(existing.get("specialisation_ids") or [])
+        ids = existing.get("specialisation_ids") or []
+        context = fetch_specialisation_context(ids)
         codes = [*context["selected_major_courses"], *context["selected_minor_courses"], *context["selected_honours_courses"]]
-        return context, fetch_program_course_list(degree_code, codes), fetch_career_occupations(degree_code, context["selected_major_codes"])
+        program_courses = fetch_program_course_list(degree_code, codes)
+        thin = not ids and len(program_courses) <= THIN_PROGRAM_COURSES
+        options = fetch_specialisation_options(degree_code, program_name) if thin else []
+        return context, program_courses, fetch_career_occupations(degree_code, context["selected_major_codes"]), options
 
-    faculty, (specialisations, program_courses, career_occupations), societies = await asyncio.gather(
+    faculty, (specialisations, program_courses, career_occupations, specialisation_options), societies = await asyncio.gather(
         asyncio.to_thread(faculty_lookup),
         asyncio.to_thread(specialisation_part),
         asyncio.to_thread(fetch_society_rows),
@@ -512,6 +534,7 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
         **specialisations,
         "program_courses": program_courses,
         "career_occupations": career_occupations,
+        "specialisation_options": specialisation_options,
         "societies": societies,
     }
 
