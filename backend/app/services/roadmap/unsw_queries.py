@@ -412,58 +412,30 @@ def extract_core_course_codes_from_sections(sections_data) -> List[str]:
 
     if not sections_data:
         return []
-    
+
     try:
-        # Parse JSON if string
-        if isinstance(sections_data, str):
-            sections = json.loads(sections_data)
-        else:
-            sections = sections_data
-        
+        sections = json.loads(sections_data) if isinstance(sections_data, str) else sections_data
         if not isinstance(sections, list):
             return []
-        
-        core_course_codes = []
-        
-        # Keywords that indicate CORE courses (not electives)
-        core_keywords = [
-            "core", "required", "compulsory", "thesis", "project", 
-            "capstone", "honours", "stream core", "disciplinary"
-        ]
-        
-        # Keywords that indicate ELECTIVES (skip these)
-        elective_keywords = [
-            "elective", "flexible", "general education", "free elective"
-        ]
-        
+
+        codes = []
         for section in sections:
             if not isinstance(section, dict):
                 continue
-            
-            title = section.get("title", "").lower()
-            
-            # Skip overview sections
-            if "overview" in title:
+            title = (section.get("title") or "").lower()
+            if "overview" in title or "general education" in title or "flexible" in title:
                 continue
-            
-            # Skip elective sections
-            if any(keyword in title for keyword in elective_keywords):
+            if "elective" in title and "prescribed" not in title:
                 continue
-            
-            # Only include core sections
-            if any(keyword in title for keyword in core_keywords):
-                courses = section.get("courses", [])
-                if isinstance(courses, list):
-                    for course in courses:
-                        if isinstance(course, dict) and course.get("code"):
-                            core_course_codes.append(course["code"])
-        
-        return core_course_codes
-    
+            for course in section.get("courses") or []:
+                if isinstance(course, dict) and course.get("code") and course["code"] not in codes:
+                    codes.append(course["code"])
+        return codes
+
     except Exception as e:
         logger.error(f"[extract_core_courses_from_sections] Error: {e}")
         return []
-    
+
 
 # Calculate overlap percentage with specialization courses weighted more heavily.
 def calculate_overlap_weighted(

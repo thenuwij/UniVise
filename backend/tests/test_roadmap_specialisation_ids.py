@@ -74,7 +74,7 @@ def test_context_joins_both_halves_and_groups_by_type(monkeypatch):
     context = unsw_queries.fetch_specialisation_context(["a-major", "b-major", "c-minor", "d-honours"])
 
     assert context["selected_major_name"] == "Accounting and Computer Science"
-    assert context["selected_major_courses"] == ["ACCT1511", "MATH1081", "COMP2521"]
+    assert context["selected_major_courses"] == ["ACCT1511", "MATH1081", "COMP2521", "COMP3311"]
     assert context["selected_minor_name"] == "Economics"
     assert context["selected_minor_courses"] == ["ECON1101"]
     assert context["selected_honours_name"] == "Finance Honours"
