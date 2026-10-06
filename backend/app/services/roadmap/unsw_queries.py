@@ -119,12 +119,13 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
     for slot in ("major", "minor", "honours"):
         context[f"selected_{slot}_name"] = None
         context[f"selected_{slot}_courses"] = []
+    context["selected_major_codes"] = []
     if not specialisation_ids:
         return context
     try:
         rows = (
             supabase.from_("unsw_specialisations")
-            .select("id, major_name, specialisation_type, sections")
+            .select("id, major_code, major_name, specialisation_type, sections")
             .in_("id", specialisation_ids)
             .execute()
             .data
@@ -138,6 +139,8 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
         slot = SPECIALISATION_SLOTS.get(row.get("specialisation_type"), "major")
         if row.get("major_name"):
             names[slot].append(row["major_name"])
+        if row.get("specialisation_type") == "Major" and row.get("major_code"):
+            context["selected_major_codes"].append(row["major_code"])
         for code in extract_core_course_codes_from_sections(row.get("sections")):
             if code not in context[f"selected_{slot}_courses"]:
                 context[f"selected_{slot}_courses"].append(code)

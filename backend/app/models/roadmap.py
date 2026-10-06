@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, Literal
 
 class SchoolReq(BaseModel):
     recommendation_id: Optional[str] = None
@@ -76,13 +76,11 @@ class IndustryExperienceSection(BaseModel):
     industry_experience: IndustryExperience
 
 class CareerRole(BaseModel):
+    anzsco_code: str
     title: str
     salary_range: str
     description: str
     requirements: str
-    hiring_companies: list[str]
-    source: str
-    source_url: str
     degree_path: str
     degree_courses: list[str] = Field(max_length=3)
     next_steps: list[str] = Field(min_length=1, max_length=3)
@@ -102,18 +100,8 @@ class Certification(BaseModel):
     url: str
 
 class MarketInsights(BaseModel):
-    demand_level: str
     trends: str
     geographic_notes: str
-
-class SectorEmployers(BaseModel):
-    sector: str
-    companies: list[str]
-
-class EmploymentStats(BaseModel):
-    employment_rate: str
-    median_starting_salary: str
-    source: str
 
 class CareerPathways(BaseModel):
     entry_level: EntryLevelStage
@@ -121,11 +109,32 @@ class CareerPathways(BaseModel):
     senior: ExperiencedStage
     certifications: list[Certification] = Field(min_length=2, max_length=3)
     market_insights: MarketInsights
-    top_employers: list[SectorEmployers] = Field(min_length=2, max_length=3)
-    employment_stats: EmploymentStats
 
 class CareerPathwaysSection(BaseModel):
     career_pathways: CareerPathways
+
+def career_pathways_schema(occupation_codes: list[str]) -> type[BaseModel]:
+    if not occupation_codes:
+        return CareerPathwaysSection
+
+    class AllowedRole(CareerRole):
+        anzsco_code: Literal[tuple(occupation_codes)]
+
+    class AllowedEntryLevel(BaseModel):
+        roles: list[AllowedRole] = Field(min_length=3, max_length=3)
+
+    class AllowedExperienced(BaseModel):
+        roles: list[AllowedRole] = Field(min_length=2, max_length=2)
+
+    class AllowedPathways(CareerPathways):
+        entry_level: AllowedEntryLevel
+        mid_career: AllowedExperienced
+        senior: AllowedExperienced
+
+    class AllowedSection(BaseModel):
+        career_pathways: AllowedPathways
+
+    return AllowedSection
 
 class RoadmapResp(BaseModel):
     id: str

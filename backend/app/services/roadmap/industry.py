@@ -13,9 +13,11 @@ import httpx
 from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
-from app.models.roadmap import CareerPathwaysSection, IndustryExperienceSection, SocietiesSection
+from app.models.roadmap import IndustryExperienceSection, SocietiesSection, career_pathways_schema
 from app.services.roadmap.cache import write_cached_roadmap
+from app.services.roadmap.career_data import fetch_career_occupations
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
+from app.services.roadmap.salary_search import search_role_salaries
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
@@ -339,13 +341,45 @@ You are a UNSW career advisor. Provide industry experience information for {prog
 
 
 # Generate career pathways section in parallel
+def occupation_list_for_prompt(occupations: list) -> str:
+    if not occupations:
+        return "Set anzsco_code to an empty string for every role."
+    listing = "\n".join(f"- {o['code']}: {o['title']}" for o in occupations)
+    return (
+        "OCCUPATION GROUPS: every role must belong to one of these official occupation groups (ANZSCO code: title), "
+        "which are the groups graduates of this degree work in. For each role, first choose its group in anzsco_code, "
+        "then give it a real job title within that group, describe that group's work, and choose courses that build that group's skills. "
+        "Use different groups across the roles where the degree allows.\n" + listing
+    )
+
+
+async def check_certification_links(certifications: list) -> None:
+    flags = await asyncio.gather(*[validate_url(c.get("url", "")) for c in certifications])
+    for cert, is_valid in zip(certifications, flags):
+        if not is_valid:
+            query = quote(f"{cert.get('name', '')} {cert.get('provider', '')} certification")
+            cert["url"] = f"https://www.google.com/search?q={query}"
+
+
+def apply_salaries(pathways: dict, salaries: dict) -> None:
+    for stage in ("entry_level", "mid_career", "senior"):
+        for role in pathways[stage]["roles"]:
+            found = salaries.get(role["title"].strip().lower())
+            if found:
+                role["salary_range"] = found["salary_range"]
+                role["salary_source"] = {"name": found["source"], "url": found["source_url"]}
+            else:
+                role["salary_source"] = None
+
+
 async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]:
 
     _start = time.time()
     program_name = context.get("program_name")
     faculty = context.get("faculty", "Not specified")
+    occupations = context.get("career_occupations") or []
+    occupation_titles = {o["code"]: o["title"] for o in occupations}
 
-    # Add specialisation context 
     selected_major = context.get("selected_major_name")
     selected_minor = context.get("selected_minor_name")
     selected_honours = context.get("selected_honours_name")
@@ -360,142 +394,51 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
         if selected_honours:
             specialisation_context += f"- Honours: {selected_honours}\n"
 
-        
-    prompt = f"""FORMATTING RULE: Never use em dashes (—) or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
+    prompt = f"""FORMATTING RULE: Never use em dashes or long dashes anywhere in your response. Rephrase using commas, colons, or split into separate sentences instead.
 
-CRITICAL DATA ACCURACY RULES:
-- Employment rate must be sourced from QILT Graduate Outcomes Survey or equivalent verified Australian source — do not fabricate
-- Median starting salary must reflect current Australian market data from Seek, LinkedIn, or GradConnection — use realistic 2024-2025 figures
-- Hiring companies must be real Australian employers currently advertising for this role type — verify they recruit from UNSW
-- Source URLs must be real working URLs to actual job search results on Seek, Indeed, LinkedIn or GradConnection
-- Do not use em dashes anywhere — use commas or separate sentences instead
-- Role descriptions must be maximum 3 sentences — concise and specific
-- Requirements must be a semicolon-separated list of discrete skills, maximum 5 items
-- Every certification object MUST include a url field with a real working URL. Omitting url from any certification is a critical error.
-- IMPORTANT — hiring_companies: You must populate this field with 3-5 real, named companies that genuinely hire for this specific career pathway. Infer the right employers from the student's degree discipline and the pathway title. For example, an Industrial Design pathway should list companies like Fisher & Paykel, Futuris, Breville, Kogan, or GHD — not software companies. A Law pathway should list firms like Allens, Herbert Smith Freehills, Clayton Utz, or MinterEllison. A Software Engineering pathway may include Atlassian or Canva. Never output placeholder text, generic descriptions, or empty arrays — always output real company names appropriate to the field.
+You are a UNSW career advisor. Describe the career pathways open to {program_name} ({faculty}) graduates.
+{specialisation_context}
+{occupation_list_for_prompt(occupations)}
 
-You are a UNSW career advisor with access to current job market data. Provide career info for {program_name} ({faculty}) graduates.
-    {specialisation_context}
+A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C. SENIOR ROLES (2 roles, 8+ years). For every role:
+  - title: a job title as it appears in Australian job ads (e.g. 'Graduate Accountant', 'Junior Data Analyst')
+  - salary_range: your best estimate of a typical Australian annual salary for the role, as "$X - $Y" (it is checked against current sources later)
+  - description: 3 sentences at most: day-to-day work, the skills it uses, and why it suits {program_name} graduates
+  - requirements: a semicolon-separated list of at most 5 discrete skills
+  - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
+  - degree_courses: 2 to 3 course codes from the course list below that build the skills this role needs. Only codes from the list. Return an empty list if none fit or the list is not available.
+  - next_steps: up to 3 short, concrete actions a current student can take now towards this role
 
-    IMPORTANT: Base your role information on REAL job listings currently posted on Australian job sites (Seek, Indeed, LinkedIn, GradConnection). Use actual job titles, realistic salary ranges from current listings, and provide direct URLs to example listings or search results.
+D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommended/Optional), timeline, optional notes, and url: the official page for that certification (it is link-checked).
 
-    A. ENTRY ROLES (3 roles, 0-2yrs)
-      - Title, salary AUD (based on current listings)
-      - DETAILED description (3-4 sentences): What you'd do day-to-day, key responsibilities, how it uses skills from the degree, why it suits {program_name} graduates
-      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
+E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geographic_notes (where in Australia the work is).
 
-    B. MID ROLES (2 roles, 3-7yrs)
-      - Title, salary AUD (based on current listings)
-      - DETAILED description (3-4 sentences): Day-to-day work, leadership/specialist responsibilities, career progression from entry level, how advanced skills from {program_name} apply
-      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
-
-    C. SENIOR ROLES (2 roles, 8+yrs)
-      - Title, salary AUD (based on current listings)
-      - DETAILED description (3-4 sentences): Strategic responsibilities, team/department leadership, impact on business outcomes, how expertise from {program_name} background provides competitive advantage
-      - Requirements, 2-3 hiring companies currently advertising, source URL to live job search
-
-    D. CERTIFICATIONS (2-3 certs)
-      - Name, provider, importance, timeline, notes (optional), url (REQUIRED — direct official certification page URL, e.g. 'https://aws.amazon.com/certification/certified-solutions-architect-associate/')
-
-    E. MARKET
-      - Demand level, trends (1-2 sentences), location notes
-
-    F. TOP EMPLOYERS (6-8 companies in 2-3 sectors)
-
-    G. STATS
-      - Employment rate, starting salary, source
-      CRITICAL: employment_rate must be a SHORT percentage string only (e.g. '92%'). median_starting_salary must be a SHORT dollar amount only (e.g. '$80,000'). Never write sentences in these fields.
-
-    H. FOR EVERY ROLE (all 7)
-      - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
-      - degree_courses: 2-3 course codes from the course list below that build the skills this role needs. Only codes from the list. Return an empty list if none fit or the list is not available.
-      - next_steps: up to 3 short, concrete actions a current student can take now towards this role
-
-    {course_list_for_prompt(context.get("program_courses") or [])}
-
-    JSON STRUCTURE:
-    {{
-      "career_pathways": {{
-        "entry_level": {{
-          "roles": [
-            {{
-              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-              "salary_range": "$X - $Y AUD based on current listings",
-              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-              "requirements": "Key requirements from actual listings",
-              "hiring_companies": [],
-              "source": "Seek/Indeed/LinkedIn/GradConnection",
-              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
-            }}
-          ]
-        }},
-        "mid_career": {{
-          "roles": [
-            {{
-              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-              "salary_range": "$X - $Y AUD based on current listings",
-              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-              "requirements": "Key requirements from actual listings",
-              "hiring_companies": [],
-              "source": "Seek/Indeed/LinkedIn/GradConnection",
-              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
-            }}
-          ]
-        }},
-        "senior": {{
-          "roles": [
-            {{
-              "title": "Exact job title as seen on job boards (e.g., 'Graduate Accountant', 'Junior Data Analyst')",
-              "salary_range": "$X - $Y AUD based on current listings",
-              "description": "3-4 sentences: (1) Day-to-day responsibilities, (2) Key deliverables and skills used, (3) How {program_name} degree prepares you, (4) Why this suits graduates of this program",
-              "requirements": "Key requirements from actual listings",
-              "hiring_companies": [],
-              "source": "Seek/Indeed/LinkedIn/GradConnection",
-              "source_url": "Direct URL to job search results (e.g., 'https://www.seek.com.au/graduate-accountant-jobs-in-sydney' or 'https://au.indeed.com/jobs?q=junior+data+analyst')"
-            }}
-          ]
-        }},
-        "certifications": [
-          {{
-            "name": "...",
-            "provider": "...",
-            "importance": "Required/Highly Recommended/Optional",
-            "timeline": "...",
-            "notes": "Optional brief note about benefits or requirements",
-            "url": "REQUIRED — must not be null or omitted. Provide the direct official URL to the certification page. Examples: AWS SAA = 'https://aws.amazon.com/certification/certified-solutions-architect-associate/', CKAD = 'https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/', PSM I = 'https://www.scrum.org/assessments/professional-scrum-master-i-certification'. If you cannot find the exact page, use the provider's main certifications page. Never leave this field empty or null."
-          }}
-        ],
-        "market_insights": {{
-          "demand_level": "High/Medium/Growing/Stable",
-          "trends": "1-2 sentences about industry trends and outlook",
-          "geographic_notes": "Location info"
-        }},
-        "top_employers": [
-          {{"sector": "Sector name", "companies": ["...", "..."]}}
-        ],
-        "employment_stats": {{
-          "employment_rate": "A percentage only — e.g. '92%'. No extra words, no sentences.",
-          "median_starting_salary": "A dollar amount only — e.g. '$80,000'. No 'AUD', no ranges, no extra words.",
-          "source": "Source name only — e.g. 'QILT Graduate Outcomes Survey 2023'"
-        }}
-      }}
-    }}
-    """
+{course_list_for_prompt(context.get("program_courses") or [])}
+"""
 
     logger.info("Career Pathways Generating...")
 
     try:
-        section = await ask_gpt_structured(prompt, CareerPathwaysSection, max_tokens=5000, model="gpt-5.4-mini")
+        section = await ask_gpt_structured(
+            prompt, career_pathways_schema(list(occupation_titles)), max_tokens=5000, model="gpt-5.4-mini"
+        )
         result = section.model_dump()
         pathways = result["career_pathways"]
         allowed = {c["code"] for c in context.get("program_courses") or []}
-        for stage in ("entry_level", "mid_career", "senior"):
-            for role in pathways[stage]["roles"]:
-                role["degree_courses"] = keep_listed_codes(role["degree_courses"], allowed, 3)
-                role["degree_path"] = replace_unlisted_codes(role["degree_path"], allowed)
-        pathways["top_employers"] = {
-            "by_sector": {group["sector"]: group["companies"] for group in pathways["top_employers"]}
-        }
+        roles = [role for stage in ("entry_level", "mid_career", "senior") for role in pathways[stage]["roles"]]
+        for role in roles:
+            role["degree_courses"] = keep_listed_codes(role["degree_courses"], allowed, 3)
+            role["degree_path"] = replace_unlisted_codes(role["degree_path"], allowed)
+            role["occupation_title"] = occupation_titles.get(role["anzsco_code"])
+        salaries, _ = await asyncio.gather(
+            search_role_salaries(roles, program_name),
+            check_certification_links(pathways["certifications"]),
+            return_exceptions=True,
+        )
+        if isinstance(salaries, Exception):
+            logger.error(f"[salary_search] failed, keeping AI estimates: {salaries}")
+            salaries = {}
+        apply_salaries(pathways, salaries)
         logger.debug(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result
 
@@ -509,16 +452,9 @@ You are a UNSW career advisor with access to current job market data. Provide ca
                 "senior": {"roles": []},
                 "certifications": [],
                 "market_insights": {
-                    "demand_level": "Data unavailable",
                     "trends": "Information temporarily unavailable",
                     "geographic_notes": "Information temporarily unavailable"
                 },
-                "top_employers": {"by_sector": {}},
-                "employment_stats": {
-                    "employment_rate": "Data not available",
-                    "median_starting_salary": "Data not available",
-                    "source": "Information temporarily unavailable"
-                }
             },
             "failed": True,
         }
@@ -562,9 +498,9 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
     def specialisation_part():
         context = fetch_specialisation_context(existing.get("specialisation_ids") or [])
         codes = [*context["selected_major_courses"], *context["selected_minor_courses"], *context["selected_honours_courses"]]
-        return context, fetch_program_course_list(degree_code, codes)
+        return context, fetch_program_course_list(degree_code, codes), fetch_career_occupations(degree_code, context["selected_major_codes"])
 
-    faculty, (specialisations, program_courses), societies = await asyncio.gather(
+    faculty, (specialisations, program_courses, career_occupations), societies = await asyncio.gather(
         asyncio.to_thread(faculty_lookup),
         asyncio.to_thread(specialisation_part),
         asyncio.to_thread(fetch_society_rows),
@@ -575,6 +511,7 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
         "faculty": faculty or "Not specified",
         **specialisations,
         "program_courses": program_courses,
+        "career_occupations": career_occupations,
         "societies": societies,
     }
 
