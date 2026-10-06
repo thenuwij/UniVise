@@ -16,6 +16,7 @@ from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import IndustryExperienceSection, SocietiesSection, career_pathways_schema
 from app.services.roadmap.cache import write_cached_roadmap
 from app.services.roadmap.career_data import fetch_career_data
+from app.services.roadmap.job_ads import ad_search_words
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
 from app.services.roadmap.salary_search import search_role_salaries
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
@@ -464,6 +465,8 @@ D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommen
             logger.error(f"[salary_search] failed, keeping AI estimates: {salaries}")
             salaries = {}
         apply_salaries(pathways, salaries)
+        for role in pathways["entry_level"]["roles"]:
+            role["ad_search"] = ad_search_words(role["title"])
         pathways["outlook"] = context.get("career_outlook") or []
         logger.debug(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result

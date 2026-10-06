@@ -292,3 +292,10 @@ def test_roles_carry_official_pay_and_demand_and_the_outlook_is_attached(fakes):
     assert pathways["outlook"] == OUTLOOK
     assert "market_insights" not in pathways
     assert "MARKET" not in fakes["prompts"][0]
+
+
+def test_only_entry_roles_get_ad_search_words(fakes):
+    pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
+
+    assert pathways["entry_level"]["roles"][0]["ad_search"] == "accountant"
+    assert "ad_search" not in pathways["mid_career"]["roles"][0]
