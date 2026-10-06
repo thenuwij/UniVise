@@ -82,7 +82,7 @@ function GraduateOutlook({ outlook }) {
   const source = outlook[0];
   return (
     <section>
-      <SectionHeading subtitle={<>All Australian graduates in each study area. Source: <SourceLink href={source.source_url}>QILT Graduate Outcomes Survey {source.survey_year}</SourceLink></>}>
+      <SectionHeading subtitle={<>All Australian graduates in {outlook.length > 1 ? "each study area" : source.study_area}. Source: <SourceLink href={source.source_url}>QILT Graduate Outcomes Survey {source.survey_year}</SourceLink></>}>
         Graduate outlook
       </SectionHeading>
       <div className="mt-6 space-y-5">

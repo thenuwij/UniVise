@@ -148,11 +148,12 @@ function UniItemCard({ rec, onOpen }) {
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <span className="text-xs mb-1">Average Salary</span>
+          <span className="text-xs mb-1">Salary</span>
           <div className="inline-flex items-center gap-1 text-slate-800">
             <HiCurrencyDollar />
             <span className="font-medium">{rec.avg_salary_range}</span>
           </div>
+          <span className="mt-1 w-fit px-2 py-0.5 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 ring-1 ring-slate-200">AI-suggested</span>
         </div>
       </div>
       <Button
