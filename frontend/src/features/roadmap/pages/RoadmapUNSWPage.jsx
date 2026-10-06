@@ -396,7 +396,7 @@ export default function RoadmapUNSWPage() {
       ),
       internships: () => industrySection(
         "industry_experience",
-        () => <IndustryExperience industryExperience={data.industry_experience} />,
+        () => <IndustryExperience industryExperience={data.industry_experience} entryRoles={data.career_pathways?.entry_level?.roles} />,
         "Generating Internships...",
         "Finding internship programs and placements for your program."
       ),

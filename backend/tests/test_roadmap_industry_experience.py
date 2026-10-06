@@ -1,8 +1,11 @@
 """Tests for the roadmap industry experience step.
 
-The AI call and the link check are faked; these check the payload shape the
-frontend reads, that placement and WIL courses come only from the program's
-real course list, dead-link replacement and the fallback when generation fails.
+The AI call, the opening-time search and the link check are faked; these
+check the payload shape the frontend reads, that placement and WIL courses
+come only from the program's real course list, that opening months found on
+the company's site replace the AI's, dead-link replacement (by the confirmed
+company page when there is one) and the fallbacks
+when generation or the search fails.
 """
 import asyncio
 
@@ -43,7 +46,7 @@ def section(apply_urls):
     }
 
 
-def fake_reply(monkeypatch, payload):
+def fake_reply(monkeypatch, payload, timings=None):
     async def reply(prompt, schema, **kwargs):
         assert schema is IndustryExperienceSection
         return IndustryExperienceSection.model_validate(payload)
@@ -51,8 +54,12 @@ def fake_reply(monkeypatch, payload):
     async def url_is_live(url):
         return url == LIVE_URL
 
+    async def search(programs):
+        return timings or {}
+
     monkeypatch.setattr(industry, "ask_claude_structured", reply)
     monkeypatch.setattr(industry, "validate_url", url_is_live)
+    monkeypatch.setattr(industry, "search_program_timings", search)
 
 
 def test_returns_industry_experience_as_plain_dict(monkeypatch):
@@ -61,6 +68,8 @@ def test_returns_industry_experience_as_plain_dict(monkeypatch):
 
     result = asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
 
+    for program in payload["industry_experience"]["internship_programs"]:
+        program["application_period_source"] = None
     assert result == payload
 
 
@@ -105,3 +114,57 @@ def test_keeps_only_placement_and_wil_courses_from_the_program(monkeypatch):
     assert out["mandatory_placements"]["details"] == "Complete (course not listed) before graduating."
     assert out["wil_course_codes"] == ["COMM2233"]
     assert out["wil_opportunities"] == "COMM2233 and (course not listed)."
+
+
+def test_opening_months_from_the_company_site_replace_the_estimate(monkeypatch):
+    found = {"example co|summer program 0": {"usually_opens": "February to March", "source_url": "https://careers.example.com/interns"}}
+    fake_reply(monkeypatch, section([LIVE_URL, LIVE_URL]), timings=found)
+
+    sourced, estimated = asyncio.run(industry.ai_generate_industry_experience(CONTEXT))["industry_experience"]["internship_programs"]
+
+    assert sourced["application_period"] == "February to March"
+    assert sourced["application_period_source"] == "https://careers.example.com/interns"
+    assert estimated["application_period"] == "March-April"
+    assert estimated["application_period_source"] is None
+
+
+def test_search_failure_keeps_the_ai_months(monkeypatch):
+    fake_reply(monkeypatch, section([LIVE_URL]))
+
+    async def search_down(programs):
+        raise TimeoutError("web search timed out")
+
+    monkeypatch.setattr(industry, "search_program_timings", search_down)
+
+    result = asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
+
+    program = result["industry_experience"]["internship_programs"][0]
+    assert "failed" not in result
+    assert program["application_period"] == "March-April"
+    assert program["application_period_source"] is None
+
+
+def test_prompt_names_no_example_brands(monkeypatch):
+    prompts = []
+
+    async def reply(prompt, schema, **kwargs):
+        prompts.append(prompt)
+        return IndustryExperienceSection.model_validate(section([]))
+
+    monkeypatch.setattr(industry, "ask_claude_structured", reply)
+
+    asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
+
+    for brand in ("Atlassian", "PwC", "BHP", "Cochlear", "Google"):
+        assert brand not in prompts[0]
+    assert "(8 programs)" in prompts[0]
+
+
+def test_dead_link_uses_the_confirmed_company_page(monkeypatch):
+    found = {"example co|summer program 0": {"usually_opens": "February", "source_url": "https://careers.example.com/vacation"}}
+    fake_reply(monkeypatch, section([DEAD_URL, DEAD_URL]), timings=found)
+
+    confirmed, unconfirmed = asyncio.run(industry.ai_generate_industry_experience(CONTEXT))["industry_experience"]["internship_programs"]
+
+    assert confirmed["apply_url"] == "https://careers.example.com/vacation"
+    assert unconfirmed["apply_url"].startswith("https://www.google.com/search?q=")

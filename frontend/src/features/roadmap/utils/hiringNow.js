@@ -24,3 +24,24 @@ export function postedAgo(postedAt, now = Date.now()) {
   const weeks = Math.floor(days / 7);
   return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 }
+
+const INTERNSHIP_TITLE = /\b(intern|internship|vacation|vacationer|cadet|cadetship|graduate program)\b/i;
+const COMPANY_FILLER = new Set(["pty", "ltd", "limited", "australia", "australian", "group", "inc", "the", "and", "co", "company", "corporation", "corp", "holdings", "services", "plc", "llp", "nsw", "of"]);
+
+export function pickOpenNow(ads, limit = 5) {
+  const seen = new Set();
+  const unique = ads.filter((ad) => !seen.has(ad.ad_id) && seen.add(ad.ad_id));
+  const internships = unique.filter((ad) => INTERNSHIP_TITLE.test(ad.title || ""));
+  const others = unique.filter((ad) => !INTERNSHIP_TITLE.test(ad.title || ""));
+  return [...internships, ...others].slice(0, limit);
+}
+
+function companyKey(name) {
+  return (name || "").toLowerCase().match(/[a-z0-9]+/g)?.filter((w) => !COMPANY_FILLER.has(w)).join(" ") || "";
+}
+
+export function sameCompany(a, b) {
+  const x = companyKey(a);
+  const y = companyKey(b);
+  return !!x && !!y && (x === y || x.startsWith(`${y} `) || y.startsWith(`${x} `));
+}

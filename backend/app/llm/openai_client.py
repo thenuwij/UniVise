@@ -99,15 +99,22 @@ async def ask_gpt_structured(
 async def ask_gpt_web_search(
     prompt: str,
     schema: type[SchemaT],
-    allowed_domains: List[str],
+    allowed_domains: List[str] | None,
     max_tokens: int = 3000,
     system_prompt: str = _GPT_SYSTEM,
     model: str = _GPT_MODEL,
 ) -> tuple[SchemaT, List[str]]:
-    """Structured GPT call that may search the web, limited to allowed_domains.
+    """Structured GPT call that may search the web, limited to allowed_domains when given.
 
     Returns the parsed reply and the URLs of every page the search returned.
     """
+    tool = {
+        "type": "web_search",
+        "user_location": {"type": "approximate", "country": "AU", "city": "Sydney", "region": "New South Wales"},
+        "search_context_size": "medium",
+    }
+    if allowed_domains:
+        tool["filters"] = {"allowed_domains": allowed_domains}
     try:
         response = await _openai_async_client.responses.parse(
             model=model,
@@ -115,12 +122,7 @@ async def ask_gpt_web_search(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            tools=[{
-                "type": "web_search",
-                "filters": {"allowed_domains": allowed_domains},
-                "user_location": {"type": "approximate", "country": "AU", "city": "Sydney", "region": "New South Wales"},
-                "search_context_size": "medium",
-            }],
+            tools=[tool],
             include=["web_search_call.action.sources"],
             text_format=schema,
             max_output_tokens=max_tokens,

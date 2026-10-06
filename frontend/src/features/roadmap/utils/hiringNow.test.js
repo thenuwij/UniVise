@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assignAds, postedAgo } from "./hiringNow";
+import { assignAds, pickOpenNow, postedAgo, sameCompany } from "./hiringNow";
 
 const ad = (ad_id, search_words) => ({ ad_id, search_words, title: `Graduate ${search_words}` });
 
@@ -29,5 +29,32 @@ describe("postedAgo", () => {
     expect(postedAgo("2026-10-06T10:00:00Z", now)).toBe("1 day ago");
     expect(postedAgo("2026-10-03T12:00:00Z", now)).toBe("4 days ago");
     expect(postedAgo("2026-09-20T12:00:00Z", now)).toBe("2 weeks ago");
+  });
+});
+
+describe("pickOpenNow", () => {
+  it("puts internship titles first, keeps each ad once and stops at five", () => {
+    const ads = [
+      { ad_id: "1", title: "Graduate Accountant" },
+      { ad_id: "2", title: "Accounting Intern" },
+      { ad_id: "1", title: "Graduate Accountant" },
+      { ad_id: "3", title: "Summer Vacation Program - Audit" },
+      { ad_id: "4", title: "Junior Accountant" },
+      { ad_id: "5", title: "Graduate Tax Accountant" },
+      { ad_id: "6", title: "Graduate Auditor" },
+    ];
+    expect(pickOpenNow(ads).map((a) => a.ad_id)).toEqual(["2", "3", "1", "4", "5"]);
+  });
+});
+
+describe("sameCompany", () => {
+  it("ignores company suffixes but not different firms", () => {
+    expect(sameCompany("Deloitte Australia", "Deloitte")).toBe(true);
+    expect(sameCompany("SMEC Services Pty Limited", "SMEC")).toBe(true);
+    expect(sameCompany("Atlassian Pty Ltd", "atlassian")).toBe(true);
+    expect(sameCompany("Commonwealth Bank", "Commonwealth Bank of Australia")).toBe(true);
+    expect(sameCompany("KPMG", "Deloitte")).toBe(false);
+    expect(sameCompany("Bank", "Commonwealth Bank")).toBe(false);
+    expect(sameCompany("", "Deloitte")).toBe(false);
   });
 });

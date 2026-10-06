@@ -16,6 +16,7 @@ from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import IndustryExperienceSection, SocietiesSection, career_pathways_schema
 from app.services.roadmap.cache import write_cached_roadmap
 from app.services.roadmap.career_data import fetch_career_data
+from app.services.roadmap.internship_timing import apply_timings, search_program_timings
 from app.services.roadmap.job_ads import ad_search_words
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
 from app.services.roadmap.salary_search import search_role_salaries
@@ -247,22 +248,16 @@ You are a UNSW career advisor. Provide industry experience information for {prog
       - Duration, timing, and key requirements if applicable
       - course_codes: the placement or industrial training courses from the course list below (for example an industrial training course, if it is listed). If none is in the list, return an empty list and say "not listed" in details.
 
-    B. INTERNSHIP PROGRAMS (4-6 programs)
-      - ONLY include real, well-known graduate internship programs that are verified to exist
-      - Prioritise programs from major Australian employers known to recruit from UNSW
-      - Use EXACT program names as advertised (e.g. "PwC Vacation Program", "Cochlear Student Internship", "BHP Graduate Program")
-      - apply_url must be the DIRECT careers page URL for that specific program — not a generic company homepage
-      - If unsure of exact apply URL, use the company's main careers page (e.g. https://careers.atlassian.com)
+    B. INTERNSHIP PROGRAMS (8 programs)
+      - ONLY include real internship, vacation and graduate programs that are verified to exist, run by Australian employers that hire graduates of {program_name} specifically
+      - Choose employers from this degree's own field, inferred from the degree and the course list below, not just the faculty
+      - Use EXACT program names as the employer advertises them
+      - apply_url must be the DIRECT careers page URL for that specific program, not a generic company homepage
+      - If unsure of the exact apply URL, use the company's main careers page
+      - application_period: the months applications usually open
       - competitiveness: one short phrase only (e.g. "Highly competitive", "Moderate", "Rolling intake")
 
-    C. TOP RECRUITING COMPANIES (8-10 companies)
-      - Real companies that actively hire graduates in this specific discipline — infer from the degree field, not just the faculty
-      - A Law degree → law firms, government, legal tech
-      - An Industrial Design degree → product companies, manufacturers, consultancies, consumer electronics firms
-      - Only include tech companies like Google or Atlassian if the degree is directly software, computer science, or digital design focused
-      - Mix of large firms and notable employers relevant to the field
-
-    D. CAREER EVENTS & WIL
+    C. CAREER EVENTS & WIL
       - Major career fairs or employer events
       - Work Integrated Learning subjects or co-op programs
       - wil_course_codes: WIL or industry project courses from the course list below. If none is in the list, return an empty list and say "not listed" in wil_opportunities.
@@ -285,7 +280,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
             "paid": true/false,
             "application_period": "e.g., 'March-April'",
             "competitiveness": "Brief note",
-            "apply_url": "Direct URL to apply or company careers page (e.g., 'https://careers.pwc.com.au/students')"
+            "apply_url": "Direct URL to apply or the company's careers page"
           }}
         ],
         "career_fairs": "Description of major fairs/events",
@@ -312,12 +307,21 @@ You are a UNSW career advisor. Provide industry experience information for {prog
         programs = experience.get("internship_programs", [])
         logger.info(f"Industry generated {len(programs)} internship programs")
 
-        # Validate apply_urls in parallel; replace dead links with fallback search redirect
         if programs:
             urls = [p.get("apply_url", "") for p in programs]
-            valid_flags = await asyncio.gather(*[validate_url(u) for u in urls])
+            valid_flags, timings = await asyncio.gather(
+                asyncio.gather(*[validate_url(u) for u in urls]),
+                search_program_timings(programs),
+                return_exceptions=True,
+            )
+            if isinstance(timings, Exception):
+                logger.error(f"[internship_timing] failed, keeping AI opening months: {timings}")
+                timings = {}
+            apply_timings(programs, timings)
             for program, is_valid in zip(programs, valid_flags):
-                if not is_valid:
+                if not is_valid and program.get("application_period_source"):
+                    program["apply_url"] = program["application_period_source"]
+                elif not is_valid:
                     query = quote(f"{program.get('company', '')} {program.get('program_name', '')} internship apply Australia")
                     program["apply_url"] = f"https://www.google.com/search?q={query}"
                     logger.info(f"[URL] Dead link replaced for {program.get('company')}")

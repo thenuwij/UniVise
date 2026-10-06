@@ -4,7 +4,7 @@ import { assignAds } from "../utils/hiringNow";
 
 const MAX_AGE_DAYS = 30;
 
-export function useHiringNow(roles) {
+export function useJobAds(roles) {
   const searchKey = Array.from(new Set((roles || []).map((r) => r.ad_search).filter(Boolean))).sort().join("|");
   const [ads, setAds] = useState([]);
 
@@ -27,5 +27,10 @@ export function useHiringNow(roles) {
     };
   }, [searchKey]);
 
+  return ads;
+}
+
+export function useHiringNow(roles) {
+  const ads = useJobAds(roles);
   return useMemo(() => assignAds(roles || [], ads), [roles, ads]);
 }
