@@ -51,3 +51,9 @@ def test_reviewed_file_rejects_unknown_areas(tmp_path):
     path.write_text("type,code,name,faculty,areas,how,check\nprogram,3707,Engineering,,Rocket science,rule,\n")
     with pytest.raises(ValueError):
         read_mapping(path)
+
+
+def test_committed_study_area_file_covers_every_program_and_major():
+    program_rows, major_rows = read_mapping("data/career/study_areas.csv")
+    assert len({row["degree_code"] for row in program_rows}) == 189
+    assert len({row["major_code"] for row in major_rows}) == 190

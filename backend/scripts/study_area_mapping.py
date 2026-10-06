@@ -6,12 +6,13 @@ double degrees one per degree.
 
 Run from the backend folder:
     python -m scripts.study_area_mapping plan --out ../ai/phase-8-study-areas.csv
-    python -m scripts.study_area_mapping apply --mapping ../ai/phase-8-study-areas.csv
+    python -m scripts.study_area_mapping apply --mapping data/career/study_areas.csv
 
 `plan` only reads the catalogue. It proposes areas from name rules, then from
 the two halves of a double degree, then asks the AI for anything left (limited
 to the 21 areas). Rows marked check=yes need a person's decision. `apply`
-replaces both mapping tables with the reviewed file.
+replaces both mapping tables with the reviewed file; the reviewed mapping from
+6 Oct 2026 is kept in data/career/study_areas.csv.
 """
 import argparse
 import asyncio

@@ -1,0 +1,380 @@
+type,code,name,areas
+program,3053,Bachelor of Biotechnology (Honours),Science and mathematics
+program,3061,Bachelor of Science (Honours) Food Science,Science and mathematics
+program,3131,Bachelor of Engineering (Honours) (Materials Science & Engineering),Engineering
+program,3132,Materials Science and Engineering (Honours) / Engineering Science,Engineering
+program,3133,Materials Science and Engineering (Honours) / Biomedical Engineering,Engineering
+program,3134,Bachelor of Engineering (Honours) / Bachelor of Commerce,Engineering; Business and management
+program,3154,Bachelor of Actuarial Studies / Science,Business and management; Science and mathematics
+program,3155,Bachelor of Commerce and Bachelor of Actuarial Studies,Business and management
+program,3181,Bachelor of Vision Science,Health services and support
+program,3182,Bachelor of Vision Science / Master of Clinical Optometry,Health services and support
+program,3256,Bachelor of Interior Architecture (Honours),Architecture and built environment
+program,3261,Bachelor of Architectural Studies,Architecture and built environment
+program,3325,Bachelor of Social Sciences,"Humanities, culture and social sciences"
+program,3332,Bachelor of Construction Management and Property,Architecture and built environment
+program,3341,Bachelor of Media,Communications
+program,3342,Bachelor of Design / Bachelor of Media,Creative arts; Communications
+program,3343,Bachelor of Fine Arts/Bachelor of Media,Creative arts; Communications
+program,3344,Media / Arts,"Communications; Humanities, culture and social sciences"
+program,3345,Bachelor of Media and Bachelor of Social Sciences,"Communications; Humanities, culture and social sciences"
+program,3362,Bachelor of City Planning (Honours),Architecture and built environment
+program,3381,Bachelor of Landscape Architecture (Honours),Architecture and built environment
+program,3409,Bachelor of Arts,"Humanities, culture and social sciences"
+program,3417,Diploma in Language Studies,"Humanities, culture and social sciences"
+program,3422,Bachelor of Criminology and Criminal Justice,"Humanities, culture and social sciences"
+program,3435,Bachelor of Psychological Science,Psychology
+program,3462,Bachelor of Commerce / Bachelor of Education (Secondary),Business and management; Teacher education
+program,3478,Bachelor of Politics Philosophy and Economics,"Humanities, culture and social sciences"
+program,3502,Bachelor of Commerce,Business and management
+program,3521,Bachelor of Commerce and Bachelor of Economics,Business and management
+program,3523,Bachelor of Science (Advanced Mathematics) (Honours) / Bachelor of Commerce,Business and management; Science and mathematics
+program,3529,Commerce / Science,Business and management; Science and mathematics
+program,3543,Bachelor of Economics,Business and management
+program,3554,Bachelor of Commerce (Co-op),Business and management
+program,3558,Bachelor of Commerce (International),Business and management
+program,3563,Bachelor of Economics / Bachelor of Science,Business and management; Science and mathematics
+program,3564,Bachelor of Economics / Bachelor of Science (Advanced Mathematics) (Honours),Business and management; Science and mathematics
+program,3565,Bachelor of Commerce (Co-op) (Honours),Business and management
+program,3566,Bachelor of Economics / Advanced Science (Honours),Business and management; Science and mathematics
+program,3573,Commerce / Arts,"Business and management; Humanities, culture and social sciences"
+program,3574,Bachelor of Economics and Bachelor of Arts,"Business and management; Humanities, culture and social sciences"
+program,3584,Bachelor of Commerce/Bachelor of Information Systems,Business and management; Computing and information systems
+program,3586,Bachelor of Actuarial Studies,Business and management
+program,3587,Bachelor of Actuarial Studies (Co-op),Business and management
+program,3588,Bachelor of Actuarial Studies and Bachelor of Economics,Business and management
+program,3589,Bachelor of Actuarial Studies / Bachelor of Science (Advanced Mathematics) (Honours),Business and management; Science and mathematics
+program,3593,Commerce / Advanced Science (Honours),Business and management; Science and mathematics
+program,3597,"Bachelor of Commerce - BCom, Bachelor of Design - BDes",Business and management; Creative arts
+program,3598,Bachelor of Commerce/Bachelor of Media,Business and management; Communications
+program,3599,"Bachelor of Commerce - BCom, Bachelor of Fine Arts - BFA",Business and management; Creative arts
+program,3632,Bachelor of Psychology (Honours),Psychology
+program,3635,Bachelor of Engineering (Honours) (Civil with Architecture),Engineering
+program,3671,Bachelor of Actuarial Studies and Bachelor of Information Systems,Business and management; Computing and information systems
+program,3673,Economics / Computer Science,Business and management; Computing and information systems
+program,3674,Actuarial Studies / Computer Science,Business and management; Computing and information systems
+program,3706,Bachelor of Engineering Science,Engineering
+program,3707,Bachelor of Engineering (Honours),Engineering
+program,3732,Bachelor of Engineering Science - BEngSc / Bachelor of Arts - BA,"Engineering; Humanities, culture and social sciences"
+program,3733,Bachelor of Engineering Science / Bachelor of Science,Engineering; Science and mathematics
+program,3734,Engineering Science / Commerce,Engineering; Business and management
+program,3736,Bachelor of Engineering (Honours) Master of Engineering,Engineering
+program,3738,Bachelor of Engineering Science / Bachelor of Computer Science,Engineering; Computing and information systems
+program,3761,Advanced Mathematics (Honours) / Engineering (Honours),Science and mathematics; Engineering
+program,3762,Advanced Science (Honours) / Engineering (Honours),Science and mathematics; Engineering
+program,3764,Bachelor of Engineering (Honours) and Bachelor of Commerce,Engineering; Business and management
+program,3765,Bachelor of Engineering (Honours) / Bachelor of Laws,Engineering; Law and paralegal studies
+program,3767,Bachelor of Engineering (Honours) and Bachelor of Science,Engineering; Science and mathematics
+program,3768,Bachelor of Engineering (Honours) / Master of Biomedical Engineering,Engineering
+program,3773,Engineering (Honours) / Engineering Science,Engineering
+program,3775,Bachelor of Surveying,Engineering
+program,3776,Engineering (Honours) / Surveying,Engineering
+program,3777,Bachelor of Cyber Security (Sydney),Computing and information systems
+program,3778,Bachelor of Computer Science,Computing and information systems
+program,3779,Bachelor of Advanced Computer Science (Honours),Computing and information systems
+program,3781,Bachelor of Science (Advanced Mathematics)(Honours) and Bachelor of Science (Computer Science),Science and mathematics; Computing and information systems
+program,3782,Advanced Science (Honours) / Computer Science,Science and mathematics; Computing and information systems
+program,3783,Bachelor of Science (Computer Science) / Bachelor of Arts,"Computing and information systems; Humanities, culture and social sciences"
+program,3784,Bachelor of Commerce - Bachelor of Science,Business and management; Science and mathematics
+program,3785,Bachelor of Engineering (Honours) / Bachelor of Science (Computer Science),Engineering; Computing and information systems
+program,3786,Computer Science / Law,Computing and information systems; Law and paralegal studies
+program,3789,Bachelor of Science/Bachelor of Science (Computer Science),Science and mathematics; Computing and information systems
+program,3792,Bachelor of Computer Science/Fine Arts,Computing and information systems; Creative arts
+program,3793,Bachelor of Fine Arts Bachelor of Engineering (Honours),Creative arts; Engineering
+program,3795,Bachelor of Information Systems/Bachelor of Science (Computer Science),Computing and information systems; Science and mathematics
+program,3798,Bachelor of Criminology and Criminal Justice / Bachelor of Psychology (Honours),"Humanities, culture and social sciences; Psychology"
+program,3799,Bachelor of Psychological Science / Bachelor of Criminology and Criminal Justice,"Psychology; Humanities, culture and social sciences"
+program,3805,Bachelor of Medical Studies - BMed Doctor of Medicine - MD,Medicine
+program,3831,Bachelor of Science (Medicine) Honours,Science and mathematics
+program,3835,Bachelor of Aviation - BAv / Bachelor of Commerce - BCom,Engineering; Business and management
+program,3856,Bachelor of Medical Studies / Doctor of Medicine,Medicine
+program,3890,Bachelor of Applied Exercise Science,Rehabilitation
+program,3891,Bachelor of Nutrition,Health services and support
+program,3892,Bachelor of Pharmaceutical Medicine,Science and mathematics
+program,3893,Bachelor of Exercise Science,Rehabilitation
+program,3894,Bachelor of Nutrition / Master of Dietetics and Food Innovation,Health services and support
+program,3895,Bachelor of Pharmaceutical Medicine / Master of Pharmacy,Pharmacy
+program,3896,Exercise Science / Physiotherapy and Exercise Physiology,Rehabilitation
+program,3897,Bachelor of Applied Exercise Science / Master of Clinical Exercise Physiology,Rehabilitation
+program,3921,Science / Fine Arts,Science and mathematics; Creative arts
+program,3922,Advanced Science (Honours) / Fine Arts,Science and mathematics; Creative arts
+program,3923,Bachelor of Science - BSc / Bachelor of Social Sciences - BSocSci,"Science and mathematics; Humanities, culture and social sciences"
+program,3924,Advanced Science (Honours) / Social Sciences,"Science and mathematics; Humanities, culture and social sciences"
+program,3928,Bachelor of Aviation (Remotely Piloted Aircraft Systems),Engineering
+program,3947,Bachelor of Science/Bachelor of Arts,"Science and mathematics; Humanities, culture and social sciences"
+program,3948,Bachelor of Advanced Science (Honours) and Bachelor of Arts,"Science and mathematics; Humanities, culture and social sciences"
+program,3949,Advanced Mathematics (Honours) / Arts,"Science and mathematics; Humanities, culture and social sciences"
+program,3955,Bachelor of Environmental Management / Bachelor of Arts,"Agriculture and environmental studies; Humanities, culture and social sciences"
+program,3956,Bachelor of Advanced Mathematics (Honours),Science and mathematics
+program,3959,Bachelor of Data Science and Decisions,Computing and information systems
+program,3961,Bachelor of Engineering (Honours) / Bachelor of Arts,"Engineering; Humanities, culture and social sciences"
+program,3962,Bachelor of Advanced Science (Honours),Science and mathematics
+program,3964,Bachelor of Information Systems (Co-op) (Honours),Computing and information systems
+program,3965,Bachelor of Environmental Management,Agriculture and environmental studies
+program,3970,Bachelor of Science,Science and mathematics
+program,3979,Bachelor of Information Systems,Computing and information systems
+program,3980,Bachelor of Aviation (Flying),Engineering
+program,3981,Bachelor of Aviation (Management),Business and management
+program,3991,Bachelor of Medical Science,Science and mathematics
+program,3997,Advanced Science (Honours) / Law,Science and mathematics; Law and paralegal studies
+program,3998,Advanced Mathematics (Honours) / Law,Science and mathematics; Law and paralegal studies
+program,3999,Bachelor of Medicinal Chemistry (Honours),Science and mathematics
+program,4033,Bachelor of Social Work (Honours) - BSW (Hons),Social work
+program,4034,Bachelor of Social Work (Honours) / Bachelor of Criminology & Criminal Justice,"Social work; Humanities, culture and social sciences"
+program,4045,Bachelor of Social Work (Honours) / Arts,"Social work; Humanities, culture and social sciences"
+program,4046,Bachelor of Social Work (Honours) / Social Sciences,"Social work; Humanities, culture and social sciences"
+program,4053,Bachelor of Arts / Bachelor of Education (Secondary),"Humanities, culture and social sciences; Teacher education"
+program,4056,Bachelor of Education (Secondary),Teacher education
+program,4058,Economics / Education (Secondary),Business and management; Teacher education
+program,4067,Bachelor of Design/Bachelor of Education (Secondary),Creative arts; Teacher education
+program,4068,Bachelor of Fine Arts Bachelor of Education (Secondary),Creative arts; Teacher education
+program,4071,Bachelor of Education (Primary) (Honours),Teacher education
+program,4076,Bachelor of Science / Bachelor of Education (Secondary),Science and mathematics; Teacher education
+program,4490,Bachelor of Cyber Security (Canberra City),Computing and information systems
+program,4500,Science (Honours),Science and mathematics
+program,4501,Bachelor of Commerce (Honours),Business and management
+program,4502,Bachelor of Economics (Honours),Business and management
+program,4504,Bachelor of Arts and Social Sciences (Honours),"Humanities, culture and social sciences"
+program,4505,Bachelor of Criminology & Criminal Justice (Honours),"Humanities, culture and social sciences"
+program,4508,Bachelor of Music (Honours),Creative arts
+program,4509,Bachelor of Education (Secondary) (Hons),Teacher education
+program,4510,Bachelor of Media (Honours),Communications
+program,4512,Business (Honours),Business and management
+program,4515,Bachelor of Science (Honours) in Computer Science & Engineering,Computing and information systems
+program,4516,Bachelor of Art Theory (Honours),Creative arts
+program,4517,Bachelor of Computing and Cyber Security (Honours),Computing and information systems
+program,4518,Bachelor of Psychological Science (Honours),Psychology
+program,4519,Bachelor of Arts (Honours) in Australian Indigenous Studies,"Humanities, culture and social sciences"
+program,4520,Bachelor of Actuarial Studies (Honours),Business and management
+program,4521,Bachelor of Architectural Studies (Honours),Architecture and built environment
+program,4522,Bachelor of Construction Management and Property (Honours),Architecture and built environment
+program,4523,Bachelor of Computational Design (Honours),Creative arts
+program,4525,Bachelor of Industrial Design (Honours),Creative arts
+program,4526,Bachelor of Fine Arts (Honours),Creative arts
+program,4527,Design (Honours),Creative arts
+program,4528,Bachelor of Media Arts (Honours),Communications
+program,4529,Bachelor of Social Science (Honours),"Humanities, culture and social sciences"
+program,4701,Bachelor of Laws - LLB,Law and paralegal studies
+program,4702,Bachelor of Laws (Honours) - LLB(Hons),Law and paralegal studies
+program,4706,City Planning (Honours) / Law,Architecture and built environment; Law and paralegal studies
+program,4717,Engineering (Honours) / Law (Honours),Engineering; Law and paralegal studies
+program,4721,Psychology (Honours) / Law,Psychology; Law and paralegal studies
+program,4722,Bachelor of Psychological Science / Bachelor of Laws,Psychology; Law and paralegal studies
+program,4733,Bachelor of Commerce - Bachelor of Laws,Business and management; Law and paralegal studies
+program,4737,Bachelor of Actuarial Studies / Bachelor of Laws,Business and management; Law and paralegal studies
+program,4744,Bachelor of Economics / Bachelor of Laws,Business and management; Law and paralegal studies
+program,4755,Medicinal Chemistry (Honours) / Law,Science and mathematics; Law and paralegal studies
+program,4763,Bachelor of Criminology and Criminal Justice / Bachelor of Laws,"Humanities, culture and social sciences; Law and paralegal studies"
+program,4770,Bachelor of Science - BSc Bachelor of Laws - LLB,Science and mathematics; Law and paralegal studies
+program,4782,Bachelor of Arts - Bachelor of Laws,"Humanities, culture and social sciences; Law and paralegal studies"
+program,4787,Bachelor of Social Work (Honours) / Bachelor of Laws,Social work; Law and paralegal studies
+program,4795,Bachelor of Data Science and Decisions / Bachelor of Laws,Computing and information systems; Law and paralegal studies
+program,4797,Bachelor of Politics Philosophy and Economics - BPPE Bachelor of Laws - LLB,"Humanities, culture and social sciences; Law and paralegal studies"
+program,4825,Bachelor of Design,Creative arts
+program,4830,Bachelor of Fine Arts - BFA Bachelor of Arts - BA,"Creative arts; Humanities, culture and social sciences"
+program,4831,Bachelor of Fine Arts/Bachelor of Arts,"Creative arts; Humanities, culture and social sciences"
+program,4873,Social Sciences / Law,"Humanities, culture and social sciences; Law and paralegal studies"
+program,4875,Bachelor of Media - Bachelor of Laws,Communications; Law and paralegal studies
+program,4877,Bachelor of Fine Arts / Bachelor of Law,Creative arts; Law and paralegal studies
+program,6114,University Preparation Program,"Humanities, culture and social sciences"
+program,7001,Diploma in Science,Science and mathematics
+program,7002,Diploma in Engineering - DipE,Engineering
+program,7003,Diploma in Computer Science,Computing and information systems
+program,7004,Diploma in Business,Business and management
+program,7005,Diploma in Media and Communication,Communications
+program,7006,Diploma in Architecture,Architecture and built environment
+program,7012,Diploma in Science and Technology,Science and mathematics
+program,7016,Humanities Pathway Program,"Humanities, culture and social sciences"
+program,7019,Indigenous Preparatory Program,"Humanities, culture and social sciences"
+program,7021,Undergraduate Certificate in Engineering,Engineering
+program,7022,Undergraduate Certificate in Computer Science,Computing and information systems
+major,ACCTA1,Accounting,Business and management
+major,ACTLE1,Actuarial Risk Management and Analytics,Business and management
+major,AEROD1,Aerospace Engineering,Engineering
+major,ANATA1,Anatomy,Science and mathematics
+major,ANATE1,Human Anatomy,Science and mathematics
+major,ANATF1,Anatomy (Advanced Science),Science and mathematics
+major,ARTSD1,Language Studies,"Humanities, culture and social sciences"
+major,ASIAB1,Asian Studies,"Humanities, culture and social sciences"
+major,ATSIC1,Indigenous Studies,"Humanities, culture and social sciences"
+major,BINFC1,Bioinformatics Engineering,Engineering
+major,BINFD1,Bioinformatics (Advanced Science),Science and mathematics
+major,BINFE1,Bioinformatics,Computing and information systems
+major,BIOCC1,Genetics,Science and mathematics
+major,BIOCG1,Genetics (Advanced Science),Science and mathematics
+major,BIOCH1,Molecular Biology,Science and mathematics
+major,BIOCI1,Molecular Genetics,Science and mathematics
+major,BIOCL1,Molecular and Cell Biology (Advanced Science),Science and mathematics
+major,BIOCM1,Molecular and Cell Biology,Science and mathematics
+major,BIOMM1,Biomedical Engineering,Engineering
+major,BIOPA1,Biophysics,Science and mathematics
+major,BIOPB1,Biophysics (Advanced Science),Science and mathematics
+major,BIOSG1,Ecology,Science and mathematics
+major,BIOSJ1,Biology,Science and mathematics
+major,BIOSM1,Ecology and Conservation,Science and mathematics
+major,BIOSN1,Ecology and Conservation (Advanced Science),Science and mathematics
+major,BIOSO1,Biology and Biodiversity,Science and mathematics
+major,BIOSP1,Biology and Biodiversity (Advanced Science),Science and mathematics
+major,BIOTA1,Biotechnology,Science and mathematics
+major,BIOTB1,Biotechnology,Science and mathematics
+major,CEICD1,Chemical Product Engineering,Engineering
+major,CEICM1,Chemical Engineering,Engineering
+major,CHEMA1,Chemistry,Science and mathematics
+major,CHEMB1,Chemistry (Advanced Science),Science and mathematics
+major,CHEMJ1,Biological Chemistry,Science and mathematics
+major,CHINE1,Chinese Studies,"Humanities, culture and social sciences"
+major,CHINF1,Advanced Chinese Studies,"Humanities, culture and social sciences"
+major,CLIMB1,Climate Systems Science (Advanced Science),Science and mathematics
+major,CLIME1,Climate Systems Science,Science and mathematics
+major,CODEB1,Computational Design,Creative arts
+major,COMDF1,Global Development,"Humanities, culture and social sciences"
+major,COMMG1,Business Sustainability and Social Impact,Business and management
+major,COMMI1,AI in Business and Society,Business and management
+major,COMMJ1,Business Analytics,Business and management
+major,COMPA1,Computer Science,Computing and information systems
+major,COMPD1,Computer Science (Database Systems),Computing and information systems
+major,COMPF1,Computer Engineering,Engineering
+major,COMPI1,Computer Science (Artificial Intelligence),Computing and information systems
+major,COMPJ1,Computer Science (Programming Languages),Computing and information systems
+major,COMPN1,Computer Science (Computer Networks),Computing and information systems
+major,COMPS1,Computer Science (Embedded Systems),Computing and information systems
+major,COMPY1,Computer Science (Security Engineering),Computing and information systems
+major,COMPZ1,Computational Data Science,Computing and information systems
+major,CRIMC1,Criminology,"Humanities, culture and social sciences"
+major,CRWTA1,Creative Writing,Creative arts
+major,CVENJ1,Civil Engineering,Engineering
+major,CVENK1,Environmental Engineering,Engineering
+major,DARTC1,Animation and Moving Image,Creative arts
+major,DARTD1,Art Theory,Creative arts
+major,DARTE1,Visual Arts,Creative arts
+major,DDESB1,Integrated Design,Creative arts
+major,ECONA1,Economics,Business and management
+major,ECONF1,Business Economics,Business and management
+major,ECONL1,Business Data Science,Computing and information systems
+major,ECONO1,Behavioural Economics,Business and management
+major,ECONT1,Data Analytics and Econometrics,Business and management
+major,ECONU1,Economic Policy and Society,Business and management
+major,ECONV1,Macroeconomics and Financial Markets,Business and management
+major,ELECC1,Quantum Engineering,Engineering
+major,ELECF1,Electrical Engineering,Engineering
+major,ENGGC1,Water Process Engineering,Engineering
+major,ENGGD1,Energy Engineering,Engineering
+major,ENGGF1,Nuclear Engineering,Engineering
+major,ENGLC1,English,"Humanities, culture and social sciences"
+major,ENVPE1,Environmental Humanities,"Humanities, culture and social sciences"
+major,ENVST1,Environmental Chemistry,Science and mathematics
+major,EUROC1,European Studies,"Humanities, culture and social sciences"
+major,FILMB1,Film Studies,Creative arts
+major,FINSA1,Finance,Business and management
+major,FINSR1,Financial Technology,Business and management
+major,FOODB1,Food Engineering,Engineering
+major,FOODH1,Food Science,Science and mathematics
+major,FRENF1,French Studies,"Humanities, culture and social sciences"
+major,FRENG1,Advanced French Studies,"Humanities, culture and social sciences"
+major,GEOGG1,Geography,Science and mathematics
+major,GEOGK1,Geographical Studies,Science and mathematics
+major,GEOGV1,Geography (Advanced Science),Science and mathematics
+major,GEOLN1,Earth Science (Advanced Science),Science and mathematics
+major,GEOLS1,Earth Science,Science and mathematics
+major,GERSF1,German Studies,"Humanities, culture and social sciences"
+major,GMATF1,Surveying Engineering,Engineering
+major,HISTD1,History,"Humanities, culture and social sciences"
+major,HUMSA1,Arts & Soc Sc (Indigenous),"Humanities, culture and social sciences"
+major,HUMSC1,Law,Law and paralegal studies
+major,IBUSA1,International Business,Business and management
+major,IDESF1,Industrial Design,Creative arts
+major,INDOA1,Indonesian Studies,"Humanities, culture and social sciences"
+major,INFSA1,Information Systems,Computing and information systems
+major,INFSG1,Cybersecurity Management,Computing and information systems
+major,INSTC1,International Studies,"Humanities, culture and social sciences"
+major,JAPNF1,Japanese Studies,"Humanities, culture and social sciences"
+major,JAPNG1,Advanced Japanese Studies,"Humanities, culture and social sciences"
+major,KOREF1,Korean Studies,"Humanities, culture and social sciences"
+major,KOREG1,Advanced Korean Studies,"Humanities, culture and social sciences"
+major,LINGC1,Linguistics,"Humanities, culture and social sciences"
+major,MARKA1,Marketing,Business and management
+major,MARKD1,Marketing Analytics,Business and management
+major,MATHA1,Applied Mathematics,Science and mathematics
+major,MATHE1,Quantitative Data Science,Computing and information systems
+major,MATHG1,Physical Oceanography (Advanced Science),Science and mathematics
+major,MATHJ1,Mathematics (Advanced Science),Science and mathematics
+major,MATHK1,Statistics (Advanced Science),Science and mathematics
+major,MATHM1,Mathematics,Science and mathematics
+major,MATHN1,Physical Oceanography,Science and mathematics
+major,MATHO1,Advanced Physical Oceanography,Science and mathematics
+major,MATHP1,Pure Mathematics,Science and mathematics
+major,MATHT1,Statistics,Science and mathematics
+major,MATHU1,Advanced Statistics,Science and mathematics
+major,MATHV1,Mathematics for Education,Teacher education
+major,MATSB1,Materials Science,Science and mathematics
+major,MATSE1,Materials Science and Engineering (Physical Metallurgy),Engineering
+major,MATSF1,Materials Science and Engineering (Functional Materials),Engineering
+major,MATSG1,Materials Science and Engineering (Process Metallurgy),Engineering
+major,MATSH1,Materials Science and Engineering,Engineering
+major,MATSJ1,Materials Science and Engineering (Ceramic Engineering),Engineering
+major,MATSM1,Materials Science and Engineering,Engineering
+major,MATSP1,Materials Science (Advanced Science),Science and mathematics
+major,MDIAN1,Cinema Studies,Creative arts
+major,MDIAO1,Communication and Journalism,Communications
+major,MDIAQ1,Media Studies,Communications
+major,MDIAR1,Public Relations and Advertising,Communications
+major,MDIAT1,Screen Production,Creative arts
+major,MECHD1,Mechanical Engineering,Engineering
+major,MECHE1,Mechanical and Manufacturing Engineering,Engineering
+major,MECTC1,"Media, Culture and Technology",Communications
+major,MEREA1,Geoenergy and Geostorage Engineering,Engineering
+major,MGMTH1,Human Resource Management,Business and management
+major,MGMTJ1,"Innovation, Strategy and Entrepreneurship",Business and management
+major,MICRB1,Microbiology,Science and mathematics
+major,MICRE1,Microbiology (Advanced Science),Science and mathematics
+major,MICRH1,Medical Microbiology,Science and mathematics
+major,MICRJ1,Immunology,Science and mathematics
+major,MICRK1,Medical Immunology,Science and mathematics
+major,MICRL1,Immunology (Advanced Science),Science and mathematics
+major,MINEC1,Mining Engineering,Engineering
+major,MSCIK1,Marine and Coastal Science (Advanced Science),Science and mathematics
+major,MSCIM1,Marine and Coastal Science,Science and mathematics
+major,MTRNJ1,Robotics and Mechatronics Engineering,Engineering
+major,MUSCJ1,Music Studies,Creative arts
+major,MUSCK1,Music Studies (Intensive),Creative arts
+major,MUSCP1,Music,Creative arts
+major,MUSCQ1,Music Creative Practice,Creative arts
+major,MUSCR1,Music Pedagogy,Creative arts
+major,MUSCS1,Music Sonic Arts,Creative arts
+major,NANOB1,Nanodevices,Science and mathematics
+major,NANOC1,Nanomaterials,Science and mathematics
+major,NEURA1,Neuroscience (Advanced Science),Science and mathematics
+major,NEURB1,Neurobiology,Science and mathematics
+major,NEURS1,Neuroscience,Science and mathematics
+major,PATHA1,Pathology,Science and mathematics
+major,PATHB1,Pathology (Advanced Science),Science and mathematics
+major,PATHC1,Human Pathology,Science and mathematics
+major,PHARA1,Pharmacology,Science and mathematics
+major,PHARB1,Pharmacology (Advanced Science),Science and mathematics
+major,PHARC1,Medical Pharmacology,Science and mathematics
+major,PHILE1,Philosophy,"Humanities, culture and social sciences"
+major,PHSLA1,Physiology,Science and mathematics
+major,PHSLB1,Physiology (Advanced Science),Science and mathematics
+major,PHSLC1,Medical Physiology,Science and mathematics
+major,PHYSC1,Physics (Advanced Science),Science and mathematics
+major,PHYSL1,Physics,Science and mathematics
+major,POLSG1,Politics and International Relations,"Humanities, culture and social sciences"
+major,PSYCA1,Psychology,Psychology
+major,PSYCD1,Studies in Psychology,Psychology
+major,REGZA1,"Arts, Design, Architecture and Criminology","Humanities, culture and social sciences"
+major,REGZB1,Science (UPP),Science and mathematics
+major,REGZC1,Engineering (UPP),Engineering
+major,REGZD1,"UNSW Prep Program 17-19 Arts, Design & Architecture","Humanities, culture and social sciences"
+major,REGZE1,UNSW Prep Program 17-19 Science,Science and mathematics
+major,REGZF1,UNSW Prep Program 17-19 Engineering,Engineering
+major,REGZG1,UNSW Prep Prog 17-19 Business,Business and management
+major,REGZH1,Business (UPP),Business and management
+major,SENGD1,Software Engineering,Engineering
+major,SOCAE1,Sociology,"Humanities, culture and social sciences"
+major,SOLAC1,Photovoltaics and Solar Energy,Engineering
+major,SOLAD1,Renewable Energy Engineering,Engineering
+major,SPANI1,Spanish Studies,"Humanities, culture and social sciences"
+major,TABLC1,Taxation,Business and management
+major,TELEE1,Telecommunications,Engineering
+major,THSTC1,Theatre and Performance Studies,Creative arts
+major,VISNA1,Vision Science,Health services and support
