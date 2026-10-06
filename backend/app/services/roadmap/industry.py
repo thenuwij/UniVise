@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 from datetime import datetime
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 import httpx
 from app.core.database import supabase
 from app.llm.claude_client import ask_claude_structured
@@ -23,6 +23,7 @@ from app.services.roadmap.salary_search import search_role_salaries
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
+ERROR_PAGE = re.compile(r"error|404|not-?found", re.I)
 THIN_PROGRAM_COURSES = 5
 
 
@@ -60,6 +61,8 @@ async def validate_url(url: str) -> bool:
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
             resp = await client.head(url)
+            if ERROR_PAGE.search(urlsplit(str(resp.url)).path):
+                return False
             return resp.status_code in (200, 301, 302, 403)
     except Exception:
         return False
