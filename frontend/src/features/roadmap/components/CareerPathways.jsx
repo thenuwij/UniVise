@@ -17,10 +17,13 @@ import {
   Crown,
   GraduationCap,
   ListChecks,
+  Megaphone,
   TrendingUp
 } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
+import { useHiringNow } from "../hooks/useHiringNow";
+import { postedAgo } from "../utils/hiringNow";
 
 const INTEREST_PATTERNS = {
   "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,
@@ -143,6 +146,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
   const interestAreas = useInterestAreas(personal);
   const [activeTab, setActiveTab] = useState('entry');
   const [showAllCerts, setShowAllCerts] = useState(false);
+  const hiringNow = useHiringNow(careerPathways?.entry_level?.roles);
 
   const entryLevel = careerPathways?.entry_level;
   const midCareer = careerPathways?.mid_career;
@@ -332,6 +336,39 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                         </ul>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {activeTab === "entry" && hiringNow[idx]?.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+                        <Megaphone className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Hiring now
+                      </p>
+                      <a href="https://www.adzuna.com.au" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:underline">
+                        Jobs by Adzuna
+                      </a>
+                    </div>
+                    <ul className="mt-2 space-y-2">
+                      {hiringNow[idx].map((ad) => (
+                        <li key={ad.ad_id}>
+                          <a
+                            href={ad.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-start justify-between gap-3 p-4 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-blue-400 dark:hover:ring-blue-500 transition"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300">{ad.title}</span>
+                              <span className="block mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                                {[ad.company, ad.location, ad.posted_at && `posted ${postedAgo(ad.posted_at)}`].filter(Boolean).join(" · ")}
+                              </span>
+                            </span>
+                            <ExternalLink className="h-4 w-4 flex-shrink-0 mt-1 text-slate-400 group-hover:text-blue-600" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
