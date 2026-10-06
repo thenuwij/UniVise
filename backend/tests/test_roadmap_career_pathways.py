@@ -2,7 +2,8 @@
 
 The AI calls, salary search and link checks are faked; these check that roles
 can only use occupations allowed for the degree, that sourced salaries replace
-the AI estimate, that each role only names courses from the program's real
+the AI estimate, that roles carry their occupation's official pay and demand,
+that each role only names courses from the program's real
 course list, that programs with few courses of their own suggest real
 specialisations instead, and the fallback when generation fails.
 """
@@ -15,12 +16,18 @@ from pydantic import ValidationError
 from app.models.roadmap import CareerPathwaysSection, career_pathways_schema
 from app.services.roadmap import industry
 
-OCCUPATIONS = [{"code": "2211", "title": "Accountants"}, {"code": "2212", "title": "Auditors, Company Secretaries and Corporate Treasurers"}]
+JSA = {"data_period": "Earnings May 2025", "source": "Jobs and Skills Australia", "source_url": "https://www.jobsandskills.gov.au/data/occupation-and-industry-profiles"}
+OCCUPATIONS = [
+    {"code": "2211", "title": "Accountants", "weekly_earnings": 2010, "in_demand_nsw": True, **JSA},
+    {"code": "2212", "title": "Auditors, Company Secretaries and Corporate Treasurers", "weekly_earnings": None, "in_demand_nsw": False, **JSA},
+]
+OUTLOOK = [{"study_area": "Business and management", "full_time_employment_rate": 81.5, "median_salary": 70000, "survey_year": 2025, "source": "QILT", "source_url": "https://www.qilt.edu.au"}]
 
 CONTEXT = {
     "program_name": "Bachelor of Commerce",
     "faculty": "UNSW Business School",
     "career_occupations": OCCUPATIONS,
+    "career_outlook": OUTLOOK,
     "program_courses": [
         {"code": "ACCT1501", "name": "Accounting and Financial Management 1A", "section": "Core", "section_rule": ""},
         {"code": "COMM1140", "name": "Financial Management", "section": "Core", "section_rule": ""},
@@ -54,7 +61,6 @@ GENERATED = {
                 "url": "https://www.cpaaustralia.com.au/become-a-cpa",
             }
         ] * 2,
-        "market_insights": {"trends": "Steady demand.", "geographic_notes": "Sydney CBD."},
     }
 }
 
@@ -258,7 +264,7 @@ def test_options_only_load_for_thin_programs_without_a_choice(monkeypatch, chose
     monkeypatch.setattr(industry, "supabase", None)
     monkeypatch.setattr(industry, "fetch_specialisation_context", lambda ids: dict(empty_context))
     monkeypatch.setattr(industry, "fetch_program_course_list", lambda code, extra: [{"code": f"COMP{1000 + i}"} for i in range(course_count)])
-    monkeypatch.setattr(industry, "fetch_career_occupations", lambda code, majors: [])
+    monkeypatch.setattr(industry, "fetch_career_data", lambda code, majors: {"occupations": [], "outlook": []})
     monkeypatch.setattr(industry, "fetch_specialisation_options", lambda code, name: OPTIONS)
     monkeypatch.setattr(industry, "fetch_society_rows", lambda: [])
     monkeypatch.setitem(industry.INDUSTRY_GENERATORS, "career_pathways", (careers, "career_pathways"))
@@ -267,3 +273,22 @@ def test_options_only_load_for_thin_programs_without_a_choice(monkeypatch, chose
     asyncio.run(industry.generate_industry_sections("3778", "Bachelor of Computer Science", existing))
 
     assert seen["options"] == expected
+
+
+def test_roles_carry_official_pay_and_demand_and_the_outlook_is_attached(fakes):
+    other = {**ROLE, "title": "Audit Senior", "anzsco_code": "2212"}
+    generated = copy.deepcopy(GENERATED)
+    generated["career_pathways"]["mid_career"]["roles"] = [other, other]
+    fakes["generated"] = generated
+
+    pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
+
+    entry = pathways["entry_level"]["roles"][0]
+    assert entry["typical_pay"] == {"weekly": 2010, "period": "Earnings May 2025", "source": "Jobs and Skills Australia", "source_url": JSA["source_url"]}
+    assert entry["in_demand_nsw"] is True
+    mid = pathways["mid_career"]["roles"][0]
+    assert mid["typical_pay"] is None
+    assert mid["in_demand_nsw"] is False
+    assert pathways["outlook"] == OUTLOOK
+    assert "market_insights" not in pathways
+    assert "MARKET" not in fakes["prompts"][0]

@@ -15,7 +15,7 @@ from app.llm.claude_client import ask_claude_structured
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import IndustryExperienceSection, SocietiesSection, career_pathways_schema
 from app.services.roadmap.cache import write_cached_roadmap
-from app.services.roadmap.career_data import fetch_career_occupations
+from app.services.roadmap.career_data import fetch_career_data
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
 from app.services.roadmap.salary_search import search_role_salaries
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
@@ -391,6 +391,7 @@ async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]
     faculty = context.get("faculty", "Not specified")
     occupations = context.get("career_occupations") or []
     occupation_titles = {o["code"]: o["title"] for o in occupations}
+    occupation_figures = {o["code"]: o for o in occupations}
     options = {o["code"]: o for o in context.get("specialisation_options") or []}
     courses = [] if options else context.get("program_courses") or []
 
@@ -428,8 +429,6 @@ A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C.
 
 D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommended/Optional), timeline, optional notes, and url: the official page for that certification (it is link-checked).
 
-E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geographic_notes (where in Australia the work is).
-
 {course_list_for_prompt(courses)}
 """
 
@@ -447,6 +446,14 @@ E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geograph
             role["degree_courses"] = keep_listed_codes(role["degree_courses"], allowed, 3)
             role["degree_path"] = replace_unlisted_codes(role["degree_path"], allowed)
             role["occupation_title"] = occupation_titles.get(role["anzsco_code"])
+            figures = occupation_figures.get(role["anzsco_code"]) or {}
+            role["typical_pay"] = {
+                "weekly": figures["weekly_earnings"],
+                "period": figures["data_period"],
+                "source": figures["source"],
+                "source_url": figures["source_url"],
+            } if figures.get("weekly_earnings") else None
+            role["in_demand_nsw"] = bool(figures.get("in_demand_nsw"))
             role["specialisations"] = [options[c] for c in dict.fromkeys(role["specialisations"]) if c in options][:2]
         salaries, _ = await asyncio.gather(
             search_role_salaries(roles, program_name),
@@ -457,6 +464,7 @@ E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geograph
             logger.error(f"[salary_search] failed, keeping AI estimates: {salaries}")
             salaries = {}
         apply_salaries(pathways, salaries)
+        pathways["outlook"] = context.get("career_outlook") or []
         logger.debug(f"[TIMING] ai_generate_career_pathways: {time.time() - _start:.1f}s")
         return result
 
@@ -469,10 +477,7 @@ E. MARKET: trends (1 to 2 sentences on the outlook for these roles) and geograph
                 "mid_career": {"roles": []},
                 "senior": {"roles": []},
                 "certifications": [],
-                "market_insights": {
-                    "trends": "Information temporarily unavailable",
-                    "geographic_notes": "Information temporarily unavailable"
-                },
+                "outlook": [],
             },
             "failed": True,
         }
@@ -520,9 +525,9 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
         program_courses = fetch_program_course_list(degree_code, codes)
         thin = not ids and len(program_courses) <= THIN_PROGRAM_COURSES
         options = fetch_specialisation_options(degree_code, program_name) if thin else []
-        return context, program_courses, fetch_career_occupations(degree_code, context["selected_major_codes"]), options
+        return context, program_courses, fetch_career_data(degree_code, context["selected_major_codes"]), options
 
-    faculty, (specialisations, program_courses, career_occupations, specialisation_options), societies = await asyncio.gather(
+    faculty, (specialisations, program_courses, career_data, specialisation_options), societies = await asyncio.gather(
         asyncio.to_thread(faculty_lookup),
         asyncio.to_thread(specialisation_part),
         asyncio.to_thread(fetch_society_rows),
@@ -533,7 +538,8 @@ async def generate_industry_sections(degree_code: str, program_name: str, existi
         "faculty": faculty or "Not specified",
         **specialisations,
         "program_courses": program_courses,
-        "career_occupations": career_occupations,
+        "career_occupations": career_data["occupations"],
+        "career_outlook": career_data["outlook"],
         "specialisation_options": specialisation_options,
         "societies": societies,
     }

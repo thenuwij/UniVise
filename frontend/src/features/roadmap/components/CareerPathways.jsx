@@ -5,22 +5,21 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { motion } from "framer-motion";
 import {
-  Building2,
+  Briefcase,
   DollarSign,
   ChevronDown,
   ChevronUp,
   ChevronRight,
   CheckCircle2,
   ExternalLink,
-  Target,
   Sparkles,
   Zap,
   Crown,
   GraduationCap,
-  ListChecks
+  ListChecks,
+  TrendingUp
 } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { hasContent } from "@/shared/lib/format";
 import { card } from "@/shared/ui/cardStyles";
 
 const INTEREST_PATTERNS = {
@@ -52,6 +51,62 @@ function useInterestAreas(enabled) {
   }, [enabled, userId]);
 
   return interestAreas;
+}
+
+const seekSearchUrl = (title) =>
+  `https://www.seek.com.au/${(title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-jobs/in-All-Sydney-NSW`;
+
+const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
+
+const earningsMonth = (period) => period?.match(/Earnings ([A-Za-z]+ \d{4})/)?.[1];
+
+const specialisationPath = (spec) => `/specialisation/${spec.type === "Honours" ? "honours" : "major"}/${spec.id}`;
+
+function SourceLink({ href, children }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-700 dark:text-blue-300 hover:underline">
+      {children} <ExternalLink className="h-3.5 w-3.5" />
+    </a>
+  );
+}
+
+function AiSuggestedTag() {
+  return (
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/60 ring-1 ring-slate-200 dark:ring-slate-600">
+      AI-suggested
+    </span>
+  );
+}
+
+function GraduateOutlook({ outlook }) {
+  const source = outlook[0];
+  return (
+    <section>
+      <SectionHeading subtitle={<>All Australian graduates in each study area. Source: <SourceLink href={source.source_url}>QILT Graduate Outcomes Survey {source.survey_year}</SourceLink></>}>
+        Graduate outlook
+      </SectionHeading>
+      <div className="mt-6 space-y-5">
+        {outlook.map((area) => (
+          <div key={area.study_area}>
+            {outlook.length > 1 && <p className="text-base font-semibold text-slate-700 dark:text-slate-200">{area.study_area}</p>}
+            <div className={`${outlook.length > 1 ? "mt-3 " : ""}grid sm:grid-cols-2 gap-4`}>
+              {[
+                [CheckCircle2, "In full-time work after graduating", area.full_time_employment_rate != null ? `${area.full_time_employment_rate}%` : null],
+                [DollarSign, "Median starting salary", area.median_salary != null ? `$${area.median_salary.toLocaleString()}` : null],
+              ].filter(([, , value]) => value).map(([Icon, label, value]) => (
+                <div key={label} className={`${card} p-6`}>
+                  <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
+                  </p>
+                  <p className="mt-2 text-[34px] leading-none font-heading font-bold text-slate-900 dark:text-white">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function RoleDescription({ text }) {
@@ -93,9 +148,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
   const midCareer = careerPathways?.mid_career;
   const senior = careerPathways?.senior;
   const certifications = careerPathways?.certifications || [];
-  const marketInsights = careerPathways?.market_insights;
-  const topEmployers = careerPathways?.top_employers?.by_sector || {};
-  const employmentStats = careerPathways?.employment_stats;
+  const outlook = careerPathways?.outlook || [];
 
   if (!entryLevel && !midCareer && !senior) return null;
 
@@ -117,31 +170,9 @@ export default function CareerPathways({ careerPathways, personal = false }) {
     if (match?.id) navigate(`/course/${match.id}`);
   };
 
-  const stats = [
-    [CheckCircle2, "Employment rate", employmentStats?.employment_rate],
-    [DollarSign, "Starting salary", employmentStats?.median_starting_salary],
-    [Target, "Market demand", marketInsights?.demand_level],
-  ].filter(([, , value]) => hasContent(value));
-  const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
-  const statSource = hasContent(employmentStats?.source) ? `Source: ${employmentStats.source}` : null;
-
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-      {stats.length > 0 && (
-        <section>
-          <SectionHeading subtitle={statSource}>Graduate outlook</SectionHeading>
-          <div className="mt-6 grid sm:grid-cols-3 gap-4">
-            {stats.map(([Icon, label, value]) => (
-              <div key={label} className={`${card} p-6`}>
-                <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
-                </p>
-                <p className={`mt-2 text-[34px] leading-none font-heading font-bold ${label === "Market demand" && /high|growing/i.test(value) ? "text-green-700 dark:text-green-400" : "text-slate-900 dark:text-white"}`}>{value}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {outlook.length > 0 && <GraduateOutlook outlook={outlook} />}
 
       <section>
         <SectionHeading
@@ -181,18 +212,34 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <h5 className="text-[22px] font-bold text-slate-900 dark:text-white">{role.title}</h5>
-                    {personal && matchesInterests(role.title, interestAreas) && (
-                      <span className="mt-2 inline-block px-3 py-1 rounded-full text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
-                        Matches your interests
-                      </span>
+                    {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {personal && matchesInterests(role.title, interestAreas) && (
+                          <span className="px-3 py-1 rounded-full text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
+                            Matches your interests
+                          </span>
+                        )}
+                        {role.in_demand_nsw && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-800">
+                            <TrendingUp className="h-3.5 w-3.5" /> In demand in NSW
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-start gap-3 flex-shrink-0">
                     {role.salary_range && (
-                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-semibold text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40">
-                        <DollarSign className="h-4 w-4" />
-                        {cleanSalary(role.salary_range)}
-                      </span>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-semibold text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40">
+                          <DollarSign className="h-4 w-4" />
+                          {cleanSalary(role.salary_range)}
+                        </span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                          {role.salary_source?.url
+                            ? <>Source: <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink></>
+                            : <AiSuggestedTag />}
+                        </span>
+                      </div>
                     )}
                     <SaveButton itemType="career_path" itemId={`${role.title}-${activeTab}`} itemName={role.title} itemData={{ ...role, level: activeTab }} />
                   </div>
@@ -200,7 +247,17 @@ export default function CareerPathways({ careerPathways, personal = false }) {
 
                 {role.description && <RoleDescription key={`${activeTab}-${idx}`} text={role.description} />}
 
-                {personal && (role.degree_path || role.degree_courses?.length > 0) && (
+                {role.typical_pay?.weekly && (
+                  <p className="mt-4 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <Briefcase className="inline h-4 w-4 mr-1.5 -mt-0.5 text-blue-600 dark:text-blue-400" />
+                    {role.occupation_title || "This occupation"} earn a typical <span className="font-semibold">${role.typical_pay.weekly.toLocaleString()} a week</span> full-time, across all experience levels.{" "}
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Source: <SourceLink href={role.typical_pay.source_url}>Jobs and Skills Australia{earningsMonth(role.typical_pay.period) ? `, ${earningsMonth(role.typical_pay.period)}` : ""}</SourceLink>
+                    </span>
+                  </p>
+                )}
+
+                {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
                   <div className="mt-6 p-5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40">
                     <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
                       <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -221,6 +278,24 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                           </button>
                         ))}
                       </div>
+                    )}
+                    {role.specialisations?.length > 0 && (
+                      <>
+                        <p className="mt-4 text-sm font-semibold text-slate-600 dark:text-slate-300">Specialisations to consider</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {role.specialisations.map((spec) => (
+                            <button
+                              key={spec.id}
+                              type="button"
+                              onClick={() => navigate(specialisationPath(spec))}
+                              className="group inline-flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+                            >
+                              {spec.name}
+                              <ChevronRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition-transform" />
+                            </button>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
@@ -260,36 +335,16 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                   </div>
                 )}
 
-                {role.hiring_companies?.length > 0 && (
-                  <div className="mt-6">
-                    <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-                      <Building2 className="h-5 w-5 text-slate-500" /> Companies hiring
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {role.hiring_companies.map((company, cIdx) => (
-                        <span key={cIdx} className="px-3.5 py-1.5 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60">
-                          {company}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {(role.source || role.source_url) && (
-                  <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-between gap-4">
-                    {role.source ? <span className="text-sm text-slate-500 dark:text-slate-400">Source: {role.source}</span> : <span />}
-                    {role.source_url && (
-                      <a
-                        href={role.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 transition-colors"
-                      >
-                        View listings <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
-                )}
+                <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                  <a
+                    href={seekSearchUrl(role.title)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 transition-colors"
+                  >
+                    See all current ads <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
               </article>
             ))}
           </div>
@@ -343,27 +398,6 @@ export default function CareerPathways({ careerPathways, personal = false }) {
         </section>
       )}
 
-      {Object.keys(topEmployers).length > 0 && (
-        <section>
-          <SectionHeading>
-            Top employers by sector
-          </SectionHeading>
-          <div className="mt-6 grid sm:grid-cols-2 gap-5">
-            {Object.entries(topEmployers).map(([sector, companies], idx) => (
-              <div key={idx} className={`${card} p-6`}>
-                <p className="text-base font-semibold text-slate-900 dark:text-white">{sector}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {companies.map((company, cIdx) => (
-                    <span key={cIdx} className="px-3.5 py-1.5 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60">
-                      {company}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

@@ -156,7 +156,7 @@ def fetch_specialisation_options(degree_code: str, program_name: str) -> List[Di
         for code in component_degree_codes(degree_code, program_name):
             rows = (
                 supabase.from_("unsw_specialisations")
-                .select("id, major_code, major_name")
+                .select("id, major_code, major_name, specialisation_type")
                 .contains("sections_degrees", json.dumps([{"degree_code": code}]))
                 .in_("specialisation_type", ["Major", "Honours"])
                 .order("major_name")
@@ -166,7 +166,7 @@ def fetch_specialisation_options(degree_code: str, program_name: str) -> List[Di
             )
             for row in rows:
                 if row.get("major_code") and row.get("major_name"):
-                    options.setdefault(row["major_code"], {"id": row["id"], "code": row["major_code"], "name": row["major_name"]})
+                    options.setdefault(row["major_code"], {"id": row["id"], "code": row["major_code"], "name": row["major_name"], "type": row["specialisation_type"]})
     except Exception as e:
         logger.error(f"fetch_specialisation_options failed for {degree_code}: {e}")
         return []

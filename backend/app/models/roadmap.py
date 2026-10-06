@@ -100,16 +100,11 @@ class Certification(BaseModel):
     notes: Optional[str]
     url: str
 
-class MarketInsights(BaseModel):
-    trends: str
-    geographic_notes: str
-
 class CareerPathways(BaseModel):
     entry_level: EntryLevelStage
     mid_career: ExperiencedStage
     senior: ExperiencedStage
     certifications: list[Certification] = Field(min_length=2, max_length=3)
-    market_insights: MarketInsights
 
 class CareerPathwaysSection(BaseModel):
     career_pathways: CareerPathways
