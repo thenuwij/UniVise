@@ -1,0 +1,120 @@
+anzsco_code,title,skill_level,employed,median_weekly_earnings,annual_employment_growth,shortage_national,shortage_nsw
+1111,Chief Executives and Managing Directors,1,63000,,3400,NS,NS
+1112,General Managers,1,69300,,-400,NS,NS
+1211,Aquaculture Farmers,1,1900,,0,NS,NS
+1213,Livestock Farmers,1,72400,,-4000,NS,NS
+1215,Broadacre Crop Growers,1,,,,NS,NS
+1216,Horticultural Crop Growers,1,,,,NS,NS
+1217,Mixed Production Farmers,1,,,,NS,NS
+1311,"Advertising, Public Relations and Sales Managers",1,167100,2677,2400,NS,NS
+1321,Corporate Services Managers,1,23000,2932,400,NS,NS
+1322,Finance Managers,1,77900,2904,2100,NS,NS
+1323,Human Resource Managers,1,95300,2768,1000,NS,NS
+1324,Policy and Planning Managers,1,41900,2945,2800,NS,NS
+1325,Research and Development Managers,1,20500,2887,1100,NS,NS
+1331,Construction Managers,1,134300,3751,2700,S,S
+1332,Engineering Managers,1,33500,3519,1100,NS,NS
+1333,"Importers, Exporters and Wholesalers",1,17700,1846,-700,NS,NS
+1334,Manufacturers,1,19400,,-2000,NS,NS
+1335,Production Managers,1,64700,2298,700,NS,NS
+1336,"Supply, Distribution and Procurement Managers",1,56700,2834,2500,NS,NS
+1341,Child Care Centre Managers,1,17200,1983,-400,NS,NS
+1342,Health and Welfare Services Managers,1,51200,2720,4500,NS,NS
+1343,School Principals,1,30000,,900,NS,NS
+1344,Other Education Managers,1,16200,2724,600,NS,NS
+1351,ICT Managers,1,95800,3310,4100,NS,NS
+1399,Other Specialist Managers,1,72200,2845,1600,NS,NS
+2111,"Actors, Dancers and Other Entertainers",1,8400,1692,500,NS,NS
+2112,Music Professionals,1,11900,1766,200,NS,NS
+2121,"Artistic Directors, and Media Producers and Presenters",1,13800,2179,200,NS,NS
+2122,"Authors, and Book and Script Editors",1,6800,,300,NS,NS
+2123,"Film, Television, Radio and Stage Directors",1,17400,1975,800,NS,NS
+2124,Journalists and Other Writers,1,23000,1722,-300,NS,NS
+2211,Accountants,1,215500,2003,5800,NS,NS
+2212,"Auditors, Company Secretaries and Corporate Treasurers",1,33100,2104,800,S,NS
+2222,Financial Dealers,1,19400,2651,-400,NS,NS
+2223,Financial Investment Advisers and Managers,1,63400,2582,900,NS,NS
+2231,Human Resource Professionals,1,84700,1970,-200,NS,NS
+2233,Training and Development Professionals,1,33700,1956,1600,NS,NS
+2241,Mathematical Science Professionals,1,12600,2072,500,NS,S
+2242,"Archivists, Curators and Records Managers",1,9800,2279,400,NS,NS
+2243,Economists,1,4600,2862,-100,NS,NS
+2244,Intelligence and Policy Analysts,1,44500,2173,2700,NS,NS
+2245,Land Economists and Valuers,1,13800,2744,100,NS,NS
+2246,Librarians,1,11900,1841,0,NS,NS
+2247,Management and Organisation Analysts,1,105800,2444,200,NS,NS
+2249,Other Information and Organisation Professionals,1,55000,2189,1300,NS,NS
+2251,Advertising and Marketing Professionals,1,103100,1957,3000,NS,NS
+2252,ICT Sales Professionals,1,16200,2003,-1300,NS,NS
+2253,Public Relations Professionals,1,32300,2046,1300,NS,NS
+2254,Technical Sales Representatives,1,26600,2596,-1000,NS,NS
+2311,Air Transport Professionals,1,16700,2651,500,S,S
+2321,Architects and Landscape Architects,1,35800,2308,1000,NS,NS
+2322,Surveyors and Spatial Scientists,1,18500,2300,200,S,S
+2323,"Fashion, Industrial and Jewellery Designers",1,14100,,0,NS,NS
+2324,"Graphic and Web Designers, and Illustrators",1,58700,1850,1400,NS,NS
+2326,Urban and Regional Planners,1,18800,2316,200,R,R
+2331,Chemical and Materials Engineers,1,6700,2849,0,NS,NS
+2332,Civil Engineering Professionals,1,76800,2217,1700,S,S
+2333,Electrical Engineers,1,33100,2553,2100,S,S
+2334,Electronics Engineers,1,6300,2762,0,NS,NS
+2335,"Industrial, Mechanical and Production Engineers",1,42500,2614,1300,NS,NS
+2336,Mining Engineers,1,17300,3518,1500,S,S
+2339,Other Engineering Professionals,1,20600,2649,2000,S,S
+2341,"Agricultural, Fisheries and Forestry Scientists",1,8900,2074,0,S,S
+2342,"Chemists, and Food and Wine Scientists",1,9100,2194,-400,NS,NS
+2343,Environmental Scientists,1,32000,1953,1000,NS,NS
+2344,"Geologists, Geophysicists and Hydrogeologists",1,13600,2914,400,S,NS
+2345,Life Scientists,1,9700,1544,-100,NS,NS
+2346,Medical Scientists,1,33300,2056,1700,NS,NS
+2347,Veterinarians,1,14500,2413,100,S,S
+2349,Other Natural and Physical Science Professionals,1,14600,1848,200,NS,NS
+2411,Early Childhood (Pre-primary School) Teachers,1,71900,1906,2700,S,S
+2412,Primary School Teachers,1,165900,2226,1600,S,S
+2413,Middle School Teachers / Intermediate School Teachers,1,1000,2424,-200,S,S
+2414,Secondary School Teachers,1,161400,2322,6400,S,S
+2415,Special Education Teachers,1,34000,2160,2700,S,S
+2421,University Lecturers and Tutors,1,65200,2924,1300,NS,NS
+2422,Vocational Education Teachers / Polytechnic Teachers,1,39400,2128,1800,S,S
+2491,Education Advisers and Reviewers,1,25300,2524,0,NS,NS
+2492,Private Tutors and Teachers,1,50800,2518,2600,NS,NS
+2493,Teachers of English to Speakers of Other Languages,1,4000,2366,300,NS,NS
+2511,Nutrition Professionals,1,8900,1667,-600,NS,NS
+2512,Medical Imaging Professionals,1,26000,2360,1700,S,S
+2513,Occupational and Environmental Health Professionals,1,42000,2284,2600,NS,NS
+2514,Optometrists and Orthoptists,1,9700,,200,NS,NS
+2515,Pharmacists,1,46300,1956,2900,S,S
+2519,Other Health Diagnostic and Promotion Professionals,1,10700,2024,200,NS,NS
+2521,Chiropractors and Osteopaths,1,7700,,-500,S,S
+2522,Complementary Health Therapists,1,7500,,-700,NS,NS
+2523,Dental Practitioners,1,25800,3232,2300,S,S
+2524,Occupational Therapists,1,35600,1913,3000,S,S
+2525,Physiotherapists,1,46600,1888,2000,S,S
+2526,Podiatrists,1,6600,,300,S,S
+2527,Audiologists and Speech Pathologists / Therapists,1,21200,2003,1000,S,S
+2531,General Practitioners and Resident Medical Officers,1,97300,2446,7000,S,S
+2532,Anaesthetists,1,7400,8293,200,S,S
+2533,Specialist Physicians,1,15900,3620,600,S,S
+2534,Psychiatrists,1,8100,,1100,S,S
+2535,Surgeons,1,7400,3905,-800,S,S
+2539,Other Medical Practitioners,1,23400,5013,1400,S,S
+2541,Midwives,1,19400,2114,-200,S,S
+2542,Nurse Educators and Researchers,1,9000,2732,200,NS,NS
+2543,Nurse Managers,1,24200,2658,1400,NS,NS
+2544,Registered Nurses,1,366200,2192,12600,S,S
+2611,ICT Business and Systems Analysts,1,51000,2697,800,NS,NS
+2612,Multimedia Specialists and Web Developers,1,12400,2476,-600,NS,NS
+2613,Software and Applications Programmers,1,203200,2537,13700,NS,NS
+2621,"Database and Systems Administrators, and ICT Security Specialists",1,72600,2461,3300,NS,NS
+2631,Computer Network Professionals,1,48600,2309,2600,NS,NS
+2632,ICT Support and Test Engineers,1,14800,2115,200,NS,NS
+2633,Telecommunications Engineering Professionals,1,13700,2797,-300,NS,NS
+2711,Barristers,1,8900,3495,0,NS,NS
+2712,Judicial and Other Legal Professionals,1,14500,2803,800,NS,NS
+2713,Solicitors,1,106100,2070,5400,S,S
+2721,Counsellors,1,40100,2154,2800,NS,NS
+2722,Ministers of Religion,1,18800,1994,-400,NS,NS
+2723,Psychologists,1,54200,2204,4400,S,S
+2724,Social Professionals,1,16000,2113,200,NS,NS
+2725,Social Workers,1,47400,2172,1700,NS,NS
+2726,"Welfare, Recreation and Community Arts Workers",1,42600,1960,1300,NS,NS

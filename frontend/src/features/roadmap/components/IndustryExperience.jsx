@@ -1,24 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertCircle, Building2, Calendar, ChevronDown, ChevronUp, Clock, ExternalLink, GraduationCap } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card, clickable } from "@/shared/ui/cardStyles";
+import JobAdList from "./JobAdList";
+import { AiSuggestedTag, SourceLink } from "./SourceTags";
+import { useJobAds } from "../hooks/useHiringNow";
+import { pickOpenNow, sameCompany } from "../utils/hiringNow";
 
 const RESOURCES = [
   ["UNSWConnect", "Internships, part-time jobs and graduate roles", "https://unswconnect.unsw.edu.au"],
   ["UNSW Prosple", "Graduate programs and early career opportunities", "https://unsw.prosple.com"],
 ];
 
-export default function IndustryExperience({ industryExperience }) {
+export default function IndustryExperience({ industryExperience, entryRoles }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
-  const internshipPrograms = industryExperience?.internship_programs || [];
+  const jobAds = useJobAds(entryRoles);
+  const openNow = useMemo(() => pickOpenNow(jobAds), [jobAds]);
+  const internshipPrograms = (industryExperience?.internship_programs || []).filter(
+    (program) => !openNow.some((ad) => sameCompany(ad.company, program.company))
+  );
   const placements = industryExperience?.mandatory_placements;
   const placementCodes = placements?.course_codes || [];
   const wilCodes = industryExperience?.wil_course_codes || [];
   const listedCourses = [...placementCodes, ...wilCodes.filter((code) => !placementCodes.includes(code))];
   const showPlacements = placements?.required || listedCourses.length > 0;
 
-  if (!internshipPrograms.length && !showPlacements) {
+  if (!internshipPrograms.length && !showPlacements && !openNow.length) {
     return (
       <p className="text-base text-slate-600 dark:text-slate-400">
         No internship or placement information for this program yet. Try the UNSW career resources at UNSWConnect.
@@ -58,9 +66,12 @@ export default function IndustryExperience({ industryExperience }) {
         </div>
       )}
 
+      {openNow.length > 0 && <JobAdList title="Open right now" ads={openNow} />}
+
       {internshipPrograms.length > 0 && (
         <div>
-          <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Internship programs</h4>
+          <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Keep a lookout</h4>
+          <p className="mt-1 text-base text-slate-600 dark:text-slate-400">Programs that open at set times each year.</p>
           <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {displayedPrograms.map((program, idx) => (
               <div key={idx} className={`${card} p-6 flex flex-col`}>
@@ -90,8 +101,9 @@ export default function IndustryExperience({ industryExperience }) {
                   )}
                 </div>
                 {program.application_period && (
-                  <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                    <AlertCircle className="h-4 w-4 text-amber-500" /> Apply: {program.application_period}
+                  <p className="mt-3 flex flex-wrap items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+                    <AlertCircle className="h-4 w-4 text-amber-500" /> Usually opens: {program.application_period}
+                    {program.application_period_source ? <SourceLink href={program.application_period_source}>Source</SourceLink> : <AiSuggestedTag />}
                   </p>
                 )}
 

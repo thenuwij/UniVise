@@ -119,12 +119,13 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
     for slot in ("major", "minor", "honours"):
         context[f"selected_{slot}_name"] = None
         context[f"selected_{slot}_courses"] = []
+    context["selected_major_codes"] = []
     if not specialisation_ids:
         return context
     try:
         rows = (
             supabase.from_("unsw_specialisations")
-            .select("id, major_name, specialisation_type, sections")
+            .select("id, major_code, major_name, specialisation_type, sections")
             .in_("id", specialisation_ids)
             .execute()
             .data
@@ -138,6 +139,8 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
         slot = SPECIALISATION_SLOTS.get(row.get("specialisation_type"), "major")
         if row.get("major_name"):
             names[slot].append(row["major_name"])
+        if row.get("specialisation_type") == "Major" and row.get("major_code"):
+            context["selected_major_codes"].append(row["major_code"])
         for code in extract_core_course_codes_from_sections(row.get("sections")):
             if code not in context[f"selected_{slot}_courses"]:
                 context[f"selected_{slot}_courses"].append(code)
@@ -145,6 +148,29 @@ def fetch_specialisation_context(specialisation_ids: List[str]) -> Dict[str, Any
         if found:
             context[f"selected_{slot}_name"] = " and ".join(found)
     return context
+
+
+def fetch_specialisation_options(degree_code: str, program_name: str) -> List[Dict[str, str]]:
+    options: Dict[str, Dict[str, str]] = {}
+    try:
+        for code in component_degree_codes(degree_code, program_name):
+            rows = (
+                supabase.from_("unsw_specialisations")
+                .select("id, major_code, major_name, specialisation_type")
+                .contains("sections_degrees", json.dumps([{"degree_code": code}]))
+                .in_("specialisation_type", ["Major", "Honours"])
+                .order("major_name")
+                .execute()
+                .data
+                or []
+            )
+            for row in rows:
+                if row.get("major_code") and row.get("major_name"):
+                    options.setdefault(row["major_code"], {"id": row["id"], "code": row["major_code"], "name": row["major_name"], "type": row["specialisation_type"]})
+    except Exception as e:
+        logger.error(f"fetch_specialisation_options failed for {degree_code}: {e}")
+        return []
+    return list(options.values())
 
 
 def fetch_program_course_list(degree_code: str, extra_codes: List[str] | None = None) -> List[Dict[str, str]]:
@@ -409,58 +435,30 @@ def extract_core_course_codes_from_sections(sections_data) -> List[str]:
 
     if not sections_data:
         return []
-    
+
     try:
-        # Parse JSON if string
-        if isinstance(sections_data, str):
-            sections = json.loads(sections_data)
-        else:
-            sections = sections_data
-        
+        sections = json.loads(sections_data) if isinstance(sections_data, str) else sections_data
         if not isinstance(sections, list):
             return []
-        
-        core_course_codes = []
-        
-        # Keywords that indicate CORE courses (not electives)
-        core_keywords = [
-            "core", "required", "compulsory", "thesis", "project", 
-            "capstone", "honours", "stream core", "disciplinary"
-        ]
-        
-        # Keywords that indicate ELECTIVES (skip these)
-        elective_keywords = [
-            "elective", "flexible", "general education", "free elective"
-        ]
-        
+
+        codes = []
         for section in sections:
             if not isinstance(section, dict):
                 continue
-            
-            title = section.get("title", "").lower()
-            
-            # Skip overview sections
-            if "overview" in title:
+            title = (section.get("title") or "").lower()
+            if "overview" in title or "general education" in title or "flexible" in title:
                 continue
-            
-            # Skip elective sections
-            if any(keyword in title for keyword in elective_keywords):
+            if "elective" in title and "prescribed" not in title:
                 continue
-            
-            # Only include core sections
-            if any(keyword in title for keyword in core_keywords):
-                courses = section.get("courses", [])
-                if isinstance(courses, list):
-                    for course in courses:
-                        if isinstance(course, dict) and course.get("code"):
-                            core_course_codes.append(course["code"])
-        
-        return core_course_codes
-    
+            for course in section.get("courses") or []:
+                if isinstance(course, dict) and course.get("code") and course["code"] not in codes:
+                    codes.append(course["code"])
+        return codes
+
     except Exception as e:
         logger.error(f"[extract_core_courses_from_sections] Error: {e}")
         return []
-    
+
 
 # Calculate overlap percentage with specialization courses weighted more heavily.
 def calculate_overlap_weighted(

@@ -1,24 +1,26 @@
-name: Refresh Roadmap Cache
+name: Fetch Job Ads
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * 0"
 
 permissions:
   id-token: write
   contents: read
 
 concurrency:
-  group: refresh-roadmap-cache
+  group: fetch-job-ads
   cancel-in-progress: false
 
 env:
   AWS_REGION: ap-southeast-2
 
 jobs:
-  refresh:
-    name: Refresh cached roadmaps
+  fetch:
+    name: Fetch graduate job ads
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -42,16 +44,16 @@ jobs:
         run: |
           for pair in \
             SUPABASE_SERVICE_ROLE_KEY=univise/staging/supabase-service-role-key \
-            OPENAI_API_KEY=univise/staging/openai-api-key \
-            ANTHROPIC_API_KEY=univise/staging/anthropic-api-key; do
+            ADZUNA_APP_ID=univise/staging/adzuna-app-id \
+            ADZUNA_APP_KEY=univise/staging/adzuna-app-key; do
             name="${pair%%=*}"
             value=$(aws secretsmanager get-secret-value --secret-id "${pair#*=}" --query SecretString --output text)
             echo "::add-mask::$value"
             echo "$name=$value" >> "$GITHUB_ENV"
           done
 
-      - name: Refresh and prune
+      - name: Fetch and store
         working-directory: backend
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-        run: python -m scripts.roadmap_cache_fill apply --refresh-days "${{ vars.ROADMAP_REFRESH_DAYS || '30' }}" --prune
+        run: python -m scripts.job_ads_fetch apply

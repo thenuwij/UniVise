@@ -1,5 +1,5 @@
 // src/components/pathway/CareerPathCard.jsx
-import { Briefcase, Building2, DollarSign, TrendingUp } from "lucide-react";
+import { Briefcase, DollarSign, ExternalLink, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 function CareerPathCard({ data }) {
@@ -24,6 +24,13 @@ function CareerPathCard({ data }) {
             <div>
               <p className="text-xs text-emerald-600 dark:text-emerald-400">Salary</p>
               <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{data.salary_range}</p>
+              {data.salary_source?.url ? (
+                <a href={data.salary_source.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:underline">
+                  Source: {data.salary_source.name} <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">AI-suggested</p>
+              )}
             </div>
           </div>
         )}
@@ -59,22 +66,6 @@ function CareerPathCard({ data }) {
                 {data.key_skills.map((skill, idx) => (
                   <span key={idx} className="px-2.5 py-1 text-xs font-medium rounded-full bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300">
                     {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {data.hiring_companies && data.hiring_companies.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
-                Companies Hiring
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {data.hiring_companies.map((company, idx) => (
-                  <span key={idx} className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                    <Building2 className="w-3 h-3" />
-                    {company}
                   </span>
                 ))}
               </div>

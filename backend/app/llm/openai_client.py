@@ -96,6 +96,53 @@ async def ask_gpt_structured(
     return choice.message.parsed
 
 
+async def ask_gpt_web_search(
+    prompt: str,
+    schema: type[SchemaT],
+    allowed_domains: List[str] | None,
+    search_context_size: str = "medium",
+    max_tokens: int = 3000,
+    system_prompt: str = _GPT_SYSTEM,
+    model: str = _GPT_MODEL,
+) -> tuple[SchemaT, List[str]]:
+    """Structured GPT call that may search the web, limited to allowed_domains when given.
+
+    Returns the parsed reply and the URLs of every page the search returned.
+    """
+    tool = {
+        "type": "web_search",
+        "user_location": {"type": "approximate", "country": "AU", "city": "Sydney", "region": "New South Wales"},
+        "search_context_size": search_context_size,
+    }
+    if allowed_domains:
+        tool["filters"] = {"allowed_domains": allowed_domains}
+    try:
+        response = await _openai_async_client.responses.parse(
+            model=model,
+            input=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            tools=[tool],
+            include=["web_search_call.action.sources"],
+            text_format=schema,
+            max_output_tokens=max_tokens,
+        )
+    except Exception as e:
+        logger.error(f"OpenAI API error (ask_gpt_web_search): {e}")
+        raise
+    if response.output_parsed is None:
+        raise ValueError("OpenAI returned no structured output (ask_gpt_web_search)")
+    sources = [
+        source.url
+        for item in response.output
+        if item.type == "web_search_call"
+        for source in (getattr(item.action, "sources", None) or [])
+        if getattr(source, "url", None)
+    ]
+    return response.output_parsed, sources
+
+
 async def ask_gpt_stream(
     history: List[Dict[str, str]],
     system_prompt: str,

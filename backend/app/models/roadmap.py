@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Any, Dict
+from pydantic import BaseModel, Field, create_model
+from typing import Optional, Any, Dict, Literal
 
 class SchoolReq(BaseModel):
     recommendation_id: Optional[str] = None
@@ -76,15 +76,14 @@ class IndustryExperienceSection(BaseModel):
     industry_experience: IndustryExperience
 
 class CareerRole(BaseModel):
+    anzsco_code: str
     title: str
     salary_range: str
     description: str
     requirements: str
-    hiring_companies: list[str]
-    source: str
-    source_url: str
     degree_path: str
     degree_courses: list[str] = Field(max_length=3)
+    specialisations: list[str] = Field(max_length=2)
     next_steps: list[str] = Field(min_length=1, max_length=3)
 
 class EntryLevelStage(BaseModel):
@@ -101,31 +100,31 @@ class Certification(BaseModel):
     notes: Optional[str]
     url: str
 
-class MarketInsights(BaseModel):
-    demand_level: str
-    trends: str
-    geographic_notes: str
-
-class SectorEmployers(BaseModel):
-    sector: str
-    companies: list[str]
-
-class EmploymentStats(BaseModel):
-    employment_rate: str
-    median_starting_salary: str
-    source: str
-
 class CareerPathways(BaseModel):
     entry_level: EntryLevelStage
     mid_career: ExperiencedStage
     senior: ExperiencedStage
     certifications: list[Certification] = Field(min_length=2, max_length=3)
-    market_insights: MarketInsights
-    top_employers: list[SectorEmployers] = Field(min_length=2, max_length=3)
-    employment_stats: EmploymentStats
 
 class CareerPathwaysSection(BaseModel):
     career_pathways: CareerPathways
+
+def career_pathways_schema(occupation_codes: list[str], specialisation_codes: list[str] | None = None) -> type[BaseModel]:
+    if not occupation_codes and not specialisation_codes:
+        return CareerPathwaysSection
+
+    fields: Dict[str, Any] = {}
+    if occupation_codes:
+        fields["anzsco_code"] = (Literal[tuple(occupation_codes)], ...)
+    if specialisation_codes:
+        fields["specialisations"] = (list[Literal[tuple(specialisation_codes)]], Field(max_length=2))
+    role = create_model("AllowedRole", __base__=CareerRole, **fields)
+    entry = create_model("AllowedEntryLevel", roles=(list[role], Field(min_length=3, max_length=3)))
+    experienced = create_model("AllowedExperienced", roles=(list[role], Field(min_length=2, max_length=2)))
+    pathways = create_model(
+        "AllowedPathways", __base__=CareerPathways, entry_level=(entry, ...), mid_career=(experienced, ...), senior=(experienced, ...)
+    )
+    return create_model("AllowedSection", career_pathways=(pathways, ...))
 
 class RoadmapResp(BaseModel):
     id: str
