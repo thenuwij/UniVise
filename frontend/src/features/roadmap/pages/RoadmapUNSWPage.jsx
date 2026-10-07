@@ -33,11 +33,6 @@ const hasSection = (payload, key) => {
   return !!value && Object.keys(value).length > 0;
 };
 
-const KEYBOARD_NAV_KEYS = {
-  ARROW_RIGHT: "ArrowRight",
-  ARROW_LEFT: "ArrowLeft"
-};
-
 // Helper functions
 const extractStepIndexFromUrl = (searchParams) => {
   const stepParam = new URLSearchParams(searchParams).get("step");
@@ -226,7 +221,7 @@ function SectionError({ onRetry }) {
   );
 }
 
-const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapId) => {
+const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Handle URL-based step navigation on mount
@@ -242,23 +237,6 @@ const useStepNavigation = (searchParams, stepsLength, hasData, preloadedRoadmapI
     const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}`;
     window.history.replaceState(null, '', newUrl);
   }, [activeIndex, hasData, preloadedRoadmapId]);
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    if (!hasData) return;
-
-    const handleKeyDown = (event) => {
-      if (event.key === KEYBOARD_NAV_KEYS.ARROW_RIGHT) {
-        setActiveIndex((current) => Math.min(current + 1, stepsLength - 1));
-      }
-      if (event.key === KEYBOARD_NAV_KEYS.ARROW_LEFT) {
-        setActiveIndex((current) => Math.max(current - 1, 0));
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [hasData, stepsLength]);
 
   return { activeIndex, setActiveIndex };
 };
@@ -413,7 +391,6 @@ export default function RoadmapUNSWPage() {
 
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search, 
-    steps.length, 
     !!data, 
     preloadedRoadmapId
   );

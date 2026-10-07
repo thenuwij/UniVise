@@ -86,6 +86,7 @@ function DoneToggle({ done, onClick }) {
 
 function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, onToggleDone }) {
   const total = section.uoc ?? sumUoC(section.courses);
+  const count = section.courses?.length || 0;
 
   return (
     <div className={`${card} overflow-hidden`}>
@@ -96,13 +97,13 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
       >
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
-          {section.description && (
+          {hasContent(section.description) && !isOpen && (
             <p className="mt-1 text-[15px] text-slate-500 dark:text-slate-400 line-clamp-1">{section.description}</p>
           )}
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
-            {section.courses?.length || 0} courses · {total} UOC
+            {count} {count === 1 ? "course" : "courses"} · {total} UOC
           </span>
           {isOpen ? <ChevronUp className="h-5 w-5 text-slate-400 group-hover:text-blue-600" /> : <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-blue-600" />}
         </div>
@@ -110,6 +111,11 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
 
       <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="px-6 pb-6 pt-1 border-t border-slate-100 dark:border-slate-800">
+          {hasContent(section.description) && (
+            <div className="mt-4">
+              <FormattedText text={section.description} collapsedHeight="7rem" className="text-[15px] text-ink" maxWidth="max-w-none" />
+            </div>
+          )}
           <div className="grid sm:grid-cols-2 gap-3 mt-4">
             {section.courses?.map((c, i) => (
               <div
@@ -121,7 +127,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
                   <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">{c.code}</span>
                   <span className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1">{c.name}</span>
                 </div>
-                {c.uoc && (
+                {c.uoc != null && c.uoc !== "" && (
                   <span className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                     {c.uoc} UOC
                   </span>
@@ -133,11 +139,13 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
             ))}
           </div>
 
-          {section.notes && (
-            <p className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              <span className="font-semibold text-slate-800 dark:text-slate-200">Note: </span>
-              {section.notes}
-            </p>
+          {hasContent(section.notes) && (
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Note</p>
+              <div className="mt-1">
+                <FormattedText text={section.notes} collapsedHeight={null} className="text-sm text-ink" maxWidth="max-w-none" />
+              </div>
+            </div>
           )}
         </div>
       </div>

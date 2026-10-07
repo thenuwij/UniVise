@@ -3,7 +3,7 @@ import DegreeSelectorForRoadmap from "./DegreeSelectorForRoadmap";
 
 function DegreeSelectorSection({ selectedDegreeId, setSelectedDegreeId, setSelectedDegreeObject, initialQuery }) {
   return (
-    <section className="w-full mb-12">
+    <section className="w-full">
       <DegreeSelectorForRoadmap
         selectedId={selectedDegreeId}
         initialQuery={initialQuery}
