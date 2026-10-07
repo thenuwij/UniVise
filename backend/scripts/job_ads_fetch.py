@@ -82,6 +82,10 @@ def unique_ads(ads: list) -> list:
     return kept[:ADS_PER_SEARCH]
 
 
+class AdzunaBusy(Exception):
+    """Adzuna refused more calls (daily limit or overload)."""
+
+
 def rotate(items: list, week: int, size: int) -> list:
     if not items or size <= 0:
         return items
@@ -90,19 +94,22 @@ def rotate(items: list, week: int, size: int) -> list:
 
 
 def fetch_ads(searches: list, search, cap: int = CALL_CAP, week: int | None = None) -> tuple:
-    found, calls = {}, 0
-    for words in searches:
-        if calls >= cap:
-            break
-        found[words] = search(f"graduate {words}")
-        calls += 1
-    empty = [w for w, ads in found.items() if not ads]
-    week = datetime.now(timezone.utc).isocalendar().week if week is None else week
-    fallback = rotate(empty, week, cap - calls)[: max(cap - calls, 0)]
-    for words in fallback:
-        found[words] = [ad for ad in search(words) if is_early_career(ad.get("title"))]
-        calls += 1
-    searched = {words: ads for words, ads in found.items() if ads or words in fallback}
+    found, calls, retried = {}, 0, set()
+    try:
+        for words in searches:
+            if calls >= cap:
+                break
+            found[words] = search(f"graduate {words}")
+            calls += 1
+        empty = [w for w, ads in found.items() if not ads]
+        week = datetime.now(timezone.utc).isocalendar().week if week is None else week
+        for words in rotate(empty, week, cap - calls)[: max(cap - calls, 0)]:
+            found[words] = [ad for ad in search(words) if is_early_career(ad.get("title"))]
+            retried.add(words)
+            calls += 1
+    except AdzunaBusy as busy:
+        print(f"Adzuna stopped answering after {calls} calls ({busy}); keeping the searches that finished")
+    searched = {words: ads for words, ads in found.items() if ads or words in retried}
     return {words: unique_ads(ads) for words, ads in searched.items()}, calls
 
 
@@ -122,6 +129,8 @@ def adzuna_search(client: httpx.Client, credentials: dict):
             response = client.get(API, params=params)
             if response.status_code != 503:
                 break
+        if response.status_code in (429, 503):
+            raise AdzunaBusy(f"HTTP {response.status_code}")
         response.raise_for_status()
         return response.json().get("results") or []
 
