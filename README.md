@@ -38,7 +38,7 @@ A five-step view of the student's own degree: Overview, Structure, Careers, Inte
 
 ### CourseMesh
 
-The student's courses as a prerequisite graph, coloured Completed, Can take next, or Not yet. It exposes prerequisite chains and bottleneck courses, and highlights AI-recommended courses the student can take now, each with a one-line reason linked to their career goals.
+The student's courses as a prerequisite graph, coloured Completed, Can take next, or Not yet. It shows core courses by default, lets the student add the electives they choose, and treats "one of the following" courses as a single choice. It exposes prerequisite chains and bottleneck courses, and highlights AI-recommended courses the student can take now, each with a one-line reason linked to their career goals.
 
 ### Handbook
 
@@ -91,7 +91,7 @@ Handbook data is cleaned before it is displayed. Placeholder values are stored a
 | Secrets | AWS Secrets Manager, loaded at runtime |
 | CI/CD | GitHub Actions on push to `main`, authenticated by OIDC with no stored AWS keys |
 | Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, notified through SNS |
-| Scheduled jobs | GitHub Actions for weekly job ads and roadmap refreshes |
+| Scheduled jobs | GitHub Actions: weekly job ads, roadmap refresh on demand |
 
 ### Repository Structure
 
@@ -107,7 +107,7 @@ backend/app/
   llm/          OpenAI and Claude clients, structured output and parsing of model output
   models/       Pydantic request and response schemas
   core/         configuration, database client, JWT auth
-backend/scripts/  one-off data maintenance: handbook data clean-up, display-data audit, faculty and course-list repairs
+backend/scripts/  data maintenance: yearly Handbook import, display-data audit, clean-up and repair scripts
 backend/tests/    API route contract and core logic tests
 supabase/migrations/  database schema and row level security policies as SQL migrations
 ```
