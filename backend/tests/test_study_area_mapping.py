@@ -55,5 +55,5 @@ def test_reviewed_file_rejects_unknown_areas(tmp_path):
 
 def test_committed_study_area_file_covers_every_program_and_major():
     program_rows, major_rows = read_mapping("data/career/study_areas.csv")
-    assert len({row["degree_code"] for row in program_rows}) == 189
-    assert len({row["major_code"] for row in major_rows}) == 190
+    assert len({row["degree_code"] for row in program_rows}) == 192
+    assert len({row["major_code"] for row in major_rows}) == 195

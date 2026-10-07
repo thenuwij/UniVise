@@ -59,7 +59,9 @@ program,3732,Bachelor of Engineering Science - BEngSc / Bachelor of Arts - BA,"E
 program,3733,Bachelor of Engineering Science / Bachelor of Science,Engineering; Science and mathematics
 program,3734,Engineering Science / Commerce,Engineering; Business and management
 program,3736,Bachelor of Engineering (Honours) Master of Engineering,Engineering
+program,3737,Bachelor of Advanced Science (Honours) / Bachelor of Engineering Science,Science and mathematics; Engineering
 program,3738,Bachelor of Engineering Science / Bachelor of Computer Science,Engineering; Computing and information systems
+program,3739,Bachelor of Science (Advanced Mathematics) (Honours) / Bachelor of Engineering Science,Science and mathematics; Engineering
 program,3761,Advanced Mathematics (Honours) / Engineering (Honours),Science and mathematics; Engineering
 program,3762,Advanced Science (Honours) / Engineering (Honours),Science and mathematics; Engineering
 program,3764,Bachelor of Engineering (Honours) and Bachelor of Commerce,Engineering; Business and management
@@ -129,6 +131,7 @@ program,4058,Economics / Education (Secondary),Business and management; Teacher 
 program,4067,Bachelor of Design/Bachelor of Education (Secondary),Creative arts; Teacher education
 program,4068,Bachelor of Fine Arts Bachelor of Education (Secondary),Creative arts; Teacher education
 program,4071,Bachelor of Education (Primary) (Honours),Teacher education
+program,4072,Bachelor of Education (Primary),Teacher education
 program,4076,Bachelor of Science / Bachelor of Education (Secondary),Science and mathematics; Teacher education
 program,4490,Bachelor of Cyber Security (Canberra City),Computing and information systems
 program,4500,Science (Honours),Science and mathematics
@@ -171,7 +174,7 @@ program,4787,Bachelor of Social Work (Honours) / Bachelor of Laws,Social work; L
 program,4795,Bachelor of Data Science and Decisions / Bachelor of Laws,Computing and information systems; Law and paralegal studies
 program,4797,Bachelor of Politics Philosophy and Economics - BPPE Bachelor of Laws - LLB,"Humanities, culture and social sciences; Law and paralegal studies"
 program,4825,Bachelor of Design,Creative arts
-program,4830,Bachelor of Fine Arts - BFA Bachelor of Arts - BA,"Creative arts; Humanities, culture and social sciences"
+program,4830,Bachelor of Fine Arts,Creative arts
 program,4831,Bachelor of Fine Arts/Bachelor of Arts,"Creative arts; Humanities, culture and social sciences"
 program,4873,Social Sciences / Law,"Humanities, culture and social sciences; Law and paralegal studies"
 program,4875,Bachelor of Media - Bachelor of Laws,Communications; Law and paralegal studies
@@ -189,7 +192,9 @@ program,7019,Indigenous Preparatory Program,"Humanities, culture and social scie
 program,7021,Undergraduate Certificate in Engineering,Engineering
 program,7022,Undergraduate Certificate in Computer Science,Computing and information systems
 major,ACCTA1,Accounting,Business and management
+major,ACCTB1,Accounting Co-op,Business and management
 major,ACTLE1,Actuarial Risk Management and Analytics,Business and management
+major,ACTLF1,Actuarial Studies Co-op,Business and management
 major,AEROD1,Aerospace Engineering,Engineering
 major,ANATA1,Anatomy,Science and mathematics
 major,ANATE1,Human Anatomy,Science and mathematics
@@ -266,6 +271,7 @@ major,ENVST1,Environmental Chemistry,Science and mathematics
 major,EUROC1,European Studies,"Humanities, culture and social sciences"
 major,FILMB1,Film Studies,Creative arts
 major,FINSA1,Finance,Business and management
+major,FINSD1,Finance Co-op,Business and management
 major,FINSR1,Financial Technology,Business and management
 major,FOODB1,Food Engineering,Engineering
 major,FOODH1,Food Science,Science and mathematics
@@ -285,6 +291,7 @@ major,IBUSA1,International Business,Business and management
 major,IDESF1,Industrial Design,Creative arts
 major,INDOA1,Indonesian Studies,"Humanities, culture and social sciences"
 major,INFSA1,Information Systems,Computing and information systems
+major,INFSB1,Information Systems Co-op,Computing and information systems
 major,INFSG1,Cybersecurity Management,Computing and information systems
 major,INSTC1,International Studies,"Humanities, culture and social sciences"
 major,JAPNF1,Japanese Studies,"Humanities, culture and social sciences"
@@ -293,6 +300,7 @@ major,KOREF1,Korean Studies,"Humanities, culture and social sciences"
 major,KOREG1,Advanced Korean Studies,"Humanities, culture and social sciences"
 major,LINGC1,Linguistics,"Humanities, culture and social sciences"
 major,MARKA1,Marketing,Business and management
+major,MARKB1,Marketing Co-op,Business and management
 major,MARKD1,Marketing Analytics,Business and management
 major,MATHA1,Applied Mathematics,Science and mathematics
 major,MATHE1,Quantitative Data Science,Computing and information systems
