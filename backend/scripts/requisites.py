@@ -7,6 +7,7 @@ completed) make their group impossible to check, so that group is dropped
 rather than locking the course. Exclusions and equivalents are ignored.
 """
 import re
+from collections import defaultdict
 from itertools import product
 
 COURSE = re.compile(r"\b[A-Z]{4}\d{4}\b")
@@ -198,6 +199,22 @@ def requisite_groups(text: str, known: set[str]) -> list[tuple[str, frozenset]]:
             members = frozenset(code for code in group if code in known)
             if members and (kind, members) not in out:
                 out.append((kind, members))
+    return one_link_per_pair(out)
+
+
+def one_link_per_pair(groups: list[tuple[str, frozenset]]) -> list[tuple[str, frozenset]]:
+    """The links table holds one link per course pair, so a course may sit in only one group.
+
+    Groups that contain a smaller group are implied by it and dropped. If a course is
+    still in two groups, the later, larger group is dropped, which can only relax the rule.
+    """
+    kept = [g for g in groups if not any(o[0] == g[0] and o[1] < g[1] for o in groups)]
+    out, used = [], defaultdict(set)
+    for kind, members in sorted(kept, key=lambda g: (g[0], len(g[1]), sorted(g[1]))):
+        if members & used[kind]:
+            continue
+        out.append((kind, members))
+        used[kind] |= members
     return out
 
 
