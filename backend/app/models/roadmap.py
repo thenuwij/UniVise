@@ -117,7 +117,7 @@ def career_pathways_schema(occupation_codes: list[str], specialisation_codes: li
     if occupation_codes:
         fields["anzsco_code"] = (Literal[tuple(occupation_codes)], ...)
     if specialisation_codes:
-        fields["specialisations"] = (list[Literal[tuple(specialisation_codes)]], Field(min_length=1, max_length=2))
+        fields["specialisations"] = (list[Literal[tuple(specialisation_codes)]], Field(max_length=2))
     role = create_model("AllowedRole", __base__=CareerRole, **fields)
     entry = create_model("AllowedEntryLevel", roles=(list[role], Field(min_length=3, max_length=3)))
     experienced = create_model("AllowedExperienced", roles=(list[role], Field(min_length=2, max_length=2)))

@@ -273,3 +273,25 @@ def test_only_entry_roles_get_ad_search_words(fakes):
 
     assert pathways["entry_level"]["roles"][0]["ad_search"] == "accountant"
     assert "ad_search" not in pathways["mid_career"]["roles"][0]
+
+
+def test_a_role_may_have_no_specialisation_and_aviation_may_use_pilots():
+    from app.services.roadmap.career_data import PROGRAM_EXTRA_OCCUPATIONS
+
+    schema = career_pathways_schema(["2211"], ["COMPI1"])
+    generated = copy.deepcopy(GENERATED)
+    schema.model_validate(generated)
+    assert PROGRAM_EXTRA_OCCUPATIONS["3980"] == ["2311"]
+
+
+def test_internships_prompt_prefers_employers_from_the_field(monkeypatch):
+    prompts = []
+
+    async def reply(prompt, schema, **kwargs):
+        prompts.append(prompt)
+        raise ValueError("stop after the prompt")
+
+    monkeypatch.setattr(industry, "ask_claude_structured", reply)
+    asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
+
+    assert "main business is in this field" in prompts[0]

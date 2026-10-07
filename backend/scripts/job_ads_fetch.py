@@ -13,7 +13,10 @@ Run from the backend folder:
 
 `plan` lists the searches without calling Adzuna. `dry-run` searches and
 prints the ads without writing. `apply` replaces the stored ads of every
-search it ran, then deletes ads posted more than 30 days ago.
+search that finished, then deletes ads posted more than 30 days ago. When the
+cap leaves room for only some fallback searches, the starting point moves each
+week so every empty search gets its fallback in turn; a search still waiting
+for its fallback keeps its stored ads.
 """
 import argparse
 import os
@@ -79,19 +82,28 @@ def unique_ads(ads: list) -> list:
     return kept[:ADS_PER_SEARCH]
 
 
-def fetch_ads(searches: list, search, cap: int = CALL_CAP) -> tuple:
+def rotate(items: list, week: int, size: int) -> list:
+    if not items or size <= 0:
+        return items
+    start = (week * size) % len(items)
+    return items[start:] + items[:start]
+
+
+def fetch_ads(searches: list, search, cap: int = CALL_CAP, week: int | None = None) -> tuple:
     found, calls = {}, 0
     for words in searches:
         if calls >= cap:
             break
         found[words] = search(f"graduate {words}")
         calls += 1
-    for words in [w for w, ads in found.items() if not ads]:
-        if calls >= cap:
-            break
+    empty = [w for w, ads in found.items() if not ads]
+    week = datetime.now(timezone.utc).isocalendar().week if week is None else week
+    fallback = rotate(empty, week, cap - calls)[: max(cap - calls, 0)]
+    for words in fallback:
         found[words] = [ad for ad in search(words) if is_early_career(ad.get("title"))]
         calls += 1
-    return {words: unique_ads(ads) for words, ads in found.items()}, calls
+    searched = {words: ads for words, ads in found.items() if ads or words in fallback}
+    return {words: unique_ads(ads) for words, ads in searched.items()}, calls
 
 
 def adzuna_search(client: httpx.Client, credentials: dict):

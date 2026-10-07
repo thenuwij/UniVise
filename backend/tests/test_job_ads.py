@@ -2,11 +2,11 @@
 
 Adzuna is faked; these check how a role title becomes its search words, that
 searches are ordered by how many programs use them, that an empty search is
-retried with early-career titles only, that the call cap is respected, and
-that repeated ads are stored once.
+retried with early-career titles only, that the call cap is respected and the
+fallbacks take turns across weeks, and that repeated ads are stored once.
 """
 from app.services.roadmap.job_ads import ad_search_words, is_early_career
-from scripts.job_ads_fetch import ad_row, count_searches, fetch_ads, unique_ads
+from scripts.job_ads_fetch import ad_row, count_searches, fetch_ads, rotate, unique_ads
 
 
 def ad(ad_id, title, company="Acme"):
@@ -56,11 +56,28 @@ def test_empty_search_is_retried_with_early_career_titles_only():
     assert [a["id"] for a in found["paralegal"]] == ["2"]
 
 
-def test_calls_stop_at_the_cap():
+def test_calls_stop_at_the_cap_and_unfinished_searches_keep_their_ads():
     found, count = fetch_ads(["a", "b", "c"], lambda words: [], cap=2)
 
     assert count == 2
-    assert list(found) == ["a", "b"]
+    assert found == {}
+
+
+def test_fallbacks_take_turns_week_by_week():
+    def search(title_words):
+        return [] if title_words.startswith("graduate") else [ad(title_words, f"Junior {title_words}")]
+
+    words = ["a", "b", "c", "d"]
+    week_one, _ = fetch_ads(words, search, cap=6, week=0)
+    week_two, _ = fetch_ads(words, search, cap=6, week=1)
+
+    assert sorted(week_one) == ["a", "b"]
+    assert sorted(week_two) == ["c", "d"]
+
+
+def test_rotation_wraps_around():
+    assert rotate(["a", "b", "c"], week=1, size=2) == ["c", "a", "b"]
+    assert rotate([], week=3, size=2) == []
 
 
 def test_the_same_ad_from_two_companies_listings_is_kept_once():

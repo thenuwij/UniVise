@@ -253,6 +253,7 @@ You are a UNSW career advisor. Provide industry experience information for {prog
     B. INTERNSHIP PROGRAMS (8 programs)
       - ONLY include real internship, vacation and graduate programs that are verified to exist, run by Australian employers that hire graduates of {program_name} specifically
       - Choose employers from this degree's own field, inferred from the degree and the course list below, not just the faculty
+      - Prefer employers whose main business is in this field; include a large technology company only if this degree's field is computing, software or digital design
       - Use EXACT program names as the employer advertises them
       - apply_url must be the DIRECT careers page URL for that specific program, not a generic company homepage
       - If unsure of the exact apply URL, use the company's main careers page
@@ -367,8 +368,9 @@ def specialisation_list_for_prompt(options: list) -> str:
     listing = "\n".join(f"- {o['code']}: {o['name']}" for o in options)
     return (
         "SPECIALISATIONS: the student has not chosen a specialisation, and this program has few courses of its own, "
-        "so suggest specialisations instead of courses. For each role, put the codes of the 1 to 2 specialisations below "
-        "that best prepare a student for it in specialisations, and name them in degree_path.\n" + listing
+        "so suggest specialisations instead of courses. For each role, put the codes of up to 2 specialisations below "
+        "that genuinely prepare a student for it in specialisations, and name them in degree_path. "
+        "Leave specialisations empty for a role that none of them prepares for.\n" + listing
     )
 
 
@@ -420,7 +422,7 @@ A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C.
   - requirements: a semicolon-separated list of at most 5 discrete skills
   - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
   - degree_courses: 2 to 3 course codes from the course list below that build the skills this role needs. Only codes from the list. Return an empty list if none fit or the list is not available.
-  - specialisations: {"1 to 2 codes from the SPECIALISATIONS list above" if options else "an empty list"}
+  - specialisations: {"up to 2 codes from the SPECIALISATIONS list above, or an empty list if none prepares for this role" if options else "an empty list"}
   - next_steps: up to 3 short, concrete actions a current student can take now towards this role
 
 D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommended/Optional), timeline, optional notes, and url: the official page for that certification (it is link-checked).
