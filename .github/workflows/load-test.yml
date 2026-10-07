@@ -1,0 +1,97 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: Students at once
+        required: true
+        default: "25"
+      minutes:
+        description: Run length in minutes
+        required: true
+        default: "10"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: load-test
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-2
+
+jobs:
+  load-test:
+    name: Simulated study session
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/loadtest/requirements.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt -r loadtest/requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+
+      - name: Load secrets
+        run: |
+          for pair in \
+            SUPABASE_SERVICE_ROLE_KEY=univise/staging/supabase-service-role-key \
+            OPENAI_API_KEY=univise/staging/openai-api-key \
+            ANTHROPIC_API_KEY=univise/staging/anthropic-api-key; do
+            name="${pair%%=*}"
+            value=$(aws secretsmanager get-secret-value --secret-id "${pair#*=}" --query SecretString --output text)
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Create test accounts
+        working-directory: backend
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+        run: python -m loadtest.accounts create --count "${{ inputs.users }}"
+
+      - name: Pre-warm the backend
+        run: seq 15 | xargs -P 15 -I{} curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://api.uni-vise.com/health
+
+      - name: Run the session
+        working-directory: backend
+        env:
+          LOADTEST_SUPABASE_URL: ${{ secrets.STAGING_VITE_SUPABASE_URL }}
+          LOADTEST_SUPABASE_ANON_KEY: ${{ secrets.STAGING_VITE_SUPABASE_ANON_KEY }}
+        run: |
+          locust -f loadtest/locustfile.py --headless -u "${{ inputs.users }}" -r 2 --run-time "${{ inputs.minutes }}m" \
+            --csv "../ai/loadtest/run-${{ inputs.users }}" --html "../ai/loadtest/run-${{ inputs.users }}.html" --only-summary \
+            --exit-code-on-error 0
+
+      - name: Delete test accounts
+        if: always()
+        working-directory: backend
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+        run: python -m loadtest.accounts delete
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-${{ inputs.users }}
+          path: |
+            ai/loadtest/*.csv
+            ai/loadtest/*.html
