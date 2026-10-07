@@ -1,0 +1,135 @@
+"""Tests for the Handbook import rules.
+
+No network or database is touched; these check how Handbook HTML becomes
+display text, how course sections, types and choice groups are built, and
+which differences count as changes.
+"""
+from scripts.handbook_import import build_sections, compare, course_row, html_to_text, is_active, with_current_overview
+
+
+def group(title, value, credit_points="", courses=(), children=(), order="0", description=""):
+    return {
+        "title": title,
+        "order": order,
+        "credit_points": credit_points,
+        "description": description,
+        "vertical_grouping": {"value": value},
+        "relationship": [{"academic_item_code": code, "academic_item_name": code, "academic_item_credit_points": "6"} for code in courses],
+        "container": list(children),
+    }
+
+
+def test_html_keeps_paragraphs_and_lists_as_lines():
+    text = html_to_text("<p>Students must complete 144 UOC.</p><ol><li>A 96 UOC major</li><li>36 UOC of electives</li></ol><ul><li>One</li></ul>")
+
+    assert text == "Students must complete 144 UOC.\n1. A 96 UOC major\n2. 36 UOC of electives\n• One"
+
+
+def test_html_entities_spaces_and_placeholders():
+    assert html_to_text("Law&nbsp;&amp; Justice<br/>") == "Law & Justice"
+    assert html_to_text("<p>Not specified</p>") is None
+    assert html_to_text("") is None
+    assert html_to_text(None) is None
+
+
+def test_sections_follow_handbook_order_and_types():
+    structure = {"container": [
+        group("General Education", "GE", "12", order="200"),
+        group("Core Courses", "CC", "66", courses=["COMP1511"], order="0", description="<p>Take all of these.</p>"),
+        group("Electives", "PE", "30", courses=["COMP3311"], order="100"),
+        group("Maximum Level 1 UOC", "LR", order="300"),
+    ]}
+
+    sections = build_sections(structure)
+
+    assert [(s["title"], s["kind"]) for s in sections] == [
+        ("Core Courses", "core"), ("Electives", "elective"), ("General Education", "general_education"), ("Maximum Level 1 UOC", "info"),
+    ]
+    assert sections[0]["description"] == "Take all of these."
+    assert sections[1]["courses"][0] == {"uoc": 6, "code": "COMP3311", "name": "COMP3311", "kind": "elective"}
+
+
+def test_one_of_groups_share_a_choice_key_inside_their_section():
+    structure = {"container": [group("Core Courses", "CC", "24", children=[
+        group("Core", "CC", courses=["COMP1511"]),
+        group("One of the following:", "one_of_the_following", courses=["MATH1131", "MATH1141"], order="100"),
+        group("One of the following:", "one_of_the_following", courses=["MATH1231", "MATH1241"], order="200"),
+    ])]}
+
+    courses = build_sections(structure)[0]["courses"]
+
+    assert [(c["code"], c["kind"], c.get("choice")) for c in courses] == [
+        ("COMP1511", "core", None),
+        ("MATH1131", "choice", "Core Courses 1"), ("MATH1141", "choice", "Core Courses 1"),
+        ("MATH1231", "choice", "Core Courses 2"), ("MATH1241", "choice", "Core Courses 2"),
+    ]
+
+
+def test_nested_groups_with_their_own_uoc_become_sections_and_majors_are_not_courses():
+    structure = {"container": [group("Disciplinary Component", None, "168", children=[
+        group("Majors", "undergrad_major", "0", courses=["COMPA1"]),
+        group("Industrial Training", "CC", "0", courses=["ENGG4999"], order="100"),
+    ])]}
+
+    sections = build_sections(structure)
+
+    assert [(s["title"], s["kind"], [c["code"] for c in s["courses"]]) for s in sections] == [
+        ("Disciplinary Component", "info", []), ("Majors", "specialisations", []), ("Industrial Training", "core", ["ENGG4999"]),
+    ]
+
+
+def test_stored_overview_section_is_kept_first():
+    current = [{"title": "Overview", "description": "Stored summary"}, {"title": "Old", "courses": []}]
+    proposed = [{"title": "Overview", "description": "Handbook summary"}, {"title": "Core Courses", "courses": []}]
+
+    assert [s.get("description") or s["title"] for s in with_current_overview(current, proposed)] == ["Stored summary", "Core Courses"]
+    assert with_current_overview(None, proposed) == proposed
+
+
+def test_course_row_reads_rules_and_terms():
+    content = {
+        "title": "Data Structures and Algorithms",
+        "description": "<p>Think like a computer scientist.</p>",
+        "credit_points": "6",
+        "parent_academic_org": {"value": "Faculty of Engineering"},
+        "academic_org": {"value": "School of Computer Science and Engineering"},
+        "study_level_single": {"label": "Undergraduate"},
+        "asced_detailed": {"value": "020103 Programming"},
+        "enrolment_rules": [{"description": "Prerequisite: COMP1511 or DPST1091<br/><br/>"}],
+        "offering_detail": {"offering_terms": "Summer Term, Term 1, Term 2"},
+    }
+
+    row = course_row(content)
+
+    assert row["conditions_for_enrolment"] == "Prerequisite: COMP1511 or DPST1091"
+    assert row["offering_terms"] == ["Summer Term", "Term 1", "Term 2"]
+    assert row["uoc"] == 6
+    assert row["school"] == "School of Computer Science and Engineering"
+
+
+def test_inactive_pages_are_recognised():
+    assert is_active({"published_in_handbook": {"value": "1"}, "status": {"value": "Active"}, "active": "true"})
+    assert not is_active({"published_in_handbook": {"value": "0"}})
+    assert not is_active({"status": {"value": "Inactive"}})
+    assert not is_active({"active": "false"})
+
+
+def test_compare_separates_format_content_flags_and_kept_values():
+    assert compare("courses", "overview", "Line one. Line two.", "Line one.\nLine two.") == "format"
+    assert compare("courses", "overview", "Old text", "New text") == "content"
+    assert compare("courses", "overview", "Old text", None) == "handbook empty"
+    assert compare("programs", "faculty", "Faculty of Science", "Faculty of Engineering") == "flag"
+    assert compare("programs", "special_notes", "Assembled notes", "Handbook notes") == "kept"
+    assert compare("programs", "special_notes", None, "Handbook notes") == "content"
+    assert compare("programs", "program_name", "Bachelor of Computer Science", "Bachelor of Science - BSc") == "kept"
+    assert compare("programs", "duration", "4 years full-time", "4 Year(s)") == "same"
+
+
+def test_compare_sections_by_course_codes():
+    current = [{"title": "Core", "courses": [{"code": "COMP1511"}, {"code": "COMPA1"}]}]
+    regrouped = [{"title": "Core Courses", "kind": "core", "courses": [{"code": "COMP1511", "kind": "core"}]}]
+    added = [{"title": "Core", "kind": "core", "courses": [{"code": "COMP1511"}, {"code": "COMP1521"}]}]
+
+    assert compare("programs", "sections", current, regrouped) == "layout"
+    assert compare("programs", "sections", current, added) == "content"
+    assert compare("programs", "sections", regrouped, regrouped) == "same"
