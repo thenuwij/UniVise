@@ -6,7 +6,7 @@ retried with early-career titles only, that the call cap is respected and the
 fallbacks take turns across weeks, and that repeated ads are stored once.
 """
 from app.services.roadmap.job_ads import ad_search_words, is_early_career
-from scripts.job_ads_fetch import ad_row, count_searches, fetch_ads, rotate, unique_ads
+from scripts.job_ads_fetch import AdzunaBusy, ad_row, count_searches, fetch_ads, rotate, unique_ads
 
 
 def ad(ad_id, title, company="Acme"):
@@ -96,3 +96,18 @@ def test_stored_row_has_only_what_the_page_shows():
         "posted_at": "2026-10-01T00:00:00Z",
         "url": "https://www.adzuna.com.au/land/ad/9",
     }
+
+
+def test_a_busy_adzuna_keeps_the_searches_that_finished():
+    calls = []
+
+    def search(words):
+        calls.append(words)
+        if len(calls) > 2:
+            raise AdzunaBusy("HTTP 503")
+        return [{"id": words, "title": "Graduate role"}]
+
+    found, count = fetch_ads(["a", "b", "c", "d"], search)
+
+    assert count == 2
+    assert set(found) == {"a", "b"}
