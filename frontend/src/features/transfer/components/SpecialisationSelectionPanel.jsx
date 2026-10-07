@@ -291,9 +291,9 @@ export default function SpecialisationSelectionPanel({
                     >
                       <button
                         onClick={() => setExpandedType(isExpanded ? null : type)}
-                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                        className="group flex items-center gap-3 flex-1 min-w-0 text-left"
                       >
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0">
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                           {type}
                         </span>
                         <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
@@ -309,7 +309,7 @@ export default function SpecialisationSelectionPanel({
                           </span>
                         )}
                       </button>
-                      <button onClick={() => setExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0">
+                      <button onClick={() => setExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         {isExpanded
                           ? <HiChevronUp className="w-5 h-5 text-slate-500" />
                           : <HiChevronDown className="w-5 h-5 text-slate-500" />}

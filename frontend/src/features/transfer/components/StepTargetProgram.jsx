@@ -148,9 +148,9 @@ function StepTargetProgram({
                           >
                             <button
                               onClick={() => setTargetExpandedType(isExpanded ? null : type)}
-                              className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                              className="group flex items-center gap-3 flex-1 min-w-0 text-left"
                             >
-                              <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0">{type}</span>
+                              <span className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wide flex-shrink-0 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{type}</span>
                               <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">{specs.length} options</span>
                               {selectedSpec ? (
                                 <span className="text-xs font-semibold text-green-700 dark:text-green-400 truncate">{selectedSpec.major_name}</span>
@@ -158,7 +158,7 @@ function StepTargetProgram({
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 flex-shrink-0">Not selected</span>
                               )}
                             </button>
-                            <button onClick={() => setTargetExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0">
+                            <button onClick={() => setTargetExpandedType(isExpanded ? null : type)} className="ml-3 flex-shrink-0 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               {isExpanded ? <HiChevronUp className="w-5 h-5 text-slate-500" /> : <HiChevronDown className="w-5 h-5 text-slate-500" />}
                             </button>
                           </div>
