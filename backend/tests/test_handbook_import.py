@@ -213,3 +213,12 @@ def test_a_faculty_in_the_school_field_is_not_stored_as_a_school():
     assert course_row({**base, "academic_org": {"value": "Faculty of Medicine and Health"}})["school"] is None
     assert course_row({"parent_academic_org": {"value": ""}, "academic_org": {"value": "UNSW Business School"}})["school"] is None
     assert course_row({**base, "academic_org": {"value": "School of Population Health"}})["school"] == "School of Population Health"
+
+
+def test_recommended_courses_are_electives_not_core():
+    structure = {"container": [group("Core Courses", "CC", "24", children=[
+        group("Core", "CC", courses=["PHSL3111"]),
+        group("Level 3 Recommended Elective", "RC", courses=["BIOC3261"], order="100"),
+    ])]}
+
+    assert [(c["code"], c["kind"]) for c in build_sections(structure)[0]["courses"]] == [("PHSL3111", "core"), ("BIOC3261", "elective")]
