@@ -39,6 +39,20 @@ def is_available(code: str, completed: set, groups: dict) -> bool:
     return True
 
 
+def not_needed_codes(section_lists: list, completed: set) -> set:
+    groups: dict = {}
+    for key, sections in section_lists:
+        for section in sections:
+            for course in (section.get("courses") or []) if isinstance(section, dict) else []:
+                if isinstance(course, dict) and course.get("choice") and course.get("code"):
+                    groups.setdefault(f"{key}:{course['choice']}", []).append(course["code"])
+    skip = set()
+    for codes in groups.values():
+        if any(code in completed for code in codes):
+            skip.update(code for code in codes if code not in completed)
+    return skip
+
+
 def _level(code: str) -> int:
     return int(code[4]) if len(code) > 4 and code[4].isdigit() else 9
 
@@ -49,7 +63,7 @@ def available_courses(courses: list, completed: set, groups: dict, preferred: se
     return open_courses[:MAX_CANDIDATES]
 
 
-def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list]:
+def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list, list]:
     rows = (
         supabase.from_("user_specialisation_selections")
         .select("major_id, minor_id, honours_id")
@@ -61,8 +75,8 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
     )
     ids = [r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)]
     if not ids:
-        return [], []
-    specs = supabase.from_("unsw_specialisations").select("major_name, sections").in_("id", ids).execute().data or []
+        return [], [], []
+    specs = supabase.from_("unsw_specialisations").select("id, major_name, sections").in_("id", ids).execute().data or []
     codes = []
     for spec in specs:
         for section in parse_sections_json(spec.get("sections")):
@@ -70,7 +84,8 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
                 code = (course.get("code") or "").strip().upper() if isinstance(course, dict) else ""
                 if COURSE_CODE.match(code) and code not in codes:
                     codes.append(code)
-    return [s.get("major_name") for s in specs if s.get("major_name")], codes
+    section_lists = [(spec.get("id"), parse_sections_json(spec.get("sections"))) for spec in specs]
+    return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists
 
 
 def load_inputs(user_id: str) -> dict | None:
@@ -87,13 +102,16 @@ def load_inputs(user_id: str) -> dict | None:
     degree_code = enrolled[0]["degree_code"]
     program_name = enrolled[0].get("program_name") or degree_code
 
-    spec_names, spec_codes = _specialisations(user_id, degree_code, program_name)
-    courses = fetch_program_course_list(degree_code, spec_codes)
+    spec_names, spec_codes, spec_sections = _specialisations(user_id, degree_code, program_name)
     completed = {
         r["course_code"]
         for r in supabase.from_("user_completed_courses").select("course_code, is_completed").eq("user_id", user_id).execute().data or []
         if r.get("is_completed")
     }
+    program = supabase.from_("unsw_degrees_final").select("sections").eq("degree_code", degree_code).limit(1).execute().data
+    program_sections = parse_sections_json(program[0].get("sections")) if program else []
+    skip = not_needed_codes([(degree_code, program_sections), *spec_sections], completed)
+    courses = [c for c in fetch_program_course_list(degree_code, spec_codes) if c["code"] not in skip]
     edges = []
     codes = [c["code"] for c in courses]
     if codes:

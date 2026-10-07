@@ -5,6 +5,7 @@ import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram"
 import { fetchMyCourses, fetchSavedChoices, fetchSpecialisationOptions } from "@/features/roadmap/utils/programCourses";
 import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
 import { courseStatus, prereqGroups } from "@/features/mindmesh/utils/availability";
+import { myCourseCodes, notNeededCodes } from "@/features/roadmap/utils/myCourses";
 
 async function loadFacts(program, userId) {
   const code = program.degree_code;
@@ -17,12 +18,14 @@ async function loadFacts(program, userId) {
   ]);
   const done = rows.filter((r) => r.is_completed);
   const completed = new Set(done.map((r) => r.course_code));
-  const { data: edges } = mine.codes.length
+  const skip = notNeededCodes(mine, completed, mine.added);
+  const codes = myCourseCodes(mine, completed, mine.added).filter((c) => !skip.has(c));
+  const { data: edges } = codes.length
     ? await supabase
         .from("mindmesh_edges_global")
         .select("from_key,to_key,edge_type,logic_type,group_id")
         .eq("edge_type", "prereq")
-        .in("to_key", mine.codes)
+        .in("to_key", codes)
     : { data: [] };
   const groups = prereqGroups(edges);
   return {
@@ -32,7 +35,7 @@ async function loadFacts(program, userId) {
     doneCount: done.length,
     specNames: Object.values(choices).filter(Boolean).map((s) => s.major_name),
     hasSpecOptions: options.length > 0,
-    canTakeNext: mine.codes.filter((c) => courseStatus(c, completed, groups) === "available").length,
+    canTakeNext: codes.filter((c) => courseStatus(c, completed, groups) === "available").length,
   };
 }
 

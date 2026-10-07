@@ -1,4 +1,5 @@
 import { supabase } from "@/shared/lib/supabase";
+import { requiredCount, splitCourses } from "./myCourses";
 
 export const THIN_PROGRAM_COURSES = 5;
 
@@ -78,22 +79,42 @@ export async function fetchChosenSpecialisations(degreeCode, userId) {
     .flatMap((r) => [r.major, r.minor, r.honours])
     .filter((spec) => spec && !seen.has(spec.id) && seen.add(spec.id))
     .map((spec) => ({
+      id: spec.id,
       name: spec.major_name,
       sections: parseSections(spec.sections).filter((s) => hasCourses(s) && !isOverview(s)),
     }))
     .filter((spec) => spec.sections.length);
 }
 
+export async function fetchAddedCourses(userId) {
+  if (!userId) return new Set();
+  const { data } = await supabase.from("user_custom_courses").select("course_code").eq("user_id", userId);
+  return new Set((data || []).map((r) => r.course_code));
+}
+
+export async function setCourseAdded({ userId, course, section, added }) {
+  const table = supabase.from("user_custom_courses");
+  const { error } = added
+    ? await table.upsert(
+        { user_id: userId, course_code: course.code, course_name: course.name || null, uoc: course.uoc ?? null, section_name: section || null },
+        { onConflict: "user_id,course_code" }
+      )
+    : await table.delete().eq("user_id", userId).eq("course_code", course.code);
+  if (error) throw error;
+}
+
 export async function fetchMyCourses(degreeCode, userId) {
-  const [{ data }, specialisations] = await Promise.all([
+  const [{ data }, specialisations, added] = await Promise.all([
     supabase.from("unsw_degrees_final").select("sections").eq("degree_code", degreeCode).maybeSingle(),
     fetchChosenSpecialisations(degreeCode, userId),
+    fetchAddedCourses(userId),
   ]);
-  const programCodes = courseCodesOf(parseSections(data?.sections).filter(hasCourses));
-  const codes = Array.from(new Set([...programCodes, ...courseCodesOf(specialisations.flatMap((s) => s.sections))]));
+  const program = { key: degreeCode, sections: parseSections(data?.sections).filter(hasCourses) };
+  const mine = splitCourses([program, ...specialisations.map((s) => ({ key: s.id, sections: s.sections }))]);
   return {
-    codes,
-    thin: !specialisations.length && programCodes.length <= THIN_PROGRAM_COURSES,
+    ...mine,
+    added,
+    thin: !specialisations.length && requiredCount(splitCourses([program])) <= THIN_PROGRAM_COURSES,
   };
 }
 

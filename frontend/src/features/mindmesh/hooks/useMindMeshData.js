@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase";
 import { fetchMyCourses } from "@/features/roadmap/utils/programCourses";
 import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
+import { myCourseCodes } from "@/features/roadmap/utils/myCourses";
 
 const EDGE_FIELDS = "from_key,to_key,edge_type,confidence,logic_type,group_id";
 
@@ -14,18 +15,12 @@ export default function useMindMeshData({ programCode, userId }) {
   const [loading, setLoading] = useState(true);
   const [completedRows, setCompletedRows] = useState({});
   const [thin, setThin] = useState(false);
+  const [mine, setMine] = useState(null);
   const completed = useMemo(
     () => new Set(Object.values(completedRows).filter((r) => r?.is_completed).map((r) => r.course_code)),
     [completedRows]
   );
   const [prereqEdges, setPrereqEdges] = useState([]);
-
-  useEffect(() => {
-    if (!userId) return;
-    fetchCompletedCourses(userId).then((rows) => {
-      setCompletedRows(Object.fromEntries(rows.map((r) => [r.course_code, r])));
-    });
-  }, [userId]);
 
   const addPrereqEdges = useCallback(async (codes) => {
     if (!codes.length) return;
@@ -58,8 +53,12 @@ export default function useMindMeshData({ programCode, userId }) {
       setProgramMeta(null);
     }
 
-    const { codes: programCoursesCodes, thin: thinProgram } = await fetchMyCourses(programCode, userId);
-    setThin(thinProgram);
+    const [loadedMine, completedList] = await Promise.all([fetchMyCourses(programCode, userId), fetchCompletedCourses(userId)]);
+    setMine(loadedMine);
+    setThin(loadedMine.thin);
+    setCompletedRows(Object.fromEntries(completedList.map((r) => [r.course_code, r])));
+    const done = new Set(completedList.filter((r) => r.is_completed).map((r) => r.course_code));
+    const programCoursesCodes = myCourseCodes(loadedMine, done, loadedMine.added);
 
     if (!programCoursesCodes.length) {
       setProgramCourses([]);
@@ -198,5 +197,5 @@ export default function useMindMeshData({ programCode, userId }) {
     fetchGraph();
   }, [fetchGraph]);
 
-  return { graph, setGraph, programCourses, programMeta, loading, thin, completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges };
+  return { graph, setGraph, programCourses, programMeta, loading, thin, mine, reload: fetchGraph, completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges };
 }

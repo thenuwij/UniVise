@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
 import { fetchMyCourses } from "../utils/programCourses";
+import { progressOf } from "../utils/myCourses";
 
 export default function CourseProgress({ degreeCode }) {
   const { session } = UserAuth();
@@ -13,9 +14,8 @@ export default function CourseProgress({ degreeCode }) {
     let active = true;
     Promise.all([fetchMyCourses(degreeCode, userId), fetchCompletedCourses(userId)]).then(([mine, rows]) => {
       const done = new Set(rows.filter((r) => r.is_completed).map((r) => r.course_code));
-      if (active && mine.codes.length) {
-        setProgress({ done: mine.codes.filter((c) => done.has(c)).length, total: mine.codes.length });
-      }
+      const counts = progressOf(mine, done, mine.added);
+      if (active && counts.total) setProgress(counts);
     });
     return () => { active = false; };
   }, [degreeCode, userId]);

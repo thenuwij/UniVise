@@ -1,0 +1,89 @@
+import { useEffect, useMemo, useState } from "react";
+import { Check, Plus, Search, X } from "lucide-react";
+
+export default function ElectivesPanel({ options, added, completed, saving, onToggle, onClose }) {
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const groups = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const bySection = new Map();
+    for (const option of options) {
+      if (q && !`${option.code} ${option.name || ""}`.toLowerCase().includes(q)) continue;
+      bySection.set(option.section, [...(bySection.get(option.section) || []), option]);
+    }
+    return [...bySection];
+  }, [options, query]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-slate-900/30 cursor-default" />
+      <aside role="dialog" aria-label="Add electives" className="relative h-full w-full sm:w-[440px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Add electives</h2>
+            <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <p className="mt-1 text-sm text-ink-muted">Electives you add show in CourseMesh with their prerequisites.</p>
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by code or name"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+          {groups.length === 0 && <p className="text-sm text-ink-muted">No electives match your search.</p>}
+          {groups.map(([section, items]) => (
+            <section key={section}>
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">{section}</h3>
+              <ul className="mt-2 space-y-2">
+                {items.map((option) => {
+                  const isAdded = added.has(option.code);
+                  return (
+                    <li key={option.code} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold text-blue-700 dark:text-blue-300">{option.code}</span>
+                        {option.name && <span className="block text-sm text-slate-600 dark:text-slate-300 truncate">{option.name}</span>}
+                      </span>
+                      {completed.has(option.code) ? (
+                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-bold text-green-700 dark:text-green-400">
+                          <Check className="h-3.5 w-3.5" strokeWidth={3} /> Done
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => onToggle(option, !isAdded)}
+                          disabled={saving}
+                          aria-pressed={isAdded}
+                          className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold border-2 transition-colors disabled:opacity-50 ${
+                            isAdded
+                              ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+                              : "border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:border-blue-500"
+                          }`}
+                        >
+                          {isAdded ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <Plus className="h-3.5 w-3.5" strokeWidth={3} />}
+                          {isAdded ? "Added" : "Add"}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </aside>
+    </div>
+  );
+}
