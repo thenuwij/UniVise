@@ -1,11 +1,30 @@
 // src/mindmesh/components/MindMeshInfoPanel.jsx
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { STATUS } from "../utils/availability";
+import { otherConditions } from "../utils/conditions";
 
 export default function MindMeshInfoPanel({ focusedNode, status, missing = [], onToggleDone, saving, onDismiss }) {
   const navigate = useNavigate();
+  const [conditions, setConditions] = useState([]);
+  const focusedId = focusedNode?.id;
+
+  useEffect(() => {
+    let active = true;
+    setConditions([]);
+    if (!focusedId) return;
+    supabase
+      .from("unsw_courses")
+      .select("conditions_for_enrolment")
+      .eq("code", focusedId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setConditions(otherConditions(data?.conditions_for_enrolment));
+      });
+    return () => { active = false; };
+  }, [focusedId]);
 
   if (!focusedNode) return null;
 
@@ -71,6 +90,11 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
                     {missing.map((g) => g.codes.join(g.logic === "and" ? " and " : " or ")).join("; ")}
                   </span>
                 )}
+              </p>
+            )}
+            {conditions.length > 0 && (
+              <p className="text-xs font-medium mt-1 text-amber-700 dark:text-amber-400">
+                Other conditions apply: {conditions.join(", ")}. See the course details.
               </p>
             )}
           </div>
