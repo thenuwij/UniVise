@@ -3,10 +3,12 @@ import { apiFetch } from "@/shared/lib/api";
 import { fetchSpecialisationIds } from "./programCourses";
 
 const SECTIONS = ["industry_societies", "industry_experience", "career_pathways"];
+const ROADMAP_PROMPT_VERSION = 8;
 const STALLED_AFTER_MS = 90 * 1000;
 const POLL_MS = 3000;
 
 const sameIds = (a = [], b = []) => a.length === b.length && a.every((id, i) => id === b[i]);
+const isCurrent = (payload) => payload?.cache_key?.prompt_version === ROADMAP_PROMPT_VERSION;
 const isComplete = (payload) => SECTIONS.every((k) => payload?.[k]) || (payload?.industry_failed?.length ?? 0) > 0;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -19,7 +21,7 @@ async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
     .order("created_at", { ascending: false })
     .limit(5);
   if (error) throw error;
-  return (rows || []).find((r) => sameIds(r.payload?.specialisation_ids || [], specialisationIds)) || null;
+  return (rows || []).find((r) => isCurrent(r.payload) && sameIds(r.payload?.specialisation_ids || [], specialisationIds)) || null;
 }
 
 export async function openOwnRoadmap({ userId, accessToken, navigate, step, isActive = () => true }) {

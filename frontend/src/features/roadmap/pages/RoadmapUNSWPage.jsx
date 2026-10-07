@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Compass } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { bandButton } from "@/shared/ui/cardStyles";
 import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
@@ -419,11 +420,12 @@ export default function RoadmapUNSWPage() {
       back={{ label: isOwnProgram ? "Back" : "Back to my roadmap", onClick: handleBackClick }}
       actions={
         <>
-          <Link to="/saved" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
+          <Link to="/saved" className={bandButton}>
             <Bookmark className="h-4 w-4" />
             My shortlist
           </Link>
-          <button onClick={() => navigate("/roadmap")} className="text-[15px] font-semibold text-white hover:underline">
+          <button onClick={() => navigate("/roadmap")} className={bandButton}>
+            <Compass className="h-4 w-4" />
             Explore a different degree
           </button>
         </>

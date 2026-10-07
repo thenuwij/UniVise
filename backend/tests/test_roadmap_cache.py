@@ -105,3 +105,13 @@ def test_cached_roadmap_is_copied_without_an_ai_call(monkeypatch):
     assert inserted["payload"]["specialisation_ids"] == ["a-major"]
     assert inserted["payload"]["cache_key"]["degree_code"] == "3707"
     assert result["payload"]["career_pathways"] == {"entry_level": {}}
+
+
+def test_frontend_roadmap_version_matches_the_prompt_version():
+    import re
+    from pathlib import Path
+
+    from app.services.roadmap.cache import PROMPT_VERSION
+
+    source = (Path(__file__).resolve().parents[2] / "frontend/src/features/roadmap/utils/roadmapEntry.js").read_text()
+    assert int(re.search(r"ROADMAP_PROMPT_VERSION = (\d+);", source).group(1)) == PROMPT_VERSION
