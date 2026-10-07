@@ -27,6 +27,7 @@ import httpx
 
 from scripts.display_data_cleanup import fetch_rows, is_placeholder, parse_years
 from scripts.faculty_cleanup import normalise as normalise_faculty
+from scripts.requisites import requisite_edges
 
 HANDBOOK = "https://www.handbook.unsw.edu.au"
 SITEMAP = f"{HANDBOOK}/sitemap.xml"
@@ -372,11 +373,60 @@ def short(value) -> str:
     return text if len(text) <= EXAMPLE_CHARS else text[:EXAMPLE_CHARS] + "..."
 
 
+def link_groups(edges: list[dict]) -> set:
+    groups = defaultdict(set)
+    for e in edges:
+        key = (e["edge_type"], e["from_key"]) if e.get("logic_type") == "and" else (e["edge_type"], e.get("group_id") or e["from_key"])
+        groups[key].add(e["from_key"])
+    return {(key[0], frozenset(codes)) for key, codes in groups.items()}
+
+
+def link_changes(course_pages: dict, out: Path) -> list[str]:
+    """Compare CourseMesh links rebuilt from the snapshot's rules with the stored links."""
+    known = {row["code"] for row in fetch_rows("unsw_courses", "code")}
+    known |= {code for code, page in course_pages.items() if is_active(page["content"])}
+    current = defaultdict(list)
+    for edge in fetch_rows("mindmesh_edges_global", "from_key, to_key, edge_type, logic_type, group_id"):
+        current[edge["to_key"]].append(edge)
+    counts, rows, total = Counter(), [], 0
+    for code, page in sorted(course_pages.items()):
+        if not is_active(page["content"]):
+            continue
+        edges = requisite_edges(code, course_row(page["content"])["conditions_for_enrolment"] or "", known)
+        total += len(edges)
+        before, after = link_groups(current.get(code, [])), link_groups(edges)
+        if before == after:
+            counts["same"] += 1
+            continue
+        change = "added" if after > before else "removed" if after < before else "changed"
+        counts[change] += 1
+        describe = lambda groups: "; ".join(f"{k}: {' or '.join(sorted(v))}" for k, v in sorted(groups, key=lambda g: (g[0], sorted(g[1]))))
+        rows.append({"code": code, "change": change, "rule": course_row(page["content"])["conditions_for_enrolment"] or "", "current": describe(before), "proposed": describe(after)})
+    with open(out / "links.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["code", "change", "rule", "current", "proposed"])
+        writer.writeheader()
+        writer.writerows(rows)
+    return [
+        "## CourseMesh links (`mindmesh_edges_global`)",
+        "",
+        f"Rebuilt from the {year_note(course_pages)} rules for {sum(counts.values())} courses: {counts['same']} unchanged, "
+        f"{counts['added']} gain links, {counts['removed']} lose links, {counts['changed']} change. {total} links in all. "
+        "Every change is in `links.csv`. Courses missing from the Handbook keep their links.",
+        "",
+    ]
+
+
+def year_note(course_pages: dict) -> str:
+    years = {page["content"].get("implementation_year") for page in course_pages.values()}
+    return "/".join(sorted(y for y in years if y)) or "Handbook"
+
+
 def plan(level: str, year: str) -> None:
     manifest, pages = load_snapshot(level, year)
     out = AI_DIR / "phase-10-plan"
     out.mkdir(parents=True, exist_ok=True)
-    partial = bool(manifest.get("limit"))
+    unfetched = sum(len(set(manifest["listed"][kind]) - set(pages[kind])) for kind in KINDS)
+    partial = bool(manifest.get("limit")) or unfetched > 0
     lines = [
         f"# Handbook {year} {level} import plan",
         "",
@@ -384,7 +434,7 @@ def plan(level: str, year: str) -> None:
         "",
     ]
     if partial:
-        lines += [f"**Trial snapshot** ({manifest['limit']} pages of each kind), so missing rows are not counted.", ""]
+        lines += [f"**Partial snapshot** ({unfetched} listed pages not downloaded yet), so missing rows are not counted.", ""]
     for kind in KINDS:
         table, key = TABLES[kind]
         db_rows = {row[key]: row for row in fetch_rows(table, "*")}
@@ -450,6 +500,7 @@ def plan(level: str, year: str) -> None:
             lines += [f"Missing from the Handbook: {', '.join(missing[:20])}{' ...' if len(missing) > 20 else ''}", ""]
         if inactive:
             lines += [f"Inactive pages: {', '.join(inactive[:20])}", ""]
+    lines += link_changes(pages["courses"], out)
     (out / "summary.md").write_text("\n".join(lines))
     print(f"Wrote {out / 'summary.md'} and one CSV per table")
 
