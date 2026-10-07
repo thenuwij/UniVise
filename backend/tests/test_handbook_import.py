@@ -133,3 +133,35 @@ def test_compare_sections_by_course_codes():
     assert compare("programs", "sections", current, regrouped) == "layout"
     assert compare("programs", "sections", current, added) == "content"
     assert compare("programs", "sections", regrouped, regrouped) == "same"
+
+
+def test_apply_writes_reviewed_rows_but_not_flags_or_kept_values(tmp_path):
+    import csv
+    import json
+
+    from scripts.handbook_import import CSV_FIELDS, node_row, reviewed_changes
+
+    rows = [
+        {"key": "3707", "field": "sections", "action": "layout", "proposed": json.dumps([{"title": "Core"}])},
+        {"key": "3707", "field": "faculty", "action": "flag", "proposed": json.dumps("Faculty of Science")},
+        {"key": "3707", "field": "uac_code", "action": "accept", "proposed": json.dumps("423600")},
+        {"key": "3707", "field": "special_notes", "action": "kept", "proposed": json.dumps("Handbook notes")},
+        {"key": "4427", "field": "*", "action": "new", "proposed": json.dumps({"program_name": "New program"})},
+        {"key": "3881", "field": "*", "action": "missing", "proposed": ""},
+    ]
+    with open(tmp_path / "programs.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
+        writer.writeheader()
+        writer.writerows([{"table": "unsw_degrees_final", "name": "", "current": "", **row} for row in rows])
+
+    updates, inserts = reviewed_changes(tmp_path, "programs", None, None)
+    assert updates == {"3707": {"sections": [{"title": "Core"}], "uac_code": "423600"}}
+    assert inserts == [("4427", {"program_name": "New program"})]
+
+    updates, inserts = reviewed_changes(tmp_path, "programs", {"3707"}, {"sections"})
+    assert updates == {"3707": {"sections": [{"title": "Core"}]}}
+    assert inserts == []
+
+    assert node_row("COMP2521", {"title": "Data Structures", "uoc": 6, "faculty": "Faculty of Engineering", "school": None}) == {
+        "key": "COMP2521", "label": "Data Structures", "uoc": 6, "faculty": "Faculty of Engineering", "school": None, "level": "2",
+    }

@@ -10,8 +10,18 @@ folder, one page a second. It skips pages already saved, so it can resume.
 `--limit N` saves only N pages of each kind, spread across the list, for a trial.
 
 `plan` only reads. It compares the snapshot with the database and writes a
-summary and one CSV of field changes per table. Nothing is written to the
-database.
+summary, one CSV of field changes per table and `links.csv`. Nothing is
+written to the database.
+
+    python -m scripts.handbook_import apply [--dry-run] [--only CODE,CODE] [--fields a,b]
+    python -m scripts.handbook_import restore --backup ../ai/phase-10-backup/<time>
+
+`apply` writes the reviewed CSVs: every row except "flag" (change it to
+"accept" to write it), "kept", "handbook empty" and "missing". Delete a row to
+skip it. It backs up the three tables and the CourseMesh nodes and links
+first, stamps every row found in the Handbook, adds new programs hidden
+(`is_offered = false`), rebuilds links only for the courses in `links.csv`,
+and runs the display-data audit last. `restore` puts a backup back.
 """
 import argparse
 import csv
@@ -20,11 +30,14 @@ import json
 import re
 import time
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
 
+from app.core.database import supabase
+from scripts import display_data_audit
 from scripts.display_data_cleanup import fetch_rows, is_placeholder, parse_years
 from scripts.faculty_cleanup import normalise as normalise_faculty
 from scripts.requisites import requisite_edges
@@ -421,6 +434,11 @@ def year_note(course_pages: dict) -> str:
     return "/".join(sorted(y for y in years if y)) or "Handbook"
 
 
+def proposed_row(kind: str, page: dict) -> dict:
+    row = ROW_BUILDERS[kind](page["content"])
+    return row if kind == "courses" else {**row, "source_url": page["url"]}
+
+
 def plan(level: str, year: str) -> None:
     manifest, pages = load_snapshot(level, year)
     out = AI_DIR / "phase-10-plan"
@@ -446,7 +464,7 @@ def plan(level: str, year: str) -> None:
         examples = defaultdict(list)
         changes = []
         for code in sorted(set(active) & set(db_rows)):
-            proposed = ROW_BUILDERS[kind](active[code]["content"])
+            proposed = proposed_row(kind, active[code])
             current = db_rows[code]
             for field, value in proposed.items():
                 if field == "sections":
@@ -464,7 +482,7 @@ def plan(level: str, year: str) -> None:
         for code in new:
             changes.append({
                 "table": table, "key": code, "name": active[code]["content"].get("title"), "field": "*", "action": "new",
-                "current": "", "proposed": json.dumps(ROW_BUILDERS[kind](active[code]["content"]), ensure_ascii=False),
+                "current": "", "proposed": json.dumps(proposed_row(kind, active[code]), ensure_ascii=False),
             })
         for code in missing:
             changes.append({"table": table, "key": code, "name": db_rows[code].get(NAME_FIELDS[kind]), "field": "*", "action": "missing", "current": "", "proposed": ""})
@@ -505,6 +523,140 @@ def plan(level: str, year: str) -> None:
     print(f"Wrote {out / 'summary.md'} and one CSV per table")
 
 
+WRITTEN = {"format", "content", "layout", "accept"}
+BACKUP_TABLES = [
+    ("unsw_degrees_final", "degree_code"),
+    ("unsw_specialisations", "major_code"),
+    ("unsw_courses", "code"),
+    ("mindmesh_nodes_global", "key"),
+    ("mindmesh_edges_global", "id"),
+]
+BATCH = 200
+
+
+def chunks(items: list, size: int = BATCH):
+    for start in range(0, len(items), size):
+        yield items[start:start + size]
+
+
+def node_row(code: str, course: dict) -> dict:
+    return {
+        "key": code, "label": course.get("title") or code, "uoc": course.get("uoc"),
+        "faculty": course.get("faculty"), "school": course.get("school"), "level": code[4] if len(code) > 4 else None,
+    }
+
+
+def reviewed_changes(out: Path, kind: str, only: set | None, fields: set | None) -> tuple[dict, list]:
+    updates, inserts = defaultdict(dict), []
+    with open(out / f"{kind}.csv", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if only and row["key"] not in only:
+                continue
+            if row["action"] == "new" and not fields:
+                inserts.append((row["key"], json.loads(row["proposed"])))
+            elif row["action"] in WRITTEN and (not fields or row["field"] in fields):
+                updates[row["key"]][row["field"]] = json.loads(row["proposed"])
+    return updates, inserts
+
+
+def write_table(kind: str, updates: dict, inserts: list, stamps: dict, level: str, dry_run: bool) -> None:
+    table, key = TABLES[kind]
+    payloads = {code: {**stamps.get(code, {}), **fields} for code, fields in updates.items()}
+    for code, stamp in stamps.items():
+        payloads.setdefault(code, dict(stamp))
+    new_rows = []
+    for code, row in inserts:
+        extra = {"level": level.capitalize(), "is_offered": False} if kind == "programs" else {}
+        new_rows.append({key: code, **row, **extra, **stamps.get(code, {})})
+    print(f"{table}: {len(updates)} rows with field changes, {len(payloads)} rows updated in all (stamps included), {len(new_rows)} new")
+    if dry_run:
+        for code, payload in list(updates.items())[:5]:
+            print(f"  would update {code}: {', '.join(payload)}")
+        for row in new_rows[:5]:
+            print(f"  would insert {row[key]}")
+        return
+    for batch in chunks(new_rows):
+        supabase.table(table).insert(batch).execute()
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        list(pool.map(lambda item: supabase.table(table).update(item[1]).eq(key, item[0]).execute(), payloads.items()))
+
+
+def apply(level: str, year: str, dry_run: bool, only: set | None, fields: set | None) -> None:
+    manifest, pages = load_snapshot(level, year)
+    missing = sum(len(set(manifest["listed"][kind]) - set(pages[kind])) for kind in KINDS)
+    if (missing or manifest.get("limit")) and not only:
+        raise SystemExit(f"The snapshot is incomplete ({missing} pages missing). Run fetch first.")
+    out = AI_DIR / "phase-10-plan"
+    if not dry_run:
+        backup = AI_DIR / "phase-10-backup" / datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        backup.mkdir(parents=True)
+        for table, _ in BACKUP_TABLES:
+            (backup / f"{table}.json").write_text(json.dumps(fetch_rows(table, "*"), ensure_ascii=False))
+        print(f"Backup written to {backup}")
+
+    def stamps_for(kind: str) -> dict:
+        if fields:
+            return {}
+        return {
+            code: {"handbook_year": int(year), "scraped_at": page["fetched_at"]}
+            for code, page in pages[kind].items() if is_active(page["content"]) and (not only or code in only)
+        }
+
+    course_updates, course_inserts = reviewed_changes(out, "courses", only, fields)
+    write_table("courses", course_updates, course_inserts, stamps_for("courses"), level, dry_run)
+
+    courses = {row["code"]: row for row in fetch_rows("unsw_courses", "code, title, uoc, faculty, school")}
+    node_fields = {"title", "uoc", "faculty", "school"}
+    node_codes = [code for code, _ in course_inserts] + [code for code, f in course_updates.items() if node_fields & set(f)]
+    nodes = [node_row(code, courses.get(code) or dict(course_updates.get(code, {}))) for code in node_codes]
+    print(f"mindmesh_nodes_global: {len(nodes)} nodes added or refreshed")
+    if not dry_run:
+        for batch in chunks(nodes):
+            supabase.table("mindmesh_nodes_global").upsert(batch, on_conflict="key").execute()
+
+    link_codes = []
+    if not fields or "links" in fields:
+        with open(out / "links.csv", newline="") as handle:
+            link_codes = [row["code"] for row in csv.DictReader(handle) if not only or row["code"] in only]
+    known = set(courses)
+    edges = [
+        edge for code in link_codes
+        for edge in requisite_edges(code, course_row(pages["courses"][code]["content"])["conditions_for_enrolment"] or "", known)
+    ]
+    print(f"mindmesh_edges_global: links rebuilt for {len(link_codes)} courses ({len(edges)} links)")
+    if not dry_run:
+        for batch in chunks(link_codes):
+            supabase.table("mindmesh_edges_global").delete().in_("to_key", batch).execute()
+        for batch in chunks(edges):
+            supabase.table("mindmesh_edges_global").insert(batch).execute()
+
+    for kind in ("specialisations", "programs"):
+        updates, inserts = reviewed_changes(out, kind, only, fields)
+        write_table(kind, updates, inserts, stamps_for(kind), level, dry_run)
+
+    if dry_run:
+        print("Dry run: nothing was written.")
+        return
+    findings = display_data_audit.audit()
+    must_fix = sum(len(keys) for (level_name, *_), keys in findings.items() if level_name == display_data_audit.MUST_FIX)
+    print(f"Display-data audit: {must_fix} must-fix values")
+    if must_fix:
+        raise SystemExit("The audit found must-fix values. Review them, or restore the backup.")
+
+
+def restore(backup: Path) -> None:
+    for table, key in BACKUP_TABLES:
+        saved = json.loads((backup / f"{table}.json").read_text())
+        keep = {row[key] for row in saved}
+        extra = [row[key] for row in fetch_rows(table, key) if row[key] not in keep]
+        for batch in chunks(extra):
+            supabase.table(table).delete().in_(key, batch).execute()
+        conflict = "id" if table == "mindmesh_edges_global" else key
+        for batch in chunks(saved):
+            supabase.table(table).upsert(batch, on_conflict=conflict).execute()
+        print(f"{table}: {len(saved)} rows restored, {len(extra)} added rows removed")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--level", default="undergraduate")
@@ -512,11 +664,21 @@ def main() -> None:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("fetch").add_argument("--limit", type=int)
     commands.add_parser("plan")
+    apply_command = commands.add_parser("apply")
+    apply_command.add_argument("--dry-run", action="store_true")
+    apply_command.add_argument("--only", help="comma-separated codes")
+    apply_command.add_argument("--fields", help="comma-separated fields, e.g. sections")
+    commands.add_parser("restore").add_argument("--backup", required=True)
     args = parser.parse_args()
     if args.command == "fetch":
         fetch(args.level, args.year, args.limit)
-    else:
+    elif args.command == "plan":
         plan(args.level, args.year)
+    elif args.command == "apply":
+        split = lambda value: set(value.split(",")) if value else None
+        apply(args.level, args.year, args.dry_run, split(args.only), split(args.fields))
+    else:
+        restore(Path(args.backup))
 
 
 if __name__ == "__main__":
