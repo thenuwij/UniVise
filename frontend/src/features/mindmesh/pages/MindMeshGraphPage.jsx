@@ -6,6 +6,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { bandButtonPrimary } from "@/shared/ui/cardStyles";
 import GraphControls from "../components/GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "../components/NodeRenderer";
 import useMindMeshData from "../hooks/useMindMeshData";
@@ -321,10 +322,10 @@ export default function MindMeshGraphPage() {
         eyebrow="CourseMesh"
         title={programMeta?.program_name || (programCode ? programCode : "How your courses connect")}
         subtitle={programCourses?.length ? `How your courses connect · ${programCourses.length} courses` : "How your courses connect"}
-        actions={
+        aside={
           isOwnProgram && options.size > 0 ? (
-            <button onClick={() => setShowElectives(true)} className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
-              <Plus className="h-4 w-4" />
+            <button onClick={() => setShowElectives(true)} className={bandButtonPrimary}>
+              <Plus className="h-5 w-5" strokeWidth={2.5} />
               Add electives
             </button>
           ) : null
