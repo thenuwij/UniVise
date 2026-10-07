@@ -1,8 +1,8 @@
 """Tests for the roadmap career pathways step.
 
-The AI calls, salary search and link checks are faked; these check that roles
-can only use occupations allowed for the degree, that sourced salaries replace
-the AI estimate, that roles carry their occupation's official pay and demand,
+The AI calls and link checks are faked; these check that roles can only use
+occupations allowed for the degree, that salaries stay the AI estimate without
+a source, that roles carry their occupation's official pay and demand,
 that each role only names courses from the program's real
 course list, that programs with few courses of their own suggest real
 specialisations instead, and the fallback when generation fails.
@@ -74,14 +74,10 @@ def fakes(monkeypatch):
         calls["schemas"].append(schema)
         return schema.model_validate(calls.get("generated", GENERATED))
 
-    async def salaries(roles, program_name):
-        return calls.get("salaries", {})
-
     async def link_ok(url):
         return calls.get("links_ok", True)
 
     monkeypatch.setattr(industry, "ask_gpt_structured", reply)
-    monkeypatch.setattr(industry, "search_role_salaries", salaries)
     monkeypatch.setattr(industry, "validate_url", link_ok)
     return calls
 
@@ -111,35 +107,13 @@ def test_without_occupations_the_plain_schema_is_used():
     assert career_pathways_schema([]) is CareerPathwaysSection
 
 
-def test_sourced_salary_replaces_the_estimate_and_others_stay_ai_suggested(fakes):
-    fakes["salaries"] = {"graduate accountant": {"salary_range": "$72,000 - $78,000", "source": "SEEK", "source_url": "https://www.seek.com.au/career-advice/role/graduate-accountant/salary"}}
-    other = {**ROLE, "title": "Audit Senior", "anzsco_code": "2212"}
-    generated = copy.deepcopy(GENERATED)
-    generated["career_pathways"]["mid_career"]["roles"] = [other, other]
-    fakes["generated"] = generated
-
+def test_salaries_stay_the_ai_estimate_without_a_source(fakes):
     pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
 
-    entry = pathways["entry_level"]["roles"][0]
-    assert entry["salary_range"] == "$72,000 - $78,000"
-    assert entry["salary_source"] == {"name": "SEEK", "url": "https://www.seek.com.au/career-advice/role/graduate-accountant/salary"}
-    mid = pathways["mid_career"]["roles"][0]
-    assert mid["salary_range"] == "$70,000 - $80,000"
-    assert mid["salary_source"] is None
-
-
-def test_salary_search_failure_keeps_the_estimates(fakes, monkeypatch):
-    async def search_down(roles, program_name):
-        raise TimeoutError("web search timed out")
-
-    monkeypatch.setattr(industry, "search_role_salaries", search_down)
-
-    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
-
-    role = result["career_pathways"]["entry_level"]["roles"][0]
-    assert "failed" not in result
+    role = pathways["entry_level"]["roles"][0]
     assert role["salary_range"] == "$70,000 - $80,000"
     assert role["salary_source"] is None
+    assert "checked against current sources" not in fakes["prompts"][0]
 
 
 def test_dead_certification_link_becomes_a_search(fakes):

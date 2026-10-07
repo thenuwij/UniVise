@@ -100,6 +100,7 @@ async def ask_gpt_web_search(
     prompt: str,
     schema: type[SchemaT],
     allowed_domains: List[str] | None,
+    search_context_size: str = "medium",
     max_tokens: int = 3000,
     system_prompt: str = _GPT_SYSTEM,
     model: str = _GPT_MODEL,
@@ -111,7 +112,7 @@ async def ask_gpt_web_search(
     tool = {
         "type": "web_search",
         "user_location": {"type": "approximate", "country": "AU", "city": "Sydney", "region": "New South Wales"},
-        "search_context_size": "medium",
+        "search_context_size": search_context_size,
     }
     if allowed_domains:
         tool["filters"] = {"allowed_domains": allowed_domains}

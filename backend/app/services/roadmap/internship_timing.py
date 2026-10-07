@@ -6,7 +6,6 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel
 
 from app.llm.openai_client import ask_gpt_web_search
-from app.services.roadmap.salary_search import page_key
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,11 @@ class ProgramTiming(BaseModel):
 
 class ProgramTimings(BaseModel):
     programs: list[ProgramTiming]
+
+
+def page_key(url: str) -> str:
+    parts = urlsplit(url or "")
+    return f"{(parts.hostname or '').lower()}{parts.path.rstrip('/')}"
 
 
 def company_words(company: str) -> List[str]:
@@ -55,7 +59,7 @@ def timing_prompt(programs: List[Dict[str, Any]]) -> str:
 async def search_program_timings(programs: List[Dict[str, Any]]) -> Dict[str, Dict[str, str]]:
     if not programs:
         return {}
-    result, sources = await ask_gpt_web_search(timing_prompt(programs), ProgramTimings, None, max_tokens=3000, model="gpt-5.4-mini")
+    result, sources = await ask_gpt_web_search(timing_prompt(programs), ProgramTimings, None, search_context_size="low", max_tokens=3000, model="gpt-5.4-mini")
     searched_pages = {page_key(url) for url in sources}
     found = {}
     for item in result.programs:

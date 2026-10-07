@@ -19,7 +19,6 @@ from app.services.roadmap.career_data import fetch_career_data
 from app.services.roadmap.internship_timing import apply_timings, search_program_timings
 from app.services.roadmap.job_ads import ad_search_words
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
-from app.services.roadmap.salary_search import search_role_salaries
 from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
 
 COURSE_CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
@@ -381,17 +380,6 @@ async def check_certification_links(certifications: list) -> None:
             cert["url"] = f"https://www.google.com/search?q={query}"
 
 
-def apply_salaries(pathways: dict, salaries: dict) -> None:
-    for stage in ("entry_level", "mid_career", "senior"):
-        for role in pathways[stage]["roles"]:
-            found = salaries.get(role["title"].strip().lower())
-            if found:
-                role["salary_range"] = found["salary_range"]
-                role["salary_source"] = {"name": found["source"], "url": found["source_url"]}
-            else:
-                role["salary_source"] = None
-
-
 async def ai_generate_career_pathways(context: Dict[str, Any]) -> Dict[str, Any]:
 
     _start = time.time()
@@ -427,7 +415,7 @@ You are a UNSW career advisor. Describe the career pathways open to {program_nam
 
 A. ENTRY ROLES (3 roles, 0 to 2 years), B. MID ROLES (2 roles, 3 to 7 years), C. SENIOR ROLES (2 roles, 8+ years). For every role:
   - title: a job title as it appears in Australian job ads (e.g. 'Graduate Accountant', 'Junior Data Analyst')
-  - salary_range: your best estimate of a typical Australian annual salary for the role, as "$X - $Y" (it is checked against current sources later)
+  - salary_range: your best estimate of a typical Australian annual salary for the role, as "$X - $Y"
   - description: 3 sentences at most: day-to-day work, the skills it uses, and why it suits {program_name} graduates
   - requirements: a semicolon-separated list of at most 5 discrete skills
   - degree_path: one sentence on how this degree leads to the role, naming the student's specialisation if one is given above
@@ -463,15 +451,8 @@ D. CERTIFICATIONS (2 to 3): name, provider, importance (Required/Highly Recommen
             } if figures.get("weekly_earnings") else None
             role["in_demand_nsw"] = bool(figures.get("in_demand_nsw"))
             role["specialisations"] = [options[c] for c in dict.fromkeys(role["specialisations"]) if c in options][:2]
-        salaries, _ = await asyncio.gather(
-            search_role_salaries(roles, program_name),
-            check_certification_links(pathways["certifications"]),
-            return_exceptions=True,
-        )
-        if isinstance(salaries, Exception):
-            logger.error(f"[salary_search] failed, keeping AI estimates: {salaries}")
-            salaries = {}
-        apply_salaries(pathways, salaries)
+            role["salary_source"] = None
+        await check_certification_links(pathways["certifications"])
         for role in pathways["entry_level"]["roles"]:
             role["ad_search"] = ad_search_words(role["title"])
         pathways["outlook"] = context.get("career_outlook") or []

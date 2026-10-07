@@ -2,8 +2,6 @@ name: Refresh Roadmap Cache
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 16 * * 0"
 
 permissions:
   id-token: write

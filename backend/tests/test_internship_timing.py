@@ -21,6 +21,7 @@ def test_page_must_be_on_the_company_site():
 def test_only_company_pages_from_the_search_count(monkeypatch):
     async def fake_search(prompt, schema, allowed_domains, **kwargs):
         assert allowed_domains is None
+        assert kwargs["search_context_size"] == "low"
         reply = ProgramTimings(programs=[
             ProgramTiming(company="Deloitte Australia", program_name="Vacationer Program", usually_opens="February to March", source_url=DELOITTE),
             ProgramTiming(company="KPMG Australia", program_name="Vacation Program", usually_opens="March", source_url="https://au.gradconnection.com/employers/kpmg/"),
