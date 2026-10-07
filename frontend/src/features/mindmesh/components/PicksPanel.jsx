@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { MYPLAN_URL } from "../hooks/useCoursePicks";
 
-export default function PicksPanel({ picks, loading, failed, onRetry, onSelect }) {
+export default function PicksPanel({ picks, loading, failed, onRetry, onSelect, canAdd, onAdd, saving }) {
   return (
     <div className="hidden sm:block absolute top-4 right-4 z-10 w-72 rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-sm p-4">
       <div className="flex items-center gap-2 mb-2">
@@ -30,6 +30,15 @@ export default function PicksPanel({ picks, loading, failed, onRetry, onSelect }
                 <span className="text-xs text-slate-700 dark:text-slate-300"> {p.name}</span>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">{p.reason}</p>
               </button>
+              {canAdd?.(p.code) && (
+                <button
+                  onClick={() => onAdd(p.code)}
+                  disabled={saving}
+                  className="mt-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:underline disabled:opacity-50"
+                >
+                  Add to CourseMesh
+                </button>
+              )}
             </li>
           ))}
         </ul>

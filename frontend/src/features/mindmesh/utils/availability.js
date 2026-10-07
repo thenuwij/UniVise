@@ -2,6 +2,7 @@ export const STATUS = {
   completed: { label: "Completed", color: "#16A34A" },
   available: { label: "Can take next", color: "#2563EB" },
   locked: { label: "Not yet", color: "#64748B" },
+  not_needed: { label: "Not needed (you chose another)", color: "#94A3B8" },
 };
 
 export function prereqGroups(edges) {

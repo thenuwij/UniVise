@@ -151,3 +151,16 @@ def test_double_degree_halves_match_single_program_names():
     assert norm(" Bachelor of Commerce - BCom") == norm("Bachelor of Commerce")
     assert norm("Engineering (Honours)") == norm("Bachelor of Engineering (Honours)")
     assert norm("Computer Science") != norm("Bachelor of Science")
+
+
+def test_alternatives_are_skipped_once_one_course_of_the_group_is_done():
+    program = [{"title": "Core", "courses": [
+        {"code": "COMP1511"},
+        {"code": "MATH1131", "choice": "Core 1"},
+        {"code": "MATH1141", "choice": "Core 1"},
+    ]}]
+    major = [{"title": "Core", "courses": [{"code": "MATH1231", "choice": "Core 1"}, {"code": "MATH1241", "choice": "Core 1"}]}]
+
+    assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], set()) == set()
+    assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], {"MATH1131"}) == {"MATH1141"}
+    assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], {"MATH1131", "MATH1241"}) == {"MATH1141", "MATH1231"}

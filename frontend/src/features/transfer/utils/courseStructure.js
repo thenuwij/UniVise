@@ -74,7 +74,8 @@ export async function buildCourseStructure(programData, userId) {
   Object.entries(coursesBySection).forEach(([sectionName, courses]) => {
     const existingSection = structure.find((s) => s.title === sectionName);
     if (existingSection) {
-      existingSection.courses = [...existingSection.courses, ...courses];
+      const listed = new Set(existingSection.courses.map((c) => c.code));
+      existingSection.courses = [...existingSection.courses, ...courses.filter((c) => !listed.has(c.code))];
     }
   });
 

@@ -14,10 +14,14 @@ import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
 import StatusLegend from "../components/StatusLegend";
 import PicksPanel from "../components/PicksPanel";
+import ElectivesPanel from "../components/ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
+import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
+import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
+import { Plus } from "lucide-react";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -40,7 +44,7 @@ export default function MindMeshGraphPage() {
   const programCode = searchParams.get("program") || enrolled?.degree_code || null;
   const userId = session?.user?.id;
   const {
-    graph, setGraph, programCourses, programMeta, loading, thin,
+    graph, setGraph, programCourses, programMeta, loading, thin, mine, reload,
     completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges,
   } = useMindMeshData({ programCode, userId });
   const noProgram = !programCode && !enrolledLoading;
@@ -48,11 +52,35 @@ export default function MindMeshGraphPage() {
   const needsSpecialisation = !!programCode && !loading && thin;
   const [savingDone, setSavingDone] = useState(false);
   const groups = useMemo(() => prereqGroups(prereqEdges), [prereqEdges]);
-  const statusOf = useCallback((code) => courseStatus(code, completed, groups), [completed, groups]);
+  const notNeeded = useMemo(() => (mine ? notNeededCodes(mine, completed, mine.added) : new Set()), [mine, completed]);
+  const statusOf = useCallback(
+    (code) => (notNeeded.has(code) ? "not_needed" : courseStatus(code, completed, groups)),
+    [notNeeded, completed, groups]
+  );
   const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
   const coursePicks = useCoursePicks(isOwnProgram);
   const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
   const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
+  const [showElectives, setShowElectives] = useState(false);
+  const [savingAdded, setSavingAdded] = useState(false);
+  const options = useMemo(() => new Map((mine?.options || []).map((o) => [o.code, o])), [mine]);
+  const canAdd = useCallback(
+    (code) => options.has(code) && !graph.nodes.some((n) => n.id === code),
+    [options, graph.nodes]
+  );
+
+  const toggleAdded = async (option, added) => {
+    if (!userId || !option || savingAdded) return;
+    setSavingAdded(true);
+    try {
+      await setCourseAdded({ userId, course: option, section: option.section, added });
+      await reload();
+    } catch (err) {
+      console.error("Error saving elective:", err);
+    } finally {
+      setSavingAdded(false);
+    }
+  };
 
   const toggleDone = async (node) => {
     if (!userId || savingDone) return;
@@ -293,7 +321,26 @@ export default function MindMeshGraphPage() {
         eyebrow="CourseMesh"
         title={programMeta?.program_name || (programCode ? programCode : "How your courses connect")}
         subtitle={programCourses?.length ? `How your courses connect · ${programCourses.length} courses` : "How your courses connect"}
+        actions={
+          isOwnProgram && options.size > 0 ? (
+            <button onClick={() => setShowElectives(true)} className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-white hover:underline">
+              <Plus className="h-4 w-4" />
+              Add electives
+            </button>
+          ) : null
+        }
       />
+
+      {showElectives && (
+        <ElectivesPanel
+          options={mine?.options || []}
+          added={mine?.added || new Set()}
+          completed={completed}
+          saving={savingAdded}
+          onToggle={toggleAdded}
+          onClose={() => setShowElectives(false)}
+        />
+      )}
 
       <GraphControls
         ref={controlsRef}
@@ -341,6 +388,9 @@ export default function MindMeshGraphPage() {
               failed={coursePicks.failed}
               onRetry={coursePicks.retry}
               onSelect={focusCourse}
+              canAdd={canAdd}
+              onAdd={(code) => toggleAdded(options.get(code), true)}
+              saving={savingAdded}
             />
           )}
 

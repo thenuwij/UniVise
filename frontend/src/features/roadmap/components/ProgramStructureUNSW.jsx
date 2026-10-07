@@ -1,11 +1,12 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { Check, ChevronDown, ChevronUp, Layers, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Layers, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { THIN_PROGRAM_COURSES, courseCodesOf, fetchChosenSpecialisations, hasCourses, parseSections } from "../utils/programCourses";
+import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedCourses, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
+import { notNeededCodes, requiredCount, splitCourses } from "../utils/myCourses";
 import SuggestedNext from "./SuggestedNext";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import FormattedText from "@/shared/ui/FormattedText";
@@ -84,7 +85,28 @@ function DoneToggle({ done, onClick }) {
   );
 }
 
-function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, onToggleDone }) {
+function AddToggle({ added, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-pressed={added}
+      className={`ml-2 flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border-2 transition-all ${
+        added
+          ? "bg-blue-600 border-blue-600 text-white"
+          : "border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:border-blue-500"
+      }`}
+    >
+      {added ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <Plus className="h-3.5 w-3.5" strokeWidth={3} />}
+      {added ? "Added" : "Add"}
+    </button>
+  );
+}
+
+function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, onToggleDone, options, added, notNeeded, onToggleAdded }) {
   const total = section.uoc ?? sumUoC(section.courses);
   const count = section.courses?.length || 0;
 
@@ -121,16 +143,22 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
               <div
                 key={c.code || i}
                 onClick={() => onCourseClick?.(c)}
-                className="group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md transition-all"
+                className={`group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer ${notNeeded?.has(c.code) ? "opacity-60 " : ""}bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md transition-all`}
               >
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">{c.code}</span>
+                  <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">
+                    {c.code}
+                    {notNeeded?.has(c.code) && <span className="ml-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Not needed</span>}
+                  </span>
                   <span className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1">{c.name}</span>
                 </div>
                 {c.uoc != null && c.uoc !== "" && (
                   <span className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                     {c.uoc} UOC
                   </span>
+                )}
+                {onToggleAdded && options?.has(c.code) && !completed?.[c.code]?.is_completed && (
+                  <AddToggle added={added.has(c.code)} onClick={() => onToggleAdded(c)} />
                 )}
                 {onToggleDone && (
                   <DoneToggle done={!!completed?.[c.code]?.is_completed} onClick={() => onToggleDone(c, section.title)} />
@@ -182,8 +210,19 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   );
 
   const allCourses = useMemo(() => courseCodesOf(courseSections), [courseSections]);
+  const [added, setAdded] = useState(new Set());
 
-  const thin = specs?.length === 0 && courseCodesOf(programCourseSections).length <= THIN_PROGRAM_COURSES;
+  const mine = useMemo(
+    () => splitCourses([{ key: degreeCode, sections: programCourseSections }, ...(specs || []).map((spec) => ({ key: spec.id, sections: spec.sections }))]),
+    [degreeCode, programCourseSections, specs]
+  );
+  const options = useMemo(() => new Map(mine.options.map((o) => [o.code, o])), [mine]);
+  const notNeeded = useMemo(() => {
+    const done = new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code));
+    return notNeededCodes(mine, done, added);
+  }, [mine, completed, added]);
+
+  const thin = specs?.length === 0 && requiredCount(splitCourses([{ key: degreeCode, sections: programCourseSections }])) <= THIN_PROGRAM_COURSES;
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
@@ -255,7 +294,29 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     fetchCompletedCourses(userId).then((rows) => {
       setCompleted(Object.fromEntries(rows.map((r) => [r.course_code, r])));
     });
+    fetchAddedCourses(userId).then(setAdded);
   }, [trackCompletion, userId]);
+
+  const toggleAdded = async (course) => {
+    if (!userId || pendingRef.current.has(course.code)) return;
+    pendingRef.current.add(course.code);
+    const isAdded = !added.has(course.code);
+    const update = (on) => setAdded((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(course.code);
+      else next.delete(course.code);
+      return next;
+    });
+    update(isAdded);
+    try {
+      await setCourseAdded({ userId, course, section: options.get(course.code)?.section, added: isAdded });
+    } catch (err) {
+      console.error("Error saving elective:", err);
+      update(!isAdded);
+    } finally {
+      pendingRef.current.delete(course.code);
+    }
+  };
 
   const toggleDone = async (course, category) => {
     if (!userId || pendingRef.current.has(course.code)) return;
@@ -383,6 +444,10 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                     onCourseClick={handleCourseClick}
                     completed={completed}
                     onToggleDone={trackCompletion ? toggleDone : null}
+                    options={options}
+                    added={added}
+                    notNeeded={notNeeded}
+                    onToggleAdded={trackCompletion ? toggleAdded : null}
                   />
                 </div>
               );
