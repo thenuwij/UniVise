@@ -473,10 +473,12 @@ def year_note(course_pages: dict) -> str:
     return "/".join(sorted(y for y in years if y)) or "Handbook"
 
 
-def proposed_row(kind: str, page: dict, titles: dict) -> dict:
+def proposed_row(kind: str, page: dict, titles: dict, program_names: dict | None = None) -> dict:
     row = ROW_BUILDERS[kind](page["content"])
     if kind == "courses":
         return row
+    if kind == "specialisations" and program_names:
+        row["sections_degrees"] = [{**d, "program_name": program_names.get(d["degree_code"], d["program_name"])} for d in row["sections_degrees"]]
     return {**row, "sections": with_course_names(row["sections"], titles), "source_url": page["url"]}
 
 
@@ -509,7 +511,7 @@ def plan(level: str, year: str) -> None:
     accepted = {tuple(item) for item in json.loads(decisions_file.read_text()).get("accept", [])} if decisions_file.exists() else set()
     titles = {row["code"]: row["title"] for row in fetch_rows("unsw_courses", "code, title")}
     titles.update({code: page["content"].get("title") for code, page in pages["courses"].items() if code not in titles})
-    kept_programs, used_courses = set(), set()
+    kept_programs, used_courses, program_names = set(), set(), {}
     for kind in KINDS:
         table, key = TABLES[kind]
         db_rows = {row[key]: row for row in fetch_rows(table, "*")}
@@ -521,13 +523,13 @@ def plan(level: str, year: str) -> None:
         examples = defaultdict(list)
         changes = []
         for code in sorted(set(active) & set(db_rows)):
-            proposed = proposed_row(kind, active[code], titles)
+            proposed = proposed_row(kind, active[code], titles, program_names)
             current = db_rows[code]
             for field, value in proposed.items():
                 if field == "sections":
                     value = with_current_overview(current.get(field), value)
                 action = compare(kind, field, current.get(field), value)
-                if (kind, code, field) in accepted and action != "same":
+                if ((kind, code, field) in accepted or (kind, "*", field) in accepted) and action != "same":
                     action = "accept"
                 counts[field][action] += 1
                 if action == "same":
@@ -540,12 +542,14 @@ def plan(level: str, year: str) -> None:
                     examples[field].append((code, current.get(field), value))
         if kind == "programs":
             kept_programs |= set(db_rows)
+            program_names = {code: row["program_name"] for code, row in db_rows.items()}
+            program_names.update({c["key"]: json.loads(c["proposed"])["program_name"] for c in changes if c["action"] == "new"})
         if kind != "courses":
             for code in sorted(set(active) & set(db_rows)):
                 used_courses |= course_codes(proposed_row(kind, active[code], titles)["sections"]) | course_codes(db_rows[code].get("sections"))
         skipped = Counter()
         for code in new:
-            proposed = proposed_row(kind, active[code], titles)
+            proposed = proposed_row(kind, active[code], titles, program_names)
             reason = new_row_reason(kind, active[code], proposed, kept_programs, used_courses)
             if reason:
                 skipped[reason.split(" (")[0]] += 1
