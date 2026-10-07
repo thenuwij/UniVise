@@ -4,7 +4,16 @@ No network or database is touched; these check how Handbook HTML becomes
 display text, how course sections, types and choice groups are built, and
 which differences count as changes.
 """
-from scripts.handbook_import import build_sections, compare, course_row, html_to_text, is_active, with_current_overview
+from scripts.handbook_import import (
+    build_sections,
+    compare,
+    course_row,
+    html_to_text,
+    is_active,
+    new_row_reason,
+    with_course_names,
+    with_current_overview,
+)
 
 
 def group(title, value, credit_points="", courses=(), children=(), order="0", description=""):
@@ -43,7 +52,7 @@ def test_sections_follow_handbook_order_and_types():
     sections = build_sections(structure)
 
     assert [(s["title"], s["kind"]) for s in sections] == [
-        ("Core Courses", "core"), ("Electives", "elective"), ("General Education", "general_education"), ("Maximum Level 1 UOC", "info"),
+        ("Core Courses", "core"), ("Electives", "elective"), ("General Education", "general_education"), ("Maximum Level 1 UOC", "limit"),
     ]
     assert sections[0]["description"] == "Take all of these."
     assert sections[1]["courses"][0] == {"uoc": 6, "code": "COMP3311", "name": "COMP3311", "kind": "elective"}
@@ -165,3 +174,34 @@ def test_apply_writes_reviewed_rows_but_not_flags_or_kept_values(tmp_path):
     assert node_row("COMP2521", {"title": "Data Structures", "uoc": 6, "faculty": "Faculty of Engineering", "school": None}) == {
         "key": "COMP2521", "label": "Data Structures", "uoc": 6, "faculty": "Faculty of Engineering", "school": None, "level": "2",
     }
+
+
+def test_courses_listed_only_in_rule_text_become_electives_unless_excluded():
+    structure = {"container": [
+        group("Recommended Electives", "IR", description="<p>We recommend MATH3041 and MATH3121.</p>"),
+        group("Excluded General Education Courses", "IR", description="<p>Students may not take COMP1511.</p>"),
+        group("Disciplinary Component", None, "96", order="100", children=[
+            group("International-labelled Course Requirement", "LR", description="<p>At least 24 UOC from ACCT3601 or ECON2111.</p>"),
+        ]),
+    ]}
+
+    sections = build_sections(structure)
+
+    assert [(c["code"], c["kind"]) for c in sections[0]["courses"]] == [("MATH3041", "elective"), ("MATH3121", "elective")]
+    assert sections[1]["courses"] == []
+    assert [(s["title"], [c["code"] for c in s["courses"]]) for s in sections[2:]] == [
+        ("Disciplinary Component", []), ("International-labelled Course Requirement", ["ACCT3601", "ECON2111"]),
+    ]
+    assert with_course_names(sections, {"MATH3041": "Mathematical Modelling"})[0]["courses"][0]["name"] == "Mathematical Modelling"
+
+
+def test_new_rows_are_added_only_for_sydney_and_when_used():
+    sydney = {"content": {"campus": "Sydney", "code": "4072"}}
+    canberra = {"content": {"campus": "UNSW Canberra", "code": "4471"}}
+
+    assert new_row_reason("programs", sydney, {}, set(), set()) is None
+    assert new_row_reason("programs", canberra, {}, set(), set()).startswith("other campus")
+    assert new_row_reason("specialisations", {"content": {}}, {"sections_degrees": [{"degree_code": "3778"}]}, {"3778"}, set()) is None
+    assert new_row_reason("specialisations", {"content": {}}, {"sections_degrees": [{"degree_code": "4471"}]}, {"3778"}, set())
+    assert new_row_reason("courses", {"content": {"code": "COMP9999"}}, {}, set(), {"COMP1511"})
+    assert new_row_reason("courses", {"content": {"code": "COMP1511"}}, {}, set(), {"COMP1511"}) is None

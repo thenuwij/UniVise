@@ -16,8 +16,8 @@ written to the database.
     python -m scripts.handbook_import apply [--dry-run] [--only CODE,CODE] [--fields a,b]
     python -m scripts.handbook_import restore --backup ../ai/phase-10-backup/<time>
 
-`apply` writes the reviewed CSVs: every row except "flag" (change it to
-"accept" to write it), "kept", "handbook empty" and "missing". Delete a row to
+`apply` writes the reviewed CSVs: every row except "flag" (list it under
+"accept" in `ai/phase-10-plan/decisions.json`, or change it to "accept", to write it), "kept", "handbook empty" and "missing". Delete a row to
 skip it. It backs up the three tables and the CourseMesh nodes and links
 first, stamps every row found in the Handbook, adds new programs hidden
 (`is_offered = false`), rebuilds links only for the courses in `links.csv`,
@@ -49,6 +49,12 @@ AI_DIR = Path(__file__).resolve().parents[2] / "ai"
 KINDS = ("programs", "specialisations", "courses")
 COURSE_CODE = re.compile(r"^[A-Z]{4}\d{4}$")
 NEXT_DATA = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
+SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+CODE_IN_TEXT = re.compile(r"\b[A-Z]{4}\d{4}\b")
+NOT_ALLOWED = re.compile(r"(?i)exclu|cannot|can not|may not|not permitted|not count")
+SYDNEY = ("Sydney", "Paddington")
+CRICOS = re.compile(r"^\d{6}[A-Z]$")
+BOILERPLATE = re.compile(r"(?i)^(this handbook entry is for students commencing|please refer to (the )?previous editions)")
 EXAMPLES = 3
 EXAMPLE_CHARS = 160
 
@@ -73,7 +79,7 @@ SECTION_KINDS = {
     "GE": "general_education",
     "FE": "free_elective",
     "IR": "info",
-    "LR": "info",
+    "LR": "limit",
     "undergrad_major": "specialisations",
     "undergrad_minor": "specialisations",
     "honours": "specialisations",
@@ -97,7 +103,8 @@ def html_to_text(value) -> str | None:
     text = re.sub(r"<[^>]+>", " ", text)
     text = html.unescape(text).replace("\u00a0", " ")
     lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.split("\n")]
-    text = "\n".join(line for line in lines if line)
+    text = "\n".join(" ".join(s for s in SENTENCE_SPLIT.split(line) if not BOILERPLATE.match(s)) for line in lines if line)
+    text = "\n".join(line for line in text.split("\n") if line.strip())
     return None if not text or is_placeholder(text) else text
 
 
@@ -161,7 +168,7 @@ def container_courses(container: dict, kind: str | None, choice: str | None) -> 
 
 
 def build_sections(structure: dict) -> list[dict]:
-    """One section per top-level container; nested groups with their own UOC become their own section.
+    """One section per top-level container; nested groups with their own UOC, and nested rules, become their own section.
 
     Every section and course carries its Handbook type, and courses from a
     "one of the following" group share a choice key so taking one satisfies the group.
@@ -189,7 +196,7 @@ def build_sections(structure: dict) -> list[dict]:
             choice = f"{section['title']} {choices[section['title']]}"
         section["courses"] += container_courses(container, kind, choice)
         for child in ordered(container.get("container")):
-            if to_int(child.get("credit_points")) is not None:
+            if to_int(child.get("credit_points")) is not None or container_kind(child) in ("info", "limit"):
                 add(child, kind)
             else:
                 collect(child, section, container_kind(child, kind), choice)
@@ -201,6 +208,26 @@ def build_sections(structure: dict) -> list[dict]:
         section["courses"] = [c for c in section["courses"] if not (c["code"] in seen or seen.add(c["code"]))]
         if not section["kind"]:
             section["kind"] = "core" if section["courses"] else "info"
+        listed_in_text = CODE_IN_TEXT.findall(section.get("description") or "")
+        if not section["courses"] and listed_in_text and not NOT_ALLOWED.search(f"{section['title']} {section.get('description')}"):
+            section["courses"] = [{"uoc": None, "code": code, "name": None, "kind": "elective"} for code in dict.fromkeys(listed_in_text)]
+    return sections
+
+
+def campus(content: dict) -> str:
+    value = content.get("campus") or content.get("location") or ""
+    if isinstance(value, dict):
+        value = value.get("value") or value.get("label") or ""
+    if isinstance(value, list):
+        value = ", ".join(str(v.get("value") or v.get("label") or "") if isinstance(v, dict) else str(v) for v in value)
+    return str(value)
+
+
+def with_course_names(sections: list[dict], titles: dict) -> list[dict]:
+    for section in sections:
+        for course in section.get("courses") or []:
+            if not course.get("name") and course.get("code") in titles:
+                course["name"] = titles[course["code"]]
     return sections
 
 
@@ -218,10 +245,22 @@ def with_current_overview(current, proposed: list[dict]) -> list[dict]:
     return kept + [s for s in proposed if not is_overview(s)] if kept else proposed
 
 
+def award_name(content: dict) -> str | None:
+    text = html_to_text(content.get("award_title_single"))
+    if not text:
+        return None
+    return " / ".join(re.sub(r"\s+-\s+[^/]*$", "", line).strip() for line in text.split("\n"))
+
+
+def cricos(value) -> str | None:
+    text = html_to_text(value)
+    return text if text and CRICOS.match(text) else None
+
+
 def program_row(content: dict) -> dict:
     duration = (content.get("full_time_duration") or "").strip() or None
     return {
-        "program_name": html_to_text(content.get("award_title_single")) or content.get("title"),
+        "program_name": award_name(content) or content.get("title"),
         "faculty": normalise_faculty(org_name(content.get("parent_academic_org")) or "") or None,
         "uac_code": html_to_text(content.get("uac_code_single")) or html_to_text(content.get("uac_code")),
         "overview_description": html_to_text(content.get("description")),
@@ -230,7 +269,7 @@ def program_row(content: dict) -> dict:
         "duration": duration,
         "duration_years": parse_years(duration),
         "minimum_uoc": to_int(content.get("credit_points")),
-        "cricos_code": html_to_text(content.get("cricos_code")),
+        "cricos_code": cricos(content.get("cricos_code")),
         "sections": overview_section(content) + build_sections(content.get("curriculumStructure")),
     }
 
@@ -371,7 +410,7 @@ def compare(kind: str, field: str, current, proposed) -> str:
             return "same"
         if field in KEEP_CURRENT and current not in (None, ""):
             return "kept"
-        if field in TEXT_FIELDS and words(current) == words(proposed):
+        if field in TEXT_FIELDS and words(html_to_text(current) if isinstance(current, str) else current) == words(proposed):
             return "format"
         if field == "program_name" and words(ABBREVIATION.sub("", current or "")) == words(ABBREVIATION.sub("", proposed)):
             return "same"
@@ -434,9 +473,22 @@ def year_note(course_pages: dict) -> str:
     return "/".join(sorted(y for y in years if y)) or "Handbook"
 
 
-def proposed_row(kind: str, page: dict) -> dict:
+def proposed_row(kind: str, page: dict, titles: dict) -> dict:
     row = ROW_BUILDERS[kind](page["content"])
-    return row if kind == "courses" else {**row, "source_url": page["url"]}
+    if kind == "courses":
+        return row
+    return {**row, "sections": with_course_names(row["sections"], titles), "source_url": page["url"]}
+
+
+def new_row_reason(kind: str, page: dict, proposed: dict, kept_programs: set, used_courses: set) -> str | None:
+    """Why a page that is not in the database should not be added, or None to add it."""
+    if kind == "programs" and not any(place in campus(page["content"]) for place in SYDNEY):
+        return f"other campus ({campus(page['content']) or 'unknown'})"
+    if kind == "specialisations" and not {d.get("degree_code") for d in proposed.get("sections_degrees") or []} & kept_programs:
+        return "not offered in a stored program"
+    if kind == "courses" and page["content"].get("code") not in used_courses:
+        return "not used by a stored program or major"
+    return None
 
 
 def plan(level: str, year: str) -> None:
@@ -453,6 +505,11 @@ def plan(level: str, year: str) -> None:
     ]
     if partial:
         lines += [f"**Partial snapshot** ({unfetched} listed pages not downloaded yet), so missing rows are not counted.", ""]
+    decisions_file = out / "decisions.json"
+    accepted = {tuple(item) for item in json.loads(decisions_file.read_text()).get("accept", [])} if decisions_file.exists() else set()
+    titles = {row["code"]: row["title"] for row in fetch_rows("unsw_courses", "code, title")}
+    titles.update({code: page["content"].get("title") for code, page in pages["courses"].items() if code not in titles})
+    kept_programs, used_courses = set(), set()
     for kind in KINDS:
         table, key = TABLES[kind]
         db_rows = {row[key]: row for row in fetch_rows(table, "*")}
@@ -464,12 +521,14 @@ def plan(level: str, year: str) -> None:
         examples = defaultdict(list)
         changes = []
         for code in sorted(set(active) & set(db_rows)):
-            proposed = proposed_row(kind, active[code])
+            proposed = proposed_row(kind, active[code], titles)
             current = db_rows[code]
             for field, value in proposed.items():
                 if field == "sections":
                     value = with_current_overview(current.get(field), value)
                 action = compare(kind, field, current.get(field), value)
+                if (kind, code, field) in accepted and action != "same":
+                    action = "accept"
                 counts[field][action] += 1
                 if action == "same":
                     continue
@@ -479,10 +538,24 @@ def plan(level: str, year: str) -> None:
                 })
                 if action in ("content", "flag") and len(examples[field]) < EXAMPLES:
                     examples[field].append((code, current.get(field), value))
+        if kind == "programs":
+            kept_programs |= set(db_rows)
+        if kind != "courses":
+            for code in sorted(set(active) & set(db_rows)):
+                used_courses |= course_codes(proposed_row(kind, active[code], titles)["sections"]) | course_codes(db_rows[code].get("sections"))
+        skipped = Counter()
         for code in new:
+            proposed = proposed_row(kind, active[code], titles)
+            reason = new_row_reason(kind, active[code], proposed, kept_programs, used_courses)
+            if reason:
+                skipped[reason.split(" (")[0]] += 1
+            elif kind == "programs":
+                kept_programs.add(code)
+            if not reason and kind != "courses":
+                used_courses |= course_codes(proposed["sections"])
             changes.append({
-                "table": table, "key": code, "name": active[code]["content"].get("title"), "field": "*", "action": "new",
-                "current": "", "proposed": json.dumps(proposed_row(kind, active[code]), ensure_ascii=False),
+                "table": table, "key": code, "name": active[code]["content"].get("title"), "field": reason or "*",
+                "action": "skipped" if reason else "new", "current": "", "proposed": json.dumps(proposed, ensure_ascii=False),
             })
         for code in missing:
             changes.append({"table": table, "key": code, "name": db_rows[code].get(NAME_FIELDS[kind]), "field": "*", "action": "missing", "current": "", "proposed": ""})
@@ -505,15 +578,19 @@ def plan(level: str, year: str) -> None:
             "|---|---|---|---|---|---|---|---|",
         ]
         for field, c in counts.items():
-            lines.append(f"| {field} | {c['same']} | {c['format']} | {c['content']} | {c['flag']} | {c['layout']} | {c['kept']} | {c['handbook empty']} |")
+            accepted_note = f" (+{c['accept']} accepted)" if c["accept"] else ""
+            lines.append(f"| {field} | {c['same']} | {c['format']} | {c['content']}{accepted_note} | {c['flag']} | {c['layout']} | {c['kept']} | {c['handbook empty']} |")
         lines.append("")
         for field, items in examples.items():
             lines.append(f"**{field}** examples:")
             for code, current, proposed in items:
                 lines.append(f"- {code}: now `{short(current)}`, Handbook `{short(proposed)}`")
             lines.append("")
-        if new:
-            lines += [f"New: {', '.join(new[:20])}{' ...' if len(new) > 20 else ''}", ""]
+        added = [c["key"] for c in changes if c["action"] == "new"]
+        if added:
+            lines += [f"New, to add ({len(added)}): {', '.join(added[:30])}{' ...' if len(added) > 30 else ''}", ""]
+        if skipped:
+            lines += ["Not added: " + ", ".join(f"{n} {reason}" for reason, n in skipped.items()) + " (listed in the CSV as skipped).", ""]
         if missing:
             lines += [f"Missing from the Handbook: {', '.join(missing[:20])}{' ...' if len(missing) > 20 else ''}", ""]
         if inactive:
