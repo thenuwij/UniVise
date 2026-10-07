@@ -444,16 +444,16 @@ def link_groups(edges: list[dict]) -> set:
     return {(key[0], frozenset(codes)) for key, codes in groups.items()}
 
 
-def link_changes(course_pages: dict, out: Path) -> list[str]:
-    """Compare CourseMesh links rebuilt from the snapshot's rules with the stored links."""
-    known = {row["code"] for row in fetch_rows("unsw_courses", "code")}
-    known |= {code for code, page in course_pages.items() if is_active(page["content"])}
+def link_changes(course_pages: dict, out: Path, added_courses: set) -> list[str]:
+    """Compare CourseMesh links rebuilt from the snapshot's rules with the stored links,
+    for the courses that will be stored after the import."""
+    known = {row["code"] for row in fetch_rows("unsw_courses", "code")} | added_courses
     current = defaultdict(list)
     for edge in fetch_rows("mindmesh_edges_global", "from_key, to_key, edge_type, logic_type, group_id"):
         current[edge["to_key"]].append(edge)
     counts, rows, total = Counter(), [], 0
     for code, page in sorted(course_pages.items()):
-        if not is_active(page["content"]):
+        if not is_active(page["content"]) or code not in known:
             continue
         edges = requisite_edges(code, course_row(page["content"])["conditions_for_enrolment"] or "", known)
         total += len(edges)
@@ -610,7 +610,9 @@ def plan(level: str, year: str) -> None:
             lines += [f"Missing from the Handbook: {', '.join(missing[:20])}{' ...' if len(missing) > 20 else ''}", ""]
         if inactive:
             lines += [f"Inactive pages: {', '.join(inactive[:20])}", ""]
-    lines += link_changes(pages["courses"], out)
+    with open(out / "courses.csv", newline="") as handle:
+        added_courses = {row["key"] for row in csv.DictReader(handle) if row["action"] == "new"}
+    lines += link_changes(pages["courses"], out, added_courses)
     (out / "summary.md").write_text("\n".join(lines))
     print(f"Wrote {out / 'summary.md'} and one CSV per table")
 
@@ -651,8 +653,20 @@ def reviewed_changes(out: Path, kind: str, only: set | None, fields: set | None)
     return updates, inserts
 
 
-def write_table(kind: str, updates: dict, inserts: list, stamps: dict, level: str, dry_run: bool) -> None:
-    table, key = TABLES[kind]
+REQUIRED = {
+    "unsw_courses": ["code", "title"],
+    "unsw_specialisations": ["major_code", "major_name", "specialisation_type"],
+    "unsw_degrees_final": ["degree_code", "program_name"],
+    "mindmesh_nodes_global": ["key", "label"],
+    "mindmesh_edges_global": ["from_key", "to_key", "edge_type"],
+}
+INTEGER_FIELDS = {"uoc", "minimum_uoc", "uoc_required", "handbook_year"}
+LIST_FIELDS = {"sections", "sections_degrees", "offering_terms"}
+LINK_BATCH = 50
+
+
+def prepare_table(kind: str, updates: dict, inserts: list, stamps: dict, level: str) -> tuple[dict, list]:
+    key = TABLES[kind][1]
     payloads = {code: {**stamps.get(code, {}), **fields} for code, fields in updates.items()}
     for code, stamp in stamps.items():
         payloads.setdefault(code, dict(stamp))
@@ -660,15 +674,52 @@ def write_table(kind: str, updates: dict, inserts: list, stamps: dict, level: st
     for code, row in inserts:
         extra = {"level": level.capitalize(), "is_offered": False} if kind == "programs" else {}
         new_rows.append({key: code, **row, **extra, **stamps.get(code, {})})
-    print(f"{table}: {len(updates)} rows with field changes, {len(payloads)} rows updated in all (stamps included), {len(new_rows)} new")
-    if dry_run:
-        for code, payload in list(updates.items())[:5]:
-            print(f"  would update {code}: {', '.join(payload)}")
-        for row in new_rows[:5]:
-            print(f"  would insert {row[key]}")
-        return
+    return payloads, new_rows
+
+
+def preflight(plan_rows: dict, nodes: list, edges: list, course_codes_after: set, node_keys_after: set) -> list[str]:
+    """Problems that would make a write fail or store bad data; empty when everything can be written."""
+    problems = []
+    for table, (payloads, new_rows) in plan_rows.items():
+        columns = set(supabase.table(table).select("*").limit(1).execute().data[0])
+        key = next(k for t, k in BACKUP_TABLES if t == table)
+        rows = [{key: code, **payload} for code, payload in payloads.items()] + new_rows
+        for row in rows:
+            unknown = set(row) - columns
+            if unknown:
+                problems.append(f"{table} {row.get(key)}: unknown columns {sorted(unknown)}")
+            for field in INTEGER_FIELDS & set(row):
+                if row[field] is not None and not isinstance(row[field], int):
+                    problems.append(f"{table} {row.get(key)}: {field} is not a whole number ({row[field]!r})")
+            for field in LIST_FIELDS & set(row):
+                if row[field] is not None and not isinstance(row[field], list):
+                    problems.append(f"{table} {row.get(key)}: {field} is not a list")
+        for row in new_rows:
+            for field in REQUIRED[table]:
+                if row.get(field) in (None, ""):
+                    problems.append(f"{table} {row.get(key)}: new row has no {field}")
+        new_keys = [row[key] for row in new_rows]
+        if len(new_keys) != len(set(new_keys)):
+            problems.append(f"{table}: duplicate new keys")
+    for node in nodes:
+        if node["key"] not in course_codes_after:
+            problems.append(f"mindmesh_nodes_global {node['key']}: no such course")
+        if not node.get("label"):
+            problems.append(f"mindmesh_nodes_global {node['key']}: no label")
+    pairs = Counter((e["from_key"], e["to_key"], e["edge_type"]) for e in edges)
+    problems += [f"mindmesh_edges_global: duplicate link {pair}" for pair, n in pairs.items() if n > 1]
+    for edge in edges:
+        if edge["from_key"] == edge["to_key"]:
+            problems.append(f"mindmesh_edges_global {edge['to_key']}: links to itself")
+        for end in ("from_key", "to_key"):
+            if edge[end] not in node_keys_after:
+                problems.append(f"mindmesh_edges_global {edge['from_key']}->{edge['to_key']}: {edge[end]} has no node")
+    return problems
+
+
+def write_rows(table: str, key: str, payloads: dict, new_rows: list) -> None:
     for batch in chunks(new_rows):
-        supabase.table(table).insert(batch).execute()
+        supabase.table(table).upsert(batch, on_conflict=key).execute()
     with ThreadPoolExecutor(max_workers=4) as pool:
         list(pool.map(lambda item: supabase.table(table).update(item[1]).eq(key, item[0]).execute(), payloads.items()))
 
@@ -679,12 +730,6 @@ def apply(level: str, year: str, dry_run: bool, only: set | None, fields: set | 
     if (missing or manifest.get("limit")) and not only:
         raise SystemExit(f"The snapshot is incomplete ({missing} pages missing). Run fetch first.")
     out = AI_DIR / "phase-10-plan"
-    if not dry_run:
-        backup = AI_DIR / "phase-10-backup" / datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-        backup.mkdir(parents=True)
-        for table, _ in BACKUP_TABLES:
-            (backup / f"{table}.json").write_text(json.dumps(fetch_rows(table, "*"), ensure_ascii=False))
-        print(f"Backup written to {backup}")
 
     def stamps_for(kind: str) -> dict:
         if fields:
@@ -694,41 +739,68 @@ def apply(level: str, year: str, dry_run: bool, only: set | None, fields: set | 
             for code, page in pages[kind].items() if is_active(page["content"]) and (not only or code in only)
         }
 
-    course_updates, course_inserts = reviewed_changes(out, "courses", only, fields)
-    write_table("courses", course_updates, course_inserts, stamps_for("courses"), level, dry_run)
+    plan_rows, counts = {}, {}
+    for kind in KINDS:
+        updates, inserts = reviewed_changes(out, kind, only, fields)
+        plan_rows[TABLES[kind][0]] = prepare_table(kind, updates, inserts, stamps_for(kind), level)
+        counts[kind] = (len(updates), inserts)
 
-    courses = {row["code"]: row for row in fetch_rows("unsw_courses", "code, title, uoc, faculty, school")}
+    stored = {row["code"]: row for row in fetch_rows("unsw_courses", "code, title, uoc, faculty, school")}
+    course_payloads, course_new = plan_rows["unsw_courses"]
+    course_updates = reviewed_changes(out, "courses", only, fields)[0]
+    course_codes_after = set(stored) | {row["code"] for row in course_new}
     node_fields = {"title", "uoc", "faculty", "school"}
-    node_codes = [code for code, _ in course_inserts] + [code for code, f in course_updates.items() if node_fields & set(f)]
-    nodes = [node_row(code, courses.get(code) or dict(course_updates.get(code, {}))) for code in node_codes]
-    print(f"mindmesh_nodes_global: {len(nodes)} nodes added or refreshed")
-    if not dry_run:
-        for batch in chunks(nodes):
-            supabase.table("mindmesh_nodes_global").upsert(batch, on_conflict="key").execute()
+    nodes = [node_row(row["code"], row) for row in course_new]
+    nodes += [node_row(code, {**stored[code], **f}) for code, f in course_updates.items() if code in stored and node_fields & set(f)]
+    node_keys_after = {row["key"] for row in fetch_rows("mindmesh_nodes_global", "key")} | {n["key"] for n in nodes}
 
     link_codes = []
     if not fields or "links" in fields:
         with open(out / "links.csv", newline="") as handle:
             link_codes = [row["code"] for row in csv.DictReader(handle) if not only or row["code"] in only]
-    known = set(courses)
-    edges = [
-        edge for code in link_codes
-        for edge in requisite_edges(code, course_row(pages["courses"][code]["content"])["conditions_for_enrolment"] or "", known)
-    ]
+    link_codes = [code for code in link_codes if code in course_codes_after]
+    edges_by_course = {
+        code: requisite_edges(code, course_row(pages["courses"][code]["content"])["conditions_for_enrolment"] or "", course_codes_after)
+        for code in link_codes
+    }
+    edges = [edge for code in link_codes for edge in edges_by_course[code]]
+
+    for kind in KINDS:
+        table = TABLES[kind][0]
+        changed, inserts = counts[kind]
+        print(f"{table}: {changed} rows with field changes, {len(plan_rows[table][0])} rows updated in all (stamps included), {len(inserts)} new")
+    print(f"mindmesh_nodes_global: {len(nodes)} nodes added or refreshed")
     print(f"mindmesh_edges_global: links rebuilt for {len(link_codes)} courses ({len(edges)} links)")
-    if not dry_run:
-        for batch in chunks(link_codes):
-            supabase.table("mindmesh_edges_global").delete().in_("to_key", batch).execute()
-        for batch in chunks(edges):
-            supabase.table("mindmesh_edges_global").insert(batch).execute()
 
-    for kind in ("specialisations", "programs"):
-        updates, inserts = reviewed_changes(out, kind, only, fields)
-        write_table(kind, updates, inserts, stamps_for(kind), level, dry_run)
-
+    problems = preflight(plan_rows, nodes, edges, course_codes_after, node_keys_after)
+    if problems:
+        for problem in problems[:40]:
+            print(f"  problem: {problem}")
+        raise SystemExit(f"Pre-flight check failed with {len(problems)} problems. Nothing was written.")
+    print("Pre-flight check passed: every row can be written.")
     if dry_run:
         print("Dry run: nothing was written.")
         return
+
+    backup = AI_DIR / "phase-10-backup" / datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    backup.mkdir(parents=True)
+    for table, _ in BACKUP_TABLES:
+        (backup / f"{table}.json").write_text(json.dumps(fetch_rows(table, "*"), ensure_ascii=False))
+    print(f"Backup written to {backup}")
+
+    write_rows("unsw_courses", "code", course_payloads, course_new)
+    for batch in chunks(nodes):
+        supabase.table("mindmesh_nodes_global").upsert(batch, on_conflict="key").execute()
+    for batch in chunks(link_codes, LINK_BATCH):
+        supabase.table("mindmesh_edges_global").delete().in_("to_key", batch).execute()
+        rows = [edge for code in batch for edge in edges_by_course[code]]
+        if rows:
+            supabase.table("mindmesh_edges_global").insert(rows).execute()
+    for kind in ("specialisations", "programs"):
+        table, key = TABLES[kind]
+        write_rows(table, key, *plan_rows[table])
+    print("All rows written.")
+
     findings = display_data_audit.audit()
     must_fix = sum(len(keys) for (level_name, *_), keys in findings.items() if level_name == display_data_audit.MUST_FIX)
     print(f"Display-data audit: {must_fix} must-fix values")

@@ -31,9 +31,7 @@ def test_or_groups_more_tightly_than_and_without_brackets():
 
 
 def test_or_of_ands_is_expanded():
-    assert groups("Prerequisite: (COMM1180) or (COMM1140 and ECON1102)") == [
-        ("prereq", ["COMM1140", "COMM1180"]), ("prereq", ["COMM1180", "ECON1102"]),
-    ]
+    assert groups("Prerequisite: (COMM1180) or (COMM1140 and ECON1102)") == [("prereq", ["COMM1140", "COMM1180"])]
 
 
 def test_conditions_a_course_cannot_meet_never_lock_a_course():
@@ -70,3 +68,14 @@ def test_edges_use_the_stored_format():
 
 def test_a_course_never_requires_itself():
     assert requisite_edges("COMP2521", "Prerequisite: COMP2521 or COMP1511", KNOWN)[0]["from_key"] == "COMP1511"
+
+
+def test_each_course_pair_gets_one_link():
+    known = {"ACTL2131", "ACTL3142", "MATH2901", "MATH2931", "COMP1511", "COMP1521"}
+    groups = requisite_groups("(ACTL2131 and ACTL3142) or (MATH2901 and MATH2931)", known)
+    members = [code for _, group in groups for code in group]
+
+    assert len(members) == len(set(members))
+    assert requisite_groups("Prerequisite: (COMP1511 or COMP1521) and (COMP1511 or COMP1521 or MATH2901)", known) == [
+        ("prereq", frozenset({"COMP1511", "COMP1521"})),
+    ]
