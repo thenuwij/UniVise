@@ -77,6 +77,7 @@ SECTION_KINDS = {
     "CC": "core",
     "one_of_the_following": "choice",
     "PE": "elective",
+    "RC": "elective",
     "GE": "general_education",
     "FE": "free_elective",
     "IR": "info",
@@ -85,6 +86,7 @@ SECTION_KINDS = {
     "undergrad_minor": "specialisations",
     "honours": "specialisations",
     "any_spec": "specialisations",
+    "postgrad_spec": "specialisations",
 }
 KEEP_CURRENT = {"special_notes", "program_structure", "program_name"}
 ABBREVIATION = re.compile(r"\s+-\s+\S+")
