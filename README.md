@@ -34,7 +34,7 @@ The starting point after sign-in. It shows the student's journey through their r
 
 ### Roadmap
 
-A five-step view of the student's own degree: Overview, Structure, Careers, Internships, and Societies. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers shows how the degree leads to specific roles, naming real courses from the student's program.
+A five-step view of the student's own degree: Overview, Structure, Careers, Internships, and Societies. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers links the degree to real roles, with official pay and graduate outcomes and live job ads. Internships lists open ads and company programs with their usual opening months.
 
 ### CourseMesh
 
@@ -76,6 +76,8 @@ A request hits CloudFront, then FastAPI on Lambda. Program rules, course data, a
 
 The models reason over facts the backend has already computed, not over raw handbook text, and any course code a model returns is checked against the student's real program. That keeps advice grounded in real program rules rather than in whatever the model recalls about UNSW.
 
+Career figures come from official government data, and job ads are fetched weekly. Roadmaps are cached per program, so most open instantly.
+
 Handbook data is cleaned before it is displayed. Placeholder values are stored as empty rather than as text, durations are stored as numbers, and one shared formatter turns long handbook text into paragraphs and real lists. A read-only audit script checks every displayed field after each data import.
 
 ### Deployment
@@ -89,6 +91,7 @@ Handbook data is cleaned before it is displayed. Placeholder values are stored a
 | Secrets | AWS Secrets Manager, loaded at runtime |
 | CI/CD | GitHub Actions on push to `main`, authenticated by OIDC with no stored AWS keys |
 | Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, notified through SNS |
+| Scheduled jobs | GitHub Actions for weekly job ads and roadmap refreshes |
 
 ### Repository Structure
 
