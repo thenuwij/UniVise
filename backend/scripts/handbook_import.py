@@ -39,6 +39,7 @@ import httpx
 from app.core.database import supabase
 from scripts import display_data_audit
 from scripts.display_data_cleanup import fetch_rows, is_placeholder, parse_years
+from scripts.faculty_cleanup import OFFICIAL_FACULTIES
 from scripts.faculty_cleanup import normalise as normalise_faculty
 from scripts.requisites import requisite_edges
 
@@ -293,6 +294,14 @@ def specialisation_row(content: dict) -> dict:
     }
 
 
+def course_school(content: dict) -> str | None:
+    school = org_name(content.get("academic_org"))
+    faculty = org_name(content.get("parent_academic_org"))
+    if not school or school == faculty or normalise_faculty(school) in OFFICIAL_FACULTIES:
+        return None
+    return school
+
+
 def course_row(content: dict) -> dict:
     rules = [html_to_text(rule.get("description")) for rule in content.get("enrolment_rules") or [] if isinstance(rule, dict)]
     terms = ((content.get("offering_detail") or {}).get("offering_terms") or "").split(",")
@@ -301,7 +310,7 @@ def course_row(content: dict) -> dict:
         "title": content.get("title"),
         "overview": html_to_text(content.get("description")) or html_to_text(content.get("overview")),
         "faculty": normalise_faculty(org_name(content.get("parent_academic_org")) or "") or None,
-        "school": org_name(content.get("academic_org")),
+        "school": course_school(content),
         "uoc": to_int(content.get("credit_points")),
         "study_level": level.get("label") if isinstance(level, dict) else None,
         "field_of_education": org_name(content.get("asced_detailed")),

@@ -205,3 +205,11 @@ def test_new_rows_are_added_only_for_sydney_and_when_used():
     assert new_row_reason("specialisations", {"content": {}}, {"sections_degrees": [{"degree_code": "4471"}]}, {"3778"}, set())
     assert new_row_reason("courses", {"content": {"code": "COMP9999"}}, {}, set(), {"COMP1511"})
     assert new_row_reason("courses", {"content": {"code": "COMP1511"}}, {}, set(), {"COMP1511"}) is None
+
+
+def test_a_faculty_in_the_school_field_is_not_stored_as_a_school():
+    base = {"parent_academic_org": {"value": "Faculty of Medicine and Health"}}
+
+    assert course_row({**base, "academic_org": {"value": "Faculty of Medicine and Health"}})["school"] is None
+    assert course_row({"parent_academic_org": {"value": ""}, "academic_org": {"value": "UNSW Business School"}})["school"] is None
+    assert course_row({**base, "academic_org": {"value": "School of Population Health"}})["school"] == "School of Population Health"
