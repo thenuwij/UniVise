@@ -43,7 +43,7 @@ export default function SocietiesCommunity({ societies }) {
                     onClick={() => toggleSociety(idx)}
                   >
                     <div className="min-w-0">
-                      <h5 className="text-xl font-semibold text-blue-900 dark:text-blue-300">{society.name}</h5>
+                      <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{society.name}</h5>
                       <p className="mt-1.5 text-base text-slate-600 dark:text-slate-300">{society.relevance}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -71,11 +71,11 @@ export default function SocietiesCommunity({ societies }) {
                         </div>
                       )}
                       {society.key_activities?.length > 0 && (
-                        <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-100 to-cyan-100 dark:from-sky-950/40 dark:to-cyan-950/30 p-4">
-                          <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Activities</p>
+                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Activities</p>
                           <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                             {society.key_activities.map((activity, i) => (
-                              <li key={i} className="flex gap-2"><span className="text-sky-500">•</span>{activity}</li>
+                              <li key={i} className="flex gap-2"><span className="text-blue-500">•</span>{activity}</li>
                             ))}
                           </ul>
                         </div>
@@ -111,7 +111,7 @@ export default function SocietiesCommunity({ societies }) {
               <div key={idx} className={`${card} p-6`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-300">{s.name}</p>
+                    <p className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{s.name}</p>
                     <p className="mt-2 text-base text-slate-600 dark:text-slate-300 leading-relaxed">{s.why_join}</p>
                   </div>
                   <SaveButton itemType="society" itemId={s.name} itemName={s.name} itemData={{ why_join: s.why_join }} />
@@ -139,8 +139,8 @@ export default function SocietiesCommunity({ societies }) {
                           {short}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-base font-bold text-ink-strong leading-snug">{body.name}</p>
-                          {about && <p className="mt-1 text-sm text-ink-muted leading-relaxed">{about}</p>}
+                          <p className="text-lg md:text-xl font-bold text-ink-strong leading-snug break-words">{body.name}</p>
+                          {about && <p className="mt-1 text-[15px] text-ink-muted leading-relaxed">{about}</p>}
                         </div>
                       </div>
                       {body.url && (
@@ -175,11 +175,11 @@ export default function SocietiesCommunity({ societies }) {
                   </div>
                 )}
                 {profDev.skills_gained?.length > 0 && (
-                  <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-100 to-cyan-100 dark:from-sky-950/40 dark:to-cyan-950/30 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Skills you'll develop</p>
+                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Skills you'll develop</p>
                     <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                       {profDev.skills_gained.map((skill, i) => (
-                        <li key={i} className="flex gap-2"><span className="text-sky-500">•</span>{skill}</li>
+                        <li key={i} className="flex gap-2"><span className="text-blue-500">•</span>{skill}</li>
                       ))}
                     </ul>
                   </div>

@@ -190,7 +190,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
               <article key={idx} className={`${card} p-6 md:p-7`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h5 className="text-xl font-bold text-slate-900 dark:text-white">{role.title}</h5>
+                    <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{role.title}</h5>
                     {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
                       <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
                         {personal && matchesInterests(role.title, interestAreas) && (

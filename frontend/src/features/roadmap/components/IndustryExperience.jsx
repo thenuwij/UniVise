@@ -13,14 +13,14 @@ const RESOURCES = [
     name: "UNSWConnect",
     desc: "Internships, part-time jobs and graduate roles",
     url: "https://unswconnect.unsw.edu.au",
-    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-200 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
+    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 hover:border-blue-400",
     icon: "text-blue-600 dark:text-blue-400",
   },
   {
     name: "UNSW Prosple",
     desc: "Graduate programs and early career opportunities",
     url: "https://unsw.prosple.com",
-    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-200 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
+    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 hover:border-blue-400",
     icon: "text-blue-600 dark:text-blue-400",
   },
 ];
@@ -101,7 +101,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
               <div key={idx} className={`${card} p-6 flex flex-col`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h5 className="text-lg font-semibold text-slate-900 dark:text-white leading-snug">{program.program_name}</h5>
+                    <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{program.program_name}</h5>
                     <p className="mt-1 flex items-center gap-1.5 text-base text-slate-600 dark:text-slate-400">
                       <Building2 className="h-4 w-4 flex-shrink-0" /> {program.company}
                     </p>
@@ -166,7 +166,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
               className={`${clickable} group rounded-2xl border ${tone} p-6 flex items-start justify-between gap-3`}
             >
               <span>
-                <span className="block text-lg font-semibold text-slate-900 dark:text-white">{name}</span>
+                <span className="block text-lg md:text-xl font-bold text-ink-strong leading-snug">{name}</span>
                 <span className="mt-1 block text-base text-slate-600 dark:text-slate-400">{desc}</span>
               </span>
               <ExternalLink className={`h-5 w-5 flex-shrink-0 ${icon}`} />
