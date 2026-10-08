@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 // Utils
 const toPercent = (v) => {
@@ -32,9 +31,9 @@ const toPercent = (v) => {
 function ProgressBar({ value }) {
   const pct = toPercent(value);
   return (
-    <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+    <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
       <div
-        className="h-full bg-gradient-to-r from-purple-600 to-blue-500 rounded-full"
+        className="h-full bg-gradient-to-r from-blue-600 to-sky-500 rounded-full"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -44,13 +43,12 @@ function ProgressBar({ value }) {
 function AuraBoardShell({ label, children }) {
   return (
     <div className="card-glass">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(99,102,241,0.16),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(59,130,246,0.14),transparent)]" />
       <div className="relative p-5 md:p-7">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
             {label}
           </h2>
-          <span className="text-xs text-slate-500 dark:text-slate-300">Click a card to view details</span>
         </div>
         {children}
         <div className="mt-4 text-[11px] text-slate-500 dark:text-slate-300 italic">
@@ -116,23 +114,20 @@ function HSItemCard({ rec, onOpen }) {
   );
 }
 
-function UniItemCard({ rec, onOpen }) {
+function UniItemCard({ rec }) {
   return (
-    <div
-      onClick={onOpen}
-      className="card-glass-spotlight rounded-xl p-5 shadow-sm transition hover:shadow-lg cursor-pointer hover:scale-101"
-    >
+    <div className="card-glass-spotlight rounded-xl px-5 py-3.5 shadow-none">
       <div
-        className="absolute left-0 top-0 h-full w-3 rounded-l-2xl bg-gradient-to-b from-purple-600 to-blue-500 opacity-80"
+        className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-600 to-sky-500 opacity-80"
         aria-hidden
       />
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
-        <div className="md:col-span-2">
-          <div className="flex items-center gap-2 font-semibold text-lg">
-            <HiTrendingUp />
+      <div className="grid grid-cols-1 md:grid-cols-[1.1fr_2fr_1.1fr_1.1fr] items-center gap-4 md:gap-8">
+        <div>
+          <div className="flex items-center gap-2 font-semibold text-base text-ink-strong">
+            <HiTrendingUp className="text-blue-600 dark:text-blue-400" />
             <span>{rec.career_title}</span>
           </div>
-          <div className="mt-1 text-sm">{rec.industry}</div>
+          <div className="mt-1 text-sm text-ink-muted">{rec.industry}</div>
         </div>
         <div className="flex flex-col justify-center">
           <span className="text-xs mb-1">Education Required</span>
@@ -148,23 +143,16 @@ function UniItemCard({ rec, onOpen }) {
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <span className="text-xs mb-1">Salary</span>
-          <div className="inline-flex items-center gap-1 text-slate-800">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs">Salary</span>
+            <span className="px-1.5 py-px rounded-full text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700">AI-suggested</span>
+          </div>
+          <div className="inline-flex items-center gap-1 text-slate-800 dark:text-slate-100">
             <HiCurrencyDollar />
             <span className="font-medium">{rec.avg_salary_range}</span>
           </div>
-          <span className="mt-1 w-fit px-2 py-0.5 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 ring-1 ring-slate-200">AI-suggested</span>
         </div>
       </div>
-      <Button
-        size="xs"
-        color="light"
-        pill
-        className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition"
-        onClick={(e) => { e.stopPropagation(); onOpen(); }}
-      >
-        View details <HiArrowRight className="ml-1 h-4 w-4" />
-      </Button>
     </div>
   );
 }
@@ -362,7 +350,7 @@ export function RecommendationTable() {
             userType === "high_school" ? (
               <HSItemCard key={rec.id} rec={rec} onOpen={() => navigate(`/recommendation/${rec.id}`, { state: { rec } })} />
             ) : (
-              <UniItemCard key={rec.id} rec={rec} onOpen={() => navigate(roadmapStepUrl("careers"))} />
+              <UniItemCard key={rec.id} rec={rec} />
             )
           )
         ) : null}
