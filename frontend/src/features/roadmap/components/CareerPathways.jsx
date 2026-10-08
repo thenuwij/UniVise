@@ -25,14 +25,27 @@ import { useHiringNow } from "../hooks/useHiringNow";
 import JobAdList from "./JobAdList";
 import { AiSuggestedTag, SourceLink } from "./SourceTags";
 
+const TECH = /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems|math|statistic|actuar|quantitative|modell?er)/i;
+const SCIENCE = /\b(scien|research|laborator|biolog|chemi|physic|environment|sustainab|climate|ecolog|conservation|renewable|energy)/i;
+const ENGINEERING = /\b(engineer|manufactur|mechatronic|aerospace|aviation|pilot)/i;
+const ARTS = /\b(media|journalis|writer|content|communicat|artist|creative|editor|design|curator|music)/i;
+
 const INTEREST_PATTERNS = {
   "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,
-  "Tech & Software": /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems)/i,
-  "Science & Research": /\b(scien|research|laborator|biolog|chemi|physic|environment)/i,
+  "Tech, Data & Maths": TECH,
+  "Tech & Software": TECH,
+  "Science & Environment": SCIENCE,
+  "Science & Research": SCIENCE,
+  "Engineering": ENGINEERING,
   "Engineering & Design": /\b(engineer|design|architect|manufactur)/i,
+  "Health, Medicine & Psychology": /\b(health|medic|clinic|nurs|doctor|physio|pharmac|psycholog|counsel)/i,
   "Health & Medicine": /\b(health|medic|clinic|nurs|doctor|physio|pharmac|psycholog)/i,
   "Law & Policy": /\b(law|legal|lawyer|solicitor|policy|complian|paralegal)/i,
-  "Arts & Media": /\b(media|journalis|writer|content|communicat|artist|creative|editor)/i,
+  "Arts, Design & Media": ARTS,
+  "Arts & Media": ARTS,
+  "Architecture & Built Environment": /\b(architect|urban|planner|construct|property|landscape|interior|surveyor)/i,
+  "Humanities & Social Sciences": /\b(histor|languag|translat|interpret|politic|diplomat|international|criminolog|philosoph|heritage|archiv|social|community|behaviou?r)/i,
+  "Education & Teaching": /\b(teach|educat|tutor|lectur|trainer|curricul)/i,
 };
 
 const matchesInterests = (title, interestAreas) =>

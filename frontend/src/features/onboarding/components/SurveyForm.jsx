@@ -77,10 +77,11 @@ function Chip({ label, onRemove }) {
 }
 
 // Styled text input
-function StyledInput({ placeholder, value, onChange, type = "text" }) {
+function StyledInput({ placeholder, value, onChange, type = "text", maxLength }) {
   return (
     <input
       type={type}
+      maxLength={maxLength}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
@@ -125,6 +126,14 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
     </div>
   );
 }
+
+const INTEREST_AREAS = [
+  "Business & Finance", "Tech, Data & Maths", "Science & Environment", "Engineering",
+  "Health, Medicine & Psychology", "Law & Policy", "Arts, Design & Media",
+  "Architecture & Built Environment", "Humanities & Social Sciences", "Education & Teaching", "Other",
+];
+const OTHER_MAX = 60;
+const STILL_EXPLORING = "I'm still exploring";
 
 const NON_BACHELOR = /^(Diploma|Undergraduate Certificate)|Preparation|Preparatory|Pathway Program/i;
 
@@ -315,8 +324,8 @@ function SurveyForm() {
         degree_stage: "Bachelor's Degree",
         academic_year: formData.academic_year_other || formData.academic_year || null,
         degree_field: program?.program_name || formData.program_other?.trim() || null,
-        interest_areas: formData.interest_areas || [],
-        interest_areas_other: formData.interest_areas_other || null,
+        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${formData.interest_areas_other.trim().slice(0, OTHER_MAX)}` : a),
+        interest_areas_other: formData.interest_areas?.includes("Other") ? formData.interest_areas_other.trim().slice(0, OTHER_MAX) : null,
         priorities: formData.priorities || [],
         work_style: formData.work_style || [],
         hobbies: formData.hobbies || [],
@@ -332,7 +341,7 @@ function SurveyForm() {
   const totalSteps = userType === "high_school" ? 8 : 7;
 
   return (
-    <div className="w-full max-w-xl">
+    <div className={`w-full ${step === 4 ? "max-w-4xl" : "max-w-xl"}`}>
       <SurveyProgressBar step={step - 1} totalSteps={totalSteps - 1} />
 
       {/* ── Step 1: User type ── */}
@@ -624,15 +633,14 @@ function SurveyForm() {
         <div>
           <StepHeading>Which areas interest you most?</StepHeading>
           <StepSubtitle>Select all that apply — helps us find the best career matches.</StepSubtitle>
-          <div className="grid grid-cols-2 gap-2">
-            {["Business & Finance","Tech & Software","Science & Research","Engineering & Design","Health & Medicine","Law & Policy","Arts & Media","Other","I'm still exploring"].map(o => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {INTEREST_AREAS.map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.interest_areas?.includes(o)}
                 onClick={() => {
-                  const updated = formData.interest_areas?.includes(o)
-                    ? formData.interest_areas.filter(x => x !== o)
-                    : [...(formData.interest_areas || []), o];
+                  const current = (formData.interest_areas || []).filter(x => x !== STILL_EXPLORING);
+                  const updated = current.includes(o) ? current.filter(x => x !== o) : [...current, o];
                   handleChange("interest_areas", updated);
                 }}
               />
@@ -640,10 +648,29 @@ function SurveyForm() {
           </div>
           {formData.interest_areas?.includes("Other") && (
             <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.interest_areas_other || ""} onChange={e => handleChange("interest_areas_other", e.target.value)} />
+              <StyledInput
+                placeholder="Which area? e.g. Aviation"
+                maxLength={OTHER_MAX}
+                value={formData.interest_areas_other || ""}
+                onChange={e => handleChange("interest_areas_other", e.target.value)}
+              />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.interest_areas?.length} />
+          <div className="flex items-center gap-3 my-4">
+            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
+            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+          </div>
+          <MultiOptionButton
+            label={STILL_EXPLORING}
+            selected={formData.interest_areas?.includes(STILL_EXPLORING)}
+            onClick={() => handleChange("interest_areas", formData.interest_areas?.includes(STILL_EXPLORING) ? [] : [STILL_EXPLORING])}
+          />
+          <NavButtons
+            onPrev={handlePrev}
+            onNext={handleNext}
+            nextDisabled={!formData.interest_areas?.length || (formData.interest_areas.includes("Other") && !formData.interest_areas_other?.trim())}
+          />
         </div>
       )}
 
