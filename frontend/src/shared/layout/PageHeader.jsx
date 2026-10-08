@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 
-const BACK_CLASS = "inline-flex items-center gap-2 text-[15px] font-medium text-white/85 hover:text-white transition-colors";
+const BACK_CLASS = "items-center gap-2 text-[15px] font-medium text-white/85 hover:text-white transition-colors";
 
 function BackButton({ back, className = "" }) {
   return (
@@ -18,7 +18,7 @@ function TitleBlock({ eyebrow, title, subtitle, compact, back }) {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {back && (
             <span className="min-[1700px]:hidden inline-flex items-center gap-4">
-              <BackButton back={back} />
+              <BackButton back={back} className="inline-flex" />
               {eyebrow && <span aria-hidden className="h-4 w-px bg-white/30" />}
             </span>
           )}
