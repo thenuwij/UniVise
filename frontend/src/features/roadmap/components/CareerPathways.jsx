@@ -22,7 +22,7 @@ import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 import { useHiringNow } from "../hooks/useHiringNow";
 import JobAdList from "./JobAdList";
-import { AiSuggestedTag, SourceLink } from "./SourceTags";
+import { SourceLink } from "./SourceTags";
 
 const TECH = /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems|math|statistic|actuar|quantitative|modell?er)/i;
 const SCIENCE = /\b(scien|research|laborator|biolog|chemi|physic|environment|sustainab|climate|ecolog|conservation|renewable|energy)/i;
