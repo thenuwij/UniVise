@@ -37,7 +37,7 @@ function TitleBlock({ eyebrow, title, subtitle, compact, back }) {
   );
 }
 
-export default function PageHeader({ eyebrow, title, subtitle, back, actions, aside, children, compact = false }) {
+export default function PageHeader({ eyebrow, title, subtitle, back, actions, aside, children, compact = false, actionsAtBottom = false }) {
   const padding = compact ? "pt-4 pb-5" : "pt-5 pb-7";
   const side = actions || aside;
 
@@ -48,7 +48,7 @@ export default function PageHeader({ eyebrow, title, subtitle, back, actions, as
       {back && <BackButton back={back} className={`hidden min-[1700px]:inline-flex absolute left-8 ${compact ? "top-4" : "top-5"}`} />}
 
       <div className={`relative max-w-[1440px] mx-auto px-5 md:px-10 ${padding}`}>
-        <div className={`flex flex-col md:flex-row md:justify-between gap-4 md:gap-8 ${actions ? "md:items-start" : "md:items-center"}`}>
+        <div className={`flex flex-col md:flex-row md:justify-between gap-4 md:gap-8 ${actions ? (actionsAtBottom ? "md:items-end" : "md:items-start") : "md:items-center"}`}>
           <div className="min-w-0">
             <TitleBlock eyebrow={eyebrow} title={title} subtitle={subtitle} compact={compact} back={back} />
           </div>
