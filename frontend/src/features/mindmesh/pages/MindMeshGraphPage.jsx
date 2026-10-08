@@ -13,6 +13,7 @@ import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
 import StatusLegend from "../components/StatusLegend";
 import PicksPanel from "../components/PicksPanel";
+import CourseMeshTour from "../components/CourseMeshTour";
 import ElectivesPanel from "../components/ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
@@ -33,6 +34,10 @@ export default function MindMeshGraphPage() {
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
   const [showHint, setShowHint] = useState(() => hasSeenGuide());
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide());
+  const [expandCount, setExpandCount] = useState(0);
+  const transformRef = useRef(null);
+  const focusedRef = useRef(null);
 
   const graphRef = useRef(null);
   const controlsRef = useRef(null);
@@ -216,6 +221,7 @@ export default function MindMeshGraphPage() {
 
   // Graph interactions
   const expandGlobalMindMesh = async (n) => {
+    setExpandCount((c) => c + 1);
     graphHistoryRef.current.push(graph);
     const courseKey = n.id;
 
@@ -284,6 +290,25 @@ export default function MindMeshGraphPage() {
 
   };
 
+  focusedRef.current = focusedNode;
+
+  const getNodeRect = () => {
+    const fg = graphRef.current;
+    const canvas = containerRef.current?.querySelector("canvas");
+    const nodes = (graph?.nodes || []).filter((n) => Number.isFinite(n.x) && Number.isFinite(n.y));
+    if (!fg || !canvas || !nodes.length) return null;
+    const node =
+      nodes.find((n) => n.id === focusedRef.current?.id) ||
+      nodes.find((n) => statusOf(n.id) === "available") ||
+      nodes[0];
+    const box = canvas.getBoundingClientRect();
+    const p = fg.graph2ScreenCoords(node.x, node.y);
+    const k = transformRef.current?.k || 1;
+    const halfW = Math.max(30, 46 * k);
+    const halfH = Math.max(14, 21 * k);
+    return { top: box.top + p.y - halfH, left: box.left + p.x - halfW, width: halfW * 2, height: halfH * 2 };
+  };
+
   // UI Controls
   const onBackgroundClick = () => setFocusedNode(null);
   const fitView = () => graphRef.current?.zoomToFit(400, 40);
@@ -324,14 +349,15 @@ export default function MindMeshGraphPage() {
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            {isOwnProgram && graph?.nodes?.length > 0 && (
-              <>
-                {[["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
-                  <span key={key} className="inline-flex items-center gap-2 text-sm text-band-soft">
-                    <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/40" style={{ backgroundColor: STATUS[key].color }} />
-                    <span className="font-bold text-band-ink">{counts[key]}</span> {text}
-                  </span>
-                ))}
+            {isOwnProgram && graph?.nodes?.length > 0 &&
+              [["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
+                <span key={key} className="inline-flex items-center gap-2 text-sm text-band-soft">
+                  <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/40" style={{ backgroundColor: STATUS[key].color }} />
+                  <span className="font-bold text-band-ink">{counts[key]}</span> {text}
+                </span>
+              ))}
+            {isOwnProgram && (
+              <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
                 <Link
                   to={roadmapStepUrl("structure")}
                   className="group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white shadow-md hover:bg-blue-50 hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
@@ -339,16 +365,16 @@ export default function MindMeshGraphPage() {
                   Tick courses in your roadmap
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-              </>
-            )}
-            {isOwnProgram && options.size > 0 && (
-              <button
-                onClick={() => setShowElectives(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
-              >
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
-                Add electives
-              </button>
+                {options.size > 0 && (
+                  <button
+                    onClick={() => setShowElectives(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
+                  >
+                    <Plus className="h-4 w-4" strokeWidth={2.5} />
+                    Add electives
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -378,11 +404,21 @@ export default function MindMeshGraphPage() {
         canvasSize={canvasSize}
         graphRef={graphRef}
         setFrozen={setFrozen}
+        onHelp={() => setTourOpen(true)}
+      />
+
+      <CourseMeshTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        focusedId={focusedNode?.id || null}
+        expandCount={expandCount}
+        getTransform={() => transformRef.current}
+        getNodeRect={getNodeRect}
       />
 
       {/* Graph Canvas */}
       <div className="flex-1 min-h-0 flex justify-center px-3 pt-2 pb-3 relative">
-        <div ref={containerRef} className="w-full max-w-[1600px] h-[70vh] md:h-full relative overflow-hidden rounded-2xl border-2 border-blue-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg shadow-blue-900/5">
+        <div ref={containerRef} data-tour="graph" className="w-full max-w-[1600px] h-[70vh] md:h-full relative overflow-hidden rounded-2xl border-2 border-blue-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg shadow-blue-900/5">
 
           {(noProgram || noCourses || needsSpecialisation) && (
             <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
@@ -453,6 +489,7 @@ export default function MindMeshGraphPage() {
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
             linkWidth={linkWidth}
+            onZoom={(t) => { transformRef.current = t; }}
           />
           <MindMeshInfoPanel
             focusedNode={focusedNode}

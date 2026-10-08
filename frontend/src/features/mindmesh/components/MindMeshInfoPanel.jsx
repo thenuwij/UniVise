@@ -57,7 +57,7 @@ export default function MindMeshInfoPanel({ focusedNode, status, requirements = 
   };
 
   return (
-    <div className="absolute bottom-4 right-4 z-20 w-[min(26rem,calc(100%-2rem))] max-h-[calc(100%-2rem)] overflow-y-auto
+    <div data-tour="course-card" className="absolute bottom-4 right-4 z-20 w-[min(26rem,calc(100%-2rem))] max-h-[calc(100%-2rem)] overflow-y-auto
                    rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md
                    border border-blue-200 dark:border-slate-700 shadow-2xl">
       <div className="relative p-5 flex flex-col gap-4">

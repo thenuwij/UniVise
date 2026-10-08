@@ -14,6 +14,7 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     nodePointerAreaPaint,
     linkColor,
     linkWidth,
+    onZoom,
   },
   graphRef
 ) {
@@ -133,6 +134,7 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
         onNodeClick={handleNodeClick}
         onBackgroundClick={onBackgroundClick}
         onLinkHover={setHoverLink}
+        onZoom={onZoom}
       />
     </div>
   );
