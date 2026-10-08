@@ -57,7 +57,7 @@ function DashboardPage() {
             </div>
             <Link
               to="/saved"
-              className="group inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[15px] font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[15px] font-bold text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 shadow-md shadow-blue-900/10 hover:bg-blue-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 hover:shadow-lg transition-all"
             >
               <Bookmark className="h-4 w-4" />
               My shortlist
