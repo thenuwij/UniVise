@@ -61,7 +61,7 @@ function SurveyPage() {
         <Header/>
       </div>
       {/* Survey Form */}
-      <div className="flex flex-col items-center flex-grow w-full justify-center">
+      <div className="-mt-4 pt-4 flex flex-col items-center flex-grow w-full justify-center bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 dark:from-slate-950 dark:via-blue-950/40 dark:to-indigo-950/70">
         <div className="max-w-6xl  shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-12  flex flex-col mb-12 card-glass-spotlight dark:card-glass-spotlight">
           {/* Center form content */}
           <div className=" max-w-2xl px-4 sm:px-0">
