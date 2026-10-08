@@ -1,21 +1,52 @@
-import {
-  Drawer,
-  DrawerHeader,
-  DrawerItems,
-  Sidebar,
-  SidebarItem,
-  SidebarItemGroup,
-  SidebarItems,
-} from "flowbite-react";
+import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiBookOpen, HiOutlineLogout, HiSwitchHorizontal } from "react-icons/hi";
-import { HiOutlineUserCircle } from "react-icons/hi2";
-import { MdDashboard } from "react-icons/md";
-import { RiGuideFill } from "react-icons/ri";
-import { TbHierarchy3, TbMessageChatbotFilled } from "react-icons/tb";
+import { Bookmark, BookOpen, LayoutDashboard, LogOut, Map, MessageCircle, Network, Repeat, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import logo from "@/assets/logo.svg";
+
+const GROUPS = [
+  {
+    label: "Your plan",
+    items: [
+      { path: "/dashboard", label: "Dashboard", hint: "Your program at a glance", icon: LayoutDashboard },
+      { path: "/roadmap-entryload", label: "My Roadmap", hint: "Your degree step by step", icon: Map },
+      { path: "/coursemesh", label: "CourseMesh", hint: "What you can take next", icon: Network },
+    ],
+  },
+  {
+    label: "Explore",
+    items: [
+      { path: "/handbook", label: "Handbook", hint: "Degrees, majors and courses", icon: BookOpen },
+      { path: "/progress", label: "Switch Degree", hint: "Compare another program", icon: Repeat, universityOnly: true },
+    ],
+  },
+  {
+    label: "Help",
+    items: [{ path: "/chat", label: "Ask Eunice", hint: "Your AI study and career advisor", icon: MessageCircle }],
+  },
+];
+
+const drawerTheme = {
+  root: {
+    base: "fixed z-40 overflow-y-auto transition-transform bg-white dark:bg-slate-900 border-r border-line shadow-2xl",
+    position: {
+      left: {
+        on: "transform-none",
+        off: "-translate-x-full",
+      },
+    },
+  },
+};
+
+const initialsOf = (name, email) =>
+  (name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase())
+    .join("")
+    .slice(0, 2) || (email || "?")[0].toUpperCase();
 
 export function MenuBar({ isOpen, handleClose }) {
   const [userType, setUserType] = useState(null);
@@ -45,100 +76,106 @@ export function MenuBar({ isOpen, handleClose }) {
     if (path === "/handbook") {
       return ["/handbook", "/degrees/", "/course/", "/specialisation/"].some((p) => location.pathname.startsWith(p));
     }
+    if (path === "/chat") return location.pathname.startsWith("/chat");
     return location.pathname === path;
   };
 
-  const activeClass = "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700";
-
-  const customSidebarTheme = {
-    root: {
-      inner: "h-full overflow-y-auto overflow-x-hidden rounded bg-transparent px-3 py-4",
-    },
-    item: {
-      base: "flex items-center justify-center rounded-lg p-2 text-base font-normal text-gray-900 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:text-white dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 group transition-all duration-200",
-      active: "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700",
-      content: { base: "flex-1 whitespace-nowrap px-3 text-base" },
-      icon: {
-        base: "h-6 w-6 flex-shrink-0 text-gray-500 transition duration-200 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white",
-        active: "text-white dark:text-white",
-      },
-    },
-  };
-
-  const drawerTheme = {
-    root: {
-      base: "fixed z-40 overflow-y-auto p-4 transition-transform bg-gradient-to-b from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 border-r border-slate-200 dark:border-slate-700 shadow-xl",
-      position: {
-        left: {
-          on: "transform-none",
-          off: "-translate-x-full",
-        },
-      },
-    },
+  const go = (path) => {
+    navigate(path);
+    handleClose();
   };
 
   return (
-    <Drawer open={isOpen} onClose={handleClose} theme={drawerTheme}>
-      <DrawerHeader title="MENU" titleIcon={() => <></>} />
-      <DrawerItems>
-        {/* User info header */}
-        <button
-          onClick={() => { navigate("/profile"); handleClose(); }}
-          className="w-full px-4 py-3 mb-2 border-b border-slate-200 dark:border-slate-700 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all duration-200 flex items-center gap-3 rounded-lg"
-        >
-          <div className="flex-shrink-0 h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center">
-            <HiOutlineUserCircle className="h-6 w-6 text-slate-500 dark:text-slate-300" />
+    <Drawer open={isOpen} onClose={handleClose} theme={drawerTheme} className="w-80 p-0">
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between px-5 h-14 border-b border-line">
+          <div className="flex items-center gap-2">
+            <img src={logo} alt="" className="h-7 w-7" />
+            <span className="font-heading text-xl font-bold text-ink-strong">UniVise</span>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-800 dark:text-white">{displayName}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{displayEmail}</p>
-          </div>
-        </button>
+          <button
+            onClick={handleClose}
+            aria-label="Close menu"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-        <Sidebar
-          aria-label="Navigation menu"
-          className="[&>div]:bg-transparent [&>div]:p-0"
-          theme={customSidebarTheme}
-        >
-          <div className="flex h-full flex-col justify-between py-2">
-            <div>
-              <SidebarItems>
-                <SidebarItemGroup>
-                  <SidebarItem onClick={() => { navigate("/dashboard"); handleClose(); }} icon={MdDashboard} active={isActive("/dashboard")} className={isActive("/dashboard") ? activeClass : ""}>
-                    <span className={isActive("/dashboard") ? "font-semibold" : ""}>Dashboard</span>
-                  </SidebarItem>
-                  <SidebarItem onClick={() => { navigate("/roadmap-entryload"); handleClose(); }} icon={RiGuideFill} active={isActive("/roadmap-entryload")} className={isActive("/roadmap-entryload") ? activeClass : ""}>
-                    <span className={isActive("/roadmap-entryload") ? "font-semibold" : ""}>My Roadmap</span>
-                  </SidebarItem>
-                  <SidebarItem onClick={() => { navigate("/coursemesh"); handleClose(); }} icon={TbHierarchy3} active={isActive("/coursemesh")} className={isActive("/coursemesh") ? activeClass : ""}>
-                    <span className={isActive("/coursemesh") ? "font-semibold" : ""}>CourseMesh</span>
-                  </SidebarItem>
-                  {userType !== "high_school" && (
-                    <SidebarItem onClick={() => { navigate("/progress"); handleClose(); }} icon={HiSwitchHorizontal} active={isActive("/progress")} className={isActive("/progress") ? activeClass : ""}>
-                      <span className={isActive("/progress") ? "font-semibold" : ""}>Switch Degree</span>
-                    </SidebarItem>
-                  )}
-                  <SidebarItem onClick={() => { navigate("/handbook"); handleClose(); }} icon={HiBookOpen} active={isActive("/handbook")} className={isActive("/handbook") ? activeClass : ""}>
-                    <span className={isActive("/handbook") ? "font-semibold" : ""}>Handbook</span>
-                  </SidebarItem>
-                </SidebarItemGroup>
+        <div className="px-4 pt-3">
+          <button
+            onClick={() => go("/profile")}
+            className="w-full flex items-center gap-3 rounded-2xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/50 dark:to-slate-900 px-3 py-2 text-left hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+          >
+            <span className="flex-shrink-0 h-9 w-9 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
+              {initialsOf(displayName, displayEmail)}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-bold text-ink-strong">{displayName || "Your profile"}</span>
+              <span className="block truncate text-xs text-ink-muted">{displayEmail}</span>
+                          </span>
+          </button>
+        </div>
 
-                <SidebarItemGroup>
-                  <SidebarItem onClick={() => { navigate("/chat"); handleClose(); }} icon={TbMessageChatbotFilled} active={isActive("/chat")} className={isActive("/chat") ? activeClass : ""}>
-                    <span className={isActive("/chat") ? "font-semibold" : ""}>Ask Eunice</span>
-                  </SidebarItem>
-                </SidebarItemGroup>
-
-                <SidebarItemGroup>
-                  <SidebarItem onClick={signOut} icon={HiOutlineLogout}>
-                    Sign Out
-                  </SidebarItem>
-                </SidebarItemGroup>
-              </SidebarItems>
+        <nav aria-label="Main menu" className="flex-1 overflow-y-auto px-4 pt-3 pb-4 space-y-3">
+          {GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="px-2 mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{group.label}</p>
+              <ul className="space-y-0.5">
+                {group.items
+                  .filter((item) => !(item.universityOnly && userType === "high_school"))
+                  .map(({ path, label, hint, icon: Icon }) => {
+                    const active = isActive(path);
+                    return (
+                      <li key={path}>
+                        <button
+                          onClick={() => go(path)}
+                          aria-current={active ? "page" : undefined}
+                          className={`group w-full flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition-colors ${
+                            active
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25"
+                              : "hover:bg-blue-50 dark:hover:bg-slate-800"
+                          }`}
+                        >
+                          <span
+                            className={`flex-shrink-0 h-8 w-8 rounded-lg inline-flex items-center justify-center ${
+                              active ? "bg-white/20 text-white" : "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 group-hover:bg-white dark:group-hover:bg-slate-900"
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className={`block text-[15px] font-semibold leading-tight ${active ? "text-white" : "text-ink-strong"}`}>{label}</span>
+                            <span className={`block truncate text-xs leading-tight ${active ? "text-blue-100" : "text-ink-muted"}`}>{hint}</span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
-          </div>
-        </Sidebar>
-      </DrawerItems>
+          ))}
+        </nav>
+
+        <div className="px-4 py-3 border-t border-line space-y-0.5">
+          <button
+            onClick={() => go("/saved")}
+            className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-[15px] font-semibold transition-colors ${
+              isActive("/saved") ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-slate-800" : "text-ink hover:bg-blue-50 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Bookmark className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+            My shortlist
+          </button>
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-[15px] font-semibold text-ink hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300 transition-colors"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+            Sign out
+          </button>
+        </div>
+      </div>
     </Drawer>
   );
 }
