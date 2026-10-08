@@ -6,7 +6,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedCourses, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
-import { notNeededCodes, requiredCount, splitCourses } from "../utils/myCourses";
+import { notNeededCodes, progressOf, requiredCount, splitCourses } from "../utils/myCourses";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 
@@ -38,6 +38,53 @@ function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
       >
         View the full structure in the official UNSW Handbook
       </a>
+    </div>
+  );
+}
+
+function TickStepCard({ ticked, total, uoc }) {
+  const pct = total ? Math.round((ticked / total) * 100) : 0;
+  return (
+    <div className={`${card} p-5 md:p-6`}>
+      <div className="flex items-center gap-3">
+        <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">1</span>
+        <p className="text-lg font-bold text-ink-strong">Tick the courses you've done</p>
+      </div>
+      <p className="mt-2 text-[15px] text-ink-muted">Open each part below and press <span className="font-semibold text-ink">Done</span> on every course you've completed.</p>
+      <div className="mt-4 flex items-baseline justify-between gap-3">
+        <p className="text-[15px] text-ink">
+          <span className="text-xl font-bold text-ink-strong">{ticked}</span> of {total} courses in your plan ticked
+        </p>
+        <p className="text-sm font-semibold text-ink-muted">{uoc} UOC</p>
+      </div>
+      <div className="mt-2 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+        <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function CourseMeshStepCard({ ticked, onOpen, disabled }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 p-5 md:p-6">
+      <div className="flex items-center gap-3">
+        <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">2</span>
+        <p className="text-lg font-bold text-ink-strong">See what you can take next</p>
+      </div>
+      <p className="mt-2 text-[15px] text-ink-muted">
+        {ticked > 0
+          ? `You've ticked ${ticked} ${ticked === 1 ? "course" : "courses"}. CourseMesh shows what they unlock and how your courses connect.`
+          : "Once you've ticked your courses, CourseMesh shows what they unlock and how your courses connect."}
+      </p>
+      <button
+        onClick={onOpen}
+        disabled={disabled}
+        className="mt-4 group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+      >
+        <Layers className="h-4 w-4" />
+        Open CourseMesh
+        <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+      </button>
     </div>
   );
 }
@@ -182,6 +229,15 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     return notNeededCodes(mine, done, added);
   }, [mine, completed, added]);
 
+  const tickedStats = useMemo(() => {
+    const seen = new Map();
+    for (const sec of courseSections) for (const c of sec.courses || []) if (c?.code && !seen.has(c.code)) seen.set(c.code, c);
+    const doneCodes = new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code));
+    const { done, total } = progressOf(mine, doneCodes, added);
+    const uoc = [...seen.values()].filter((c) => doneCodes.has(c.code)).reduce((sum, c) => sum + (Number(c.uoc) || 0), 0);
+    return { ticked: done, total, uoc };
+  }, [courseSections, completed, mine, added]);
+
   const thin = specs?.length === 0 && requiredCount(splitCourses([{ key: degreeCode, sections: programCourseSections }])) <= THIN_PROGRAM_COURSES;
 
   const handleVisualise = () => {
@@ -298,7 +354,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const expandAll = () =>
     setOpenMap(Object.fromEntries(courseSections.map((s, i) => [`${s.title}-${i}`, true])));
 
-  const collapseAll = () => setOpenMap({});
+  const collapseAll = () =>
+    setOpenMap(Object.fromEntries(courseSections.map((s, i) => [`${s.title}-${i}`, false])));
   
 
   const handleCourseClick = async (course) => {
@@ -315,31 +372,37 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   return (
     <div className="space-y-6">
 
-      <SectionHeading subtitle={trackCompletion ? "Tick the courses you've done and add the electives you plan to take." : "The courses in this program."}>
+      <SectionHeading subtitle={trackCompletion ? "Two steps: tick what you've done, then see what it unlocks in CourseMesh." : "The courses in this program."}>
         Your courses
       </SectionHeading>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        {specs && (
-          <p className="text-[15px] text-ink-muted">
-            {specs.length ? <>Showing courses for <span className="font-semibold text-ink-strong">{specs.map((sp) => sp.name).join(", ")}</span></> : "No specialisation chosen yet"}
-            {onChangeSpecialisation && (
-              <button onClick={onChangeSpecialisation} className="ml-2 font-semibold text-link hover:underline">
-                {specs.length ? "Change" : "Choose one"}
-              </button>
-            )}
-          </p>
-        )}
+      {trackCompletion ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TickStepCard {...tickedStats} />
+          <CourseMeshStepCard ticked={tickedStats.ticked} onOpen={handleVisualise} disabled={!allCourses.length} />
+        </div>
+      ) : (
         <button
           onClick={handleVisualise}
           disabled={!allCourses.length}
           className="group inline-flex items-center gap-2 text-[15px] font-semibold text-link hover:underline disabled:opacity-50 disabled:no-underline"
         >
           <Layers className="h-4 w-4" />
-          See how these connect in CourseMesh
+          See how these courses connect in CourseMesh
           <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </button>
-      </div>
+      )}
+
+      {specs && (
+        <p className="text-[15px] text-ink-muted">
+          {specs.length ? <>Showing courses for <span className="font-semibold text-ink-strong">{specs.map((sp) => sp.name).join(", ")}</span></> : "No specialisation chosen yet"}
+          {onChangeSpecialisation && (
+            <button onClick={onChangeSpecialisation} className="ml-2 font-semibold text-link hover:underline">
+              {specs.length ? "Change" : "Choose one"}
+            </button>
+          )}
+        </p>
+      )}
 
       {courseSections.length > 0 && (
         <div className="flex justify-end gap-2">
@@ -382,7 +445,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 <div key={key}>
                   <CourseSection
                     section={sec}
-                    isOpen={!!openMap[key]}
+                    isOpen={openMap[key] ?? i === 0}
                     onToggle={() => toggleSection(key)}
                     onCourseClick={handleCourseClick}
                     completed={completed}
@@ -398,6 +461,22 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </>
         )}
       </div>
+
+      {trackCompletion && !loading && courseSections.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-6 py-5">
+          <p className="text-[15px] text-ink">
+            <span className="font-semibold text-ink-strong">Finished ticking?</span> See what your courses unlock next.
+          </p>
+          <button
+            onClick={handleVisualise}
+            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+          >
+            <Layers className="h-4 w-4" />
+            Open CourseMesh
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
