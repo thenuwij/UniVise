@@ -57,11 +57,14 @@ function TagList({ items }) {
   );
 }
 
+const TAG_MAX_LENGTH = 60;
+const TAG_MAX_COUNT = 10;
+
 function TagInput({ values, setValues, placeholder }) {
   const [next, setNext] = useState("");
   const addTag = () => {
     const t = next.trim();
-    if (t && !values.includes(t)) setValues([...values, t]);
+    if (t && !values.includes(t) && values.length < TAG_MAX_COUNT) setValues([...values, t.slice(0, TAG_MAX_LENGTH)]);
     setNext("");
   };
   const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
@@ -72,8 +75,8 @@ function TagInput({ values, setValues, placeholder }) {
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <TextInput placeholder={placeholder} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
-        <Button onClick={addTag} disabled={!next.trim()}>Add</Button>
+        <TextInput placeholder={placeholder} maxLength={TAG_MAX_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
+        <Button onClick={addTag} disabled={!next.trim() || values.length >= TAG_MAX_COUNT}>Add</Button>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {values.map((tag, i) => (
@@ -328,7 +331,7 @@ function ProfilePage() {
                       </div>
                       <div>
                         <Label htmlFor="degreeField" value="Degree Field" />
-                        <TextInput id="degreeField" value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
+                        <TextInput id="degreeField" maxLength={100} value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
                       </div>
                       <div>
                         <Label htmlFor="wam" value="WAM" />
