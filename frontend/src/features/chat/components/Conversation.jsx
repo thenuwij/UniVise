@@ -31,7 +31,7 @@ export default function Conversation({ show, onClose, onSave }) {
       <ModalBody>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="title" value="Title" />
+            <Label htmlFor="title">Title</Label>
             <TextInput
               id="title"
               value={title}
