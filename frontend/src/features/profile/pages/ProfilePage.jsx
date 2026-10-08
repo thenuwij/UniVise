@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
 import YourDataCard from "../components/YourDataCard";
 
@@ -63,8 +64,8 @@ const TAG_MAX_COUNT = 10;
 function TagInput({ values, setValues, placeholder }) {
   const [next, setNext] = useState("");
   const addTag = () => {
-    const t = next.trim();
-    if (t && !values.includes(t) && values.length < TAG_MAX_COUNT) setValues([...values, t.slice(0, TAG_MAX_LENGTH)]);
+    const t = cleanText(next, TAG_MAX_LENGTH);
+    if (t && !values.includes(t) && values.length < TAG_MAX_COUNT) setValues([...values, t]);
     setNext("");
   };
   const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
@@ -76,7 +77,7 @@ function TagInput({ values, setValues, placeholder }) {
     <div className="space-y-2">
       <div className="flex gap-2">
         <TextInput placeholder={placeholder} maxLength={TAG_MAX_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
-        <Button onClick={addTag} disabled={!next.trim() || values.length >= TAG_MAX_COUNT}>Add</Button>
+        <Button onClick={addTag} disabled={!cleanText(next, TAG_MAX_LENGTH) || values.length >= TAG_MAX_COUNT}>Add</Button>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {values.map((tag, i) => (
@@ -149,7 +150,7 @@ function ProfilePage() {
       } else if (studentType === "University") {
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from("student_uni_data").update({
-          wam, degree_field: degreeField, degree_stage: degreeStage,
+          wam, degree_field: cleanText(degreeField, 100) || null, degree_stage: degreeStage,
           interest_areas: careerInterests, hobbies, confidence, academic_year: year,
         }).eq("user_id", user.id);
       }

@@ -7,6 +7,7 @@ import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
+import { cleanText } from "@/shared/lib/cleanText";
 import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
 import { saveChoices } from "@/features/roadmap/utils/programCourses";
@@ -344,13 +345,13 @@ function SurveyForm() {
         user_id: session?.user?.id,
         degree_stage: "Bachelor's Degree",
         academic_year: formData.academic_year_other || formData.academic_year || null,
-        degree_field: program?.program_name || formData.program_other?.trim() || null,
-        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${formData.interest_areas_other.trim().slice(0, OTHER_MAX)}` : a),
-        interest_areas_other: formData.interest_areas?.includes("Other") ? formData.interest_areas_other.trim().slice(0, OTHER_MAX) : null,
+        degree_field: program?.program_name || cleanText(formData.program_other, 150) || null,
+        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
+        interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
         priorities: formData.priorities || [],
         work_style: formData.work_style || [],
-        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${formData.hobbies_other.trim().slice(0, OTHER_MAX)}` : h),
-        hobbies_other: formData.hobbies?.includes("Other") ? formData.hobbies_other.trim().slice(0, OTHER_MAX) : null,
+        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
+        hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
@@ -677,7 +678,7 @@ function SurveyForm() {
           <NavButtons
             onPrev={handlePrev}
             onNext={handleNext}
-            nextDisabled={!formData.interest_areas?.length || (formData.interest_areas.includes("Other") && !formData.interest_areas_other?.trim())}
+            nextDisabled={!formData.interest_areas?.length || (formData.interest_areas.includes("Other") && !cleanText(formData.interest_areas_other, OTHER_MAX))}
           />
         </div>
       )}
@@ -779,7 +780,7 @@ function SurveyForm() {
             onSubmit={handleSubmit}
             loading={loading}
             isLast
-            nextDisabled={formData.hobbies?.includes("Other") && !formData.hobbies_other?.trim()}
+            nextDisabled={formData.hobbies?.includes("Other") && !cleanText(formData.hobbies_other, OTHER_MAX)}
           />
           {message && <p className="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">{message}</p>}
         </div>
