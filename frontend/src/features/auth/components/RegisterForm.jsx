@@ -1,10 +1,12 @@
-import { Alert, Button, Checkbox, Label, Modal, ModalBody, ModalHeader, Select, TextInput } from "flowbite-react";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { TermsText } from "./TermsText";
+import { errorText, fieldInput, fieldLabel, footerLink, footerText, googleButton, primaryButton } from "./authStyles";
 
 
 function RegisterForm() {
@@ -81,131 +83,136 @@ function RegisterForm() {
     };
 
     return (
-    <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 flex flex-col gap-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h1>
-      </div>
-
-      {/* Google Sign-Up — top, matching LoginForm */}
-      <Button
-        onClick={handleGoogleSignUp}
-        size="lg"
-        color="light"
-        className="w-full border border-gray-300 dark:border-gray-600"
-        type="button"
-      >
-        <FcGoogle className="mr-2 h-5 w-5" />
+    <div className="flex flex-col gap-6">
+      <button onClick={handleGoogleSignUp} className={googleButton} type="button">
+        <FcGoogle className="h-5 w-5" />
         Continue with Google
-      </Button>
+      </button>
 
       <div className="flex items-center gap-3">
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-        <span className="text-sm text-gray-400">or</span>
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">or with email</span>
+        <span className="h-px flex-1 bg-line" />
       </div>
 
       <form onSubmit={handleRegister} className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
           <div>
-            <Label htmlFor="firstName" value="First Name" className="mb-1 block" />
-            <TextInput
+            <label htmlFor="firstName" className={fieldLabel}>First name</label>
+            <input
               id="firstName"
               type="text"
+              autoComplete="given-name"
               placeholder="First name"
               required
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              className={fieldInput}
             />
           </div>
           <div>
-            <Label htmlFor="lastName" value="Last Name" className="mb-1 block" />
-            <TextInput
+            <label htmlFor="lastName" className={fieldLabel}>Last name</label>
+            <input
               id="lastName"
               type="text"
+              autoComplete="family-name"
               placeholder="Last name"
               required
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              className={fieldInput}
             />
           </div>
         </div>
         <div>
-          <Label htmlFor="email2" value="Email" className="mb-1 block" />
-          <TextInput
+          <label htmlFor="email2" className={fieldLabel}>Email</label>
+          <input
             id="email2"
             type="email"
+            autoComplete="email"
             placeholder="you@email.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className={fieldInput}
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
           <div>
-            <Label htmlFor="dob" value="Date of Birth" className="mb-1 block" />
-            <TextInput
+            <label htmlFor="dob" className={fieldLabel}>Date of birth</label>
+            <input
               id="dob"
               type="date"
-              required
               max={new Date().toISOString().split("T")[0]}
+              required
               value={dob}
               onChange={(e) => setDob(e.target.value)}
+              className={fieldInput}
             />
           </div>
           <div>
-            <Label htmlFor="gender" value="Gender" className="mb-1 block" />
-            <Select
+            <label htmlFor="gender" className={fieldLabel}>Gender</label>
+            <select
               id="gender"
               name="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
+              className={fieldInput}
             >
               <option value="">Select…</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
-            </Select>
+            </select>
           </div>
         </div>
-        <div>
-          <Label htmlFor="password2" value="Password" className="mb-1 block" />
-          <TextInput
-            id="password2"
-            type="password"
-            placeholder="••••••••"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="repeat-password" value="Confirm Password" className="mb-1 block" />
-          <TextInput
-            id="repeat-password"
-            type="password"
-            placeholder="••••••••"
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
+          <div>
+            <label htmlFor="password2" className={fieldLabel}>Password</label>
+            <input
+              id="password2"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={fieldInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="repeat-password" className={fieldLabel}>Confirm password</label>
+            <input
+              id="repeat-password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={fieldInput}
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Checkbox
+        <div className="flex items-start gap-3">
+          <input
             id="agree"
+            type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-line accent-blue-600 cursor-pointer"
           />
-          <Label htmlFor="agree" className="flex text-sm">
-            I agree with the&nbsp;
+          <label htmlFor="agree" className="text-sm text-ink">
+            I agree with the{" "}
             <button
               type="button"
-              className="text-blue-500 hover:underline"
+              className={footerLink}
               onClick={() => setOpenModal(true)}
             >
               terms and conditions
             </button>
-          </Label>
+          </label>
           <Modal show={openModal} onClose={() => setOpenModal(false)}>
             <ModalHeader>Terms & Conditions</ModalHeader>
             <ModalBody>
@@ -214,20 +221,20 @@ function RegisterForm() {
           </Modal>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-500 dark:text-red-400 text-center">{error}</p>
-        )}
+        {error && <p role="alert" className={errorText}>{error}</p>}
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          isProcessing={loading}
-          disabled={loading}
-        >
-          Create Account
-        </Button>
+        <button type="submit" className={`${primaryButton} mt-2`} disabled={loading}>
+          {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+          {loading ? "Creating account..." : "Create account"}
+        </button>
       </form>
+
+      <p className={footerText}>
+        Already have an account?{" "}
+        <Link to="/login" className={footerLink}>
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 }
