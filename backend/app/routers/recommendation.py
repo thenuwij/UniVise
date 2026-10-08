@@ -11,7 +11,7 @@ from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_async, ask_gpt_structured
 from app.llm.json_parsing import extract_json
 from app.models.recommendation import CareerRecommendations
-from app.services.user_profile import get_user_info, get_student_type
+from app.services.user_profile import get_user_info, get_student_type, survey_answers
 from app.services.recommendation import (
     claim_recommendation_run,
     explain_recommendation,
@@ -40,10 +40,10 @@ async def get_recommendation_prompts(user=Depends(get_current_user)):
             prompt = (
                 "You are a university career advisor for UNSW students. Based on this student's profile:\n\n"
                 f"• Field / Stage / Year: {user_info['degree_field']} / {user_info['degree_stage']} / {user_info['academic_year']}\n"
-                f"• Interests: {', '.join(user_info.get('interest_areas') or []) or 'not provided'}\n"
-                f"• Hobbies: {', '.join(user_info.get('hobbies') or []) or 'not provided'}\n"
-                f"• Priorities: {', '.join(user_info.get('priorities') or []) or 'not provided'}\n"
-                f"• Work style: {', '.join(user_info.get('work_style') or []) or 'not provided'}\n\n"
+                f"• Interests: {survey_answers(user_info, 'interest_areas')}\n"
+                f"• Hobbies: {survey_answers(user_info, 'hobbies')}\n"
+                f"• Priorities: {survey_answers(user_info, 'priorities')}\n"
+                f"• Work style: {survey_answers(user_info, 'work_style')}\n\n"
                 "Recommend exactly 4 career roles. For each, give a suitability_score from 0 to 100, "
                 "a reason in plain sentences, the education required, the key skills needed, "
                 "and a link and source for further reading.\n\n"

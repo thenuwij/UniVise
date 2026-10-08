@@ -8,6 +8,12 @@ logger = logging.getLogger(__name__)
 UNIVERSITY_ONLY = "UniVise is for university students only"
 
 
+def survey_answers(user_info: dict, field: str) -> str:
+    other = (user_info.get(f"{field}_other") or "").strip()
+    values = [f"Other: {other}" if value == "Other" and other else value for value in user_info.get(field) or []]
+    return ", ".join(values) or "not provided"
+
+
 async def get_student_type(user) -> str:
     # Grab it from the decoded JWT
     student_type = getattr(user, "user_metadata", {}).get("student_type")
