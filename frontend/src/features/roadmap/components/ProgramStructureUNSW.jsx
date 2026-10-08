@@ -66,7 +66,7 @@ function TickStepCard({ ticked, total, uoc }) {
 
 function CourseMeshStepCard({ ticked, onOpen, disabled }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 p-5 md:p-6">
+    <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 p-5 md:p-6">
       <div className="flex items-center gap-3">
         <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">2</span>
         <p className="text-lg font-bold text-ink-strong">See what you can take next</p>
@@ -464,7 +464,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       </div>
 
       {trackCompletion && !loading && courseSections.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-6 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-950/40 dark:to-indigo-950/40 px-6 py-5">
           <p className="text-[15px] text-ink">
             <span className="font-semibold text-ink-strong">Finished ticking?</span> See what your courses unlock next.
           </p>

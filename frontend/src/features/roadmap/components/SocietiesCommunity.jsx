@@ -65,13 +65,13 @@ export default function SocietiesCommunity({ societies }) {
                   {open && (
                     <div className="px-6 pb-6 pt-1 grid md:grid-cols-2 gap-3">
                       {society.membership_benefits && (
-                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
+                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
                           <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Benefits</p>
                           <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{society.membership_benefits}</p>
                         </div>
                       )}
                       {society.key_activities?.length > 0 && (
-                        <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-950/40 dark:to-cyan-950/30 p-4">
+                        <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-100 to-cyan-100 dark:from-sky-950/40 dark:to-cyan-950/30 p-4">
                           <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Activities</p>
                           <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                             {society.key_activities.map((activity, i) => (
@@ -89,7 +89,7 @@ export default function SocietiesCommunity({ societies }) {
           {facultySpecific.length > 3 && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
             >
               {showAll ? (
                 <>Show fewer <ChevronUp className="h-5 w-5" /></>
@@ -169,13 +169,13 @@ export default function SocietiesCommunity({ societies }) {
             {(hasContent(profDev.leadership_note) || profDev.skills_gained?.length > 0) && (
               <div className="grid md:grid-cols-2 gap-4">
                 {hasContent(profDev.leadership_note) && (
-                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
+                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
                     <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Leadership opportunities</p>
                     <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{profDev.leadership_note}</p>
                   </div>
                 )}
                 {profDev.skills_gained?.length > 0 && (
-                  <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-950/40 dark:to-cyan-950/30 p-5">
+                  <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-100 to-cyan-100 dark:from-sky-950/40 dark:to-cyan-950/30 p-5">
                     <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Skills you'll develop</p>
                     <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                       {profDev.skills_gained.map((skill, i) => (

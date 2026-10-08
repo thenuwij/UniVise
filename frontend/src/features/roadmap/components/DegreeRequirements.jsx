@@ -81,7 +81,7 @@ export default function DegreeRequirements({ degreeCode, onChangeSpecialisation 
       </SectionHeading>
 
       {specs && (
-        <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 px-6 py-5">
+        <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 px-6 py-5">
           <div aria-hidden className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-white/50 dark:bg-white/5" />
           <div className="relative flex items-center gap-4 min-w-0">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-800 ring-1 ring-blue-200 dark:ring-blue-800">

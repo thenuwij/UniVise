@@ -89,7 +89,7 @@ export default function CapstoneHonours({ data, handbookUrl, faculty, children }
 
       {hasHonours && (
         <section>
-          <div className="overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60">
+          <div className="overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60">
             <button
               type="button"
               onClick={() => setHonoursOpen((open) => !open)}

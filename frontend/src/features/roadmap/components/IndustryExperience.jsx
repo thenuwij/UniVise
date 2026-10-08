@@ -13,14 +13,14 @@ const RESOURCES = [
     name: "UNSWConnect",
     desc: "Internships, part-time jobs and graduate roles",
     url: "https://unswconnect.unsw.edu.au",
-    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
+    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-200 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
     icon: "text-blue-600 dark:text-blue-400",
   },
   {
     name: "UNSW Prosple",
     desc: "Graduate programs and early career opportunities",
     url: "https://unsw.prosple.com",
-    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
+    tone: "border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 to-sky-200 dark:from-blue-950/50 dark:to-sky-950/40 hover:border-blue-400",
     icon: "text-blue-600 dark:text-blue-400",
   },
 ];
@@ -142,7 +142,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
           {internshipPrograms.length > 3 && (
             <button
               onClick={() => setShowAllPrograms(!showAllPrograms)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
             >
               {showAllPrograms ? (
                 <>Show fewer <ChevronUp className="h-5 w-5" /></>
