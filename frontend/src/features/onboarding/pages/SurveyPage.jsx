@@ -49,7 +49,7 @@ function SurveyPage() {
   }, [session, navigate]);
 
   if (loading || checkingAccess) {
-    return <div className="min-h-screen flex items-center justify-center text-black text-xl">Loading…</div>;
+    return <div className="min-h-screen flex items-center justify-center text-slate-700 dark:text-slate-200 text-xl">Loading…</div>;
   }
 
   return (
