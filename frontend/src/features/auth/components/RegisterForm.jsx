@@ -1,13 +1,16 @@
 import { Modal, ModalBody, ModalHeader } from "flowbite-react";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
+import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
 import { TermsText } from "./TermsText";
 import { errorText, fieldInput, fieldLabel, footerLink, footerText, googleButton, primaryButton } from "./authStyles";
 
+
+const NAME_MAX = 50;
 
 function RegisterForm() {
 
@@ -22,6 +25,7 @@ function RegisterForm() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false)
+    const [showPassword, setShowPassword] = useState(false);
     
     const navigate = useNavigate() 
     const { registerNewUser } = UserAuth();
@@ -32,6 +36,13 @@ function RegisterForm() {
 
     const handleRegister = async (e) => {
       e.preventDefault();
+
+      const first = cleanText(firstName, NAME_MAX);
+      const last = cleanText(lastName, NAME_MAX);
+      if (!first || !last) {
+        setError("Please enter your first and last name.");
+        return;
+      }
 
       if (password !== confirmPassword) {
         setError("Passwords don't match. Please try again.");
@@ -51,7 +62,7 @@ function RegisterForm() {
       setError('');
       setLoading(true);
       try { 
-        const result = await registerNewUser(email, password, firstName, lastName, dob, gender);
+        const result = await registerNewUser(email, password, first, last, dob, gender, new Date().toISOString());
         if (result.error) {
           setError(result.error.message);
           return;
@@ -61,7 +72,7 @@ function RegisterForm() {
           navigate('/survey', { replace: true });
         }
       }catch {
-        setError("An error occured")
+        setError("Something went wrong. Please try again.")
       } finally {
         setLoading(false)
       }
@@ -74,11 +85,9 @@ function RegisterForm() {
             redirectTo: `${window.location.origin}/auth/callback`
           }
         });
-        if (error) {
-          console.error("Google sign up error:", error);
-        }
-      } catch (error) {
-        console.error("Google sign up error:", error);
+        if (error) setError("Google sign-up failed. Please try again.");
+      } catch {
+        setError("Google sign-up failed. Please try again.");
       }
     };
 
@@ -103,6 +112,7 @@ function RegisterForm() {
               id="firstName"
               type="text"
               autoComplete="given-name"
+              maxLength={NAME_MAX}
               placeholder="First name"
               required
               value={firstName}
@@ -116,6 +126,7 @@ function RegisterForm() {
               id="lastName"
               type="text"
               autoComplete="family-name"
+              maxLength={NAME_MAX}
               placeholder="Last name"
               required
               value={lastName}
@@ -169,29 +180,54 @@ function RegisterForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
           <div>
             <label htmlFor="password2" className={fieldLabel}>Password</label>
-            <input
-              id="password2"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={fieldInput}
-            />
+            <div className="relative">
+              <input
+                id="password2"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${fieldInput} pr-11`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide passwords" : "Show passwords"}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <div>
             <label htmlFor="repeat-password" className={fieldLabel}>Confirm password</label>
-            <input
-              id="repeat-password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={fieldInput}
-            />
+            <div className="relative">
+              <input
+                id="repeat-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`${fieldInput} pr-11`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide passwords" : "Show passwords"}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {confirmPassword && (
+              <p className={`mt-1.5 text-xs font-medium ${password === confirmPassword ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                {password === confirmPassword ? "Passwords match" : "Passwords don't match"}
+              </p>
+            )}
           </div>
         </div>
 
