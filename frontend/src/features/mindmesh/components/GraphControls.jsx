@@ -3,6 +3,7 @@ import { forwardRef, useRef, useImperativeHandle, useState } from "react";
 import { HelpCircle, LayoutGrid, Maximize2, Pause, Play, RotateCcw, Undo2 } from "lucide-react";
 import AutoLayoutControls from "./AutoLayoutControls";
 import WelcomeModal from "./WelcomeModal";
+import { hasSeenGuide } from "../utils/onboarding";
 
 const TOOL =
   "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors";
@@ -23,7 +24,7 @@ export default forwardRef(function GraphControls({
   setFrozen,
 }, ref) {
   const layoutControlsRef = useRef(null);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => !hasSeenGuide());
 
   useImperativeHandle(ref, () => ({
     autoLayout: () => layoutControlsRef.current?.autoLayout?.(),

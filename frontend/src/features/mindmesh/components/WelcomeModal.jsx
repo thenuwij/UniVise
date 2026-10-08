@@ -1,121 +1,203 @@
-import { createPortal } from 'react-dom';
-import { X, MousePointer2, MousePointerClick, Hand, Network } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Hand,
+  LayoutGrid,
+  ListChecks,
+  Maximize2,
+  MousePointerClick,
+  Move,
+  Network,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  X,
+  ZoomIn,
+} from "lucide-react";
 import { STATUS } from "../utils/availability";
+import { markGuideSeen } from "../utils/onboarding";
+
+function Row({ icon: Icon, title, text }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="flex-shrink-0 h-9 w-9 rounded-xl inline-flex items-center justify-center text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 ring-1 ring-blue-100 dark:ring-blue-900">
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <span>
+        <span className="block text-[15px] font-semibold text-ink-strong">{title}</span>
+        <span className="block text-sm text-ink-muted">{text}</span>
+      </span>
+    </li>
+  );
+}
+
+function CourseBox({ code, color }) {
+  return (
+    <span className="px-3 py-2 rounded-lg text-xs font-bold text-white shadow-sm" style={{ backgroundColor: color }}>
+      {code}
+    </span>
+  );
+}
+
+const STEPS = [
+  {
+    title: "Welcome to CourseMesh",
+    lead: "CourseMesh shows how the courses in your program connect.",
+    body: () => (
+      <div className="space-y-5">
+        <div className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/50 dark:to-slate-900">
+          <CourseBox code="COMP1511" color={STATUS.completed.color} />
+          <span className="h-0.5 w-10 bg-blue-500 relative">
+            <span className="absolute -right-1 -top-[5px] border-y-[6px] border-y-transparent border-l-[8px] border-l-blue-500" />
+          </span>
+          <CourseBox code="COMP2521" color={STATUS.available.color} />
+        </div>
+        <ul className="space-y-3">
+          <Row icon={Network} title="Each box is a course" text="It shows the course code and its units of credit (UOC)." />
+          <Row icon={ArrowRight} title="Lines show what a course unlocks" text="An arrow goes from a course to the courses that need it first." />
+        </ul>
+      </div>
+    ),
+  },
+  {
+    title: "What the colours mean",
+    lead: "Colours come from the courses you've ticked as done.",
+    body: () => (
+      <ul className="space-y-3">
+        {[
+          ["completed", "You've ticked it as done."],
+          ["available", "Everything it needs is done, so you can take it."],
+          ["locked", "Something it needs is still missing."],
+          ["not_needed", "You picked a different option from the same choice."],
+        ].map(([key, text]) => (
+          <li key={key} className="flex items-center gap-3">
+            <span className="flex-shrink-0 h-8 w-12 rounded-lg shadow-sm" style={{ backgroundColor: STATUS[key].color }} />
+            <span>
+              <span className="block text-[15px] font-semibold text-ink-strong">{STATUS[key].label}</span>
+              <span className="block text-sm text-ink-muted">{text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    ),
+  },
+  {
+    title: "Moving around",
+    lead: "The graph works like a map.",
+    body: () => (
+      <ul className="space-y-3">
+        <Row icon={ZoomIn} title="Scroll to zoom" text="Use your mouse wheel or pinch on a trackpad." />
+        <Row icon={Hand} title="Drag the background to move" text="Click on an empty spot and drag." />
+        <Row icon={Move} title="Drag a course to move it" text="Handy when boxes overlap." />
+        <Row icon={Maximize2} title="Fit to screen" text="Brings every course back into view." />
+        <Row icon={LayoutGrid} title="Arrange by level" text="Lines courses up from level 1 to level 4." />
+      </ul>
+    ),
+  },
+  {
+    title: "Exploring a course",
+    lead: "Click any course to learn more about it.",
+    body: () => (
+      <ul className="space-y-3">
+        <Row icon={MousePointerClick} title="Click a course" text="A card shows what it needs, ticked off against what you've done." />
+        <Row icon={ListChecks} title="Read the checklist" text={`"One of" means any single course from that group is enough.`} />
+        <Row icon={Check} title="Mark as done" text="Tick a course right from the card, and the colours update." />
+        <Row icon={Network} title="Double-click to dig deeper" text="Opens that course's own prerequisites." />
+        <Row icon={RotateCcw} title="Undo and Reset view" text="Step back, or return to the full graph." />
+      </ul>
+    ),
+  },
+  {
+    title: "Plan what's next",
+    lead: "Use CourseMesh alongside your roadmap.",
+    body: () => (
+      <ul className="space-y-3">
+        <Row icon={Sparkles} title="Suggested next" text="Courses that fit your goals, at the top right of the graph." />
+        <Row icon={ListChecks} title="Tick courses in your roadmap" text="Keep your completed courses up to date so the colours stay right." />
+        <Row icon={Plus} title="Add electives" text="Add the electives you plan to take so they appear here." />
+      </ul>
+    ),
+  },
+];
 
 export default function WelcomeModal({ isOpen, onClose }) {
+  const [step, setStep] = useState(0);
+
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setStep(0);
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        markGuideSeen();
+        closeRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-2xl w-full overflow-hidden">
+  const current = STEPS[step];
+  const last = step === STEPS.length - 1;
+  const close = () => {
+    markGuideSeen();
+    onClose();
+  };
 
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-slate-50 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 px-6 py-5 border-b border-slate-200 dark:border-slate-700">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="coursemesh-guide-title" className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-blue-200 dark:border-slate-700 shadow-2xl">
+        <div className="relative overflow-hidden bg-gradient-to-r from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 px-6 py-5">
+          <div aria-hidden className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-blue-300/20" />
+          <p className="relative text-[11px] font-bold uppercase tracking-[0.14em] text-band-soft">CourseMesh guide · {step + 1} of {STEPS.length}</p>
+          <h2 id="coursemesh-guide-title" className="relative mt-1 text-2xl font-extrabold text-band-ink">{current.title}</h2>
+          <p className="relative mt-1 text-[15px] text-band-soft">{current.lead}</p>
+          <button
+            onClick={close}
+            aria-label="Close guide"
+            className="absolute top-4 right-4 h-9 w-9 inline-flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-colors"
+          >
             <X className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <Network className="h-7 w-7 text-slate-700 dark:text-slate-300" />
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">CourseMesh Guide</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">How to read and interact with the course graph</p>
-            </div>
+        </div>
+
+        <div className="px-6 py-6 min-h-[18rem]">{current.body()}</div>
+
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-line">
+          <div className="flex items-center gap-1.5" aria-hidden>
+            {STEPS.map((s, i) => (
+              <span key={s.title} className={`h-2 rounded-full transition-all ${i === step ? "w-6 bg-blue-600" : "w-2 bg-blue-200 dark:bg-slate-700"}`} />
+            ))}
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-
-          {/* Understanding Lines */}
-          <section>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Understanding Connections</h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                <div className="flex-shrink-0 flex items-center">
-                  <svg width="48" height="16">
-                    <line x1="0" y1="8" x2="40" y2="8" stroke="#3b82f6" strokeWidth="2.5"/>
-                    <polygon points="38,5 44,8 38,11" fill="#3b82f6"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Solid line</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">You must complete this course before moving on (mandatory prerequisite)</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                <div className="flex-shrink-0 flex items-center">
-                  <svg width="48" height="16">
-                    <line x1="0" y1="8" x2="40" y2="8" stroke="#8b5cf6" strokeWidth="2.5" strokeDasharray="5,4"/>
-                    <polygon points="38,5 44,8 38,11" fill="#8b5cf6"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Dashed line</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Flexible connection — one option among alternatives (OR prerequisite or corequisite)</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Course Colours */}
-          <section>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Course Colours</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { key: "completed", desc: "You marked it as done" },
-                { key: "available", desc: "Its prerequisites are done" },
-                { key: "locked", desc: "A prerequisite is still missing" },
-              ].map(({ key, desc }) => (
-                <div key={key} className="flex flex-col items-center gap-2 text-center">
-                  <div className="w-12 h-10 rounded-lg shadow-sm" style={{ backgroundColor: STATUS[key].color }} />
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{STATUS[key].label}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Interactions */}
-          <section>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">How to Interact</h3>
-            <div className="space-y-2">
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
-                <MousePointer2 className="h-4 w-4 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Single click</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Focus a course — highlights its connections and shows course details below</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-                <MousePointerClick className="h-4 w-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Double click</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Expand the graph to show all courses connected to this one</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                <Hand className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Drag & zoom</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Drag nodes to rearrange, scroll to zoom, drag background to pan</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-          <button
-            onClick={onClose}
-            className="w-full px-6 py-2.5 rounded-xl font-semibold text-white text-sm
-                       bg-gradient-to-r from-blue-500 to-indigo-500
-                       hover:from-blue-600 hover:to-indigo-600
-                       shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            Got it, let's explore
-          </button>
+          <div className="flex items-center gap-2">
+            {step === 0 ? (
+              <button onClick={close} className="px-4 py-2 rounded-xl text-sm font-semibold text-ink-muted hover:text-ink-strong hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                Skip
+              </button>
+            ) : (
+              <button
+                onClick={() => setStep((s) => s - 1)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+            )}
+            <button
+              onClick={last ? close : () => setStep((s) => s + 1)}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            >
+              {last ? "Start exploring" : "Next"}
+              {!last && <ArrowRight className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
     </div>,

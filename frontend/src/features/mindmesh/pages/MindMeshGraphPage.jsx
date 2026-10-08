@@ -16,6 +16,7 @@ import PicksPanel from "../components/PicksPanel";
 import ElectivesPanel from "../components/ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
+import { hasSeenGuide } from "../utils/onboarding";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
@@ -31,7 +32,7 @@ export default function MindMeshGraphPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
-  const [showHint, setShowHint] = useState(true);
+  const [showHint, setShowHint] = useState(() => hasSeenGuide());
 
   const graphRef = useRef(null);
   const controlsRef = useRef(null);
