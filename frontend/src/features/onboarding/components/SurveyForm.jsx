@@ -239,18 +239,43 @@ function ProgramPicker({ value, onSelect }) {
 
 // ── Main Form ──────────────────────────────────────────────────────
 
+function readDraft(key) {
+  try {
+    return JSON.parse(sessionStorage.getItem(key)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function clearDraft(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    return;
+  }
+}
+
 function SurveyForm() {
   const { session } = UserAuth();
+  const draftKey = `univise-survey-draft-${session?.user?.id}`;
   const navigate = useNavigate();
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(() => readDraft(draftKey).step ?? 2);
   const [userType, setUserType] = useState("university");
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(() => readDraft(draftKey).formData ?? {});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedHobby, setSelectedHobby] = useState('');
   const [selectedCareerField, setSelectedCareerField] = useState('');
   const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify({ step, formData }));
+    } catch {
+      return;
+    }
+  }, [draftKey, step, formData]);
 
   const subjectOptions = [
     "None of these","Aboriginal Languages","Aboriginal Studies","Agriculture","Ancient History",
@@ -355,6 +380,7 @@ function SurveyForm() {
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
+      clearDraft(draftKey);
       generateRecommendations().catch(console.error);
       navigate("/dashboard", { replace: true });
     }
@@ -752,7 +778,7 @@ function SurveyForm() {
           <StepHeading>What are your hobbies or interests?</StepHeading>
           <StepSubtitle>Optional. Helps Eunice understand what drives you beyond studies.</StepSubtitle>
           <div className="grid grid-cols-2 gap-2">
-            {["Sports & Fitness","Creative Arts (music, design, writing)","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other"].map(o => (
+            {["Sports & Fitness","Creative Arts (music, design, art)","Reading & Writing","Outdoors & Travel","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other"].map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.hobbies?.includes(o)}
