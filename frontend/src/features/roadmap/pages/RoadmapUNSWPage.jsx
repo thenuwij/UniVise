@@ -9,6 +9,7 @@ import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
 import CourseProgress from "../components/CourseProgress";
+import DegreeRequirements from "../components/DegreeRequirements";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
@@ -350,7 +351,18 @@ export default function RoadmapUNSWPage() {
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
     const renderers = {
-      overview: () => <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty} />,
+      overview: () => (
+        <div className="space-y-14">
+          <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty} />
+          {degreeCodeValue && (
+            <DegreeRequirements
+              degreeCode={degreeCodeValue}
+              isOwnProgram={isOwnProgram}
+              onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+            />
+          )}
+        </div>
+      ),
       structure: () => {
         if (!degreeCodeValue) {
           return (
