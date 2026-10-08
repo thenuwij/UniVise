@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
@@ -7,10 +8,12 @@ import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
+import { cleanText } from "@/shared/lib/cleanText";
 import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
 import { saveChoices } from "@/features/roadmap/utils/programCourses";
 import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
+import { TermsText } from "@/features/auth/components/TermsText";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -64,6 +67,26 @@ function MultiOptionButton({ label, selected, onClick }) {
   );
 }
 
+// Either/or choice below a multi-select grid: picking it clears the others
+function NoneYetOption({ label, values, onChange }) {
+  const selected = values?.includes(label);
+  return (
+    <>
+      <div className="flex items-center gap-3 my-4">
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+      </div>
+      <MultiOptionButton label={label} selected={selected} onClick={() => onChange(selected ? [] : [label])} />
+    </>
+  );
+}
+
+const toggleWithout = (values, option, noneLabel) => {
+  const current = (values || []).filter(x => x !== noneLabel);
+  return current.includes(option) ? current.filter(x => x !== option) : [...current, option];
+};
+
 // Chip tag for selected items
 function Chip({ label, onRemove }) {
   return (
@@ -77,15 +100,26 @@ function Chip({ label, onRemove }) {
 }
 
 // Styled text input
-function StyledInput({ placeholder, value, onChange, type = "text" }) {
-  return (
+function StyledInput({ placeholder, value, onChange, type = "text", maxLength }) {
+  const input = (
     <input
       type={type}
+      maxLength={maxLength}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
       className="w-full px-4 py-3 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-blue-50/60 dark:bg-blue-900/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
     />
+  );
+  if (!maxLength) return input;
+  const used = (value || "").length;
+  return (
+    <div>
+      {input}
+      <p className={`mt-1 text-right text-xs ${used >= maxLength ? "font-semibold text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-400"}`}>
+        {used}/{maxLength} characters
+      </p>
+    </div>
   );
 }
 
@@ -107,7 +141,7 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
         <button
           type="button"
           onClick={onSubmit}
-          disabled={loading}
+          disabled={loading || nextDisabled}
           className="button-primary px-6 py-2.5 rounded-xl text-sm font-semibold"
         >
           {loading ? "Submitting..." : "Submit"}
@@ -125,6 +159,15 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
     </div>
   );
 }
+
+const INTEREST_AREAS = [
+  "Business & Finance", "Tech, Data & Maths", "Science & Environment", "Engineering",
+  "Health, Medicine & Psychology", "Law & Policy", "Arts, Design & Media",
+  "Architecture & Built Environment", "Humanities & Social Sciences", "Education & Teaching", "Other",
+];
+const OTHER_MAX = 60;
+const STILL_EXPLORING = "I'm still exploring";
+const STILL_FIGURING = "Still figuring it out";
 
 const NON_BACHELOR = /^(Diploma|Undergraduate Certificate)|Preparation|Preparatory|Pathway Program/i;
 
@@ -152,13 +195,38 @@ function ProgramPicker({ value, onSelect }) {
       .slice(0, 8);
   }, [programs, query]);
 
+  if (value) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 p-5 shadow-lg shadow-blue-600/20">
+        <div aria-hidden className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="relative flex items-start gap-4">
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
+            <HiAcademicCap className="h-6 w-6 text-white" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-blue-100">
+              <HiCheck className="h-4 w-4" />
+              Your program
+            </p>
+            <p className="mt-1 text-lg sm:text-xl font-bold leading-snug text-white">{value.program_name}</p>
+            <span className="mt-2 inline-block rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white ring-1 ring-white/25">
+              {value.degree_code}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setQuery(""); onSelect(null); }}
+            className="flex-shrink-0 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 dark:bg-slate-100 dark:text-blue-900 dark:hover:bg-white transition-colors"
+          >
+            Change
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      {value && (
-        <div className="mb-3">
-          <Chip label={`${value.program_name} (${value.degree_code})`} onRemove={() => onSelect(null)} />
-        </div>
-      )}
       <StyledInput
         placeholder="Search by name or code, e.g. Computer Science or 3778"
         value={query}
@@ -183,18 +251,43 @@ function ProgramPicker({ value, onSelect }) {
 
 // ── Main Form ──────────────────────────────────────────────────────
 
+function readDraft(key) {
+  try {
+    return JSON.parse(sessionStorage.getItem(key)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function clearDraft(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    return;
+  }
+}
+
 function SurveyForm() {
   const { session } = UserAuth();
+  const draftKey = `univise-survey-draft-${session?.user?.id}`;
   const navigate = useNavigate();
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(() => readDraft(draftKey).step ?? 2);
   const [userType, setUserType] = useState("university");
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(() => readDraft(draftKey).formData ?? {});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedHobby, setSelectedHobby] = useState('');
   const [selectedCareerField, setSelectedCareerField] = useState('');
   const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify({ step, formData }));
+    } catch {
+      return;
+    }
+  }, [draftKey, step, formData]);
 
   const subjectOptions = [
     "None of these","Aboriginal Languages","Aboriginal Studies","Agriculture","Ancient History",
@@ -236,6 +329,7 @@ function SurveyForm() {
     handleNext();
     const program = formData.program_not_listed ? null : formData.program;
     const userId = session?.user?.id;
+    if (needsTerms && userId) await recordTermsAccepted();
     if (!program || !userId) return;
     try {
       if (startedRef.current.program !== program.degree_code) {
@@ -254,12 +348,20 @@ function SurveyForm() {
       .catch(err => console.error("Background roadmap failed:", err));
   };
   const handlePrev = () => setStep(s => s - 1);
+  const needsTerms = !session?.user?.user_metadata?.terms_accepted_at;
+  const [termsOpen, setTermsOpen] = useState(false);
+
+  const recordTermsAccepted = async () => {
+    const { error } = await supabase.auth.updateUser({ data: { terms_accepted_at: new Date().toISOString() } });
+    if (error) console.error("Error recording terms acceptance:", error);
+  };
+
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
-  const generateRecommendations = async () => {
+  const generateRecommendations = async (token = session?.access_token) => {
     await apiFetch("/recommendation/prompt", {
       method: "POST",
-      token: session?.access_token,
+      token,
       retry: true,
     });
   };
@@ -289,17 +391,20 @@ function SurveyForm() {
         user_id: session?.user?.id,
         degree_stage: "Bachelor's Degree",
         academic_year: formData.academic_year_other || formData.academic_year || null,
-        degree_field: program?.program_name || formData.program_other?.trim() || null,
-        interest_areas: formData.interest_areas || [],
-        interest_areas_other: formData.interest_areas_other || null,
+        degree_field: program?.program_name || cleanText(formData.program_other, 150) || null,
+        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
+        interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
         priorities: formData.priorities || [],
         work_style: formData.work_style || [],
-        hobbies: formData.hobbies || [],
-        hobbies_other: formData.hobbies_other || null,
+        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
+        hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
-      generateRecommendations().catch(console.error);
+      if (needsTerms) await recordTermsAccepted();
+      clearDraft(draftKey);
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      generateRecommendations(refreshed?.session?.access_token).catch(console.error);
       navigate("/dashboard", { replace: true });
     }
   };
@@ -307,7 +412,7 @@ function SurveyForm() {
   const totalSteps = userType === "high_school" ? 8 : 7;
 
   return (
-    <div className="w-full max-w-xl">
+    <div className={`w-full ${step === 4 ? "max-w-4xl" : "max-w-xl"}`}>
       <SurveyProgressBar step={step - 1} totalSteps={totalSteps - 1} />
 
       {/* ── Step 1: User type ── */}
@@ -564,19 +669,47 @@ function SurveyForm() {
               onChange={v => handleChange("specialisations", v)}
             />
           )}
-          <div className="mt-3">
-            <OptionButton
-              label="My program isn't listed"
-              selected={!!formData.program_not_listed}
-              onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
-            />
-          </div>
+          {!formData.program && (
+            <div className="mt-3">
+              <OptionButton
+                label="My program isn't listed"
+                selected={!!formData.program_not_listed}
+                onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
+              />
+            </div>
+          )}
           {formData.program_not_listed && (
             <div className="mt-3">
               <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
             </div>
           )}
-          <NavButtons onNext={handleProgramNext} nextDisabled={formData.program_not_listed ? !formData.program_other?.trim() : !formData.program} />
+          {needsTerms && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4">
+              <input
+                id="survey-terms"
+                type="checkbox"
+                checked={!!formData.terms_agreed}
+                onChange={e => handleChange("terms_agreed", e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded accent-blue-600 cursor-pointer"
+              />
+              <label htmlFor="survey-terms" className="text-sm text-slate-700 dark:text-slate-300">
+                I agree with the{" "}
+                <button type="button" onClick={() => setTermsOpen(true)} className="font-semibold text-blue-700 dark:text-blue-300 hover:underline">
+                  terms and conditions
+                </button>
+              </label>
+              <Modal show={termsOpen} onClose={() => setTermsOpen(false)}>
+                <ModalHeader>Terms & Conditions</ModalHeader>
+                <ModalBody>
+                  <TermsText />
+                </ModalBody>
+              </Modal>
+            </div>
+          )}
+          <NavButtons
+            onNext={handleProgramNext}
+            nextDisabled={(formData.program_not_listed ? !formData.program_other?.trim() : !formData.program) || (needsTerms && !formData.terms_agreed)}
+          />
         </div>
       )}
 
@@ -597,26 +730,31 @@ function SurveyForm() {
         <div>
           <StepHeading>Which areas interest you most?</StepHeading>
           <StepSubtitle>Select all that apply — helps us find the best career matches.</StepSubtitle>
-          <div className="grid grid-cols-2 gap-2">
-            {["Business & Finance","Tech & Software","Science & Research","Engineering & Design","Health & Medicine","Law & Policy","Arts & Media","Other","I'm still exploring"].map(o => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {INTEREST_AREAS.map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.interest_areas?.includes(o)}
-                onClick={() => {
-                  const updated = formData.interest_areas?.includes(o)
-                    ? formData.interest_areas.filter(x => x !== o)
-                    : [...(formData.interest_areas || []), o];
-                  handleChange("interest_areas", updated);
-                }}
+                onClick={() => handleChange("interest_areas", toggleWithout(formData.interest_areas, o, STILL_EXPLORING))}
               />
             ))}
           </div>
           {formData.interest_areas?.includes("Other") && (
             <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.interest_areas_other || ""} onChange={e => handleChange("interest_areas_other", e.target.value)} />
+              <StyledInput
+                placeholder="Which area? e.g. Aviation"
+                maxLength={OTHER_MAX}
+                value={formData.interest_areas_other || ""}
+                onChange={e => handleChange("interest_areas_other", e.target.value)}
+              />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.interest_areas?.length} />
+          <NoneYetOption label={STILL_EXPLORING} values={formData.interest_areas} onChange={v => handleChange("interest_areas", v)} />
+          <NavButtons
+            onPrev={handlePrev}
+            onNext={handleNext}
+            nextDisabled={!formData.interest_areas?.length || (formData.interest_areas.includes("Other") && !cleanText(formData.interest_areas_other, OTHER_MAX))}
+          />
         </div>
       )}
 
@@ -671,20 +809,15 @@ function SurveyForm() {
               "Client-facing & communication",
               "Creative & artistic work",
               "Leadership & coordination",
-              "Still figuring it out",
             ].map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.work_style?.includes(o)}
-                onClick={() => {
-                  const updated = formData.work_style?.includes(o)
-                    ? formData.work_style.filter(x => x !== o)
-                    : [...(formData.work_style || []), o];
-                  handleChange("work_style", updated);
-                }}
+                onClick={() => handleChange("work_style", toggleWithout(formData.work_style, o, STILL_FIGURING))}
               />
             ))}
           </div>
+          <NoneYetOption label={STILL_FIGURING} values={formData.work_style} onChange={v => handleChange("work_style", v)} />
           <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.work_style?.length} />
         </div>
       )}
@@ -692,9 +825,9 @@ function SurveyForm() {
       {userType === "university" && step === 7 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
-          <StepSubtitle>Helps Eunice understand what drives you beyond studies.</StepSubtitle>
+          <StepSubtitle>Optional. Helps Eunice understand what drives you beyond studies.</StepSubtitle>
           <div className="grid grid-cols-2 gap-2">
-            {["Sports & Fitness","Creative Arts (music, design, writing)","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other","Not sure yet"].map(o => (
+            {["Sports & Fitness","Creative Arts (music, design, art)","Reading & Writing","Outdoors & Travel","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other"].map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.hobbies?.includes(o)}
@@ -709,10 +842,21 @@ function SurveyForm() {
           </div>
           {formData.hobbies?.includes("Other") && (
             <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.hobbies_other || ""} onChange={e => handleChange("hobbies_other", e.target.value)} />
+              <StyledInput
+                placeholder="Which hobby? e.g. Rock climbing"
+                maxLength={OTHER_MAX}
+                value={formData.hobbies_other || ""}
+                onChange={e => handleChange("hobbies_other", e.target.value)}
+              />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onSubmit={handleSubmit} loading={loading} isLast />
+          <NavButtons
+            onPrev={handlePrev}
+            onSubmit={handleSubmit}
+            loading={loading}
+            isLast
+            nextDisabled={formData.hobbies?.includes("Other") && !cleanText(formData.hobbies_other, OTHER_MAX)}
+          />
           {message && <p className="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">{message}</p>}
         </div>
       )}

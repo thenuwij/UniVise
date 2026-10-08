@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
 import YourDataCard from "../components/YourDataCard";
 
@@ -57,11 +58,14 @@ function TagList({ items }) {
   );
 }
 
+const TAG_MAX_LENGTH = 60;
+const TAG_MAX_COUNT = 10;
+
 function TagInput({ values, setValues, placeholder }) {
   const [next, setNext] = useState("");
   const addTag = () => {
-    const t = next.trim();
-    if (t && !values.includes(t)) setValues([...values, t]);
+    const t = cleanText(next, TAG_MAX_LENGTH);
+    if (t && !values.includes(t) && values.length < TAG_MAX_COUNT) setValues([...values, t]);
     setNext("");
   };
   const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
@@ -72,8 +76,8 @@ function TagInput({ values, setValues, placeholder }) {
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <TextInput placeholder={placeholder} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
-        <Button onClick={addTag} disabled={!next.trim()}>Add</Button>
+        <TextInput placeholder={placeholder} maxLength={TAG_MAX_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
+        <Button onClick={addTag} disabled={!cleanText(next, TAG_MAX_LENGTH) || values.length >= TAG_MAX_COUNT}>Add</Button>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {values.map((tag, i) => (
@@ -146,7 +150,7 @@ function ProfilePage() {
       } else if (studentType === "University") {
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from("student_uni_data").update({
-          wam, degree_field: degreeField, degree_stage: degreeStage,
+          wam, degree_field: cleanText(degreeField, 100) || null, degree_stage: degreeStage,
           interest_areas: careerInterests, hobbies, confidence, academic_year: year,
         }).eq("user_id", user.id);
       }
@@ -238,23 +242,23 @@ function ProfilePage() {
               <Panel title="About Me" icon={HiOutlineUserCircle}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName" value="First Name" />
+                    <Label htmlFor="firstName">First Name</Label>
                     <TextInput id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                   </div>
                   <div>
-                    <Label htmlFor="lastName" value="Last Name" />
+                    <Label htmlFor="lastName">Last Name</Label>
                     <TextInput id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="email" value="Email" />
+                    <Label htmlFor="email">Email</Label>
                     <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div>
-                    <Label htmlFor="dob" value="Date of Birth" />
+                    <Label htmlFor="dob">Date of Birth</Label>
                     <TextInput id="dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                   </div>
                   <div>
-                    <Label htmlFor="gender" value="Gender" />
+                    <Label htmlFor="gender">Gender</Label>
                     <Select id="gender" value={gender} onChange={(e) => setGender(e.target.value)}>
                       <option value="Not Specified">Not Specified</option>
                       <option value="Male">Male</option>
@@ -264,7 +268,7 @@ function ProfilePage() {
                     </Select>
                   </div>
                   <div className="col-span-2">
-                    <Label value="Hobbies" />
+                    <Label>Hobbies</Label>
                     <TagInput values={hobbies} setValues={setHobbies} placeholder="Type a hobby and press Add" />
                   </div>
                 </div>
@@ -273,7 +277,7 @@ function ProfilePage() {
               <Panel title="Academic Information" icon={HiOutlineAcademicCap}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="studentType" value="Student Type" />
+                    <Label htmlFor="studentType">Student Type</Label>
                     <Select id="studentType" value={isHS ? "High School" : "University"} disabled>
                       <option>High School</option>
                       <option>University</option>
@@ -281,7 +285,7 @@ function ProfilePage() {
                     <p className="mt-1 text-xs text-slate-400">Cannot be changed.</p>
                   </div>
                   <div>
-                    <Label htmlFor="year" value="Year" />
+                    <Label htmlFor="year">Year</Label>
                     <Select id="year" value={year} onChange={(e) => setYear(e.target.value)}>
                       {isHS ? (
                         ["Not Specified","Year 10","Year 11","Year 12"].map(v => <option key={v} value={v}>{v}</option>)
@@ -294,11 +298,11 @@ function ProfilePage() {
                   {isHS ? (
                     <>
                       <div>
-                        <Label htmlFor="atar" value="ATAR" />
+                        <Label htmlFor="atar">ATAR</Label>
                         <TextInput id="atar" type="number" value={atar} onChange={(e) => setAtar(e.target.value)} />
                       </div>
                       <div>
-                        <Label value="Confidence Level" />
+                        <Label>Confidence Level</Label>
                         <Dropdown label={confidence || "Select…"} className="bg-white">
                           {["Very confident - I know what I want","Somewhat confident - I have ideas but unsure","Not confident - I need help figuring out"].map(v => (
                             <DropdownItem key={v} onClick={() => setConfidence(v)}>{v}</DropdownItem>
@@ -306,36 +310,36 @@ function ProfilePage() {
                         </Dropdown>
                       </div>
                       <div className="col-span-2">
-                        <Label value="Academic Strengths" />
+                        <Label>Academic Strengths</Label>
                         <TagInput values={academicStrengths} setValues={setAcademicStrengths} placeholder="Add a strength" />
                       </div>
                       <div className="col-span-2">
-                        <Label value="Degree Interests" />
+                        <Label>Degree Interests</Label>
                         <TagInput values={degreeInterests} setValues={setDegreeInterests} placeholder="Add a degree interest" />
                       </div>
                       <div className="col-span-2">
-                        <Label value="Career Interests" />
+                        <Label>Career Interests</Label>
                         <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <Label htmlFor="degreeStage" value="Degree Stage" />
+                        <Label htmlFor="degreeStage">Degree Stage</Label>
                         <Select id="degreeStage" value={degreeStage || "Not Specified"} onChange={(e) => setDegreeStage(e.target.value)}>
                           {["Not Specified","Bachelors Degree","Masters Degree","PhD or Doctoral Program","Other"].map(v => <option key={v} value={v}>{v}</option>)}
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="degreeField" value="Degree Field" />
-                        <TextInput id="degreeField" value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
+                        <Label htmlFor="degreeField">Degree Field</Label>
+                        <TextInput id="degreeField" maxLength={100} value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
                       </div>
                       <div>
-                        <Label htmlFor="wam" value="WAM" />
+                        <Label htmlFor="wam">WAM</Label>
                         <TextInput id="wam" type="number" value={wam ?? ""} onChange={(e) => setWam(e.target.value)} />
                       </div>
                       <div className="col-span-2">
-                        <Label value="Career Interests" />
+                        <Label>Career Interests</Label>
                         <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
                       </div>
                     </>

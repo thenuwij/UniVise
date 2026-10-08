@@ -1,10 +1,11 @@
-import { Button, Label, TextInput } from "flowbite-react";
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { pathAfterSignIn } from "@/features/onboarding/utils/surveyStatus";
+import { errorText, fieldInput, fieldLabel, footerLink, footerText, googleButton, primaryButton } from "./authStyles";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -50,70 +51,57 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 flex flex-col gap-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sign In</h1>
-      </div>
-
-      <Button
-        onClick={handleGoogleLogin}
-        size="lg"
-        color="light"
-        className="w-full border border-gray-300 dark:border-gray-600"
-        type="button"
-      >
-        <FcGoogle className="mr-2 h-5 w-5" />
+    <div className="flex flex-col gap-6">
+      <button onClick={handleGoogleLogin} className={googleButton} type="button">
+        <FcGoogle className="h-5 w-5" />
         Continue with Google
-      </Button>
+      </button>
 
       <div className="flex items-center gap-3">
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
-        <span className="text-sm text-gray-400">or</span>
-        <hr className="flex-grow border-gray-300 dark:border-gray-600" />
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">or with email</span>
+        <span className="h-px flex-1 bg-line" />
       </div>
 
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
         <div>
-          <Label htmlFor="email" value="Email" className="mb-1 block" />
-          <TextInput
+          <label htmlFor="email" className={fieldLabel}>Email</label>
+          <input
             id="email"
             type="email"
+            autoComplete="email"
             placeholder="you@email.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className={fieldInput}
           />
         </div>
         <div>
-          <Label htmlFor="password" value="Password" className="mb-1 block" />
-          <TextInput
+          <label htmlFor="password" className={fieldLabel}>Password</label>
+          <input
             id="password"
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className={fieldInput}
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-red-500 dark:text-red-400 text-center">{error}</p>
-        )}
+        {error && <p role="alert" className={errorText}>{error}</p>}
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          isProcessing={loading}
-          disabled={loading}
-        >
-          Sign In
-        </Button>
+        <button type="submit" className={`${primaryButton} mt-2`} disabled={loading}>
+          {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+      <p className={footerText}>
         New to UniVise?{" "}
-        <Link to="/register" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+        <Link to="/register" className={footerLink}>
           Create an account
         </Link>
       </p>
