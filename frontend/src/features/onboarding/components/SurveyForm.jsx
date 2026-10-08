@@ -64,6 +64,26 @@ function MultiOptionButton({ label, selected, onClick }) {
   );
 }
 
+// Either/or choice below a multi-select grid: picking it clears the others
+function NoneYetOption({ label, values, onChange }) {
+  const selected = values?.includes(label);
+  return (
+    <>
+      <div className="flex items-center gap-3 my-4">
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+      </div>
+      <MultiOptionButton label={label} selected={selected} onClick={() => onChange(selected ? [] : [label])} />
+    </>
+  );
+}
+
+const toggleWithout = (values, option, noneLabel) => {
+  const current = (values || []).filter(x => x !== noneLabel);
+  return current.includes(option) ? current.filter(x => x !== option) : [...current, option];
+};
+
 // Chip tag for selected items
 function Chip({ label, onRemove }) {
   return (
@@ -108,7 +128,7 @@ function NavButtons({ onPrev, onNext, onSubmit, nextDisabled, loading, isLast })
         <button
           type="button"
           onClick={onSubmit}
-          disabled={loading}
+          disabled={loading || nextDisabled}
           className="button-primary px-6 py-2.5 rounded-xl text-sm font-semibold"
         >
           {loading ? "Submitting..." : "Submit"}
@@ -134,6 +154,7 @@ const INTEREST_AREAS = [
 ];
 const OTHER_MAX = 60;
 const STILL_EXPLORING = "I'm still exploring";
+const STILL_FIGURING = "Still figuring it out";
 
 const NON_BACHELOR = /^(Diploma|Undergraduate Certificate)|Preparation|Preparatory|Pathway Program/i;
 
@@ -328,8 +349,8 @@ function SurveyForm() {
         interest_areas_other: formData.interest_areas?.includes("Other") ? formData.interest_areas_other.trim().slice(0, OTHER_MAX) : null,
         priorities: formData.priorities || [],
         work_style: formData.work_style || [],
-        hobbies: formData.hobbies || [],
-        hobbies_other: formData.hobbies_other || null,
+        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${formData.hobbies_other.trim().slice(0, OTHER_MAX)}` : h),
+        hobbies_other: formData.hobbies?.includes("Other") ? formData.hobbies_other.trim().slice(0, OTHER_MAX) : null,
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
@@ -638,11 +659,7 @@ function SurveyForm() {
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.interest_areas?.includes(o)}
-                onClick={() => {
-                  const current = (formData.interest_areas || []).filter(x => x !== STILL_EXPLORING);
-                  const updated = current.includes(o) ? current.filter(x => x !== o) : [...current, o];
-                  handleChange("interest_areas", updated);
-                }}
+                onClick={() => handleChange("interest_areas", toggleWithout(formData.interest_areas, o, STILL_EXPLORING))}
               />
             ))}
           </div>
@@ -656,16 +673,7 @@ function SurveyForm() {
               />
             </div>
           )}
-          <div className="flex items-center gap-3 my-4">
-            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
-            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-          </div>
-          <MultiOptionButton
-            label={STILL_EXPLORING}
-            selected={formData.interest_areas?.includes(STILL_EXPLORING)}
-            onClick={() => handleChange("interest_areas", formData.interest_areas?.includes(STILL_EXPLORING) ? [] : [STILL_EXPLORING])}
-          />
+          <NoneYetOption label={STILL_EXPLORING} values={formData.interest_areas} onChange={v => handleChange("interest_areas", v)} />
           <NavButtons
             onPrev={handlePrev}
             onNext={handleNext}
@@ -725,20 +733,15 @@ function SurveyForm() {
               "Client-facing & communication",
               "Creative & artistic work",
               "Leadership & coordination",
-              "Still figuring it out",
             ].map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.work_style?.includes(o)}
-                onClick={() => {
-                  const updated = formData.work_style?.includes(o)
-                    ? formData.work_style.filter(x => x !== o)
-                    : [...(formData.work_style || []), o];
-                  handleChange("work_style", updated);
-                }}
+                onClick={() => handleChange("work_style", toggleWithout(formData.work_style, o, STILL_FIGURING))}
               />
             ))}
           </div>
+          <NoneYetOption label={STILL_FIGURING} values={formData.work_style} onChange={v => handleChange("work_style", v)} />
           <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.work_style?.length} />
         </div>
       )}
@@ -746,9 +749,9 @@ function SurveyForm() {
       {userType === "university" && step === 7 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
-          <StepSubtitle>Helps Eunice understand what drives you beyond studies.</StepSubtitle>
+          <StepSubtitle>Optional. Helps Eunice understand what drives you beyond studies.</StepSubtitle>
           <div className="grid grid-cols-2 gap-2">
-            {["Sports & Fitness","Creative Arts (music, design, writing)","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other","Not sure yet"].map(o => (
+            {["Sports & Fitness","Creative Arts (music, design, writing)","Technology & Coding","Volunteering & Community Projects","Gaming & Entertainment","Entrepreneurship","Other"].map(o => (
               <MultiOptionButton
                 key={o} label={o}
                 selected={formData.hobbies?.includes(o)}
@@ -763,10 +766,21 @@ function SurveyForm() {
           </div>
           {formData.hobbies?.includes("Other") && (
             <div className="mt-3">
-              <StyledInput placeholder="Please specify" value={formData.hobbies_other || ""} onChange={e => handleChange("hobbies_other", e.target.value)} />
+              <StyledInput
+                placeholder="Which hobby? e.g. Rock climbing"
+                maxLength={OTHER_MAX}
+                value={formData.hobbies_other || ""}
+                onChange={e => handleChange("hobbies_other", e.target.value)}
+              />
             </div>
           )}
-          <NavButtons onPrev={handlePrev} onSubmit={handleSubmit} loading={loading} isLast />
+          <NavButtons
+            onPrev={handlePrev}
+            onSubmit={handleSubmit}
+            loading={loading}
+            isLast
+            nextDisabled={formData.hobbies?.includes("Other") && !formData.hobbies_other?.trim()}
+          />
           {message && <p className="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">{message}</p>}
         </div>
       )}
