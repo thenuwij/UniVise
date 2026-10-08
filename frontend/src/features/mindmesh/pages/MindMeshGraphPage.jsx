@@ -24,6 +24,7 @@ import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -38,6 +39,8 @@ export default function MindMeshGraphPage() {
   const [expandCount, setExpandCount] = useState(0);
   const transformRef = useRef(null);
   const focusedRef = useRef(null);
+  const lastAddedRef = useRef(null);
+  const [pendingFocus, setPendingFocus] = useState(() => searchParams.get("focus"));
   const lastCenterRef = useRef(0);
 
   const graphRef = useRef(null);
@@ -79,16 +82,19 @@ export default function MindMeshGraphPage() {
   const [showElectives, setShowElectives] = useState(false);
   const [savingAdded, setSavingAdded] = useState(false);
   const options = useMemo(() => new Map((mine?.options || []).map((o) => [o.code, o])), [mine]);
-  const canAdd = useCallback(
-    (code) => options.has(code) && !graph.nodes.some((n) => n.id === code),
-    [options, graph.nodes]
-  );
+  const onMap = useCallback((code) => graph.nodes.some((n) => n.id === code), [graph.nodes]);
+
+  const addPickToMap = async (pick) => {
+    await toggleAdded(options.get(pick.code) || { code: pick.code, name: pick.name, uoc: pick.uoc ?? null, section: ADDED_SECTION }, true);
+    setPendingFocus(pick.code);
+  };
 
   const toggleAdded = async (option, added) => {
     if (!userId || !option || savingAdded) return;
     setSavingAdded(true);
     try {
       await setCourseAdded({ userId, course: option, section: option.section, added });
+      lastAddedRef.current = added ? option.code : lastAddedRef.current === option.code ? null : lastAddedRef.current;
       await reload();
     } catch (err) {
       console.error("Error saving elective:", err);
@@ -119,13 +125,36 @@ export default function MindMeshGraphPage() {
     }
   };
 
-  const focusCourse = (code) => {
-    const node = graph.nodes.find((n) => n.id === code);
-    if (!node) return;
-    setShowHint(false);
-    setFocusedNode(node);
-    graphRef.current?.centerAt(node.x, node.y, 600);
+  const showOnMap = (code) => {
+    setShowElectives(false);
+    lastAddedRef.current = null;
+    setPendingFocus(code);
   };
+
+  const closeElectives = () => {
+    setShowElectives(false);
+    if (lastAddedRef.current) setPendingFocus(lastAddedRef.current);
+    lastAddedRef.current = null;
+  };
+
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const timer = setInterval(() => {
+      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.x));
+      if (!node) return;
+      clearInterval(timer);
+      setPendingFocus(null);
+      setShowHint(false);
+      setFocusedNode(node);
+      graphRef.current?.centerAt(node.x, node.y, 600);
+      graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 600);
+    }, 300);
+    const stop = setTimeout(() => clearInterval(timer), 10000);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(stop);
+    };
+  }, [pendingFocus, graph]);
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -371,15 +400,13 @@ export default function MindMeshGraphPage() {
                   Tick courses in your roadmap
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                {options.size > 0 && (
-                  <button
-                    onClick={() => setShowElectives(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
-                  >
-                    <Plus className="h-4 w-4" strokeWidth={2.5} />
-                    Add electives
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowElectives(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.5} />
+                  Add courses
+                </button>
               </div>
             )}
           </div>
@@ -393,7 +420,8 @@ export default function MindMeshGraphPage() {
           completed={completed}
           saving={savingAdded}
           onToggle={toggleAdded}
-          onClose={() => setShowElectives(false)}
+          onShow={showOnMap}
+          onClose={closeElectives}
         />
       )}
 
@@ -458,9 +486,9 @@ export default function MindMeshGraphPage() {
               loading={coursePicks.loading}
               failed={coursePicks.failed}
               onRetry={coursePicks.retry}
-              onSelect={focusCourse}
-              canAdd={canAdd}
-              onAdd={(code) => toggleAdded(options.get(code), true)}
+              onMap={onMap}
+              onShow={setPendingFocus}
+              onAdd={addPickToMap}
               saving={savingAdded}
             />
           )}

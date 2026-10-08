@@ -11,7 +11,7 @@ const STEPS = [
   { target: "node", title: "Try it: double-click a course", text: "Double-click opens the courses it needs, one level deeper.", waitFor: "expand", demo: "dblclick" },
   { target: "view-tools", title: "Find your way back", text: "Undo steps back and Reset view returns to the full map. Fit to screen brings every course into view, and Arrange by level lines them up from level 1 to 4." },
   { target: "suggested", title: "Suggested next", text: "Courses that fit your goals. Open it any time." },
-  { target: "plan-actions", title: "Keep your plan up to date", text: "Tick finished courses in your roadmap, and add the electives you plan to take." },
+  { target: "plan-actions", title: "Keep your plan up to date", text: "Tick finished courses in your roadmap, and add any course you plan to take." },
 ];
 
 const CARD_W = 320;
