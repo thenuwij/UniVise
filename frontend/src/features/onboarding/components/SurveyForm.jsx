@@ -99,7 +99,7 @@ function Chip({ label, onRemove }) {
 
 // Styled text input
 function StyledInput({ placeholder, value, onChange, type = "text", maxLength }) {
-  return (
+  const input = (
     <input
       type={type}
       maxLength={maxLength}
@@ -108,6 +108,16 @@ function StyledInput({ placeholder, value, onChange, type = "text", maxLength })
       onChange={onChange}
       className="w-full px-4 py-3 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-blue-50/60 dark:bg-blue-900/20 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
     />
+  );
+  if (!maxLength) return input;
+  const used = (value || "").length;
+  return (
+    <div>
+      {input}
+      <p className={`mt-1 text-right text-xs ${used >= maxLength ? "font-semibold text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-400"}`}>
+        {used}/{maxLength} characters
+      </p>
+    </div>
   );
 }
 
