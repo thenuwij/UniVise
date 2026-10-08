@@ -87,7 +87,7 @@ export default function ProgramCard({ facts }) {
           to="/roadmap-entryload"
           className="group flex-shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-xl shadow-blue-600/35 ring-4 ring-blue-100 dark:ring-blue-900/50 hover:-translate-y-0.5 hover:shadow-2xl transition-all"
         >
-          Open my roadmap
+          Open roadmap
           <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>

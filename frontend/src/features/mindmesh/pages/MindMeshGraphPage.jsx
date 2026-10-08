@@ -374,7 +374,7 @@ export default function MindMeshGraphPage() {
                   to={noProgram ? "/roadmap-entryload" : `/roadmap?program=${programCode}`}
                   className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
                 >
-                  {noProgram ? "Open My Roadmap" : "Choose your major or stream"}
+                  {noProgram ? "Open Roadmap" : "Choose your major or stream"}
                 </Link>
               </div>
             </div>

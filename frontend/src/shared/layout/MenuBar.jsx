@@ -11,7 +11,7 @@ const GROUPS = [
     label: "Your plan",
     items: [
       { path: "/dashboard", label: "Dashboard", hint: "Your program at a glance", icon: LayoutDashboard },
-      { path: "/roadmap-entryload", label: "My Roadmap", hint: "Your degree step by step", icon: Map },
+      { path: "/roadmap-entryload", label: "Roadmap", hint: "Your degree step by step", icon: Map },
       { path: "/coursemesh", label: "CourseMesh", hint: "What you can take next", icon: Network },
     ],
   },
