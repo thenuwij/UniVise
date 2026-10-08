@@ -14,7 +14,6 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     nodePointerAreaPaint,
     linkColor,
     linkWidth,
-    linkLineDash,
   },
   graphRef
 ) {
@@ -126,7 +125,6 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
         nodeId="id"
         linkColor={linkColor}
         linkWidth={linkWidth}
-        linkLineDash={linkLineDash}
         linkDirectionalArrowLength={16}
         linkDirectionalArrowRelPos={linkDirectionalArrowRelPos}
         linkDirectionalArrowColor={linkColor}

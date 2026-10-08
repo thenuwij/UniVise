@@ -1,12 +1,23 @@
 // src/mindmesh/components/MindMeshInfoPanel.jsx
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { STATUS } from "../utils/availability";
 import { otherConditions } from "../utils/conditions";
 
-export default function MindMeshInfoPanel({ focusedNode, status, missing = [], onToggleDone, saving, onDismiss }) {
+function RuleItem({ met, children }) {
+  return (
+    <li className="flex items-start gap-2 text-sm">
+      <span className={`mt-0.5 h-4 w-4 flex-shrink-0 rounded-full inline-flex items-center justify-center ${met ? "bg-green-500 text-white" : "border-2 border-slate-300 dark:border-slate-600"}`}>
+        {met && <Check className="h-3 w-3" strokeWidth={3} />}
+      </span>
+      <span className={met ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-100"}>{children}</span>
+    </li>
+  );
+}
+
+export default function MindMeshInfoPanel({ focusedNode, status, requirements = [], completed = new Set(), onToggleDone, saving, onDismiss }) {
   const navigate = useNavigate();
   const [conditions, setConditions] = useState([]);
   const focusedId = focusedNode?.id;
@@ -46,13 +57,13 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50
-                   bg-white/95 dark:bg-slate-900/95 backdrop-blur-md
-                   border-t border-slate-200 dark:border-slate-700 shadow-2xl">
-      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+    <div className="absolute bottom-4 right-4 z-20 w-[min(26rem,calc(100%-2rem))] max-h-[calc(100%-2rem)] overflow-y-auto
+                   rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md
+                   border border-blue-200 dark:border-slate-700 shadow-2xl">
+      <div className="relative p-5 flex flex-col gap-4">
 
         {/* Course info */}
-        <div className="flex items-center gap-5 min-w-0">
+        <div className="flex items-center gap-5 min-w-0 pr-8">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap mb-1">
               <span className="text-xl font-bold text-blue-600 dark:text-blue-400">{id}</span>
@@ -84,13 +95,27 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
             {STATUS[status] && (
               <p className="text-xs font-semibold mt-1" style={{ color: STATUS[status].color }}>
                 {STATUS[status].label}
-                {status === "locked" && missing.length > 0 && (
-                  <span className="font-medium text-slate-600 dark:text-slate-300">
-                    {" · Still needs "}
-                    {missing.map((g) => g.codes.join(g.logic === "and" ? " and " : " or ")).join("; ")}
-                  </span>
-                )}
               </p>
+            )}
+            {status !== "completed" && (
+              requirements.length > 0 ? (
+                <div className="mt-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">To take {id} you need</p>
+                  <ul className="mt-1.5 space-y-1">
+                    {requirements.flatMap((g, i) =>
+                      g.logic === "and" || g.codes.length === 1
+                        ? g.codes.map((code) => <RuleItem key={`${i}-${code}`} met={completed.has(code)}>{code}</RuleItem>)
+                        : [
+                            <RuleItem key={i} met={g.codes.some((code) => completed.has(code))}>
+                              <span className="font-semibold">One of:</span> {g.codes.join(" · ")}
+                            </RuleItem>,
+                          ]
+                    )}
+                  </ul>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">No prerequisite courses.</p>
+              )
             )}
             {conditions.length > 0 && (
               <p className="text-xs font-medium mt-1 text-amber-700 dark:text-amber-400">
@@ -101,10 +126,8 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <p className="text-xs text-slate-400 dark:text-slate-500 hidden md:block">
-            Double-click to expand prerequisites
-          </p>
+        <p className="-mt-1 text-xs text-slate-400 dark:text-slate-500">Double-click a course to expand its prerequisites.</p>
+        <div className="flex flex-wrap items-center gap-2">
           {onToggleDone && (
             <button
               onClick={() => onToggleDone(focusedNode)}
@@ -129,11 +152,12 @@ export default function MindMeshInfoPanel({ focusedNode, status, missing = [], o
           </button>
           <button
             onClick={onDismiss}
-            className="p-2 rounded-lg text-slate-400 dark:text-slate-500
+            className="absolute top-3 right-3 p-2 rounded-lg text-slate-400 dark:text-slate-500
                        hover:bg-slate-100 dark:hover:bg-slate-800
                        hover:text-slate-700 dark:hover:text-slate-200
                        transition-colors"
-            title="Dismiss"
+            title="Close"
+            aria-label="Close course details"
           >
             <X className="h-4 w-4" />
           </button>
