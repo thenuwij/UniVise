@@ -68,7 +68,7 @@ function SavedItemsPage() {
     if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
-  const openCareers = { action: () => navigate(CAREERS_STEP), text: "Open the Careers stage" };
+  const openCareers = { action: () => navigate(CAREERS_STEP), text: "Open the Careers step" };
 
   const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
 
@@ -194,7 +194,7 @@ function EmptyState({ tab, onAction, actionText }) {
         {tab === "all" ? "Nothing saved yet" : `No ${tab} saved yet`}
       </h3>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
-        Save careers, internships and societies from the Careers stage of your roadmap to keep them here.
+        Save careers, internships and societies from the Careers, Internships and Societies steps of your roadmap to keep them here.
       </p>
       {onAction && (
         <button

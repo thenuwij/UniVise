@@ -105,7 +105,7 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
 
     const track = () => {
       const r = current.target === "node" ? live.current.getNodeRect() : document.querySelector(`[data-tour="${current.target}"]`)?.getBoundingClientRect();
-      if (!r) {
+      if (!r || r.width === 0 || r.height === 0) {
         missing += 1;
         if (missing === 3) {
           const next = step + direction.current;

@@ -38,6 +38,7 @@ export default function MindMeshGraphPage() {
   const [expandCount, setExpandCount] = useState(0);
   const transformRef = useRef(null);
   const focusedRef = useRef(null);
+  const lastCenterRef = useRef(0);
 
   const graphRef = useRef(null);
   const controlsRef = useRef(null);
@@ -303,6 +304,11 @@ export default function MindMeshGraphPage() {
       nodes[0];
     const box = canvas.getBoundingClientRect();
     const p = fg.graph2ScreenCoords(node.x, node.y);
+    const offScreen = p.x < 40 || p.y < 40 || p.x > box.width - 40 || p.y > box.height - 40;
+    if (offScreen && Date.now() - lastCenterRef.current > 1000) {
+      lastCenterRef.current = Date.now();
+      fg.centerAt(node.x, node.y, 400);
+    }
     const k = transformRef.current?.k || 1;
     const halfW = Math.max(30, 46 * k);
     const halfH = Math.max(14, 21 * k);
