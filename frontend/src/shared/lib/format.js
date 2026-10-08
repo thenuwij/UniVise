@@ -47,7 +47,7 @@ function inlineNumbered(text) {
 }
 
 function courseList(body) {
-  if ((body.match(COURSE_CODE) || []).length < MIN_COURSE_ITEMS) return null;
+  if (new Set(body.match(COURSE_CODE) || []).size < MIN_COURSE_ITEMS) return null;
   if (/[()]|requisite|exclu/i.test(body)) return null;
   const [intro, ...items] = body.split(/(?=\b[A-Z]{4}\d{4}\b)/);
   return {
