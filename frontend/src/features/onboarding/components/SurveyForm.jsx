@@ -152,13 +152,38 @@ function ProgramPicker({ value, onSelect }) {
       .slice(0, 8);
   }, [programs, query]);
 
+  if (value) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 p-5 shadow-lg shadow-blue-600/20">
+        <div aria-hidden className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="relative flex items-start gap-4">
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
+            <HiAcademicCap className="h-6 w-6 text-white" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-blue-100">
+              <HiCheck className="h-4 w-4" />
+              Your program
+            </p>
+            <p className="mt-1 text-lg sm:text-xl font-bold leading-snug text-white">{value.program_name}</p>
+            <span className="mt-2 inline-block rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white ring-1 ring-white/25">
+              {value.degree_code}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setQuery(""); onSelect(null); }}
+            className="flex-shrink-0 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 dark:bg-slate-100 dark:text-blue-900 dark:hover:bg-white transition-colors"
+          >
+            Change
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      {value && (
-        <div className="mb-3">
-          <Chip label={`${value.program_name} (${value.degree_code})`} onRemove={() => onSelect(null)} />
-        </div>
-      )}
       <StyledInput
         placeholder="Search by name or code, e.g. Computer Science or 3778"
         value={query}
@@ -564,13 +589,15 @@ function SurveyForm() {
               onChange={v => handleChange("specialisations", v)}
             />
           )}
-          <div className="mt-3">
-            <OptionButton
-              label="My program isn't listed"
-              selected={!!formData.program_not_listed}
-              onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
-            />
-          </div>
+          {!formData.program && (
+            <div className="mt-3">
+              <OptionButton
+                label="My program isn't listed"
+                selected={!!formData.program_not_listed}
+                onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
+              />
+            </div>
+          )}
           {formData.program_not_listed && (
             <div className="mt-3">
               <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
