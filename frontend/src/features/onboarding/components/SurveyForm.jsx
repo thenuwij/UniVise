@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
@@ -12,6 +13,7 @@ import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
 import { saveChoices } from "@/features/roadmap/utils/programCourses";
 import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
+import { TermsText } from "@/features/auth/components/TermsText";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -327,6 +329,7 @@ function SurveyForm() {
     handleNext();
     const program = formData.program_not_listed ? null : formData.program;
     const userId = session?.user?.id;
+    if (needsTerms && userId) await recordTermsAccepted();
     if (!program || !userId) return;
     try {
       if (startedRef.current.program !== program.degree_code) {
@@ -345,6 +348,14 @@ function SurveyForm() {
       .catch(err => console.error("Background roadmap failed:", err));
   };
   const handlePrev = () => setStep(s => s - 1);
+  const needsTerms = !session?.user?.user_metadata?.terms_accepted_at;
+  const [termsOpen, setTermsOpen] = useState(false);
+
+  const recordTermsAccepted = async () => {
+    const { error } = await supabase.auth.updateUser({ data: { terms_accepted_at: new Date().toISOString() } });
+    if (error) console.error("Error recording terms acceptance:", error);
+  };
+
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
   const generateRecommendations = async () => {
@@ -390,6 +401,7 @@ function SurveyForm() {
       }]);
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
+      if (needsTerms) await recordTermsAccepted();
       clearDraft(draftKey);
       generateRecommendations().catch(console.error);
       navigate("/dashboard", { replace: true });
@@ -670,7 +682,33 @@ function SurveyForm() {
               <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
             </div>
           )}
-          <NavButtons onNext={handleProgramNext} nextDisabled={formData.program_not_listed ? !formData.program_other?.trim() : !formData.program} />
+          {needsTerms && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4">
+              <input
+                id="survey-terms"
+                type="checkbox"
+                checked={!!formData.terms_agreed}
+                onChange={e => handleChange("terms_agreed", e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded accent-blue-600 cursor-pointer"
+              />
+              <label htmlFor="survey-terms" className="text-sm text-slate-700 dark:text-slate-300">
+                I agree with the{" "}
+                <button type="button" onClick={() => setTermsOpen(true)} className="font-semibold text-blue-700 dark:text-blue-300 hover:underline">
+                  terms and conditions
+                </button>
+              </label>
+              <Modal show={termsOpen} onClose={() => setTermsOpen(false)}>
+                <ModalHeader>Terms & Conditions</ModalHeader>
+                <ModalBody>
+                  <TermsText />
+                </ModalBody>
+              </Modal>
+            </div>
+          )}
+          <NavButtons
+            onNext={handleProgramNext}
+            nextDisabled={(formData.program_not_listed ? !formData.program_other?.trim() : !formData.program) || (needsTerms && !formData.terms_agreed)}
+          />
         </div>
       )}
 
