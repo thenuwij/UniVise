@@ -1,5 +1,5 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { Check, ChevronDown, ChevronUp, Layers, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronUp, Layers, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
@@ -7,10 +7,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedCourses, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
 import { notNeededCodes, requiredCount, splitCourses } from "../utils/myCourses";
-import SuggestedNext from "./SuggestedNext";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import FormattedText from "@/shared/ui/FormattedText";
-import { hasContent } from "@/shared/lib/format";
 import { card } from "@/shared/ui/cardStyles";
 
 function sumUoC(list = []) {
@@ -41,24 +38,6 @@ function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
       >
         View the full structure in the official UNSW Handbook
       </a>
-    </div>
-  );
-}
-
-function InfoSection({ section }) {
-  return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-5 py-4">
-      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
-      {hasContent(section.description) && (
-        <div className="mt-1">
-          <FormattedText text={section.description} collapsedHeight="7rem" className="text-[15px] text-ink" />
-        </div>
-      )}
-      {hasContent(section.notes) && (
-        <div className="mt-2 pt-2 border-t border-line">
-          <FormattedText text={section.notes} collapsedHeight={null} className="text-[15px] text-ink" />
-        </div>
-      )}
     </div>
   );
 }
@@ -119,9 +98,6 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
       >
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
-          {hasContent(section.description) && !isOpen && (
-            <p className="mt-1 text-[15px] text-slate-500 dark:text-slate-400 line-clamp-1">{section.description}</p>
-          )}
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
@@ -133,11 +109,6 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
 
       <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="px-6 pb-6 pt-1 border-t border-slate-100 dark:border-slate-800">
-          {hasContent(section.description) && (
-            <div className="mt-4">
-              <FormattedText text={section.description} collapsedHeight="7rem" className="text-[15px] text-ink" maxWidth="max-w-none" />
-            </div>
-          )}
           <div className="grid sm:grid-cols-2 gap-3 mt-4">
             {section.courses?.map((c, i) => (
               <div
@@ -166,15 +137,6 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
               </div>
             ))}
           </div>
-
-          {hasContent(section.notes) && (
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Note</p>
-              <div className="mt-1">
-                <FormattedText text={section.notes} collapsedHeight={null} className="text-sm text-ink" maxWidth="max-w-none" />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -192,8 +154,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [openMap, setOpenMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [minimumUoc, setMinimumUoc] = useState(null);
-  const [specialNotes, setSpecialNotes] = useState("");
   const [handbookUrl, setHandbookUrl] = useState("");
   
   const [specs, setSpecs] = useState(null);
@@ -248,7 +208,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const { data, error } = await supabase
           .from("unsw_degrees_final")
-          .select("sections, minimum_uoc, special_notes, source_url")
+          .select("sections, source_url")
           .eq("degree_code", degreeCode)
           .maybeSingle();
 
@@ -265,8 +225,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           });
 
         setSections(ordered);
-        setMinimumUoc(data?.minimum_uoc || null);
-        setSpecialNotes(data?.special_notes || "");
         setHandbookUrl(data?.source_url || "");
         setOpenMap({});
       } catch (e) {
@@ -357,49 +315,34 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   return (
     <div className="space-y-6">
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <SectionHeading>Your courses</SectionHeading>
-        {(minimumUoc || specs) && (
-          <div className="flex flex-wrap items-center gap-2.5">
-            {minimumUoc && (
-              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm shadow-blue-600/20">
-                {minimumUoc} UOC required
-              </span>
+      <SectionHeading subtitle={trackCompletion ? "Tick the courses you've done and add the electives you plan to take." : "The courses in this program."}>
+        Your courses
+      </SectionHeading>
+
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        {specs && (
+          <p className="text-[15px] text-ink-muted">
+            {specs.length ? <>Showing courses for <span className="font-semibold text-ink-strong">{specs.map((sp) => sp.name).join(", ")}</span></> : "No specialisation chosen yet"}
+            {onChangeSpecialisation && (
+              <button onClick={onChangeSpecialisation} className="ml-2 font-semibold text-link hover:underline">
+                {specs.length ? "Change" : "Choose one"}
+              </button>
             )}
-            {specs && (
-              <span className="inline-flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full border border-blue-100 dark:border-slate-700 bg-gradient-to-r from-white to-blue-50 dark:from-slate-900 dark:to-blue-950/50 shadow-sm">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Specialisation</span>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">
-                  {specs.length ? specs.map((s) => s.name).join(", ") : "None chosen yet"}
-                </span>
-                {onChangeSpecialisation && (
-                  <button
-                    onClick={onChangeSpecialisation}
-                    className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-                  >
-                    {specs.length ? "Change" : "Choose one"}
-                  </button>
-                )}
-              </span>
-            )}
-          </div>
+          </p>
         )}
+        <button
+          onClick={handleVisualise}
+          disabled={!allCourses.length}
+          className="group inline-flex items-center gap-2 text-[15px] font-semibold text-link hover:underline disabled:opacity-50 disabled:no-underline"
+        >
+          <Layers className="h-4 w-4" />
+          See how these connect in CourseMesh
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </button>
       </div>
 
-      {trackCompletion && <SuggestedNext degreeCode={degreeCode} onCourseClick={handleCourseClick} />}
-
-      <button
-        onClick={handleVisualise}
-        disabled={!allCourses.length}
-        className="group w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
-      >
-        <Layers className="h-5 w-5 flex-shrink-0" />
-        <span className="text-base font-semibold">Open in CourseMesh</span>
-        <span className="hidden sm:inline text-sm text-blue-100">See how your courses connect</span>
-      </button>
-
       {courseSections.length > 0 && (
-        <div className="-mt-3 flex justify-end gap-2">
+        <div className="flex justify-end gap-2">
           <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
             Expand all
           </button>
@@ -452,27 +395,9 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 </div>
               );
             })}
-            {sections.some(sec => !hasCourses(sec)) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {sections.map((sec, i) => {
-                  if (hasCourses(sec)) return null;
-                  return <InfoSection key={`${sec.title}-${i}`} section={sec} />;
-                })}
-              </div>
-            )}
           </>
         )}
       </div>
-
-      {/* Special Notes - ORANGE/AMBER THEME FOR IMPORTANT INFO */}
-      {hasContent(specialNotes) && (
-        <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30">
-          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
-            Important information
-          </h4>
-          <FormattedText text={specialNotes} className="text-sm font-medium text-ink-strong" />
-        </div>
-      )}
     </div>
   );
 }

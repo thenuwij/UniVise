@@ -4,8 +4,8 @@ import { card, clickable } from "@/shared/ui/cardStyles";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const STEP_LINKS = [
-  { key: "overview", title: "Overview", text: "What your degree covers", icon: GraduationCap },
-  { key: "structure", title: "Structure", text: "Your courses and what you've done", icon: Layers },
+  { key: "overview", title: "Overview", text: "What your degree covers and requires", icon: GraduationCap },
+  { key: "structure", title: "Courses", text: "Tick what you've done, add electives", icon: Layers },
   { key: "careers", title: "Careers", text: "Roles, pay and job ads", icon: Briefcase },
   { key: "internships", title: "Internships", text: "Programs open now", icon: BookOpen },
   { key: "societies", title: "Societies", text: "Clubs and professional bodies", icon: Users },
