@@ -79,7 +79,7 @@ function CourseMeshStepCard({ ticked, onOpen, disabled }) {
       <button
         onClick={onOpen}
         disabled={disabled}
-        className="mt-4 group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+        className="mt-4 group w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
       >
         <Layers className="h-4 w-4" />
         Open CourseMesh
@@ -372,7 +372,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   return (
     <div className="space-y-6">
 
-      <SectionHeading subtitle={trackCompletion ? "Two steps: tick what you've done, then see what it unlocks in CourseMesh." : "The courses in this program."}>
+      <SectionHeading subtitle={trackCompletion ? null : "The courses in this program."}>
         Your courses
       </SectionHeading>
 
@@ -393,27 +393,28 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         </button>
       )}
 
-      {specs && (
-        <p className="text-[15px] text-ink-muted">
-          {specs.length ? <>Showing courses for <span className="font-semibold text-ink-strong">{specs.map((sp) => sp.name).join(", ")}</span></> : "No specialisation chosen yet"}
-          {onChangeSpecialisation && (
-            <button onClick={onChangeSpecialisation} className="ml-2 font-semibold text-link hover:underline">
-              {specs.length ? "Change" : "Choose one"}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        {specs ? (
+          <p className="text-[15px] text-ink-muted">
+            {specs.length ? <>Showing courses for <span className="font-semibold text-ink-strong">{specs.map((sp) => sp.name).join(", ")}</span></> : "No specialisation chosen yet"}
+            {onChangeSpecialisation && (
+              <button onClick={onChangeSpecialisation} className="ml-2 font-semibold text-link hover:underline">
+                {specs.length ? "Change" : "Choose one"}
+              </button>
+            )}
+          </p>
+        ) : <span />}
+        {courseSections.length > 0 && (
+          <div className="flex gap-2">
+            <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
+              Expand all
             </button>
-          )}
-        </p>
-      )}
-
-      {courseSections.length > 0 && (
-        <div className="flex justify-end gap-2">
-          <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-            Expand all
-          </button>
-          <button onClick={collapseAll} className="px-3 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-            Collapse all
-          </button>
-        </div>
-      )}
+            <button onClick={collapseAll} className="px-3 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              Collapse all
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">
