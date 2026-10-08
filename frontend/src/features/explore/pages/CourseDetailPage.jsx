@@ -23,6 +23,8 @@ import { supabase } from "@/shared/lib/supabase";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { MYPLAN_URL, useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
+const COURSE_CODE = /^[A-Za-z]{4}\d{4}$/;
+
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au";
 
 function CourseDetailPage() {
@@ -45,7 +47,7 @@ function CourseDetailPage() {
       const { data, error } = await supabase
         .from("unsw_courses")
         .select("*")
-        .eq("id", courseId)
+        .eq(COURSE_CODE.test(courseId) ? "code" : "id", COURSE_CODE.test(courseId) ? courseId.toUpperCase() : courseId)
         .single();
 
       if (!alive) return;
