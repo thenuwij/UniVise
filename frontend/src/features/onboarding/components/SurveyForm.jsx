@@ -358,10 +358,10 @@ function SurveyForm() {
 
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
-  const generateRecommendations = async () => {
+  const generateRecommendations = async (token = session?.access_token) => {
     await apiFetch("/recommendation/prompt", {
       method: "POST",
-      token: session?.access_token,
+      token,
       retry: true,
     });
   };
@@ -403,7 +403,8 @@ function SurveyForm() {
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       if (needsTerms) await recordTermsAccepted();
       clearDraft(draftKey);
-      generateRecommendations().catch(console.error);
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      generateRecommendations(refreshed?.session?.access_token).catch(console.error);
       navigate("/dashboard", { replace: true });
     }
   };
