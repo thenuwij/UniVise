@@ -19,15 +19,20 @@ function AuthCallback() {
       }
 
       // PKCE flow: session not ready yet — wait for onAuthStateChange
+      let signedIn = false;
+      let timeout;
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session) {
+          signedIn = true;
+          clearTimeout(timeout);
           subscription.unsubscribe();
           redirect(session);
         }
       });
 
       // Fallback: if nothing happens in 8s, go back to login
-      const timeout = setTimeout(() => {
+      timeout = setTimeout(() => {
+        if (signedIn) return;
         subscription.unsubscribe();
         navigate('/login', { replace: true });
       }, 8000);
