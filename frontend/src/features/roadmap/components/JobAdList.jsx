@@ -1,12 +1,12 @@
 import { ExternalLink, Megaphone } from "lucide-react";
 import { postedAgo } from "../utils/hiringNow";
 
-export default function JobAdList({ title, ads }) {
+export default function JobAdList({ title, ads, large = false }) {
   return (
     <div className="p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-          <Megaphone className="h-5 w-5 text-blue-600 dark:text-blue-400" /> {title}
+        <p className={`flex items-center gap-2 text-slate-900 dark:text-white ${large ? "text-xl font-bold" : "text-base font-semibold"}`}>
+          <Megaphone className={`${large ? "h-6 w-6" : "h-5 w-5"} text-blue-600 dark:text-blue-400`} /> {title}
         </p>
         <a href="https://www.adzuna.com.au" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:underline">
           Jobs by Adzuna

@@ -90,7 +90,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
         </div>
       )}
 
-      {openNow.length > 0 && <JobAdList title="Open right now" ads={openNow} />}
+      {openNow.length > 0 && <JobAdList title="Open right now" ads={openNow} large />}
 
       {!adsLoading && internshipPrograms.length > 0 && (
         <div>
