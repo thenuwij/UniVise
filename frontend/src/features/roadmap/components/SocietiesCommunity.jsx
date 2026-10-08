@@ -3,7 +3,8 @@ import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { hasContent } from "@/shared/lib/format";
-import { card } from "@/shared/ui/cardStyles";
+import { card, clickable } from "@/shared/ui/cardStyles";
+import { describeBody } from "../utils/professionalBodies";
 
 export default function SocietiesCommunity({ societies }) {
   const [showAll, setShowAll] = useState(false);
@@ -62,20 +63,21 @@ export default function SocietiesCommunity({ societies }) {
                     </div>
                   </div>
                   {open && (
-                    <div className="px-6 pb-6 pt-1 space-y-4">
+                    <div className="px-6 pb-6 pt-1 grid md:grid-cols-2 gap-3">
                       {society.membership_benefits && (
-                        <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                          <span className="font-semibold text-indigo-600 dark:text-indigo-400">Benefits: </span>
-                          {society.membership_benefits}
-                        </p>
+                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Benefits</p>
+                          <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{society.membership_benefits}</p>
+                        </div>
                       )}
                       {society.key_activities?.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {society.key_activities.map((activity, i) => (
-                            <span key={i} className="px-3 py-1.5 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-100 dark:ring-blue-800">
-                              {activity}
-                            </span>
-                          ))}
+                        <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-950/40 dark:to-cyan-950/30 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Activities</p>
+                          <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
+                            {society.key_activities.map((activity, i) => (
+                              <li key={i} className="flex gap-2"><span className="text-sky-500">•</span>{activity}</li>
+                            ))}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -125,45 +127,63 @@ export default function SocietiesCommunity({ societies }) {
           <SectionHeading>
             Professional societies
           </SectionHeading>
-          <div className={`${card} mt-6 p-6 md:p-8 space-y-6`}>
+          <div className="mt-6 space-y-5">
             {bodies.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {bodies.map((body) =>
-                  body.url ? (
+              <div className={`grid gap-4 ${bodies.length === 1 ? "" : bodies.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+                {bodies.map((body) => {
+                  const { short, about } = describeBody(body.name);
+                  const inner = (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <span className="flex-shrink-0 min-w-[3rem] h-12 px-2 rounded-xl inline-flex items-center justify-center text-sm font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 ring-1 ring-blue-200 dark:ring-blue-800">
+                          {short}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-base font-bold text-ink-strong leading-snug">{body.name}</p>
+                          {about && <p className="mt-1 text-sm text-ink-muted leading-relaxed">{about}</p>}
+                        </div>
+                      </div>
+                      {body.url && (
+                        <span className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-link">
+                          Visit website <ExternalLink className="h-4 w-4" />
+                        </span>
+                      )}
+                    </>
+                  );
+                  return body.url ? (
                     <a
                       key={body.name}
                       href={body.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800 hover:ring-emerald-400 transition-colors"
+                      className={`${card} ${clickable} flex flex-col p-5`}
                     >
-                      {body.name}
-                      <ExternalLink className="h-4 w-4 opacity-80" />
+                      {inner}
                     </a>
                   ) : (
-                    <span key={body.name} className="px-4 py-2 rounded-full text-base font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
-                      {body.name}
-                    </span>
-                  )
-                )}
+                    <div key={body.name} className={`${card} flex flex-col p-5`}>{inner}</div>
+                  );
+                })}
               </div>
             )}
-            {hasContent(profDev.leadership_note) && (
-              <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                <span className="font-semibold text-emerald-700 dark:text-emerald-300">Leadership opportunities: </span>
-                {profDev.leadership_note}
-              </p>
-            )}
-            {profDev.skills_gained?.length > 0 && (
-              <div>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">Skills you'll develop</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {profDev.skills_gained.map((s, i) => (
-                    <span key={i} className="px-3.5 py-1.5 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60">
-                      {s}
-                    </span>
-                  ))}
-                </div>
+            {(hasContent(profDev.leadership_note) || profDev.skills_gained?.length > 0) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {hasContent(profDev.leadership_note) && (
+                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Leadership opportunities</p>
+                    <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{profDev.leadership_note}</p>
+                  </div>
+                )}
+                {profDev.skills_gained?.length > 0 && (
+                  <div className="rounded-xl border border-sky-100 dark:border-sky-900/60 bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-950/40 dark:to-cyan-950/30 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Skills you'll develop</p>
+                    <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
+                      {profDev.skills_gained.map((skill, i) => (
+                        <li key={i} className="flex gap-2"><span className="text-sky-500">•</span>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -176,7 +196,7 @@ export default function SocietiesCommunity({ societies }) {
             Getting started
           </SectionHeading>
           {facts.length > 0 && (
-            <div className="mt-6 grid sm:grid-cols-3 gap-4">
+            <div className={`mt-6 grid gap-4 ${facts.length === 1 ? "" : facts.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
               {facts.map(([Icon, label, value]) => (
                 <div key={label} className={`${card} flex items-start gap-3 p-5`}>
                   <Icon className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
@@ -204,11 +224,11 @@ export default function SocietiesCommunity({ societies }) {
               href="https://www.arc.unsw.edu.au/clubs/find-a-club"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-emerald-800 dark:text-emerald-50 bg-gradient-to-r from-emerald-100 to-green-200 dark:from-emerald-800 dark:to-green-700 border border-emerald-200 dark:border-emerald-700 shadow-md shadow-emerald-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-all"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
             >
               <Heart className="h-5 w-5 flex-shrink-0" />
               <span className="text-base font-semibold">Arc UNSW directory</span>
-              <span className="hidden md:inline text-sm text-emerald-700 dark:text-emerald-200">Every club at UNSW</span>
+              <span className="hidden md:inline text-sm text-blue-700 dark:text-blue-200">Every club at UNSW</span>
               <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-80" />
             </a>
           </div>
