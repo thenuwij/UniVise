@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
 import PageHeader from '@/shared/layout/PageHeader';
-import CourseProgress from '@/features/roadmap/components/CourseProgress';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import ProgramCard from '../components/ProgramCard.jsx';
@@ -36,7 +35,6 @@ function DashboardPage() {
     month: "long",
   }).format(new Date());
 
-  const program = facts?.program;
 
   return (
     <div className="min-h-screen app-page">
@@ -46,7 +44,6 @@ function DashboardPage() {
       <PageHeader
         eyebrow={today}
         title={`Hi ${displayName}`}
-        aside={program ? <CourseProgress degreeCode={program.degree_code} /> : null}
       />
 
       <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
