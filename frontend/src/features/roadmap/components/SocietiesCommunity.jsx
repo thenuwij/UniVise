@@ -111,7 +111,7 @@ export default function SocietiesCommunity({ societies }) {
               <div key={idx} className={`${card} p-6`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{s.name}</p>
+                    <p className="text-lg font-bold text-ink-strong leading-snug">{s.name}</p>
                     <p className="mt-2 text-base text-slate-600 dark:text-slate-300 leading-relaxed">{s.why_join}</p>
                   </div>
                   <SaveButton itemType="society" itemId={s.name} itemName={s.name} itemData={{ why_join: s.why_join }} />
@@ -139,7 +139,7 @@ export default function SocietiesCommunity({ societies }) {
                           {short}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-lg md:text-xl font-bold text-ink-strong leading-snug break-words">{body.name}</p>
+                          <p className="text-lg font-bold text-ink-strong leading-snug break-words">{body.name}</p>
                           {about && <p className="mt-1 text-[15px] text-ink-muted leading-relaxed">{about}</p>}
                         </div>
                       </div>

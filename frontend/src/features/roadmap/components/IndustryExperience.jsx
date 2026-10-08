@@ -101,7 +101,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
               <div key={idx} className={`${card} p-6 flex flex-col`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{program.program_name}</h5>
+                    <h5 className="text-lg font-bold text-ink-strong leading-snug">{program.program_name}</h5>
                     <p className="mt-1 flex items-center gap-1.5 text-base text-slate-600 dark:text-slate-400">
                       <Building2 className="h-4 w-4 flex-shrink-0" /> {program.company}
                     </p>
@@ -166,7 +166,7 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
               className={`${clickable} group rounded-2xl border ${tone} p-6 flex items-start justify-between gap-3`}
             >
               <span>
-                <span className="block text-lg md:text-xl font-bold text-ink-strong leading-snug">{name}</span>
+                <span className="block text-lg font-bold text-ink-strong leading-snug">{name}</span>
                 <span className="mt-1 block text-base text-slate-600 dark:text-slate-400">{desc}</span>
               </span>
               <ExternalLink className={`h-5 w-5 flex-shrink-0 ${icon}`} />
