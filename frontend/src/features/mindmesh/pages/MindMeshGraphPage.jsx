@@ -17,12 +17,13 @@ import StatusLegend from "../components/StatusLegend";
 import PicksPanel from "../components/PicksPanel";
 import ElectivesPanel from "../components/ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
-import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
+import { STATUS, courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
-import { Plus } from "lucide-react";
+import { ArrowRight, Plus, X } from "lucide-react";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -59,6 +60,14 @@ export default function MindMeshGraphPage() {
     [notNeeded, completed, groups]
   );
   const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
+  const counts = useMemo(() => {
+    const c = { completed: 0, available: 0, locked: 0 };
+    for (const n of graph?.nodes || []) {
+      const st = statusOf(n.id);
+      if (st in c) c[st] += 1;
+    }
+    return c;
+  }, [graph?.nodes, statusOf]);
   const coursePicks = useCoursePicks(isOwnProgram);
   const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
   const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
@@ -139,7 +148,7 @@ export default function MindMeshGraphPage() {
   // Hide hint after 4 seconds
   useEffect(() => {
     if (showHint) {
-      const t = setTimeout(() => setShowHint(false), 4000);
+      const t = setTimeout(() => setShowHint(false), 8000);
       return () => clearTimeout(t);
     }
   }, [showHint]);
@@ -330,7 +339,22 @@ export default function MindMeshGraphPage() {
             </button>
           ) : null
         }
-      />
+      >
+        {isOwnProgram && graph?.nodes?.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] text-band-soft">
+            {[["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
+              <span key={key} className="inline-flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/40" style={{ backgroundColor: STATUS[key].color }} />
+                <span className="font-bold text-band-ink">{counts[key]}</span> {text}
+              </span>
+            ))}
+            <Link to={roadmapStepUrl("structure")} className="inline-flex items-center gap-1 font-semibold text-band-ink hover:underline">
+              Tick courses in your roadmap
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        )}
+      </PageHeader>
 
       {showElectives && (
         <ElectivesPanel
@@ -364,15 +388,15 @@ export default function MindMeshGraphPage() {
 
           {(noProgram || noCourses || needsSpecialisation) && (
             <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
-              <div className="max-w-md p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm text-center">
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+              <div className="max-w-md p-6 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 shadow-lg text-center">
+                <p className="text-[15px] font-medium text-ink-strong">
                   {noProgram
                     ? "We don't know your program yet, so there is nothing to show here."
                     : "Most of this program's courses sit inside its majors or streams. Choose yours in your roadmap to see them here."}
                 </p>
                 <Link
                   to={noProgram ? "/roadmap-entryload" : `/roadmap?program=${programCode}`}
-                  className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
                 >
                   {noProgram ? "Open Roadmap" : "Choose your major or stream"}
                 </Link>
@@ -397,9 +421,16 @@ export default function MindMeshGraphPage() {
 
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-              <div className="bg-slate-900/80 dark:bg-slate-100/90 text-white dark:text-slate-900 text-sm font-medium px-4 py-2 rounded-full shadow-lg backdrop-blur-sm animate-pulse">
-                Click any course node to explore its prerequisites
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-3 pl-4 pr-2 py-2 rounded-full text-sm font-medium text-blue-800 dark:text-blue-100 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 shadow-lg">
+                Tip: click any course to see what it needs and what it unlocks
+                <button
+                  onClick={() => setShowHint(false)}
+                  aria-label="Dismiss tip"
+                  className="h-7 w-7 inline-flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
