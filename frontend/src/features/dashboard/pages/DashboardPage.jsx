@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Bookmark } from 'lucide-react';
 import ProgramCard from '../components/ProgramCard.jsx';
 import AtAGlance from '../components/AtAGlance.jsx';
 import { useDashboardFacts } from '../hooks/useDashboardFacts';
@@ -50,23 +50,22 @@ function DashboardPage() {
 
       <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
-          <div>
-            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-link">{today}</p>
-            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold text-ink-strong">Hi {displayName}</h1>
-          </div>
-          <ProgramCard facts={facts} />
-          <AtAGlance facts={facts} />
-          <div className="flex flex-wrap gap-x-8 gap-y-2 text-base">
-            <Link to="/progress" className="group inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-              Thinking of switching degrees?
-              <span className="font-semibold text-blue-700 dark:text-blue-300 group-hover:underline">Switch Degree</span>
-              <ArrowRight className="h-4 w-4 text-blue-700 dark:text-blue-300 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <Link to="/saved" className="group inline-flex items-center gap-1.5 font-semibold text-blue-700 dark:text-blue-300">
-              <span className="group-hover:underline">My shortlist</span>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-link">{today}</p>
+              <h1 className="mt-1 text-3xl md:text-4xl font-extrabold text-ink-strong">Hi {displayName}</h1>
+            </div>
+            <Link
+              to="/saved"
+              className="group inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[15px] font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
+            >
+              <Bookmark className="h-4 w-4" />
+              My shortlist
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
+          <ProgramCard facts={facts} />
+          <AtAGlance facts={facts} />
         </div>
 
         {/* Recommendations */}
