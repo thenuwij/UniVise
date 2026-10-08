@@ -6,7 +6,7 @@ import PageHeader from '@/shared/layout/PageHeader';
 import CourseProgress from '@/features/roadmap/components/CourseProgress';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import JourneyCard from '../components/JourneyCard.jsx';
+import ProgramCard from '../components/ProgramCard.jsx';
 import AtAGlance from '../components/AtAGlance.jsx';
 import { useDashboardFacts } from '../hooks/useDashboardFacts';
 import { RecommendationTable } from '@/features/recommendations/components/RecommendationTable';
@@ -37,7 +37,6 @@ function DashboardPage() {
   }).format(new Date());
 
   const program = facts?.program;
-  const subtitle = program ? [program.program_name, ...(facts.specNames || [])].join(" · ") : null;
 
   return (
     <div className="min-h-screen app-page">
@@ -47,13 +46,12 @@ function DashboardPage() {
       <PageHeader
         eyebrow={today}
         title={`Hi ${displayName}`}
-        subtitle={subtitle}
         aside={program ? <CourseProgress degreeCode={program.degree_code} /> : null}
       />
 
       <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
-          <JourneyCard facts={facts} />
+          <ProgramCard facts={facts} />
           <AtAGlance facts={facts} />
           <div className="flex flex-wrap gap-x-8 gap-y-2 text-base">
             <Link to="/progress" className="group inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
