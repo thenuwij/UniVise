@@ -27,6 +27,16 @@ export function splitCourses(sources) {
   return { required, choiceGroups: [...groups].map(([key, codes]) => ({ key, codes })), options };
 }
 
+export const ADDED_SECTION = "Added courses";
+
+export function withAddedCourses(mine, addedRows) {
+  const listed = new Set([...mine.required, ...mine.choiceGroups.flatMap((g) => g.codes), ...mine.options.map((o) => o.code)]);
+  const extras = (addedRows || [])
+    .filter((row) => row.code && !listed.has(row.code))
+    .map((row) => ({ code: row.code, name: row.name, uoc: row.uoc, section: ADDED_SECTION }));
+  return extras.length ? { ...mine, options: [...mine.options, ...extras] } : mine;
+}
+
 export const requiredCount = (mine) => mine.required.length + mine.choiceGroups.length;
 
 function chosenOptions(mine, completed, added) {

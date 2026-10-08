@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { myCourseCodes, notNeededCodes, progressOf, requiredCount, splitCourses } from "./myCourses";
+import { ADDED_SECTION, myCourseCodes, notNeededCodes, progressOf, requiredCount, splitCourses, withAddedCourses } from "./myCourses";
 
 const typed = [
   {
@@ -60,5 +60,24 @@ describe("a student's courses", () => {
     expect(progressOf(mine, none, none)).toEqual({ done: 0, total: 2 });
     expect(progressOf(mine, new Set(["COMP1511", "MATH1131"]), none)).toEqual({ done: 2, total: 2 });
     expect(progressOf(mine, new Set(["MATH1131"]), new Set(["COMP3311"]))).toEqual({ done: 1, total: 3 });
+  });
+});
+
+describe("withAddedCourses", () => {
+  const mine = { required: ["COMP1511"], choiceGroups: [{ key: "x", codes: ["MATH1131", "MATH1141"] }], options: [{ code: "COMP3121", section: "Electives" }] };
+
+  it("adds courses from outside the program lists as options", () => {
+    const result = withAddedCourses(mine, [{ code: "COMP4418", name: "Knowledge Representation", uoc: 6 }]);
+    expect(result.options.at(-1)).toEqual({ code: "COMP4418", name: "Knowledge Representation", uoc: 6, section: ADDED_SECTION });
+  });
+
+  it("ignores added courses the program already lists", () => {
+    const result = withAddedCourses(mine, [{ code: "COMP3121" }, { code: "COMP1511" }, { code: "MATH1141" }]);
+    expect(result).toBe(mine);
+  });
+
+  it("an added outside course counts in the plan", () => {
+    const result = withAddedCourses(mine, [{ code: "COMP4418" }]);
+    expect(myCourseCodes(result, new Set(), new Set(["COMP4418"]))).toContain("COMP4418");
   });
 });

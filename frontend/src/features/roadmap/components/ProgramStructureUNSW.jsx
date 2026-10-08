@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedCourses, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
-import { notNeededCodes, progressOf, requiredCount, splitCourses } from "../utils/myCourses";
+import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
+import { ADDED_SECTION, notNeededCodes, progressOf, requiredCount, splitCourses, withAddedCourses } from "../utils/myCourses";
+import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
 
@@ -217,12 +218,19 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   );
 
   const allCourses = useMemo(() => courseCodesOf(courseSections), [courseSections]);
-  const [added, setAdded] = useState(new Set());
+  const [addedRows, setAddedRows] = useState([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const added = useMemo(() => new Set(addedRows.map((r) => r.code)), [addedRows]);
 
   const mine = useMemo(
-    () => splitCourses([{ key: degreeCode, sections: programCourseSections }, ...(specs || []).map((spec) => ({ key: spec.id, sections: spec.sections }))]),
-    [degreeCode, programCourseSections, specs]
+    () => withAddedCourses(splitCourses([{ key: degreeCode, sections: programCourseSections }, ...(specs || []).map((spec) => ({ key: spec.id, sections: spec.sections }))]), addedRows),
+    [degreeCode, programCourseSections, specs, addedRows]
   );
+  const shownSections = useMemo(() => {
+    const extras = mine.options.filter((o) => o.section === ADDED_SECTION);
+    return trackCompletion && extras.length ? [...courseSections, { title: ADDED_SECTION, courses: extras }] : courseSections;
+  }, [courseSections, mine, trackCompletion]);
+  const doneSet = useMemo(() => new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code)), [completed]);
   const options = useMemo(() => new Map(mine.options.map((o) => [o.code, o])), [mine]);
   const notNeeded = useMemo(() => {
     const done = new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code));
@@ -231,12 +239,12 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const tickedStats = useMemo(() => {
     const seen = new Map();
-    for (const sec of courseSections) for (const c of sec.courses || []) if (c?.code && !seen.has(c.code)) seen.set(c.code, c);
+    for (const sec of shownSections) for (const c of sec.courses || []) if (c?.code && !seen.has(c.code)) seen.set(c.code, c);
     const doneCodes = new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code));
     const { done, total } = progressOf(mine, doneCodes, added);
     const uoc = [...seen.values()].filter((c) => doneCodes.has(c.code)).reduce((sum, c) => sum + (Number(c.uoc) || 0), 0);
     return { ticked: done, total, uoc };
-  }, [courseSections, completed, mine, added]);
+  }, [shownSections, completed, mine, added]);
 
   const thin = specs?.length === 0 && requiredCount(splitCourses([{ key: degreeCode, sections: programCourseSections }])) <= THIN_PROGRAM_COURSES;
 
@@ -308,22 +316,18 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     fetchCompletedCourses(userId).then((rows) => {
       setCompleted(Object.fromEntries(rows.map((r) => [r.course_code, r])));
     });
-    fetchAddedCourses(userId).then(setAdded);
+    fetchAddedRows(userId).then(setAddedRows);
   }, [trackCompletion, userId]);
 
   const toggleAdded = async (course) => {
     if (!userId || pendingRef.current.has(course.code)) return;
     pendingRef.current.add(course.code);
     const isAdded = !added.has(course.code);
-    const update = (on) => setAdded((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(course.code);
-      else next.delete(course.code);
-      return next;
-    });
+    const row = { code: course.code, name: course.name, uoc: course.uoc };
+    const update = (on) => setAddedRows((prev) => (on ? [...prev.filter((r) => r.code !== row.code), row] : prev.filter((r) => r.code !== row.code)));
     update(isAdded);
     try {
-      await setCourseAdded({ userId, course, section: options.get(course.code)?.section, added: isAdded });
+      await setCourseAdded({ userId, course, section: options.get(course.code)?.section || course.section, added: isAdded });
     } catch (err) {
       console.error("Error saving elective:", err);
       update(!isAdded);
@@ -352,10 +356,10 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const expandAll = () =>
-    setOpenMap(Object.fromEntries(courseSections.map((s, i) => [`${s.title}-${i}`, true])));
+    setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, true])));
 
   const collapseAll = () =>
-    setOpenMap(Object.fromEntries(courseSections.map((s, i) => [`${s.title}-${i}`, false])));
+    setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, false])));
   
 
   const handleCourseClick = async (course) => {
@@ -405,7 +409,16 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </p>
         ) : <span />}
         {courseSections.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {trackCompletion && (
+              <button
+                onClick={() => setShowAdd(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
+              >
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                Add a course
+              </button>
+            )}
             <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
               Expand all
             </button>
@@ -415,6 +428,18 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         )}
       </div>
+
+      {showAdd && (
+        <ElectivesPanel
+          options={mine.options}
+          added={added}
+          completed={doneSet}
+          saving={false}
+          onToggle={(option) => toggleAdded(option)}
+          onShow={(code) => navigate(`/coursemesh?focus=${encodeURIComponent(code)}`)}
+          onClose={() => setShowAdd(false)}
+        />
+      )}
 
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">
@@ -440,7 +465,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 onChoose={onChangeSpecialisation}
               />
             )}
-            {courseSections.map((sec, i) => {
+            {shownSections.map((sec, i) => {
               const key = `${sec.title}-${i}`;
               return (
                 <div key={key}>

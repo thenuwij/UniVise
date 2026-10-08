@@ -1,5 +1,5 @@
 import { supabase } from "@/shared/lib/supabase";
-import { requiredCount, splitCourses } from "./myCourses";
+import { requiredCount, splitCourses, withAddedCourses } from "./myCourses";
 
 export const THIN_PROGRAM_COURSES = 5;
 
@@ -86,10 +86,10 @@ export async function fetchChosenSpecialisations(degreeCode, userId) {
     .filter((spec) => spec.sections.length);
 }
 
-export async function fetchAddedCourses(userId) {
-  if (!userId) return new Set();
-  const { data } = await supabase.from("user_custom_courses").select("course_code").eq("user_id", userId);
-  return new Set((data || []).map((r) => r.course_code));
+export async function fetchAddedRows(userId) {
+  if (!userId) return [];
+  const { data } = await supabase.from("user_custom_courses").select("course_code, course_name, uoc").eq("user_id", userId);
+  return (data || []).map((r) => ({ code: r.course_code, name: r.course_name, uoc: r.uoc }));
 }
 
 export async function setCourseAdded({ userId, course, section, added }) {
@@ -104,16 +104,16 @@ export async function setCourseAdded({ userId, course, section, added }) {
 }
 
 export async function fetchMyCourses(degreeCode, userId) {
-  const [{ data }, specialisations, added] = await Promise.all([
+  const [{ data }, specialisations, addedRows] = await Promise.all([
     supabase.from("unsw_degrees_final").select("sections").eq("degree_code", degreeCode).maybeSingle(),
     fetchChosenSpecialisations(degreeCode, userId),
-    fetchAddedCourses(userId),
+    fetchAddedRows(userId),
   ]);
   const program = { key: degreeCode, sections: parseSections(data?.sections).filter(hasCourses) };
-  const mine = splitCourses([program, ...specialisations.map((s) => ({ key: s.id, sections: s.sections }))]);
+  const mine = withAddedCourses(splitCourses([program, ...specialisations.map((s) => ({ key: s.id, sections: s.sections }))]), addedRows);
   return {
     ...mine,
-    added,
+    added: new Set(addedRows.map((r) => r.code)),
     thin: !specialisations.length && requiredCount(splitCourses([program])) <= THIN_PROGRAM_COURSES,
   };
 }
