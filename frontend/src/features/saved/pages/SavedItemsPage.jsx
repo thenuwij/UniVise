@@ -19,7 +19,6 @@ import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const SHORTLIST_TYPES = ["career_path", "internship", "society"];
 const CAREERS_STEP = roadmapStepUrl("careers");
-const INTERNSHIPS_STEP = roadmapStepUrl("internships");
 
 function SavedItemsPage() {
   const navigate = useNavigate();
@@ -79,10 +78,6 @@ function SavedItemsPage() {
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
       <PageHeader
-        back={{
-          label: activeTab === "internships" ? "Back to Internships" : "Back to Careers",
-          onClick: () => navigate(activeTab === "internships" ? INTERNSHIPS_STEP : CAREERS_STEP),
-        }}
         eyebrow="Your careers"
         title="My shortlist"
         subtitle={`${savedItems.length} item${savedItems.length !== 1 ? "s" : ""} saved${withNotes > 0 ? ` · ${withNotes} with notes` : ""}`}

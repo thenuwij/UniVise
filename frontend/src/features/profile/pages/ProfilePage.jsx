@@ -216,7 +216,6 @@ function ProfilePage() {
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
       <PageHeader
-        back={{ label: "Back to Dashboard", onClick: () => navigate("/dashboard") }}
         actions={
           isEditing ? (
             <div className="flex gap-2">

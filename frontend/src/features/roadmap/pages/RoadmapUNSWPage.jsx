@@ -426,7 +426,7 @@ export default function RoadmapUNSWPage() {
 
   const programHeader = (
     <PageHeader
-      back={{ label: isOwnProgram ? "Back" : "Back to roadmap", onClick: handleBackClick }}
+      back={isOwnProgram ? undefined : { label: "Back to my roadmap", onClick: handleBackClick }}
       actions={
         <>
           <Link to="/saved" className={bandButton}>

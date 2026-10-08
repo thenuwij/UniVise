@@ -476,7 +476,7 @@ function ProgressPage() {
           <PageHeader
             back={
               currentStep === 1
-                ? { label: "Dashboard", onClick: () => navigate("/dashboard") }
+                ? undefined
                 : { label: "Back", onClick: currentStep === 4 ? () => setCurrentStep(3) : goBack }
             }
             eyebrow="Switch Degree"
