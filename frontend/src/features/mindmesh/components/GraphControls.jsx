@@ -33,7 +33,7 @@ export default forwardRef(function GraphControls({
     <div className="border-b border-slate-200 dark:border-slate-700
                     bg-white/95 dark:bg-slate-900/95
                     shadow-sm backdrop-blur-sm">
-      <div className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
         <p className="text-sm text-ink-muted">Click a course to see what it needs and what it unlocks.</p>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {graphHistory?.current?.length > 0 && (
