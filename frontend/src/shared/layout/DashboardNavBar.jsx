@@ -61,7 +61,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
   }, []);
 
   return (
-    <div id="header" className="relative">
+    <div id="header" className="relative z-30">
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 dark:via-blue-500/30 to-transparent" />
       <Navbar fluid className="h-16 border-b border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm">
         <button onClick={onMenuClick} className="flex items-center gap-1.5 ml-4 mb-4 text-sm font-bold text-slate-950 dark:text-slate-100 hover:text-black dark:hover:text-white hover:scale-105 transition-all duration-200">
