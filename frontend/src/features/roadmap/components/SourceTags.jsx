@@ -7,11 +7,3 @@ export function SourceLink({ href, children }) {
     </a>
   );
 }
-
-export function AiSuggestedTag() {
-  return (
-    <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/60 ring-1 ring-slate-200 dark:ring-slate-600">
-      AI-suggested
-    </span>
-  );
-}
