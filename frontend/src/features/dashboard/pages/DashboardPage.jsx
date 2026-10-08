@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
-import PageHeader from '@/shared/layout/PageHeader';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import ProgramCard from '../components/ProgramCard.jsx';
@@ -37,17 +36,24 @@ function DashboardPage() {
 
 
   return (
-    <div className="min-h-screen app-page">
+    <div className="relative isolate min-h-screen app-page overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] overflow-hidden bg-gradient-to-r from-blue-100 via-sky-100 to-indigo-100 dark:from-blue-950/70 dark:via-slate-900 dark:to-indigo-950/70 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
+      >
+        <div className="absolute -top-40 right-[8%] h-[520px] w-[520px] rounded-full bg-blue-200/60 dark:bg-blue-500/15" />
+        <div className="absolute top-24 right-[32%] h-[300px] w-[300px] rounded-full bg-indigo-200/50 dark:bg-indigo-500/15" />
+        <div className="absolute -bottom-24 -left-24 h-[360px] w-[360px] rounded-full bg-sky-200/50 dark:bg-sky-500/10" />
+      </div>
       <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
 
-      <PageHeader
-        eyebrow={today}
-        title={`Hi ${displayName}`}
-      />
-
       <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
+          <div>
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-link">{today}</p>
+            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold text-ink-strong">Hi {displayName}</h1>
+          </div>
           <ProgramCard facts={facts} />
           <AtAGlance facts={facts} />
           <div className="flex flex-wrap gap-x-8 gap-y-2 text-base">
