@@ -104,7 +104,7 @@ export default function SocietiesCommunity({ societies }) {
           </SectionHeading>
           <div className="mt-6 grid sm:grid-cols-2 gap-5">
             {crossFaculty.map((s, idx) => (
-              <div key={idx} className={`${card} p-6`}>
+              <div key={idx} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-bold text-ink-strong leading-snug">{s.name}</p>
@@ -157,7 +157,7 @@ export default function SocietiesCommunity({ societies }) {
                       {inner}
                     </a>
                   ) : (
-                    <div key={body.name} className={`${card} flex flex-col p-5`}>{inner}</div>
+                    <div key={body.name} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 flex flex-col p-5">{inner}</div>
                   );
                 })}
               </div>
@@ -165,13 +165,13 @@ export default function SocietiesCommunity({ societies }) {
             {(hasContent(profDev.leadership_note) || profDev.skills_gained?.length > 0) && (
               <div className="grid md:grid-cols-2 gap-4">
                 {hasContent(profDev.leadership_note) && (
-                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
+                  <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-5">
                     <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Leadership opportunities</p>
                     <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{profDev.leadership_note}</p>
                   </div>
                 )}
                 {profDev.skills_gained?.length > 0 && (
-                  <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-5">
+                  <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-5">
                     <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Skills you'll develop</p>
                     <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                       {profDev.skills_gained.map((skill, i) => (
@@ -194,7 +194,7 @@ export default function SocietiesCommunity({ societies }) {
           {facts.length > 0 && (
             <div className={`mt-6 grid gap-4 ${facts.length === 1 ? "" : facts.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
               {facts.map(([Icon, label, value]) => (
-                <div key={label} className={`${card} flex items-start gap-3 p-5`}>
+                <div key={label} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 flex items-start gap-3 p-5">
                   <Icon className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
