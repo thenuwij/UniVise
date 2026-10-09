@@ -51,7 +51,7 @@ def format_student_summary(inputs: dict | None, picks: list) -> str:
     lines.append(f"- Career recommendations: {', '.join(recommended[:MAX_CAREERS]) or 'none yet'}")
 
     if inputs.get("requirement_lists"):
-        parts = requirement_status(inputs["requirement_lists"], set(completed), set(inputs.get("added") or []))
+        parts = requirement_status(inputs["requirement_lists"], set(completed), set(inputs.get("added") or []), inputs.get("placed"))
         lines.append("")
         lines.append("## Degree progress (from their ticked courses and the 2026 Handbook)")
         lines.append(format_requirements(parts, inputs.get("minimum_uoc"), inputs.get("completed_uoc") or 0))

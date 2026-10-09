@@ -81,7 +81,7 @@ def build_cases(inputs: dict, courses: list) -> list:
         if minimum:
             left = max(minimum - (inputs.get("completed_uoc") or 0), 0)
             cases.append({"question": "How many UOC do I have left to graduate?", "expect": [str(left)], "expect_any": []})
-        parts = requirement_status(inputs["requirement_lists"], set(inputs["completed"]), set(inputs.get("added") or []))
+        parts = requirement_status(inputs["requirement_lists"], set(inputs["completed"]), set(inputs.get("added") or []), inputs.get("placed"))
         todo = next((p for p in parts if p["type"] == "required" and p["left"]), None)
         if todo:
             cases.append({"question": f"Which courses do I still need to do in {todo['name']}?", "expect": todo["left"], "expect_any": []})

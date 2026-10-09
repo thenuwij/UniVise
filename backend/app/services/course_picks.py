@@ -110,11 +110,12 @@ def load_inputs(user_id: str) -> dict | None:
         if r.get("is_completed")
     ]
     completed = {r["course_code"] for r in completed_rows}
-    added = {
-        r["course_code"]
-        for r in supabase.from_("user_custom_courses").select("course_code").eq("user_id", user_id).execute().data or []
+    added_rows = [
+        r
+        for r in supabase.from_("user_custom_courses").select("course_code, uoc, section_name").eq("user_id", user_id).execute().data or []
         if r.get("course_code")
-    }
+    ]
+    added = {r["course_code"] for r in added_rows}
     program = supabase.from_("unsw_degrees_final").select("sections, minimum_uoc").eq("degree_code", degree_code).limit(1).execute().data
     program_sections = parse_sections_json(program[0].get("sections")) if program else []
     skip = not_needed_codes([(degree_code, program_sections), *spec_sections], completed)
@@ -160,6 +161,7 @@ def load_inputs(user_id: str) -> dict | None:
         "minimum_uoc": program[0].get("minimum_uoc") if program else None,
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
         "added": sorted(added),
+        "placed": [{"code": r["course_code"], "section": r.get("section_name"), "uoc": r.get("uoc")} for r in added_rows],
     }
 
 

@@ -88,8 +88,8 @@ export async function fetchChosenSpecialisations(degreeCode, userId) {
 
 export async function fetchAddedRows(userId) {
   if (!userId) return [];
-  const { data } = await supabase.from("user_custom_courses").select("course_code, course_name, uoc").eq("user_id", userId);
-  return (data || []).map((r) => ({ code: r.course_code, name: r.course_name, uoc: r.uoc }));
+  const { data } = await supabase.from("user_custom_courses").select("course_code, course_name, uoc, section_name").eq("user_id", userId);
+  return (data || []).map((r) => ({ code: r.course_code, name: r.course_name, uoc: r.uoc, section: r.section_name }));
 }
 
 export async function setCourseAdded({ userId, course, section, added }) {

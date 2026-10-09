@@ -33,7 +33,7 @@ export function withAddedCourses(mine, addedRows) {
   const listed = new Set([...mine.required, ...mine.choiceGroups.flatMap((g) => g.codes), ...mine.options.map((o) => o.code)]);
   const extras = (addedRows || [])
     .filter((row) => row.code && !listed.has(row.code))
-    .map((row) => ({ code: row.code, name: row.name, uoc: row.uoc, section: ADDED_SECTION }));
+    .map((row) => ({ code: row.code, name: row.name, uoc: row.uoc, section: row.section || ADDED_SECTION }));
   return extras.length ? { ...mine, options: [...mine.options, ...extras] } : mine;
 }
 
@@ -93,4 +93,16 @@ const noUoc = (section) =>
 export function orderSections(sections) {
   const rank = (s) => (noUoc(s) ? 1000 : levelOf(s.title));
   return [...(sections || [])].sort((a, b) => rank(a) - rank(b));
+}
+
+const OPEN_PART_NOTES = {
+  free_elective: "Any approved UNSW course",
+  general_education: "Courses from outside your faculty",
+  specialisations: "Optional. Filled by choosing a minor",
+};
+
+export function openRequirementParts(sections) {
+  return (sections || [])
+    .filter((s) => s?.title && !s.title.toLowerCase().includes("overview") && !s.courses?.length && Number(s.uoc) > 0 && OPEN_PART_NOTES[s.kind])
+    .map((s) => ({ title: s.title, uoc: Number(s.uoc), note: OPEN_PART_NOTES[s.kind], optional: s.kind === "specialisations" }));
 }

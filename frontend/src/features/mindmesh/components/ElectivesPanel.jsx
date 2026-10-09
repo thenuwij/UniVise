@@ -40,7 +40,7 @@ function useCourseSearch(query, exclude) {
   return { results, searching };
 }
 
-export default function ElectivesPanel({ options, added, completed, saving, onToggle, onShow, onClose }) {
+export default function ElectivesPanel({ options, added, completed, saving, onToggle, onShow, onClose, target = null, suggestions = [], programCodes = null }) {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -49,11 +49,27 @@ export default function ElectivesPanel({ options, added, completed, saving, onTo
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const listed = useMemo(() => new Set(options.map((o) => o.code)), [options]);
+  const listed = useMemo(
+    () =>
+      target && programCodes
+        ? new Set([...programCodes, ...options.filter((o) => o.section === target && added.has(o.code)).map((o) => o.code)])
+        : new Set(options.map((o) => o.code)),
+    [options, target, programCodes, added]
+  );
   const { results, searching } = useCourseSearch(query, listed);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const matches = (option) => !q || `${option.code} ${option.name || ""}`.toLowerCase().includes(q);
+    if (target) {
+      const here = options.filter((o) => o.section === target && added.has(o.code) && matches(o));
+      const done = suggestions.filter((o) => !added.has(o.code) && matches(o));
+      return [
+        ...(here.length ? [[`In ${target}`, here]] : []),
+        ...(done.length ? [["Courses you've done", done]] : []),
+        ...(results.length ? [["Other UNSW courses", results]] : []),
+      ];
+    }
     const yours = [];
     const bySection = new Map();
     for (const option of options) {
@@ -64,20 +80,24 @@ export default function ElectivesPanel({ options, added, completed, saving, onTo
     const ordered = [...(yours.length ? [[YOURS, yours]] : []), ...bySection];
     if (results.length) ordered.push(["Other UNSW courses", results]);
     return ordered;
-  }, [options, added, query, results]);
+  }, [options, added, query, results, target, suggestions]);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-slate-900/30 cursor-default" />
-      <aside role="dialog" aria-label="Add courses" className="relative h-full w-full sm:w-[440px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col">
+      <aside role="dialog" aria-label={target ? `Add to ${target}` : "Add courses"} className="relative h-full w-full sm:w-[440px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col">
         <div className="p-5 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Add courses</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{target ? `Add to ${target}` : "Add courses"}</h2>
             <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white">
               <X className="h-5 w-5" />
             </button>
           </div>
-          <p className="mt-1 text-sm text-ink-muted">Pick from your program's electives below, or search any UNSW course. Courses you add show in your Courses step and in CourseMesh.</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            {target
+              ? `Search any UNSW course to count it towards ${target}. Courses you've already done can be added too.`
+              : "Pick from your program's electives below, or search any UNSW course. Courses you add show in your Courses step and in CourseMesh."}
+          </p>
           <div className="relative mt-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
             <input
@@ -97,10 +117,10 @@ export default function ElectivesPanel({ options, added, completed, saving, onTo
           )}
           {groups.map(([section, items]) => (
             <section key={section}>
-              <h3 className={`text-sm font-bold ${section === YOURS ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-200"}`}>{section}</h3>
+              <h3 className={`text-sm font-bold ${section === YOURS || section === `In ${target}` ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-200"}`}>{section}</h3>
               <ul className="mt-2 space-y-2">
                 {items.map((option) => {
-                  const isAdded = added.has(option.code);
+                  const isAdded = target ? added.has(option.code) && option.section === target : added.has(option.code);
                   return (
                     <li key={option.code} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                       <span className="min-w-0">
@@ -124,7 +144,7 @@ export default function ElectivesPanel({ options, added, completed, saving, onTo
                           )}
                         </span>
                       </span>
-                      {completed.has(option.code) ? (
+                      {completed.has(option.code) && !target ? (
                         <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-bold text-green-700 dark:text-green-400">
                           <Check className="h-3.5 w-3.5" strokeWidth={3} /> Done
                         </span>

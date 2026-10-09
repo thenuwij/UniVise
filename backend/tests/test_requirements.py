@@ -71,4 +71,20 @@ def test_summary_text_totals_and_lines():
     assert "- Computer Engineering: one of MATH1131 or MATH1141: not done yet" in text
     assert "- Computer Engineering: Discipline Electives: 0 of 24 UOC done, choosing from 3 listed courses" in text
     assert "- Optional Minor: 24 UOC, filled by choosing a minor or specialisation" in text
-    assert "- Free Electives: 12 UOC of any approved courses" in text
+    assert "- Free Electives: 0 of 12 UOC done; the student hasn't placed any courses here in UniVise yet" in text
+
+
+def test_placed_courses_count_towards_free_electives():
+    placed = [
+        {"code": "ARTS1000", "section": "Free Electives", "uoc": 6},
+        {"code": "PSYC1001", "section": "Added courses", "uoc": 6},
+        {"code": "COMP3311", "section": "Free Electives", "uoc": 6},
+    ]
+    parts = requirement_status(LISTS, {"ARTS1000"}, {"ARTS1000", "PSYC1001", "COMP3311"}, placed)
+    free = by_name(parts, "Free Electives")
+
+    assert free["done"] == ["ARTS1000"]
+    assert free["planned"] == ["PSYC1001"]
+    assert free["done_uoc"] == 6
+    text = format_requirements(parts, 192, 6)
+    assert "- Free Electives: 6 of 12 UOC done (ARTS1000); planned: PSYC1001" in text

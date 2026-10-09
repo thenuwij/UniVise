@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADDED_SECTION, myCourseCodes, notNeededCodes, orderSections, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "./myCourses";
+import { ADDED_SECTION, myCourseCodes, notNeededCodes, openRequirementParts, orderSections, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "./myCourses";
 
 const typed = [
   {
@@ -109,5 +109,23 @@ describe("orderSections", () => {
       { title: "Level 1 Core", courses: [{ code: "A", uoc: 6 }] },
     ];
     expect(orderSections(sections).map((s) => s.title)).toEqual(["Level 1 Core", "Level 2 Core", "Electives", "Industrial Training"]);
+  });
+});
+
+describe("openRequirementParts", () => {
+  it("keeps program parts with UOC but no course list", () => {
+    const sections = [
+      { title: "Overview" },
+      { title: "Disciplinary Component", kind: "info", uoc: 168, courses: [] },
+      { title: "Industrial Training", kind: "core", uoc: 0, courses: [{ code: "ENGG4999" }] },
+      { title: "Free Electives", kind: "free_elective", uoc: 12, courses: [] },
+      { title: "General Education", kind: "general_education", uoc: 12, courses: [] },
+      { title: "Optional Minor", kind: "specialisations", uoc: 24, courses: [] },
+    ];
+    expect(openRequirementParts(sections)).toEqual([
+      { title: "Free Electives", uoc: 12, note: "Any approved UNSW course", optional: false },
+      { title: "General Education", uoc: 12, note: "Courses from outside your faculty", optional: false },
+      { title: "Optional Minor", uoc: 24, note: "Optional. Filled by choosing a minor", optional: true },
+    ]);
   });
 });

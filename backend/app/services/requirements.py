@@ -1,4 +1,5 @@
 OPTION_KINDS = {"elective", "general_education", "free_elective"}
+OPEN_KINDS = {"free_elective", "general_education"}
 STANDARD_COURSE_UOC = 6
 MAX_CODES = 12
 
@@ -14,9 +15,10 @@ def to_uoc(value) -> int:
         return 0
 
 
-def requirement_status(section_lists: list, completed: set, added: set | None = None) -> list:
+def requirement_status(section_lists: list, completed: set, added: set | None = None, placed: list | None = None) -> list:
     added = added or set()
     parts = []
+    listed = {_code(c) for _, sections in section_lists for s in sections or [] if isinstance(s, dict) for c in s.get("courses") or []}
     for label, sections in section_lists:
         choices: dict = {}
         for section in sections or []:
@@ -42,7 +44,7 @@ def requirement_status(section_lists: list, completed: set, added: set | None = 
             plain = [c for c in courses if not c.get("choice")]
             if not courses:
                 if uoc_needed and kind != "choice":
-                    parts.append({"type": "open", "name": name, "uoc": uoc_needed, "kind": kind})
+                    parts.append({"type": "open", "name": name, "title": title, "uoc": uoc_needed, "kind": kind, "done": [], "planned": [], "done_uoc": 0})
                 continue
 
             required = [_code(c) for c in plain if (c.get("kind") or kind) not in OPTION_KINDS]
@@ -69,6 +71,18 @@ def requirement_status(section_lists: list, completed: set, added: set | None = 
     for part in parts:
         if part["type"] == "choice":
             part["done"] = [c for c in part["codes"] if c in completed]
+
+    open_parts = [p for p in parts if p["type"] == "open" and p.get("kind") in OPEN_KINDS]
+    titles = [p["title"] for p in open_parts]
+    for row in placed or []:
+        if not titles or row["code"] in listed:
+            continue
+        title = row.get("section") if row.get("section") in titles else titles[0]
+        part = open_parts[titles.index(title)]
+        key = "done" if row["code"] in completed else "planned"
+        part[key].append(row["code"])
+        if key == "done":
+            part["done_uoc"] += to_uoc(row.get("uoc"))
     return parts
 
 
@@ -112,6 +126,12 @@ def format_requirements(parts: list, minimum_uoc, completed_uoc: int) -> str:
         elif p.get("kind") == "specialisations":
             line = f"- {p['name']}: {p['uoc']} UOC, filled by choosing a minor or specialisation"
         else:
-            line = f"- {p['name']}: {p['uoc']} UOC of any approved courses (UniVise can't tell which completed courses count here)"
+            line = f"- {p['name']}: {p['done_uoc']} of {p['uoc']} UOC done"
+            if p["done"]:
+                line += f" ({_codes(p['done'])})"
+            if p["planned"]:
+                line += f"; planned: {_codes(p['planned'])}"
+            if not p["done"] and not p["planned"]:
+                line += "; the student hasn't placed any courses here in UniVise yet"
         lines.append(line)
     return "\n".join(lines)
