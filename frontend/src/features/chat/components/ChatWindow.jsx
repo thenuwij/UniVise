@@ -177,13 +177,13 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
 
     return (
       <div
-        className={`flex items-end mb-4 ${
+        className={`flex items-end ${compact ? "mb-4" : "mb-6"} ${
           isUser ? "justify-end" : "justify-start"
         }`}
       >
         <div
           className={`
-            max-w-[60ch] break-words transition-all duration-200 ${compact ? "p-3 text-[15px]" : "p-4 text-base"}
+            break-words transition-all duration-200 ${compact ? "max-w-full px-4 py-3 text-[15px]" : "max-w-[72ch] px-5 py-4 text-base"}
             ${
               isUser
                 ? `bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ${compact ? "ml-8" : "ml-12"}`
@@ -196,23 +196,24 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
             components={{
               // strip default <p> margin
               p: ({ node, ...props }) => (
-                <p className="m-0 leading-snug" {...props} />
+                <p className="my-2.5 first:mt-0 last:mb-0 leading-relaxed" {...props} />
               ),
               // tighten headings
               h1: ({ ...props }) => (
-                <h1 className="m-0 text-xl font-semibold" {...props} />
+                <h1 className="mt-4 mb-2 first:mt-0 text-xl font-semibold" {...props} />
               ),
               h2: ({ ...props }) => (
-                <h2 className="m-0 text-lg font-semibold" {...props} />
+                <h2 className="mt-4 mb-2 first:mt-0 text-lg font-semibold" {...props} />
               ),
               // lists: no top/bottom margin, small indent
               ul: ({ ...props }) => (
-                <ul className="list-disc ml-4 my-1" {...props} />
+                <ul className="list-disc ml-5 my-2.5 space-y-1.5" {...props} />
               ),
               ol: ({ ...props }) => (
-                <ol className="list-decimal ml-4 my-1" {...props} />
+                <ol className="list-decimal ml-5 my-2.5 space-y-1.5" {...props} />
               ),
-              li: ({ ...props }) => <li className="ml-2" {...props} />,
+              li: ({ ...props }) => <li className="pl-1 leading-relaxed" {...props} />,
+              h3: ({ ...props }) => <h3 className="mt-3 mb-1.5 first:mt-0 text-base font-semibold" {...props} />,
               pre: ({ children }) => <>{children}</>,
               // code blocks / inline code
               code: ({ className, children, ...props }) =>
@@ -226,7 +227,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
             {text}
           </ReactMarkdown>
 
-          <div className={`text-[11px] mt-2 text-right ${isUser ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
+          <div className={`text-[11px] mt-3 text-right ${isUser ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
             {new Date(created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -241,7 +242,7 @@ return (
     <div className="flex flex-col h-full relative">
       {/* ─── Scrollable Messages (Full Height) ───────────────────────────────────────────────── */}
       <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
-        <div className={`mx-auto max-w-4xl space-y-3 ${compact ? "p-3 pb-40" : "p-4 mt-5 pb-32"}`}>
+        <div className={`mx-auto max-w-4xl ${compact ? "p-3 pb-40" : "p-4 mt-5 pb-32"}`}>
           {
             messages.length === 0 ? (
               <div className={`flex flex-col items-center justify-center h-full text-center ${compact ? "py-6 px-2" : "py-20 px-6"}`}>
