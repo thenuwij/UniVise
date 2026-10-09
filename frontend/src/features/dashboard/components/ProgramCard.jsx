@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Briefcase, Compass, GraduationCap, Layers, Repeat, Users } from "lucide-react";
+import { ArrowRight, Compass, Repeat } from "lucide-react";
 import { card } from "@/shared/ui/cardStyles";
 import AtAGlance from "./AtAGlance";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const STEP_LINKS = [
-  { key: "overview", title: "Overview", text: "What your degree covers and requires", icon: GraduationCap },
-  { key: "structure", title: "Courses", text: "Tick what you've done, add courses", icon: Layers },
-  { key: "careers", title: "Careers", text: "Roles, pay and job ads", icon: Briefcase },
-  { key: "internships", title: "Internships", text: "Programs open now", icon: BookOpen },
-  { key: "societies", title: "Societies", text: "Clubs and professional bodies", icon: Users },
+  { key: "overview", title: "Overview", text: "What your degree covers and requires" },
+  { key: "structure", title: "Courses", text: "Tick what you've done, add courses" },
+  { key: "careers", title: "Careers", text: "Roles, pay and job ads" },
+  { key: "internships", title: "Internships", text: "Programs open now" },
+  { key: "societies", title: "Societies", text: "Clubs and professional bodies" },
 ];
 
 export default function ProgramCard({ facts }) {
@@ -52,7 +52,7 @@ export default function ProgramCard({ facts }) {
 
       <p className="mt-7 text-sm font-semibold text-ink-muted">Jump straight to</p>
       <nav aria-label="Roadmap steps" data-tour="dash-steps" className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {STEP_LINKS.map(({ key, title, text, icon: Icon }, i) => (
+        {STEP_LINKS.map(({ key, title, text }, i) => (
           <Link
             key={key}
             to={roadmapStepUrl(key)}
@@ -62,7 +62,6 @@ export default function ProgramCard({ facts }) {
               <span className="h-7 w-7 flex-shrink-0 rounded-full inline-flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
                 {i + 1}
               </span>
-              <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <ArrowRight className="ml-auto h-4 w-4 text-blue-500 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform" />
             </span>
             <span className="text-base font-semibold text-ink-strong group-hover:text-blue-700 dark:group-hover:text-blue-300">{title}</span>
