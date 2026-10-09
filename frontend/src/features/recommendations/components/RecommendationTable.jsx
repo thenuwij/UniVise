@@ -4,12 +4,13 @@ import {
   HiAcademicCap,
   HiArrowRight,
   HiClock,
-  HiCurrencyDollar,
   HiOfficeBuilding,
-  HiTrendingUp,
 } from "react-icons/hi";
 import { TbRobot } from "react-icons/tb";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, TrendingUp } from "lucide-react";
+import { card } from "@/shared/ui/cardStyles";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -40,22 +41,14 @@ function ProgressBar({ value }) {
   );
 }
 
-function AuraBoardShell({ label, children }) {
+function BoardShell({ label, footer, children }) {
   return (
-    <div className="card-glass">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_260px_at_92%_-12%,rgba(56,189,248,0.18),transparent),radial-gradient(560px_260px_at_0%_-10%,rgba(59,130,246,0.14),transparent)]" />
-      <div className="relative p-5 md:p-7">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
-            {label}
-          </h2>
-        </div>
-        {children}
-        <div className="mt-4 text-[11px] text-slate-500 dark:text-slate-300 italic">
-          Tip: Sorted by suitability (highest first).
-        </div>
-      </div>
-    </div>
+    <section className={`${card} p-6 md:p-8`}>
+      <h2 className="text-xl font-bold text-ink-strong">{label}</h2>
+      <p className="mt-1 text-sm text-ink-muted">Ranked by how well they suit you</p>
+      <div className="mt-5">{children}</div>
+      {footer}
+    </section>
   );
 }
 
@@ -116,41 +109,36 @@ function HSItemCard({ rec, onOpen }) {
 
 function UniItemCard({ rec }) {
   return (
-    <div className="card-glass-spotlight rounded-xl px-5 py-3.5 shadow-none">
-      <div
-        className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-600 to-sky-500 opacity-80"
-        aria-hidden
-      />
-      <div className="grid grid-cols-1 md:grid-cols-[1.1fr_2fr_1.1fr_1.1fr] items-center gap-4 md:gap-8">
+    <div className="rounded-xl border border-line bg-surface px-5 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1.6fr_1.1fr_1.1fr] items-center gap-4 md:gap-8">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-base font-bold text-ink-strong">
+            <TrendingUp className="h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+            {rec.career_title}
+          </p>
+          <p className="mt-0.5 text-sm text-ink-muted">{rec.industry}</p>
+        </div>
         <div>
-          <div className="flex items-center gap-2 font-semibold text-base text-ink-strong">
-            <HiTrendingUp className="text-blue-600 dark:text-blue-400" />
-            <span>{rec.career_title}</span>
-          </div>
-          <div className="mt-1 text-sm text-ink-muted">{rec.industry}</div>
+          <p className="text-xs font-medium text-ink-muted">Education required</p>
+          <span className="mt-1 inline-block px-2.5 py-1 rounded-full text-xs font-semibold text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-200 dark:ring-blue-800">
+            {rec.education_required}
+          </span>
         </div>
-        <div className="flex flex-col justify-center">
-          <span className="text-xs mb-1">Education Required</span>
-          <Badge color="info" className="w-fit">{rec.education_required}</Badge>
-        </div>
-        <div className="flex flex-col justify-center">
-          <div className="flex items-center justify-between text-xs">
-            <span>Suitability</span>
-            <span className="font-medium">{toPercent(rec.suitability_score)}%</span>
-          </div>
-          <div className="mt-1">
+        <div>
+          <p className="flex items-center justify-between text-xs font-medium text-ink-muted">
+            Suitability
+            <span className="text-sm font-bold text-ink-strong">{Math.round(toPercent(rec.suitability_score))}%</span>
+          </p>
+          <div className="mt-1.5">
             <ProgressBar value={rec.suitability_score} />
           </div>
         </div>
-        <div className="flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs">Salary</span>
+        <div>
+          <p className="flex items-center gap-2 text-xs font-medium text-ink-muted">
+            Salary
             <span className="px-1.5 py-px rounded-full text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700">AI-suggested</span>
-          </div>
-          <div className="inline-flex items-center gap-1 text-slate-800 dark:text-slate-100">
-            <HiCurrencyDollar />
-            <span className="font-medium">{rec.avg_salary_range}</span>
-          </div>
+          </p>
+          <p className="mt-1 text-sm font-semibold text-ink-strong">{rec.avg_salary_range}</p>
         </div>
       </div>
     </div>
@@ -197,7 +185,7 @@ function PreparingState({ onRegenerate, regenerating }) {
         Eunice is personalising your recommendations
       </p>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-        This usually takes under a minute — hang tight!
+        This usually takes under a minute.
       </p>
       <div className="max-w-xs mx-auto mb-5">
         <IndeterminateBar />
@@ -225,7 +213,7 @@ function StuckState({ onRegenerate, regenerating }) {
         Recommendations couldn't be loaded
       </p>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-        Something went wrong generating your recommendations. Click below to try again — no need to re-register.
+        Something went wrong while making your recommendations. Try again below. You won't need to sign up again.
       </p>
       <button
         onClick={onRegenerate}
@@ -337,7 +325,17 @@ export function RecommendationTable() {
   const label = userType === "high_school" ? "Your top degree matches" : "Your top career matches";
 
   return (
-    <AuraBoardShell label={label}>
+    <BoardShell
+      label={label}
+      footer={
+        userType !== "high_school" && recommendations.length > 0 && !preparing && !stuck ? (
+          <Link to={roadmapStepUrl("careers")} className="group mt-5 inline-flex items-center gap-1.5 text-[15px] font-bold text-blue-700 dark:text-blue-300 hover:underline">
+            Explore careers for your degree
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        ) : null
+      }
+    >
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
           <><ItemSkeleton /><ItemSkeleton /><ItemSkeleton /></>
@@ -355,6 +353,6 @@ export function RecommendationTable() {
           )
         ) : null}
       </div>
-    </AuraBoardShell>
+    </BoardShell>
   );
 }
