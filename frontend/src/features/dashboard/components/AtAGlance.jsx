@@ -29,7 +29,7 @@ export default function AtAGlance({ facts }) {
 
   return (
     <div className="mt-6 grid sm:grid-cols-3 gap-3">
-      <Tile icon={GraduationCap} label="UOC completed" action="Tick courses" to={roadmapStepUrl("structure")}>
+      <Tile icon={GraduationCap} label="UOC completed" action="Mark courses completed" to={roadmapStepUrl("structure")}>
         <p className="text-2xl font-bold text-ink-strong">
           {facts.uocDone}
           {facts.minimumUoc && <span className="text-base font-semibold text-ink-muted"> of {facts.minimumUoc} UOC</span>}
@@ -53,7 +53,7 @@ export default function AtAGlance({ facts }) {
       <Tile
         icon={Layers}
         label="Courses you can take next"
-        action={facts.doneCount ? "See them in CourseMesh" : "Tick your courses"}
+        action={facts.doneCount ? "See them in CourseMesh" : "Mark courses completed"}
         to={facts.doneCount ? `/coursemesh?program=${programCode}` : roadmapStepUrl("structure")}
       >
         {facts.doneCount ? (
