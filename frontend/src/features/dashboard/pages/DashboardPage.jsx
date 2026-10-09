@@ -45,7 +45,7 @@ function DashboardPage() {
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
-    if (!facts || hasSeenGuide(GUIDE_KEY)) return;
+    if (!facts?.program || hasSeenGuide(GUIDE_KEY)) return;
     const timer = setTimeout(() => setShowGuide(true), 700);
     return () => clearTimeout(timer);
   }, [facts]);
@@ -89,6 +89,7 @@ function DashboardPage() {
         subtitle="Let's keep your degree on track."
         actionsAtBottom
         help={
+          facts?.program && (
           <button
             type="button"
             onClick={() => setShowGuide(true)}
@@ -98,6 +99,7 @@ function DashboardPage() {
           >
             <HelpCircle className="h-5 w-5" strokeWidth={2.5} />
           </button>
+          )
         }
         actions={
           <Link

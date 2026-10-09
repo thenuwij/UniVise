@@ -21,12 +21,23 @@ export default function ProgramCard({ facts }) {
     return (
       <section className={`${card} p-6 md:p-8`}>
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">Your program</p>
-        <p className="mt-3 text-[19px] font-bold text-ink-strong">No program chosen yet</p>
-        <p className="mt-1 text-[15px] text-ink-muted">Search every UNSW degree, major and course in the Handbook.</p>
-        <Link to="/handbook" className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-link hover:underline">
-          Explore degrees in the Handbook
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <p className="mt-3 text-[19px] font-bold text-ink-strong">Explore any UNSW program</p>
+        <p className="mt-1 text-[15px] text-ink-muted max-w-2xl">
+          Your program isn't in our list yet, so there's no personal roadmap. You can still open the roadmap for any program to see its courses, careers, internships and societies.
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link
+            to="/roadmap"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 transition-colors"
+          >
+            <Compass className="h-5 w-5" />
+            Explore a program's roadmap
+          </Link>
+          <Link to="/handbook" className="inline-flex items-center gap-2 text-base font-semibold text-link hover:underline">
+            Search the Handbook
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </section>
     );
   }
