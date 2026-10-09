@@ -1,7 +1,6 @@
 import { Label, Select, TextInput } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, GraduationCap, Pencil, Sparkles, User, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, GraduationCap, Pencil, User, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
@@ -453,6 +452,7 @@ function ProfilePage() {
                       <Field label="ATAR" value={form.atar} />
                       <TagField label="Academic strengths" items={form.academicStrengths} />
                       <TagField label="Degree interests" items={form.degreeInterests} />
+                      <Field label="How sure you are about your path" value={shown(form.confidence)} wide />
                     </>
                   ) : (
                     <>
@@ -461,7 +461,6 @@ function ProfilePage() {
                       <Field label="WAM" value={form.wam === null ? "" : String(form.wam)} />
                     </>
                   )}
-                  <Field label="How sure you are about your path" value={shown(form.confidence)} wide />
                   <TagField label="Career interests" items={form.careerInterests} />
                 </div>
               )}
@@ -469,17 +468,6 @@ function ProfilePage() {
           </div>
 
           <div className="space-y-5">
-            <Link to="/traits" className={`${card} group block p-6 hover:border-blue-300 dark:hover:border-blue-700 hover:-translate-y-0.5 hover:shadow-md transition-all`}>
-              <p className="flex items-center gap-2 text-lg font-bold text-ink-strong">
-                <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                Your personality type
-              </p>
-              <p className="mt-2 text-[15px] text-ink-muted">A short, optional quiz about how you like to work. The Compare programs advisor uses it to judge how well a program fits you.</p>
-              <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 dark:text-blue-300">
-                Take the quiz
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-              </p>
-            </Link>
             <YourDataCard />
           </div>
         </div>
