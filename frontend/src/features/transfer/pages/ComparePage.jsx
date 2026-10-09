@@ -430,9 +430,9 @@ export default function ComparePage() {
             <div className={`${card} h-40 animate-pulse`} />
           ) : !program ? (
             <div className={`${card} p-6`}>
-              <p className="text-lg font-semibold text-ink-strong">Choose your program first</p>
-              <p className="mt-1 text-[15px] text-ink-muted">Compare programs uses your program and the courses you've ticked in your roadmap.</p>
-              <Link to="/dashboard" className={`${secondary} mt-4`}>Go to your dashboard</Link>
+              <p className="text-lg font-semibold text-ink-strong">Compare needs your program</p>
+              <p className="mt-1 text-[15px] text-ink-muted">Your program isn't in our list, so there's nothing to compare from. You can still explore any program's roadmap to see what it involves.</p>
+              <Link to="/roadmap" className={`${secondary} mt-4`}>Explore a program's roadmap</Link>
             </div>
           ) : (
             <>
