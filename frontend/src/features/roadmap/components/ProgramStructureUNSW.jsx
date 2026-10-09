@@ -220,7 +220,7 @@ function MinorCard({ uoc, options, value, saving, onChange }) {
 }
 
 function RuleLine({ section, rows }) {
-  const check = ruleCheck(section, rows);
+  const check = rows ? ruleCheck(section, rows) : null;
   return (
     <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-3 flex items-start gap-3">
       {check?.met ? (
@@ -284,7 +284,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
             <SectionProgress progress={progress} />
           ) : (
             <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
-              {count} {count === 1 ? "course" : "courses"} · {total} UOC
+              {section.open ? `${section.uoc} UOC of your choice` : `${count} ${count === 1 ? "course" : "courses"} · ${total} UOC`}
             </span>
           )}
           <ExpandIcon open={isOpen} />
@@ -327,7 +327,9 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
           </div>
           {(section.open || section.elective) && count === 0 && (
             <p className="mt-4 text-sm text-ink-muted">
-              {section.open
+              {section.open && !onAdd
+                ? `${section.note || "Any approved UNSW course"}.`
+                : section.open
                 ? `No courses here yet. Add the courses you've taken or plan to take for ${section.title}.`
                 : "The Handbook data doesn't list courses for this. Add the courses you take and check the rule with your school."}
             </p>
@@ -410,17 +412,17 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           .map((sec) => ({ ...sec, place: g.prefix ? `${g.prefix}: ${sec.title}` : sec.title, elective: sec.kind === "elective" })),
       };
     });
+    const program = built[built.length - 1];
+    const unlistedProgram = !hasMajors && !programCourseSections.length;
+    const disciplinary = unlistedProgram
+      ? sections
+          .filter((sec) => sec.kind === "info" && Number(sec.uoc) > 0 && !sec.courses?.length)
+          .map((sec) => ({ title: sec.title, uoc: Number(sec.uoc), note: "Courses that count towards this part of the program" }))
+      : [];
+    for (const part of [...disciplinary, ...openParts.filter((p) => !p.optional)]) {
+      program.sections.push({ title: part.title, uoc: part.uoc, note: part.note, open: true, place: part.title, courses: [] });
+    }
     if (trackCompletion) {
-      const program = built[built.length - 1];
-      const unlistedProgram = !hasMajors && !programCourseSections.length;
-      const disciplinary = unlistedProgram
-        ? sections
-            .filter((sec) => sec.kind === "info" && Number(sec.uoc) > 0 && !sec.courses?.length)
-            .map((sec) => ({ title: sec.title, uoc: Number(sec.uoc) }))
-        : [];
-      for (const part of [...disciplinary, ...openParts.filter((p) => !p.optional)]) {
-        program.sections.push({ title: part.title, uoc: part.uoc, open: true, place: part.title, courses: [] });
-      }
       const targets = built.flatMap((g) => g.sections.filter((sec) => sec.open || sec.elective));
       const fallback = targets.find((sec) => sec.open);
       for (const extra of mine.options.filter((o) => !listedCodes.has(o.code))) {
@@ -820,7 +822,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                   );
                 })}
                 {g.unlisted.map((sec) => <UnlistedLine key={sec.title} section={sec} />)}
-                {trackCompletion && g.rules.map((rule) => <RuleLine key={rule.title} section={rule} rows={Object.values(completed)} />)}
+                {g.rules.map((rule) => <RuleLine key={rule.title} section={rule} rows={trackCompletion ? Object.values(completed) : null} />)}
               </div>
             ))}
           </>

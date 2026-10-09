@@ -47,7 +47,7 @@ export default function DegreeRequirements({ degreeCode, onChangeSpecialisation 
     let active = true;
     supabase
       .from("unsw_degrees_final")
-      .select("sections, minimum_uoc, special_notes")
+      .select("program_name, sections, minimum_uoc, special_notes")
       .eq("degree_code", degreeCode)
       .maybeSingle()
       .then(({ data }) => active && setDegree(data || {}));
@@ -57,12 +57,23 @@ export default function DegreeRequirements({ degreeCode, onChangeSpecialisation 
 
   if (!degree) return null;
 
-  const parts = [
-    ...parseSections(degree.sections)
-      .filter((s) => s?.title && !s.title.toLowerCase().includes("overview"))
-      .sort((a, b) => levelOf(a.title) - levelOf(b.title)),
-    ...(specs || []).flatMap((spec) => spec.sections.map((sec) => ({ ...sec, title: `${spec.name}: ${sec.title}` }))),
-  ];
+  const groups = [
+    {
+      key: "program",
+      label: "Program requirements",
+      name: degree.program_name,
+      parts: parseSections(degree.sections)
+        .filter((s) => s?.title && !s.title.toLowerCase().includes("overview"))
+        .sort((a, b) => levelOf(a.title) - levelOf(b.title)),
+    },
+    ...(specs || []).map((spec) => ({
+      key: spec.id,
+      label: spec.type === "Honours" ? "Honours specialisation" : spec.type || "Specialisation",
+      name: spec.name,
+      uoc: spec.uoc,
+      parts: spec.sections,
+    })),
+  ].filter((g) => g.parts.length);
 
   return (
     <section className="space-y-6">
@@ -104,13 +115,22 @@ export default function DegreeRequirements({ degreeCode, onChangeSpecialisation 
         </div>
       )}
 
-      {parts.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {parts.map((section, i) => (
-            <RequirementPart key={`${section.title}-${i}`} section={section} />
-          ))}
+      {groups.map((g) => (
+        <div key={g.key} className="space-y-3 pt-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">
+              {g.label}
+              {g.uoc ? ` · ${g.uoc} UOC` : ""}
+            </p>
+            {g.name && <h3 className="mt-1 text-xl font-bold text-ink-strong">{g.name}</h3>}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {g.parts.map((section, i) => (
+              <RequirementPart key={`${section.title}-${i}`} section={section} />
+            ))}
+          </div>
         </div>
-      )}
+      ))}
 
       {hasContent(degree.special_notes) && (
         <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30">
