@@ -65,7 +65,7 @@ function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
 function ProgressStrip({ ticked, total, uoc, onOpen, disabled }) {
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   return (
-    <div className={`${card} px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6`}>
+    <div className="rounded-2xl bg-gradient-to-br from-surface via-surface to-surface-tint shadow-sm px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-[15px] text-ink">
