@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 
 from app.core.database import supabase
+from app.services.requirements import _read_target, tidy_sections, to_uoc
 
 logger = logging.getLogger(__name__)
 
@@ -559,3 +560,232 @@ def estimate_completion_date(terms_needed: int) -> str:
     completion_term = term_names[completion_term_num]
     
     return f"{completion_term} {completion_year}"
+
+# ---- Crediting completed courses against a target program -------------------
+
+RULE_PATTERN = re.compile(r"\b([A-Za-z]{4}\d{0,3})([*x#]{1,4})(?![A-Za-z0-9*#])", re.IGNORECASE)
+TERM_UOC = 18
+
+
+def _course_uoc(course: Dict[str, Any], fallback: Any = None) -> int:
+    for value in (course.get("uoc"), fallback):
+        if value not in (None, ""):
+            try:
+                return int(float(value))
+            except (TypeError, ValueError):
+                continue
+    return 6
+
+
+def _codes(section: Dict[str, Any]) -> List[Dict[str, Any]]:
+    return [c for c in section.get("courses") or [] if isinstance(c, dict) and c.get("code")]
+
+
+def _is_free_space(section: Dict[str, Any]) -> bool:
+    if section.get("kind") == "free_elective":
+        return True
+    return bool(re.search(r"free elective", section.get("title") or "", re.IGNORECASE)) and not _codes(section)
+
+
+def _free_uoc(section: Dict[str, Any]) -> int:
+    return to_uoc(section.get("uoc")) or _read_target(section.get("description"))
+
+
+def _is_container(section: Dict[str, Any]) -> bool:
+    codes = _codes(section)
+    return bool(codes) and to_uoc(section.get("uoc")) > 0 and all(_course_uoc(c) == 0 for c in codes)
+
+
+def _rule_patterns(section: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if section.get("rules"):
+        return section["rules"]
+    text = f"{section.get('description') or ''} {section.get('notes') or ''}"
+    return [{"prefix": prefix.upper()} for prefix, stars in RULE_PATTERN.findall(text) if len(prefix) + len(stars) == 8]
+
+
+def _matches_rule(code: str, rules: List[Dict[str, Any]], row: Dict[str, Any] = None) -> bool:
+    code = code.upper()
+    row = row or {}
+    for rule in rules:
+        if code in rule.get("except", []):
+            continue
+        if rule.get("prefix") and code.startswith(rule["prefix"]):
+            return True
+        if rule.get("orgs") and {row.get("faculty"), row.get("school")} & set(rule["orgs"]):
+            level = int(code[4]) if len(code) > 4 and code[4].isdigit() else None
+            if not rule.get("levels") or level in rule["levels"]:
+                return True
+    return False
+
+
+def _rules_label(rules: List[Dict[str, Any]]) -> str:
+    prefixes = [r["prefix"].ljust(8, "*") for r in rules if r.get("prefix")]
+    parts = [f"any {', '.join(prefixes)} course"] if prefixes else []
+    parts += [f"courses from {' or '.join(r['orgs'])}" for r in rules if r.get("orgs")]
+    return " or ".join(parts)
+
+
+def _named_sections(section_lists: List[tuple]) -> List[Dict[str, Any]]:
+    out = []
+    for label, raw in section_lists:
+        for section in tidy_sections(raw):
+            out.append({**section, "name": f"{label}: {section['title']}" if label else section["title"]})
+    return out
+
+
+def credit_completed_courses(section_lists: List[tuple], completed_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    sections = _named_sections(section_lists)
+    listed = {c["code"] for s in sections if s.get("kind") not in ("info", "limit") for c in _codes(s)}
+    rows = {r["course_code"]: r for r in completed_rows if r.get("course_code")}
+    as_target: Dict[str, str] = {}
+    for code in rows:
+        if code in listed:
+            as_target[code] = code
+        else:
+            match = next((eq for eq in get_equivalent_codes(code) if eq in listed), None)
+            if match:
+                as_target[match] = code
+
+    credited: Dict[str, Dict[str, Any]] = {}
+    section_used: Dict[str, int] = {}
+
+    def credit(done_code: str, uoc: int, section_name: str, match_type: str) -> int:
+        credited[done_code] = {
+            "code": done_code,
+            "name": rows[done_code].get("course_name") or "",
+            "uoc": uoc,
+            "section": section_name,
+            "match_type": match_type,
+        }
+        section_used[section_name] = section_used.get(section_name, 0) + uoc
+        return uoc
+
+    def credit_listed(course: Dict[str, Any], section_name: str) -> int:
+        done_code = as_target[course["code"]]
+        return credit(done_code, _course_uoc(course, rows[done_code].get("uoc")), section_name, "exact" if done_code == course["code"] else "equivalent")
+
+    def open_listed(section):
+        return [c for c in _codes(section) if c["code"] in as_target and as_target[c["code"]] not in credited]
+
+    for section in sections:
+        if (section.get("kind") or "core") == "core":
+            for course in open_listed(section):
+                if not course.get("choice"):
+                    credit_listed(course, section["name"])
+    chosen = set()
+    for section in sections:
+        if (section.get("kind") or "core") in ("core", "choice"):
+            for course in open_listed(section):
+                key = (section["name"], course.get("choice"))
+                if course.get("choice") and key not in chosen:
+                    chosen.add(key)
+                    credit_listed(course, section["name"])
+    for section in sections:
+        if section.get("kind") != "elective":
+            continue
+        cap = to_uoc(section.get("uoc"))
+        for course in open_listed(section):
+            if cap and section_used.get(section["name"], 0) >= cap:
+                break
+            credit_listed(course, section["name"])
+    for section in sections:
+        cap = to_uoc(section.get("uoc"))
+        patterns = _rule_patterns(section)
+        if patterns and (section.get("kind") == "elective" or cap):
+            for code in [c for c in rows if c not in credited and _matches_rule(c, patterns, rows[c])]:
+                if cap and section_used.get(section["name"], 0) >= cap:
+                    break
+                credit(code, _course_uoc({}, rows[code].get("uoc")), section["name"], "rule")
+
+    leftovers = [code for code in rows if code not in credited]
+    free_sections = [s for s in sections if _is_free_space(s)]
+    free_uoc = sum(_free_uoc(s) for s in free_sections)
+    candidates = [code for code in leftovers if _course_uoc({}, rows[code].get("uoc")) > 0] if free_uoc else []
+    room, fits = free_uoc, 0
+    for uoc in sorted(_course_uoc({}, rows[code].get("uoc")) for code in candidates):
+        if uoc <= room:
+            room -= uoc
+            fits += 1
+    pool = {
+        "uoc": free_uoc,
+        "used_uoc": free_uoc - room,
+        "fits_count": fits,
+        "candidates": [{"code": c, "name": rows[c].get("course_name") or "", "uoc": _course_uoc({}, rows[c].get("uoc"))} for c in candidates],
+        "sections": [s["name"] for s in free_sections],
+    }
+    lost = [{"code": c, "name": rows[c].get("course_name") or "", "uoc": to_uoc(rows[c].get("uoc"))} for c in leftovers if c not in candidates]
+    return {
+        "credited": list(credited.values()),
+        "free_pool": pool,
+        "lost": lost,
+        "credited_uoc": sum(c["uoc"] for c in credited.values()) + pool["used_uoc"],
+        "counted_courses": len(credited) + fits,
+        "section_used": section_used,
+        "credited_target_codes": {target for target, done in as_target.items() if done in credited},
+    }
+
+
+def still_to_do(section_lists: List[tuple], credit: Dict[str, Any]) -> List[Dict[str, Any]]:
+    done = credit["credited_target_codes"]
+    used = credit["section_used"]
+    items = []
+    for section in _named_sections(section_lists):
+        kind = section.get("kind") or "core"
+        uoc = to_uoc(section.get("uoc"))
+        codes = _codes(section)
+        if _is_free_space(section):
+            continue
+        if kind == "general_education" and uoc:
+            items.append({"title": section["name"], "type": "open", "uoc_left": uoc, "note": "courses outside your faculty"})
+        elif kind == "unlisted" and uoc:
+            items.append({"title": section["name"], "type": "open", "uoc_left": uoc, "note": "courses listed in the Handbook"})
+        elif _is_container(section):
+            left = [c["code"] for c in codes if c["code"] not in done]
+            if left:
+                items.append({"title": section["name"], "type": "core", "left": left, "choices": []})
+        elif kind == "elective":
+            left = max(uoc - used.get(section["name"], 0), 0)
+            if uoc and left:
+                item = {"title": section["name"], "type": "elective", "uoc_left": left, "options": len(codes)}
+                also = _rules_label(_rule_patterns(section))
+                if also:
+                    item["also"] = also
+                items.append(item)
+        elif kind in ("core", "choice"):
+            left = [c["code"] for c in codes if not c.get("choice") and c["code"] not in done]
+            groups: Dict[str, List[str]] = {}
+            for c in codes:
+                if c.get("choice"):
+                    groups.setdefault(c["choice"], []).append(c["code"])
+            choices = [g for g in groups.values() if not any(code in done for code in g)]
+            if left or choices:
+                items.append({"title": section["name"], "type": "core", "left": left, "choices": choices})
+    pool = credit["free_pool"]
+    if pool["uoc"] - pool["used_uoc"] > 0:
+        items.append({"title": "Free electives", "type": "open", "uoc_left": pool["uoc"] - pool["used_uoc"], "note": "any approved courses"})
+    return items
+
+
+def courses_left(items: List[Dict[str, Any]]) -> int:
+    total = 0
+    for item in items:
+        if item["type"] == "core":
+            total += len(item["left"]) + len(item["choices"])
+        else:
+            total += -(-item["uoc_left"] // 6)
+    return total
+
+
+def time_impact(target_min_uoc: int, credited_uoc: int, base_min_uoc: int, completed_uoc: int) -> Dict[str, int]:
+    uoc_needed = max(target_min_uoc - credited_uoc, 0)
+    base_left = max(base_min_uoc - completed_uoc, 0)
+    target_terms = -(-uoc_needed // TERM_UOC)
+    base_terms = -(-base_left // TERM_UOC)
+    return {
+        "uoc_needed": uoc_needed,
+        "base_uoc_left": base_left,
+        "extra_uoc": uoc_needed - base_left,
+        "estimated_terms": target_terms,
+        "base_terms_remaining": base_terms,
+        "extra_terms": target_terms - base_terms,
+    }
