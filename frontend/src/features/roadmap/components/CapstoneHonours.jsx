@@ -1,4 +1,5 @@
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { motion } from "framer-motion";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useState } from "react";
@@ -100,9 +101,10 @@ export default function CapstoneHonours({ data, handbookUrl, faculty, children }
                 <span className="block text-lg font-semibold text-slate-900 dark:text-slate-100">Honours: general {honoursRuleSet(faculty)} rules</span>
                 <span className="mt-1 block text-[15px] text-slate-500 dark:text-slate-400">These are the faculty's general rules. Check the Handbook for your program's exact Honours rules.</span>
               </span>
-              <span className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-blue-700 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-800 shadow-sm group-hover:bg-blue-50 dark:group-hover:bg-slate-700 transition-colors">
-                {honoursOpen ? "Hide rules" : "Show rules"}
-                <ChevronDown className={`h-4 w-4 transition-transform ${honoursOpen ? "rotate-180" : ""}`} />
+              <span className="flex-shrink-0">
+                <ExpandToggle as="span" open={honoursOpen}>
+                  {honoursOpen ? "Hide rules" : "Show rules"}
+                </ExpandToggle>
               </span>
             </button>
             {honoursOpen && (

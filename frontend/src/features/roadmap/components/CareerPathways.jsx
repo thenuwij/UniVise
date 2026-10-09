@@ -6,8 +6,6 @@ import { supabase } from "@/shared/lib/supabase";
 import {
   Briefcase,
   DollarSign,
-  ChevronDown,
-  ChevronUp,
   ChevronRight,
   CheckCircle2,
   ExternalLink,
@@ -20,6 +18,7 @@ import {
 } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { useHiringNow } from "../hooks/useHiringNow";
 import JobAdList from "./JobAdList";
 import { SourceLink } from "./SourceTags";
@@ -232,15 +231,9 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                       {hiringNow[idx].length} {hiringNow[idx].length === 1 ? "job" : "jobs"} hiring now
                     </span>
                   ) : <span />}
-                  <button
-                    type="button"
-                    onClick={() => toggleRole(`${activeTab}-${idx}`)}
-                    aria-expanded={isOpen(idx)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 ring-1 ring-blue-200 dark:ring-blue-800 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
-                  >
+                  <ExpandToggle large open={isOpen(idx)} onClick={() => toggleRole(`${activeTab}-${idx}`)}>
                     {isOpen(idx) ? "Hide details" : "Show details"}
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isOpen(idx) ? "rotate-180" : ""}`} />
-                  </button>
+                  </ExpandToggle>
                 </div>
 
                 {isOpen(idx) && (
@@ -390,16 +383,9 @@ export default function CareerPathways({ careerPathways, personal = false }) {
             ))}
           </div>
           {certifications.length > 3 && (
-            <button
-              onClick={() => setShowAllCerts(!showAllCerts)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              {showAllCerts ? (
-                <>Show fewer <ChevronUp className="h-5 w-5" /></>
-              ) : (
-                <>Show {certifications.length - 3} more certifications <ChevronDown className="h-5 w-5" /></>
-              )}
-            </button>
+            <ExpandToggle wide open={showAllCerts} onClick={() => setShowAllCerts(!showAllCerts)}>
+              {showAllCerts ? "Show fewer" : `Show ${certifications.length - 3} more certifications`}
+            </ExpandToggle>
           )}
         </section>
       )}

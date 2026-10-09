@@ -1,4 +1,6 @@
-import { ChevronDown, ChevronUp, Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
+import { Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
+import ExpandIcon from "@/shared/ui/ExpandIcon";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
@@ -56,9 +58,10 @@ export default function SocietiesCommunity({ societies }) {
                       <button
                         onClick={() => toggleSociety(idx)}
                         aria-expanded={open}
-                        className="p-2 rounded-xl text-slate-500 group-hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+                        aria-label={open ? "Hide details" : "Show details"}
+                        className="rounded-full"
                       >
-                        {open ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+                        <ExpandIcon open={open} />
                       </button>
                     </div>
                   </div>
@@ -87,16 +90,9 @@ export default function SocietiesCommunity({ societies }) {
             })}
           </div>
           {facultySpecific.length > 3 && (
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              {showAll ? (
-                <>Show fewer <ChevronUp className="h-5 w-5" /></>
-              ) : (
-                <>Show {facultySpecific.length - 3} more societies <ChevronDown className="h-5 w-5" /></>
-              )}
-            </button>
+            <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>
+              {showAll ? "Show fewer" : `Show ${facultySpecific.length - 3} more societies`}
+            </ExpandToggle>
           )}
         </section>
       )}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Building2, Calendar, ChevronDown, ChevronUp, ExternalLink, GraduationCap } from "lucide-react";
+import { Building2, Calendar, ExternalLink, GraduationCap } from "lucide-react";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card, clickable } from "@/shared/ui/cardStyles";
@@ -140,16 +141,9 @@ export default function IndustryExperience({ industryExperience, entryRoles }) {
             ))}
           </div>
           {internshipPrograms.length > 3 && (
-            <button
-              onClick={() => setShowAllPrograms(!showAllPrograms)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              {showAllPrograms ? (
-                <>Show fewer <ChevronUp className="h-5 w-5" /></>
-              ) : (
-                <>Show {internshipPrograms.length - 3} more {internshipPrograms.length === 4 ? "program" : "programs"} <ChevronDown className="h-5 w-5" /></>
-              )}
-            </button>
+            <ExpandToggle wide open={showAllPrograms} onClick={() => setShowAllPrograms(!showAllPrograms)}>
+              {showAllPrograms ? "Show fewer" : `Show ${internshipPrograms.length - 3} more ${internshipPrograms.length === 4 ? "program" : "programs"}`}
+            </ExpandToggle>
           )}
         </div>
       )}
