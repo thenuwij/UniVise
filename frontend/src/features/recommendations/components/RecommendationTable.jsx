@@ -10,6 +10,7 @@ import { TbRobot } from "react-icons/tb";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import SectionHeading from "@/shared/ui/SectionHeading";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -43,9 +44,8 @@ function ProgressBar({ value }) {
 function BoardShell({ label, footer, children }) {
   return (
     <section>
-      <h2 className="text-xl font-bold text-ink-strong">{label}</h2>
-      <p className="mt-1 text-sm text-ink-muted">Ranked by how well they suit you</p>
-      <div className="mt-5">{children}</div>
+      <SectionHeading subtitle="Ranked by how well they suit you">{label}</SectionHeading>
+      <div className="mt-6">{children}</div>
       {footer}
     </section>
   );
@@ -131,8 +131,8 @@ function UniItemCard({ rec }) {
             <ProgressBar value={rec.suitability_score} />
           </div>
         </div>
-        <div>
-          <p className="flex items-center gap-2 text-xs font-medium text-ink-muted">
+        <div className="md:text-right">
+          <p className="flex items-center gap-2 md:justify-end text-xs font-medium text-ink-muted">
             Salary
             <span className="px-1.5 py-px rounded-full text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700">AI-suggested</span>
           </p>
