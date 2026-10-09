@@ -162,6 +162,7 @@ def load_inputs(user_id: str) -> dict | None:
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
         "added": sorted(added),
         "placed": [{"code": r["course_code"], "section": r.get("section_name"), "uoc": r.get("uoc")} for r in added_rows],
+        "completed_uoc_by_code": {r["course_code"]: to_uoc(r.get("uoc")) for r in completed_rows},
     }
 
 

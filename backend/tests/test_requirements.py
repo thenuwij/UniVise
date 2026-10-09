@@ -88,3 +88,44 @@ def test_placed_courses_count_towards_free_electives():
     assert free["done_uoc"] == 6
     text = format_requirements(parts, 192, 6)
     assert "- Free Electives: 6 of 12 UOC done (ARTS1000); planned: PSYC1001" in text
+
+
+def test_limit_section_becomes_a_level_rule():
+    lists = [("Computer Engineering", [
+        {"title": "Level 4 UOC Minimum", "kind": "limit", "description": "Students must complete a minimum of 36 UOC of Level 4 courses.",
+         "courses": [{"code": "COMP4601", "kind": "elective"}]},
+    ])]
+    done = {"COMP4601", "COMP6771", "COMP3311"}
+    parts = requirement_status(lists, done, completed_uoc={"COMP4601": 6, "COMP6771": 6, "COMP3311": 6})
+
+    assert parts == [{"type": "rule", "name": "Computer Engineering: Level 4 UOC Minimum", "need": 36, "level": 4, "have": 12}]
+    assert "- Computer Engineering: Level 4 UOC Minimum (rule): 12 of 36 UOC at level 4 or above, 24 UOC still needed" in format_requirements(parts, None, 0)
+
+
+def test_course_added_to_an_elective_section_counts_there():
+    placed = [{"code": "COMP6771", "section": "Computer Engineering: Discipline Electives", "uoc": 6}]
+    parts = requirement_status(LISTS, {"COMP6771"}, {"COMP6771"}, placed)
+    electives = by_name(parts, "Computer Engineering: Discipline Electives")
+
+    assert electives["done"] == ["COMP6771"]
+    assert electives["done_uoc"] == 6
+    assert by_name(parts, "Free Electives")["done"] == []
+
+
+def test_parent_requirement_and_its_lists_become_one_elective_part():
+    lists = [(None, [
+        {"title": "Level 3 Prescribed Electives", "kind": "elective", "uoc": 30, "courses": []},
+        {"title": "List A", "kind": "elective", "uoc": 0, "courses": [{"code": "PSYC3001", "uoc": 6}]},
+        {"title": "List B", "kind": "elective", "uoc": 0, "courses": [{"code": "PSYC3201", "uoc": 6}]},
+        {"title": "Business Core Courses", "kind": "core", "uoc": 30, "courses": []},
+        {"title": "Prescribed WIL Course", "kind": "elective", "uoc": 6, "courses": []},
+    ])]
+    parts = requirement_status(lists, {"PSYC3201"})
+
+    electives = by_name(parts, "Level 3 Prescribed Electives")
+    assert (electives["count"], electives["uoc"], electives["done_uoc"]) == (2, 30, 6)
+    assert by_name(parts, "Business Core Courses")["type"] == "unlisted"
+    assert by_name(parts, "Prescribed WIL Course")["count"] == 0
+    text = format_requirements(parts, None, 0)
+    assert "- Business Core Courses: 30 UOC; the course list isn't in UniVise" in text
+    assert "- Prescribed WIL Course: 0 of 6 UOC done; the Handbook data lists no courses for this" in text

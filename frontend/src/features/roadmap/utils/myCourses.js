@@ -106,3 +106,71 @@ export function openRequirementParts(sections) {
     .filter((s) => s?.title && !s.title.toLowerCase().includes("overview") && !s.courses?.length && Number(s.uoc) > 0 && OPEN_PART_NOTES[s.kind])
     .map((s) => ({ title: s.title, uoc: Number(s.uoc), note: OPEN_PART_NOTES[s.kind], optional: s.kind === "specialisations" }));
 }
+
+const levelOfCode = (code) => Number(String(code || "").charAt(4)) || 0;
+
+export function ruleCheck(section, completedRows) {
+  const text = `${section?.description || ""} ${section?.notes || ""}`;
+  const match = text.match(/minimum of (\d+)\s*UOC of Level (\d)/i);
+  if (!match) return null;
+  const need = Number(match[1]);
+  const level = Number(match[2]);
+  const have = (completedRows || [])
+    .filter((r) => r?.is_completed && levelOfCode(r.course_code) >= level)
+    .reduce((sum, r) => sum + (Number(r.uoc) || 0), 0);
+  return { need, level, have, met: have >= need };
+}
+
+export function rulePatterns(text) {
+  const found = [];
+  for (const m of String(text || "").matchAll(/\b([A-Za-z]{4})(\d)(?:\*{3}|x{3})(?![A-Za-z0-9])/gi)) {
+    const pattern = { prefix: m[1].toUpperCase(), level: Number(m[2]) };
+    if (!found.some((p) => p.prefix === pattern.prefix && p.level === pattern.level)) found.push(pattern);
+  }
+  return found;
+}
+
+export const matchesRule = (code, patterns) =>
+  (patterns || []).some((p) => String(code).toUpperCase().startsWith(p.prefix) && levelOfCode(code) === p.level);
+
+const TARGET_TEXT = /(\d+)\s*(?:UOC|units of credit)\s+of the following/i;
+const listedCount = (section) => (section?.courses || []).filter((c) => c?.code).length;
+
+export function tidySections(sections) {
+  const list = (sections || []).filter((s) => s?.title);
+  const out = [];
+  for (let i = 0; i < list.length; i += 1) {
+    const section = list[i];
+    const uoc = Number(section.uoc) || 0;
+    const parentKind = section.kind || "core";
+    if ((parentKind === "elective" || parentKind === "core") && uoc > 0 && !listedCount(section)) {
+      const children = [];
+      let j = i + 1;
+      while (j < list.length && listedCount(list[j]) && !Number(list[j].uoc) && (list[j].kind || "core") === parentKind) {
+        children.push(list[j]);
+        j += 1;
+      }
+      if (children.length) {
+        const seen = new Set();
+        const courses = children.flatMap((child) =>
+          child.courses.filter((c) => c?.code && !seen.has(c.code) && seen.add(c.code)).map((c) => ({ ...c, kind: "elective", list: child.title }))
+        );
+        out.push({ ...section, kind: "elective", courses });
+        i = j - 1;
+        continue;
+      }
+      out.push({ ...section, kind: parentKind === "elective" ? "elective" : "unlisted", courses: [] });
+      continue;
+    }
+    if (parentKind === "elective" && listedCount(section) && !uoc) {
+      const target = String(section.description || "").match(TARGET_TEXT);
+      out.push(target ? { ...section, uoc: Number(target[1]) } : section);
+      continue;
+    }
+    out.push(section);
+  }
+  return out;
+}
+
+export const showsOnCourses = (section) =>
+  listedCount(section) > 0 || ((section?.kind === "elective" || section?.kind === "unlisted") && Number(section?.uoc) > 0);
