@@ -92,7 +92,7 @@ function GraduateOutlook({ outlook }) {
                 [CheckCircle2, "In full-time work after graduating", area.full_time_employment_rate != null ? `${area.full_time_employment_rate}%` : null],
                 [DollarSign, "Median starting salary", area.median_salary != null ? `$${area.median_salary.toLocaleString()}` : null],
               ].filter(([, , value]) => value).map(([Icon, label, value]) => (
-                <div key={label} className={`${card} p-6`}>
+                <div key={label} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-6">
                   <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                     <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
                   </p>
@@ -187,53 +187,60 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           <div className="mt-6 space-y-6">
             {activeData.roles.map((role, idx) => (
               <article key={idx} className={`${card} p-6 md:p-7`}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug">{role.title}</h5>
-                    {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
-                      <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
-                        {personal && matchesInterests(role.title, interestAreas) && (
-                          <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-                            <CheckCircle2 className="h-4 w-4" /> Matches your interests
+                <div
+                  onClick={() => toggleRole(`${activeTab}-${idx}`)}
+                  className="group -m-3 p-3 rounded-xl cursor-pointer hover:bg-blue-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{role.title}</h5>
+                      {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
+                        <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
+                          {personal && matchesInterests(role.title, interestAreas) && (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                              <CheckCircle2 className="h-4 w-4" /> Matches your interests
+                            </span>
+                          )}
+                          {role.in_demand_nsw && (
+                            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                              <TrendingUp className="h-4 w-4" /> In demand in NSW
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-start gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      {role.salary_range && (
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-bold text-ink-strong">{cleanSalary(role.salary_range)}</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {role.salary_source?.url
+                              ? <>Source: <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink></>
+                              : "AI-suggested salary"}
                           </span>
-                        )}
-                        {role.in_demand_nsw && (
-                          <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
-                            <TrendingUp className="h-4 w-4" /> In demand in NSW
-                          </span>
-                        )}
-                      </p>
-                    )}
+                        </div>
+                      )}
+                      <SaveButton itemType="career_path" itemId={`${role.title}-${activeTab}`} itemName={role.title} itemData={{ ...role, level: activeTab }} />
+                    </div>
                   </div>
-                  <div className="flex items-start gap-3 flex-shrink-0">
-                    {role.salary_range && (
-                      <div className="flex flex-col items-end">
-                        <span className="text-lg font-bold text-ink-strong">{cleanSalary(role.salary_range)}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {role.salary_source?.url
-                            ? <>Source: <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink></>
-                            : "AI-suggested salary"}
-                        </span>
-                      </div>
-                    )}
-                    <SaveButton itemType="career_path" itemId={`${role.title}-${activeTab}`} itemName={role.title} itemData={{ ...role, level: activeTab }} />
-                  </div>
-                </div>
 
-                {role.description && (
-                  <p className={`mt-3 text-base text-slate-700 dark:text-slate-300 leading-relaxed ${isOpen(idx) ? "" : "line-clamp-2"}`}>{role.description}</p>
-                )}
+                  {role.description && (
+                    <p className={`mt-3 text-base text-slate-700 dark:text-slate-300 leading-relaxed ${isOpen(idx) ? "" : "line-clamp-2"}`}>{role.description}</p>
+                  )}
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  {activeTab === "entry" && hiringNow[idx]?.length > 0 ? (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted">
-                      <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      {hiringNow[idx].length} {hiringNow[idx].length === 1 ? "job" : "jobs"} hiring now
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    {activeTab === "entry" && hiringNow[idx]?.length > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted">
+                        <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        {hiringNow[idx].length} {hiringNow[idx].length === 1 ? "job" : "jobs"} hiring now
+                      </span>
+                    ) : <span />}
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <ExpandToggle large open={isOpen(idx)} onClick={() => toggleRole(`${activeTab}-${idx}`)}>
+                        {isOpen(idx) ? "Hide details" : "Show details"}
+                      </ExpandToggle>
                     </span>
-                  ) : <span />}
-                  <ExpandToggle large open={isOpen(idx)} onClick={() => toggleRole(`${activeTab}-${idx}`)}>
-                    {isOpen(idx) ? "Hide details" : "Show details"}
-                  </ExpandToggle>
+                  </div>
                 </div>
 
                 {isOpen(idx) && (
@@ -355,7 +362,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           <SectionHeading>
             Professional certifications
           </SectionHeading>
-          <div className={`${card} mt-6 px-6 md:px-8 divide-y divide-slate-100 dark:divide-slate-700`}>
+          <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 mt-6 px-6 md:px-8 divide-y divide-slate-300 dark:divide-slate-700">
             {displayedCerts.map((cert, idx) => (
               <div key={idx} className="flex items-start justify-between gap-4 py-5">
                 <div className="min-w-0">
