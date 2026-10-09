@@ -10,7 +10,7 @@ from app.core.auth import get_current_user
 from app.models.switch_advisor import SwitchAdvice, SwitchAdvisorRequest, SwitchAdvisorResponse
 from app.llm.claude_client import ask_claude_structured
 from app.core.database import supabase
-from app.services.switch_advisor import build_context, build_system_prompt, build_user_prompt, safe_int
+from app.services.switch_advisor import build_context, build_system_prompt, build_user_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -33,22 +33,10 @@ async def get_switch_advice(
     try:
         comparison = request.comparison_data
 
-        def fetch_personality():
-            try:
-                res = supabase.table("personality_results") \
-                    .select("top_types, result_summary, trait_scores") \
-                    .eq("user_id", str(user.id)) \
-                    .maybe_single() \
-                    .execute()
-                return res.data or {}
-            except Exception as e:
-                logger.warning(f"[switch_advisor] fetch_personality failed for user {user.id}: {e}")
-                return {}
-
         def fetch_survey():
             try:
                 res = supabase.table("student_uni_data") \
-                    .select("academic_year, study_feelings, interest_areas, switching_pathway, confidence") \
+                    .select("interest_areas, switching_pathway") \
                     .eq("user_id", str(user.id)) \
                     .maybe_single() \
                     .execute()
@@ -57,98 +45,19 @@ async def get_switch_advice(
                 logger.warning(f"[switch_advisor] fetch_survey failed for user {user.id}: {e}")
                 return {}
 
-        personality_data, survey_data = await asyncio.gather(
-            asyncio.to_thread(fetch_personality),
-            asyncio.to_thread(fetch_survey)
-        )
-
-        # ── [Transfer Debug] RAW INPUTS ──────────────────────────────
-        # Logged immediately after DB fetches, before any calculation.
-        _bdown_in = comparison.get("detailed_breakdown", {}) or {}
-        _base_in = _bdown_in.get("base_program", {}) or {}
-        _target_in = _bdown_in.get("target_program", {}) or {}
-        _summary_in = comparison.get("summary", {}) or {}
-        _transfer_in = comparison.get("transfer_analysis", {}) or {}
-        _completed_uoc_in = (
-            _summary_in.get("completed_uoc")
-            or _transfer_in.get("completed_uoc")
-            or 0
-        )
-        logger.debug(f"[Transfer Debug] RAW INPUTS — user={user.id}")
-        logger.debug(
-            f"[Transfer Debug] current: name='{_base_in.get('name','')}' "
-            f"code={request.base_program_code} total_uoc={_base_in.get('total_uoc','')}"
-        )
-        logger.debug(f"[Transfer Debug] completed_uoc={_completed_uoc_in}")
-        logger.debug(
-            f"[Transfer Debug] target: name='{_target_in.get('name','')}' "
-            f"code={request.target_program_code} "
-            f"summary.estimated_terms={_summary_in.get('estimated_terms','')}"
-        )
-        logger.debug(
-            f"[Transfer Debug] base_spec={request.base_specialisation_codes} "
-            f"target_spec={request.target_specialisation_codes}"
-        )
-
-        context = build_context(comparison, personality_data, survey_data)
-
-        # ── [Transfer Debug] CALCULATED VALUES ───────────────────────
-        # Logged immediately after build_context() computes additional_terms
-        # and base_terms_remaining. base_total_uoc isn't exposed in the
-        # returned context dict, so recompute it locally from the breakdown.
-        _base_total_uoc_calc = safe_int(_base_in.get("total_uoc") or 0)
-        logger.debug(
-            f"[Transfer Debug] CALCULATED — base_total_uoc={_base_total_uoc_calc} "
-            f"completed_uoc={context.get('total_completed_uoc', 0)} "
-            f"transferred_uoc={context.get('transferred_uoc', 0)}"
-        )
-        logger.debug(
-            f"[Transfer Debug] base_terms_remaining={int(context.get('base_terms_remaining', 0))} (whole terms) "
-            f"estimated_terms={int(context.get('estimated_terms', 0))} "
-            f"additional_terms={int(context.get('additional_terms', 0))}"
-        )
-        logger.debug(
-            f"[Transfer Debug] estimated_completion='{context.get('estimated_completion','')}' "
-            f"transfer_rate_courses={context.get('transfer_rate_courses', 0)}"
-        )
-        logger.debug(
-            f"[Transfer Debug] courses_transferred={context.get('transferred_count', 0)} "
-            f"courses_lost={context.get('wasted_count', 0)}"
-        )
+        survey_data = await asyncio.to_thread(fetch_survey)
+        context = build_context(comparison, survey_data)
 
         user_prompt = build_user_prompt(context)
 
-        # ── [Transfer Debug] AI INPUT SUMMARY ────────────────────────
-        # Logged immediately before the Claude call. The band thresholds
-        # mirror the FACTOR 2 rules in build_system_prompt().
-        _add_t = context.get("additional_terms", 0)
-        if _add_t == 0:
-            _band = "0 (no extra time)"
-        elif _add_t <= 2:
-            _band = "1-2 (manageable)"
-        elif _add_t <= 6:
-            _band = "3-6 (real cost)"
-        else:
-            _band = "6+ (only if essential)"
-        logger.debug(
-            "[Transfer Debug] AI INPUT — verdict bands: "
-            "recommended / conditional / not_recommended"
-        )
-        logger.debug(f"[Transfer Debug] additional_terms band={_band}")
-        logger.debug(
-            f"[Transfer Debug] system_prompt_chars={len(build_system_prompt())} "
-            f"user_prompt_chars={len(user_prompt)}"
-        )
         logger.info(
             f"[Eunice] user={user.id} "
             f"current='{context.get('base_program','')}' "
             f"target='{context.get('target_program','')}' "
             f"completed={context.get('total_completed_uoc', 0)}uoc "
-            f"base_remaining={context.get('base_terms_remaining', 0)}t "
-            f"target_needs={context.get('estimated_terms', 0)}t "
-            f"additional={_add_t}t "
-            f"completion='{context.get('estimated_completion','')}' "
-            f"verdict_band={_band}"
+            f"carried={context.get('transferred_uoc', 0)}uoc "
+            f"extra={context.get('extra_uoc', 0)}uoc/{context.get('additional_terms', 0)}t "
+            f"completion='{context.get('estimated_completion','')}'"
         )
 
         advice = await ask_claude_structured(
