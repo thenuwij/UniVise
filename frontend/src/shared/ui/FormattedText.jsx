@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toBlocks } from "@/shared/lib/format";
 import ExpandToggle from "./ExpandToggle";
 
-export default function FormattedText({ text, collapsedHeight = "14rem", className = "text-base text-ink", lists = true, maxWidth = "max-w-[72ch]" }) {
+export default function FormattedText({ text, collapsedHeight = "14rem", className = "text-base text-ink", lists = true, maxWidth = "max-w-none" }) {
   const blocks = useMemo(() => toBlocks(text, { lists }), [text, lists]);
   const ref = useRef(null);
   const [expanded, setExpanded] = useState(false);

@@ -12,11 +12,10 @@ import { hasContent } from "@/shared/lib/format";
 import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
-import { DetailSection, FactRow, bandButton, courseTile } from "../components/DetailLayout";
+import { DetailSection, FactRow, bandButton, courseTile, staticTile } from "../components/DetailLayout";
+import RequirementSections from "../components/RequirementSections";
 
-import {
-  HiExternalLink,
-} from "react-icons/hi";
+import { ExternalLink } from "lucide-react";
 
 const VARIANTS = {
   major: {
@@ -44,7 +43,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
   const [degreeDetailsByCode, setDegreeDetailsByCode] = useState({});
-  const [courseDetailsByCode, setCourseDetailsByCode] = useState({});
+  const [knownCodes, setKnownCodes] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -101,11 +100,9 @@ function SpecialisationDetailPage({ variant = "major" }) {
           if (list.length > 0) {
             const { data: courseData } = await supabase
               .from("unsw_courses")
-              .select("id, code, title, faculty")
+              .select("code")
               .in("code", list);
-            const cmap = {};
-            (courseData || []).forEach((c) => { cmap[c.code] = c; });
-            setCourseDetailsByCode(cmap);
+            setKnownCodes(new Set((courseData || []).map((c) => c.code)));
           }
         }
       } catch (err) { console.error("Metadata fetch error:", err.message); }
@@ -129,7 +126,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
           spec.source_url ? (
             <a href={spec.source_url} target="_blank" rel="noopener noreferrer" className={bandButton}>
               Official Handbook
-              <HiExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4" />
             </a>
           ) : null
         }
@@ -151,46 +148,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
             {/* Structure */}
             {spec.sections?.length > 0 && (
               <DetailSection title={config.structureTitle}>
-                <div className="space-y-8">
-                  {spec.sections.map((section, idx) => (
-                    <div key={idx}>
-                      <div className="flex items-center justify-between gap-4 mb-3">
-                        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">{section.title}</h3>
-                        {section.uoc && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold flex-shrink-0">
-                            {section.uoc} UOC
-                          </span>
-                        )}
-                      </div>
-                      {hasContent(section.description) && (
-                        <div className="mb-3">
-                          <FormattedText text={section.description} collapsedHeight="7rem" className="text-sm text-ink-muted" />
-                        </div>
-                      )}
-                      {section.courses?.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {section.courses.map((course, ci) => {
-                            const meta = courseDetailsByCode[course.code];
-                            const link = meta ? `/course/${meta.id}` : null;
-                            const row = (
-                              <div className={courseTile}>
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <span className="text-sm font-bold text-link flex-shrink-0">{course.code}</span>
-                                  <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{course.name}</span>
-                                </div>
-                              </div>
-                            );
-                            return link ? (
-                              <Link key={ci} to={link}>{row}</Link>
-                            ) : (
-                              <div key={ci}>{row}</div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <RequirementSections sections={spec.sections} known={knownCodes} />
               </DetailSection>
             )}
 
@@ -206,13 +164,13 @@ function SpecialisationDetailPage({ variant = "major" }) {
                     const faculty = mapped?.faculty;
 
                     const card = (
-                      <div className="flex items-center justify-between gap-3 py-3 px-4 rounded-xl bg-gradient-to-br from-white to-sky-50/40 dark:from-slate-800/60 dark:to-sky-900/10 border border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 hover:to-sky-50/80 dark:hover:from-slate-800 transition-all">
+                      <div className={link ? courseTile : staticTile}>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{programName}</p>
                           {faculty && <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{faculty}</p>}
                         </div>
                         {degree_code && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 flex-shrink-0">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 flex-shrink-0">
                             {degree_code}
                           </span>
                         )}
@@ -222,7 +180,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
                     return link ? (
                       <Link key={i} to={link}>{card}</Link>
                     ) : (
-                      <div key={i} className="opacity-50 cursor-not-allowed">{card}</div>
+                      <div key={i}>{card}</div>
                     );
                   })}
                 </div>
@@ -256,12 +214,7 @@ function SpecialisationDetailPage({ variant = "major" }) {
                 {spec.major_code && (
                   <FactRow label="Code" value={spec.major_code} />
                 )}
-                {spec.faculty && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Faculty</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{spec.faculty}</p>
-                  </div>
-                )}
+                {spec.faculty && <FactRow label="Faculty" value={spec.faculty.replace(/^Faculty of\s+/i, "")} />}
               </div>
             </div>
           </div>

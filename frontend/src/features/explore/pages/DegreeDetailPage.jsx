@@ -1,10 +1,7 @@
 // src/pages/DegreeDetailPage.jsx
 import { useEffect, useState } from "react";
-import {
-  HiArrowRight,
-  HiExternalLink,
-} from "react-icons/hi";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowRight, ExternalLink } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import { supabase } from "@/shared/lib/supabase";
@@ -14,7 +11,8 @@ import { formatDuration, hasContent } from "@/shared/lib/format";
 import DetailLoading from "../components/DetailLoading";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
-import { DetailSection, FactRow, bandButton, bandButtonSolid, courseTile } from "../components/DetailLayout";
+import { DetailSection, FactRow, bandButton, bandButtonSolid } from "../components/DetailLayout";
+import RequirementSections from "../components/RequirementSections";
 
 function DegreeDetailPage() {
   const { degreeId } = useParams();
@@ -24,7 +22,7 @@ function DegreeDetailPage() {
   const [degree, setDegree] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [loadErr, setLoadErr] = useState(null);
-  const [courseIdByCode, setCourseIdByCode] = useState({});
+  const [knownCodes, setKnownCodes] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -74,13 +72,10 @@ function DegreeDetailPage() {
     if (!codes.length) return;
     supabase
       .from("unsw_courses")
-      .select("id, code")
+      .select("code")
       .in("code", codes)
       .then(({ data }) => {
-        if (!data) return;
-        const map = {};
-        data.forEach((c) => { map[c.code] = c.id; });
-        setCourseIdByCode(map);
+        if (data) setKnownCodes(new Set(data.map((c) => c.code)));
       });
   }, [degree]);
 
@@ -101,12 +96,12 @@ function DegreeDetailPage() {
             {degree.source_url && (
               <a href={degree.source_url} target="_blank" rel="noopener noreferrer" className={bandButton}>
                 Official Handbook
-                <HiExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-4 h-4" />
               </a>
             )}
             <button onClick={() => navigate(`/roadmap?program=${degree.degree_code}`)} className={`group ${bandButtonSolid}`}>
               View this degree's roadmap
-              <HiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         }
@@ -132,58 +127,9 @@ function DegreeDetailPage() {
             )}
 
             {/* Detailed Requirements */}
-            {degree.sections && degree.sections.length > 0 && (
+            {degree.sections?.length > 0 && (
               <DetailSection title="Requirements">
-                <div className="space-y-6">
-                  {degree.sections.map((section, idx) => (
-                    <div key={idx}>
-                      <div className="flex items-center justify-between gap-4 mb-2">
-                        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">{section.title}</h3>
-                        {section.uoc && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold">
-                            {section.uoc} UOC
-                          </span>
-                        )}
-                      </div>
-                      {hasContent(section.description) && (
-                        <div className="mb-3">
-                          <FormattedText text={section.description} collapsedHeight="7rem" className="text-sm text-ink-muted" />
-                        </div>
-                      )}
-                      {hasContent(section.notes) && (
-                        <div className="mb-3 p-3 rounded-xl bg-pick-soft">
-                          <FormattedText text={`Note: ${section.notes}`} collapsedHeight={null} className="text-sm text-pick-ink" />
-                        </div>
-                      )}
-                      {section.courses?.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {section.courses.map((course, cIdx) => {
-                            const courseId = courseIdByCode[course.code];
-                            const card = (
-                              <div className={courseTile}>
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <span className="text-sm font-bold text-link flex-shrink-0">{course.code}</span>
-                                  <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{course.name}</span>
-                                </div>
-                                {course.uoc > 0 && (
-                                  <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 flex-shrink-0 px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30">{course.uoc} UOC</span>
-                                )}
-                              </div>
-                            );
-                            return courseId ? (
-                              <Link key={cIdx} to={`/course/${courseId}`}>{card}</Link>
-                            ) : (
-                              <div key={cIdx}>{card}</div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {idx < degree.sections.length - 1 && (
-                        <div className="mt-6 border-b border-slate-100 dark:border-slate-800" />
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <RequirementSections sections={degree.sections} known={knownCodes} />
               </DetailSection>
             )}
 
@@ -192,7 +138,7 @@ function DegreeDetailPage() {
               <DetailSection title="Career outcomes">
                 <div className="flex flex-wrap gap-2">
                   {degree.career_outcomes.map((outcome, idx) => (
-                    <span key={idx} className="px-3.5 py-1.5 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                    <span key={idx} className="px-3.5 py-1.5 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 ring-1 ring-blue-200 dark:ring-blue-800">
                       {outcome}
                     </span>
                   ))}
@@ -235,21 +181,21 @@ function DegreeDetailPage() {
 
             {/* Admission Requirements */}
             {(degree.lowest_selection_rank || degree.lowest_atar || degree.assumed_knowledge) && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                  Admission Requirements
+              <div className={`${card} p-5`}>
+                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-link mb-4">
+                  Admission requirements
                 </h3>
                 <div className="space-y-3">
                   {degree.lowest_selection_rank && (
-                    <FactRow label="Selection Rank" value={degree.lowest_selection_rank} />
+                    <FactRow label="Selection rank" value={degree.lowest_selection_rank} />
                   )}
                   {degree.lowest_atar && (
                     <FactRow label="Lowest ATAR" value={degree.lowest_atar} />
                   )}
                   {degree.assumed_knowledge && (
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Assumed Knowledge</p>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{degree.assumed_knowledge}</p>
+                    <div className="pt-3 border-t border-line">
+                      <p className="text-sm text-ink-muted">Assumed knowledge</p>
+                      <p className="mt-1 text-sm font-semibold text-ink-strong leading-relaxed">{degree.assumed_knowledge}</p>
                     </div>
                   )}
                 </div>

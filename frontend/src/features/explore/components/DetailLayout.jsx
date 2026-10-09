@@ -9,6 +9,9 @@ export const bandButtonSolid =
 export const courseTile =
   "flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl border border-line bg-gradient-to-br from-surface to-surface-tint hover:border-blue-300 dark:hover:border-blue-700 hover:-translate-y-0.5 hover:shadow-md transition-all cursor-pointer";
 
+export const staticTile =
+  "flex items-center justify-between gap-3 py-3.5 px-4 rounded-xl border border-dashed border-line bg-surface";
+
 export function DetailSection({ title, children }) {
   return (
     <section className="py-8 first:pt-0 border-b border-line last:border-0">
