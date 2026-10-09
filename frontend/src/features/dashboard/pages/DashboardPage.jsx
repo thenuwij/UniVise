@@ -19,22 +19,22 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="dash-glance"] > *'],
     title: "Where you're at",
-    text: "Your UOC so far, your specialisation and the courses you can take next. Click a box to act on it.",
+    text: "Your UOC so far, your specialisation and the courses you can take next. Each box also links to where you can update it.",
   },
   {
     targets: ['[data-tour="dash-steps"]'],
-    title: 'Jump into your roadmap',
-    text: 'Go straight to any part of your roadmap: courses, careers, internships or societies.',
+    title: 'Your roadmap, part by part',
+    text: 'Shortcuts to each part of your roadmap: courses, careers, internships and societies.',
   },
   {
     targets: ['[data-tour="dash-open"]'],
     title: 'Start here',
-    text: 'Open your roadmap to work through your degree step by step.',
+    text: "When you're ready, Open roadmap takes you through your degree step by step.",
   },
   {
     targets: ['[data-tour="menu"]'],
     title: 'Everything else',
-    text: 'The Menu has CourseMesh, the Handbook, Compare programs and Eunice, your AI advisor.',
+    text: "The Menu is where you'll find CourseMesh, the Handbook, Compare programs and Eunice, your AI advisor.",
   },
 ];
 
