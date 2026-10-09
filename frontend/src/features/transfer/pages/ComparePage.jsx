@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowRight, Check, CircleCheck, CircleX, GraduationCap, MessageCircle, Search, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, CircleCheck, CircleX, GraduationCap, Info, MessageCircle, Search, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
@@ -20,6 +20,12 @@ const DEBOUNCE_MS = 250;
 const SHOWN_CODES = 8;
 
 const panel = "rounded-2xl bg-slate-200/50 dark:bg-slate-800/50";
+const TINTS = {
+  green: "rounded-2xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/60",
+  amber: "rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60",
+  red: "rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60",
+  blue: "rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60",
+};
 const secondary =
   "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors";
 
@@ -59,74 +65,120 @@ function useProgramSearch(query) {
   return results;
 }
 
-function Stat({ value, label }) {
+function Stat({ label, value, detail }) {
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4">
-      <p className="text-2xl font-bold text-ink-strong">{value}</p>
-      <p className="mt-0.5 text-sm text-ink-muted">{label}</p>
+      <p className="text-sm font-semibold text-ink-muted">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-ink-strong">{value}</p>
+      {detail && <p className="mt-1 text-sm text-ink-muted leading-snug">{detail}</p>}
     </div>
   );
 }
 
-function CourseList({ title, icon: Icon, tone, courses, empty }) {
+function CodeLines({ courses, note }) {
   return (
-    <div className={`${panel} p-5`}>
-      <p className="flex items-center gap-2 text-base font-bold text-ink-strong">
-        <Icon className={`h-5 w-5 ${tone}`} />
-        {title}
-        <span className="font-normal text-ink-muted">({courses.length})</span>
+    <ul className="mt-3 space-y-1.5">
+      {courses.map((c) => (
+        <li key={c.code} className="text-sm">
+          <Link to={`/course/${c.code}`} className="font-bold text-link hover:underline">{c.code}</Link>
+          <span className="text-ink"> {c.name}</span>
+          {note && c[note] && <span className="text-ink-muted"> · {c[note]}</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PanelTitle({ icon: Icon, tone, children, count }) {
+  return (
+    <p className="flex items-center gap-2 text-base font-bold text-ink-strong">
+      <Icon className={`h-5 w-5 ${tone}`} />
+      {children}
+      {count != null && <span className="font-normal text-ink-muted">({count})</span>}
+    </p>
+  );
+}
+
+function FreeElectivesPanel({ pool }) {
+  const count = pool.candidates.length;
+  const allFit = pool.fits_count >= count;
+  return (
+    <div className={`${TINTS.amber} p-5`}>
+      <PanelTitle icon={AlertTriangle} tone="text-amber-600 dark:text-amber-400" count={count}>
+        Could fill free electives
+      </PanelTitle>
+      <p className="mt-2 text-sm text-ink">
+        {allFit
+          ? `These aren't in its course lists, but all of them fit in its ${pool.uoc} UOC of free electives.`
+          : `These aren't in its course lists. Its free electives have room for ${pool.uoc} UOC, so only ${pool.fits_count} of these ${count} can count. You'd choose which.`}
       </p>
-      {courses.length ? (
-        <ul className="mt-3 space-y-1.5">
-          {courses.map((c) => (
-            <li key={c.code} className="text-sm">
-              <Link to={`/course/${c.code}`} className="font-bold text-link hover:underline">{c.code}</Link>
-              <span className="text-ink"> {c.name}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-2 text-sm text-ink-muted">{empty}</p>
-      )}
+      <CodeLines courses={pool.candidates} />
     </div>
   );
 }
 
-function StillToDo({ levels, uocNeeded }) {
+function StillToDo({ items, uocNeeded, noMajor }) {
   return (
-    <div className={`${panel} p-5`}>
-      <p className="flex items-center gap-2 text-base font-bold text-ink-strong">
-        <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+    <div className={`${TINTS.blue} p-5`}>
+      <PanelTitle icon={GraduationCap} tone="text-blue-600 dark:text-blue-400" count={uocNeeded != null ? `${uocNeeded} UOC` : null}>
         Still to do
-        {uocNeeded != null && <span className="font-normal text-ink-muted">({uocNeeded} UOC)</span>}
-      </p>
-      {levels.length ? (
-        <ul className="mt-3 space-y-3">
-          {levels.map((level) => (
-            <li key={level.level}>
-              <p className="text-sm font-semibold text-ink-strong">
-                {level.level_name}
-                <span className="font-normal text-ink-muted"> · {level.total_courses} courses · {level.total_uoc} UOC</span>
-              </p>
-              <p className="mt-0.5 text-sm text-ink-muted">
-                {level.courses.slice(0, SHOWN_CODES).map((c) => c.code).join(", ")}
-                {level.courses.length > SHOWN_CODES ? ` and ${level.courses.length - SHOWN_CODES} more` : ""}
+      </PanelTitle>
+      {noMajor && (
+        <p className="mt-3 text-sm">
+          <span className="font-semibold text-ink-strong">Your major</span>
+          <span className="block text-ink-muted">Most of what's left. Choose a major above to see its courses.</span>
+        </p>
+      )}
+      {items.length ? (
+        <ul className="mt-3 space-y-2.5">
+          {items.map((item) => (
+            <li key={item.title} className="text-sm">
+              <p className="font-semibold text-ink-strong">{item.title}</p>
+              <p className="text-ink-muted">
+                {item.type === "core"
+                  ? [
+                      item.left.length ? `${item.left.length} left: ${item.left.slice(0, SHOWN_CODES).join(", ")}${item.left.length > SHOWN_CODES ? ` and ${item.left.length - SHOWN_CODES} more` : ""}` : "",
+                      item.choices.length ? `${item.choices.length} "one of" ${item.choices.length === 1 ? "choice" : "choices"}: ${item.choices.map((codes) => codes.join(" or ")).join("; ")}` : "",
+                    ].filter(Boolean).join(" · ")
+                  : item.type === "elective"
+                  ? `${item.uoc_left} UOC to choose from ${item.options} listed courses`
+                  : `${item.uoc_left} UOC of ${item.note}`}
               </p>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-ink-muted">Nothing listed. Check the Handbook for this program's rules.</p>
+        <p className="mt-2 text-sm text-ink-muted">{uocNeeded ? "Its course lists are covered. The rest is set by the Handbook's rules." : "Nothing left. Your courses already cover this program."}</p>
       )}
     </div>
   );
 }
 
-function Answer({ target, comparison, advice, adviceLoading }) {
+function extraStat(summary) {
+  const extra = summary.extra_uoc ?? 0;
+  const terms = summary.extra_terms ?? 0;
+  const courses = Math.round(Math.abs(extra) / 6);
+  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  if (extra > 0) {
+    return {
+      value: `+${extra} UOC`,
+      detail: `About ${plural(courses, "more course")} than staying. ${terms > 0 ? `Roughly ${plural(terms, "extra term")}.` : "Fits in the same terms with a heavier load."}`,
+    };
+  }
+  if (extra < 0) {
+    return { value: `${-extra} UOC less`, detail: `About ${plural(courses, "course")} fewer than staying.${terms < 0 ? ` Roughly ${plural(-terms, "term")} sooner.` : ""}` };
+  }
+  return { value: "None", detail: "Same amount left as staying." };
+}
+
+function Answer({ target, comparison, advice, adviceLoading, noMajor }) {
   const transfer = comparison.transfer_analysis || {};
   const summary = comparison.summary || {};
-  const levels = Object.values(comparison.requirements_by_level || {});
-  const extraTerms = advice?.additional_terms ?? summary.estimated_terms;
+  const pool = transfer.free_pool || { uoc: 0, used_uoc: 0, fits_count: 0, candidates: [] };
+  const lost = transfer.wasted_courses || [];
+  const overflow = Math.max(pool.candidates.length - pool.fits_count, 0);
+  const extra = extraStat(summary);
+  const listedCount = (transfer.transferred_courses || []).length;
 
   return (
     <section className="space-y-6">
@@ -143,41 +195,67 @@ function Answer({ target, comparison, advice, adviceLoading }) {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat value={`${transfer.transferred_count ?? 0} of ${transfer.total_completed_courses ?? 0}`} label="of your courses count" />
-        <Stat value={`${transfer.transferred_uoc ?? 0} UOC`} label="carried over" />
-        <Stat value={extraTerms > 0 ? `+${extraTerms}` : "None"} label="extra terms" />
-        <Stat value={advice?.estimated_completion || summary.estimated_completion || "Unknown"} label="estimated finish" />
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-4 items-start">
-        <CourseList
-          title={`Counts in ${target.program_name}`}
-          icon={CircleCheck}
-          tone="text-green-600 dark:text-green-400"
-          courses={transfer.transferred_courses || []}
-          empty="None of your ticked courses count here."
-        />
-        <CourseList
-          title="Won't count"
-          icon={CircleX}
-          tone="text-slate-500 dark:text-slate-400"
-          courses={transfer.wasted_courses || []}
-          empty="Every ticked course counts. Nothing is lost."
-        />
-        <StillToDo levels={levels} uocNeeded={summary.uoc_needed} />
-      </div>
-
-      {comparison.critical_issues?.length > 0 && (
-        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 p-5 space-y-2">
-          {comparison.critical_issues.map((issue, i) => (
-            <p key={i} className="flex items-start gap-2 text-sm text-ink">
-              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-              {issue.message}
-            </p>
-          ))}
-        </div>
+      {noMajor && (
+        <p className="flex items-start gap-2 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 px-4 py-3 text-[15px] text-ink">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          No major was chosen. Most of this program's courses sit in its majors, so pick one above and compare again for an accurate result.
+        </p>
       )}
+
+      <p className="flex items-start gap-2 text-sm text-ink-muted">
+        <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+        This is an estimate from your ticked courses. A course counts when it's in the new program's course lists (up to each list's limit) or matches one of its elective rules. Others can fill its free electives while there's room. Confirm with the school before switching.
+      </p>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Stat
+          label="Courses that count"
+          value={`${transfer.transferred_count ?? 0} of ${transfer.total_completed_courses ?? 0}`}
+          detail={
+            !transfer.total_completed_courses
+              ? "Tick your completed courses to see this"
+              : pool.fits_count
+              ? `${listedCount} in its course lists, ${pool.fits_count} as free electives`
+              : listedCount
+              ? "All from its course lists"
+              : "None fit this program"
+          }
+        />
+        <Stat label="UOC carried over" value={`${transfer.transferred_uoc ?? 0} UOC`} detail={`Of the ${summary.completed_uoc ?? 0} UOC you've done`} />
+        <Stat label="Extra study" value={extra.value} detail={extra.detail} />
+        <Stat
+          label="Estimated finish"
+          value={summary.estimated_completion || "Unknown"}
+          detail={summary.estimated_terms ? `${summary.estimated_terms} terms left at 3 courses a term` : null}
+        />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4 items-start">
+        <div className={`${TINTS.green} p-5`}>
+          <PanelTitle icon={CircleCheck} tone="text-green-600 dark:text-green-400" count={(transfer.transferred_courses || []).length}>
+            Counts in {target.program_name}
+          </PanelTitle>
+          {transfer.transferred_courses?.length ? (
+            <CodeLines courses={transfer.transferred_courses} note="section" />
+          ) : (
+            <p className="mt-2 text-sm text-ink-muted">None of your ticked courses are in its course lists.</p>
+          )}
+        </div>
+        {pool.candidates.length > 0 && <FreeElectivesPanel pool={pool} />}
+        <div className={`${TINTS.red} p-5`}>
+          <PanelTitle icon={CircleX} tone="text-red-600 dark:text-red-400" count={lost.length + overflow}>
+            Won't count
+          </PanelTitle>
+          {lost.length ? <CodeLines courses={lost} /> : null}
+          {overflow > 0 && (
+            <p className="mt-2 text-sm text-ink">
+              {lost.length ? "Plus " : ""}{overflow} of the free elective courses above, as there's no room for them.
+            </p>
+          )}
+          {!lost.length && !overflow && <p className="mt-2 text-sm text-ink-muted">Every ticked course has a place in this program.</p>}
+        </div>
+        <StillToDo items={transfer.still_to_do || []} uocNeeded={summary.uoc_needed} noMajor={noMajor} />
+      </div>
 
       {advice && (
         <>
@@ -259,6 +337,7 @@ export default function ComparePage() {
   const [majorCode, setMajorCode] = useState("");
   const [comparison, setComparison] = useState(null);
   const [advice, setAdvice] = useState(null);
+  const [noMajor, setNoMajor] = useState(false);
   const [status, setStatus] = useState("idle");
   const results = useProgramSearch(query);
   const [nearby, setNearby] = useState([]);
@@ -266,9 +345,10 @@ export default function ComparePage() {
   useEffect(() => {
     if (!program || !userId) return;
     fetchChosenSpecialisations(program.degree_code, userId).then((found) => setSpecNames(found.map((s) => s.name)));
-    fetchCompletedCourses(userId).then((rows) =>
-      setUocDone(rows.filter((r) => r.is_completed).reduce((sum, r) => sum + (Number(r.uoc) || 0), 0))
-    );
+    fetchCompletedCourses(userId).then((rows) => {
+      const done = rows.filter((r) => r.is_completed);
+      setUocDone(done.reduce((sum, r) => sum + (Number(r.uoc) || 0), 0));
+    });
     supabase
       .from("unsw_degrees_final")
       .select("minimum_uoc, faculty")
@@ -313,6 +393,7 @@ export default function ComparePage() {
   const compare = async () => {
     if (!program || !target) return;
     setStatus("comparing");
+    setNoMajor(majors.length > 0 && !majorCode);
     setComparison(null);
     setAdvice(null);
     const request = {
@@ -355,7 +436,7 @@ export default function ComparePage() {
             </div>
           ) : (
             <>
-              <section className={`${card} p-6 md:p-8 space-y-7`}>
+              <section className="space-y-7">
                 <div className="flex gap-4">
                   <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-blue-600">1</span>
                   <div className="min-w-0 flex-1">
@@ -448,7 +529,7 @@ export default function ComparePage() {
                           onChange={(e) => setMajorCode(e.target.value)}
                           className="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-900 text-[15px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">{sameProgram ? "Choose one" : "Not sure yet"}</option>
+                          <option value="">{sameProgram ? "Choose one" : "Not sure yet (less accurate)"}</option>
                           {majors.map((m) => (
                             <option key={m.id} value={m.major_code}>{m.major_name}</option>
                           ))}
@@ -470,7 +551,7 @@ export default function ComparePage() {
                   </button>
                   {!comparison && (
                     <p className="mt-3 text-center text-sm text-ink-muted">
-                      You'll see which of your courses count, what's left, the extra terms, and an advisor's view.
+                      You'll see which of your courses count, what's left, the extra study, and an advisor's view.
                     </p>
                   )}
                 </div>
@@ -483,7 +564,7 @@ export default function ComparePage() {
                 </div>
               )}
 
-              {comparison && target && <Answer target={target} comparison={comparison} advice={advice} adviceLoading={status === "advising"} />}
+              {comparison && target && <Answer target={target} comparison={comparison} advice={advice} adviceLoading={status === "advising"} noMajor={noMajor} />}
             </>
           )}
         </div>
