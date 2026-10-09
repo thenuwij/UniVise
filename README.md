@@ -46,11 +46,11 @@ One search across every UNSW degree, major, minor, honours plan, and course, wit
 
 ### Compare programs
 
-Compares the student's current program with a target program: what transfers, what does not, what is left, and what it costs in extra terms. An AI advisor weighs those facts to reach a recommendation, and can summarise how the target degree fits the student's interests and goals.
+Compares the student's current program with a target program, or a different specialisation in the same program. It shows which completed courses count (from the target's course lists and its Handbook elective rules, such as any level 3 Computer Science course), which could fill free electives, which would not count, what is still to do, and how much extra study the switch adds. An AI advisor reads only those computed numbers to reach a recommendation.
 
 ### Ask Eunice
 
-An AI chat adviser that knows the student's program, specialisation, completed courses, the courses they can take now, and their shortlisted careers, so it answers specifically before pointing to official sources.
+An AI chat adviser, available from a button on every page, that knows the student's program, specialisation, completed courses, the courses they can take now, their shortlisted careers, and the page they are on. It can look up Handbook programs and courses, so it answers specifically before pointing to official sources.
 
 ---
 
@@ -118,7 +118,7 @@ supabase/migrations/  database schema and row level security policies as SQL mig
 
 1. Sign in with Google and complete the short onboarding survey, including your UNSW program and, optionally, your major or stream.
 2. Open your dashboard. Your roadmap is already being built, and the dashboard suggests your next step.
-3. Tick the courses you have completed in the roadmap's Structure step, then open CourseMesh to see what you can take next and why.
+3. Tick the courses you have completed in the roadmap's Courses step, then open CourseMesh to see what you can take next and why.
 4. Use **Handbook** to look up any degree, major, or course, and **Compare programs** to see what transfers to another program.
 5. Ask Eunice anything about your courses or career plans.
 
