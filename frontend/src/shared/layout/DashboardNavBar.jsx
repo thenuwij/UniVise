@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -10,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { LuMenu } from "react-icons/lu";
+import { Bookmark, ChevronDown, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.svg";
 import { UserAuth } from "@/app/AuthContext";
@@ -19,6 +19,9 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
 
   const [displayName, setDisplayName] = useState("");
   const [displayEmail, setDisplayEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const { signOut } = UserAuth();
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(
@@ -52,6 +55,8 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
           const lastName = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || '';
           setDisplayName(`${firstName} ${lastName}`.trim());
           setDisplayEmail(user.email);
+          setFirstName(firstName);
+          setAvatarUrl(user.user_metadata.avatar_url || user.user_metadata.picture || "");
       } catch (err) {
         console.error("Unexpected error:", err);
       }
@@ -59,6 +64,13 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
 
     fetchUser();
   }, []);
+
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
 
   return (
     <div id="header" className="relative z-30">
@@ -90,9 +102,24 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
             arrowIcon={false}
             inline
             label={
-              <Avatar alt="User settings"
-              rounded
-            className="mr-3 mb-4 rounded-full [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300"/>
+              <span className="mr-3 mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-1 pl-1 pr-2.5 shadow-sm hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-700 dark:hover:bg-slate-700 transition-colors">
+                {avatarUrl && !avatarFailed ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={() => setAvatarFailed(true)}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="h-8 w-8 inline-flex items-center justify-center rounded-full text-xs font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
+                    {initials || <User className="h-4 w-4" />}
+                  </span>
+                )}
+                {firstName && <span className="hidden sm:inline text-sm font-semibold text-slate-800 dark:text-slate-100">{firstName}</span>}
+                <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} />
+                <span className="sr-only">Account menu</span>
+              </span>
             }
           >
             <DropdownHeader>
@@ -100,8 +127,10 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
               <span className="block truncate text-sm font-medium">{displayEmail}</span>
             </DropdownHeader>
             <DropdownDivider />
-            <DropdownItem onClick={() => navigate("/profile")}>My Account</DropdownItem>
-            <DropdownItem onClick={signOut}>Sign out</DropdownItem>
+            <DropdownItem icon={User} onClick={() => navigate("/profile")}>My account</DropdownItem>
+            <DropdownItem icon={Bookmark} onClick={() => navigate("/saved")}>My shortlist</DropdownItem>
+            <DropdownDivider />
+            <DropdownItem icon={LogOut} onClick={signOut} className="text-red-600 dark:text-red-400">Sign out</DropdownItem>
           </Dropdown>
         </div>
       </Navbar>

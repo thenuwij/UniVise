@@ -4,7 +4,6 @@ import { Bookmark, BookOpen, LayoutDashboard, LogOut, Map, MessageCircle, Networ
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import logo from "@/assets/logo.svg";
 
 const GROUPS = [
   {
@@ -52,6 +51,8 @@ export function MenuBar({ isOpen, handleClose }) {
   const [userType, setUserType] = useState(null);
   const [displayName, setDisplayName] = useState("");
   const [displayEmail, setDisplayEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = UserAuth();
@@ -65,6 +66,7 @@ export function MenuBar({ isOpen, handleClose }) {
       const lastName = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || "";
       setDisplayName(`${firstName} ${lastName}`.trim());
       setDisplayEmail(user.email || "");
+      setAvatarUrl(user.user_metadata.avatar_url || user.user_metadata.picture || "");
     };
     loadUser();
   }, []);
@@ -88,32 +90,35 @@ export function MenuBar({ isOpen, handleClose }) {
   return (
     <Drawer open={isOpen} onClose={handleClose} theme={drawerTheme} className="w-80 p-0">
       <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between px-5 h-14 border-b border-line">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="" className="h-7 w-7" />
-            <span className="font-heading text-xl font-bold text-ink-strong">UniVise</span>
-          </div>
-          <button
-            onClick={handleClose}
-            aria-label="Close menu"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="px-4 pt-3">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-line">
           <button
             onClick={() => go("/profile")}
-            className="w-full flex items-center gap-3 rounded-2xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/50 dark:to-slate-900 px-3 py-2 text-left hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+            className="flex-1 min-w-0 flex items-center gap-3 rounded-2xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/50 dark:to-slate-900 px-3 py-2 text-left hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
           >
-            <span className="flex-shrink-0 h-9 w-9 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
-              {initialsOf(displayName, displayEmail)}
-            </span>
+            {avatarUrl && !avatarFailed ? (
+              <img
+                src={avatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={() => setAvatarFailed(true)}
+                className="flex-shrink-0 h-9 w-9 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex-shrink-0 h-9 w-9 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
+                {initialsOf(displayName, displayEmail)}
+              </span>
+            )}
             <span className="min-w-0">
               <span className="block truncate text-sm font-bold text-ink-strong">{displayName || "Your profile"}</span>
               <span className="block truncate text-xs text-ink-muted">{displayEmail}</span>
-                          </span>
+            </span>
+          </button>
+          <button
+            onClick={handleClose}
+            aria-label="Close menu"
+            className="flex-shrink-0 h-9 w-9 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
 
