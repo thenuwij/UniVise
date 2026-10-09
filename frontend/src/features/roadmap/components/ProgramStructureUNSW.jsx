@@ -1,5 +1,5 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ArrowRight, Check, Layers, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Check, HelpCircle, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandIcon from "@/shared/ui/ExpandIcon";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import CoursesGuide from "./CoursesGuide";
@@ -67,7 +67,7 @@ function ProgressStrip({ ticked, total, uoc, onOpen, disabled }) {
         onClick={onOpen}
         disabled={disabled}
         data-tour="coursemesh-strip"
-        className="group flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+        className="group flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 shadow-sm hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Layers className="h-4 w-4" />
         See what's next in CourseMesh
@@ -416,7 +416,19 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     <div className="space-y-6">
 
       <SectionHeading subtitle={trackCompletion ? null : "The courses in this program."}>
-        Your courses
+        <span className="inline-flex flex-wrap items-center gap-3">
+          Your courses
+          {trackCompletion && (
+            <button
+              type="button"
+              onClick={() => setShowGuide(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900 transition-colors"
+            >
+              <HelpCircle className="h-4 w-4" strokeWidth={2.5} />
+              How it works
+            </button>
+          )}
+        </span>
       </SectionHeading>
 
       {trackCompletion ? (
@@ -449,7 +461,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             {trackCompletion && (
               <button
                 onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-base font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 shadow-sm hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors"
               >
                 <Plus className="h-5 w-5" strokeWidth={3} />
                 Add a course
@@ -525,13 +537,13 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       </div>
 
       {trackCompletion && !loading && courseSections.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-950/40 dark:to-indigo-950/40 px-6 py-5">
+        <div className={`${card} flex flex-wrap items-center justify-between gap-4 px-6 py-5`}>
           <p className="text-[15px] text-ink">
             <span className="font-semibold text-ink-strong">Finished ticking?</span> See what your courses unlock next.
           </p>
           <button
             onClick={handleVisualise}
-            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 shadow-sm hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors"
           >
             <Layers className="h-4 w-4" />
             Open CourseMesh
