@@ -108,7 +108,7 @@ function HSItemCard({ rec, onOpen }) {
 
 function UniItemCard({ rec }) {
   return (
-    <div className="rounded-xl border border-line bg-surface px-5 py-4">
+    <div className="pt-4 border-t border-line first:pt-0 first:border-t-0">
       <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1.6fr_1.1fr_1.1fr] items-center gap-4 md:gap-8">
         <div className="min-w-0">
           <p className="text-base font-bold text-ink-strong">
