@@ -4,7 +4,6 @@ import { AlertTriangle, ArrowRight, Check, CircleCheck, CircleX, GraduationCap, 
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
-import ExpandToggle from "@/shared/ui/ExpandToggle";
 import FormattedText from "@/shared/ui/FormattedText";
 import { card } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
@@ -30,7 +29,7 @@ const VERDICTS = {
   not_recommended: "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/40",
 };
 
-function useProgramSearch(query, excludeCode) {
+function useProgramSearch(query) {
   const [results, setResults] = useState([]);
   const term = toSearchTerm(query);
 
@@ -41,20 +40,21 @@ function useProgramSearch(query, excludeCode) {
     }
     let active = true;
     const timer = setTimeout(async () => {
-      const { data } = await supabase
-        .from("unsw_degrees_final")
-        .select("degree_code, program_name, faculty")
-        .eq("is_offered", true)
-        .or(`program_name.ilike.%${term}%,degree_code.ilike.%${term}%`)
-        .order("program_name")
-        .limit(8);
-      if (active) setResults((data || []).filter((p) => p.degree_code !== excludeCode));
+      let request = supabase.from("unsw_degrees_final").select("degree_code, program_name, faculty").eq("is_offered", true);
+      if (/^\d+$/.test(term)) {
+        request = request.ilike("degree_code", `${term}%`);
+      } else {
+        for (const word of term.split(" ").filter((w) => w.length > 1)) request = request.ilike("program_name", `%${word}%`);
+      }
+      const { data } = await request.order("program_name").limit(40);
+      const ranked = (data || []).sort((a, b) => a.program_name.length - b.program_name.length || a.program_name.localeCompare(b.program_name));
+      if (active) setResults(ranked.slice(0, 12));
     }, DEBOUNCE_MS);
     return () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [term, excludeCode]);
+  }, [term]);
 
   return results;
 }
@@ -123,7 +123,6 @@ function StillToDo({ levels, uocNeeded }) {
 }
 
 function Answer({ target, comparison, advice, adviceLoading }) {
-  const [showAnalysis, setShowAnalysis] = useState(false);
   const transfer = comparison.transfer_analysis || {};
   const summary = comparison.summary || {};
   const levels = Object.values(comparison.requirements_by_level || {});
@@ -222,15 +221,11 @@ function Answer({ target, comparison, advice, adviceLoading }) {
           )}
 
           {advice.detailed_analysis && (
-            <div>
-              <ExpandToggle open={showAnalysis} onClick={() => setShowAnalysis(!showAnalysis)}>
-                {showAnalysis ? "Hide full analysis" : "Show full analysis"}
-              </ExpandToggle>
-              {showAnalysis && (
-                <div className="mt-4">
-                  <FormattedText text={advice.detailed_analysis} collapsedHeight={null} />
-                </div>
-              )}
+            <div className={`${panel} p-5`}>
+              <p className="text-base font-bold text-ink-strong">Advisor's analysis</p>
+              <div className="mt-2">
+                <FormattedText text={advice.detailed_analysis} collapsedHeight={null} />
+              </div>
             </div>
           )}
         </>
@@ -265,7 +260,8 @@ export default function ComparePage() {
   const [comparison, setComparison] = useState(null);
   const [advice, setAdvice] = useState(null);
   const [status, setStatus] = useState("idle");
-  const results = useProgramSearch(query, program?.degree_code);
+  const results = useProgramSearch(query);
+  const [nearby, setNearby] = useState([]);
 
   useEffect(() => {
     if (!program || !userId) return;
@@ -275,10 +271,22 @@ export default function ComparePage() {
     );
     supabase
       .from("unsw_degrees_final")
-      .select("minimum_uoc")
+      .select("minimum_uoc, faculty")
       .eq("degree_code", program.degree_code)
       .maybeSingle()
-      .then(({ data }) => setMinimumUoc(data?.minimum_uoc || null));
+      .then(async ({ data }) => {
+        setMinimumUoc(data?.minimum_uoc || null);
+        if (!data?.faculty) return;
+        const { data: same } = await supabase
+          .from("unsw_degrees_final")
+          .select("degree_code, program_name, faculty")
+          .eq("is_offered", true)
+          .eq("faculty", data.faculty)
+          .neq("degree_code", program.degree_code)
+          .order("program_name")
+          .limit(8);
+        setNearby(same || []);
+      });
   }, [program, userId]);
 
   useEffect(() => {
@@ -288,7 +296,11 @@ export default function ComparePage() {
     fetchSpecialisationOptions(target.degree_code).then(setMajorGroups);
   }, [target]);
 
-  const majors = useMemo(() => majorGroups.flatMap((g) => g.options), [majorGroups]);
+  const sameProgram = !!target && target.degree_code === program?.degree_code;
+  const majors = useMemo(
+    () => majorGroups.flatMap((g) => g.options).filter((m) => !sameProgram || !specNames.includes(m.major_name)),
+    [majorGroups, sameProgram, specNames]
+  );
 
   const chooseTarget = (choice) => {
     setTarget(choice);
@@ -331,107 +343,150 @@ export default function ComparePage() {
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
       <PageHeader eyebrow="Compare programs" title="Compare programs" subtitle="See how your courses would count in another UNSW program." />
 
-      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8 space-y-8">
-        {loading ? (
-          <div className={`${card} h-40 animate-pulse`} />
-        ) : !program ? (
-          <div className={`${card} p-6`}>
-            <p className="text-lg font-semibold text-ink-strong">Choose your program first</p>
-            <p className="mt-1 text-[15px] text-ink-muted">Compare programs uses your program and the courses you've ticked in your roadmap.</p>
-            <Link to="/dashboard" className={`${secondary} mt-4`}>Go to your dashboard</Link>
-          </div>
-        ) : (
-          <>
-            <div className="grid lg:grid-cols-2 gap-4 items-start">
-              <div className={`${panel} p-6`}>
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-muted">Your program</p>
-                <p className="mt-1 text-xl font-bold text-ink-strong">{program.program_name}</p>
-                <p className="mt-1 text-[15px] text-ink-muted">
-                  {[specNames.join(", ") || "No specialisation chosen", `${uocDone}${minimumUoc ? ` of ${minimumUoc}` : ""} UOC done`].join(" · ")}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
-                  <Link to={roadmapStepUrl("structure")} className="text-sm font-semibold text-link hover:underline">Update ticked courses</Link>
-                  <Link to={`/roadmap?program=${program.degree_code}`} className="text-sm font-semibold text-link hover:underline">Change specialisation</Link>
-                </div>
-              </div>
-
-              <div className={`${card} p-6`}>
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">Compare with</p>
-                {target ? (
-                  <div className="mt-1 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xl font-bold text-ink-strong">{target.program_name}</p>
-                      <p className="mt-0.5 text-[15px] text-ink-muted">{[target.degree_code, target.faculty].filter(Boolean).join(" · ")}</p>
-                    </div>
-                    <button type="button" onClick={() => chooseTarget(null)} className="text-sm font-semibold text-link hover:underline">Change</button>
+      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
+        <div className="space-y-8">
+          {loading ? (
+            <div className={`${card} h-40 animate-pulse`} />
+          ) : !program ? (
+            <div className={`${card} p-6`}>
+              <p className="text-lg font-semibold text-ink-strong">Choose your program first</p>
+              <p className="mt-1 text-[15px] text-ink-muted">Compare programs uses your program and the courses you've ticked in your roadmap.</p>
+              <Link to="/dashboard" className={`${secondary} mt-4`}>Go to your dashboard</Link>
+            </div>
+          ) : (
+            <>
+              <section className={`${card} p-6 md:p-8 space-y-7`}>
+                <div className="flex gap-4">
+                  <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-blue-600">1</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink-muted">Your program</p>
+                    <p className="mt-0.5 text-lg font-bold text-ink-strong">{program.program_name}</p>
+                    <p className="text-[15px] text-ink-muted">
+                      {[specNames.join(", ") || "No specialisation chosen", `${uocDone}${minimumUoc ? ` of ${minimumUoc}` : ""} UOC done`].join(" · ")}
+                    </p>
+                    <p className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1">
+                      <Link to={roadmapStepUrl("structure")} className="text-sm font-semibold text-link hover:underline">Update ticked courses</Link>
+                      <Link to={`/roadmap?program=${program.degree_code}`} className="text-sm font-semibold text-link hover:underline">Change specialisation</Link>
+                    </p>
                   </div>
-                ) : (
-                  <div className="relative mt-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search a program, e.g. Computer Science or 3778"
-                      aria-label="Search for a program to compare with"
-                      className="w-full pl-9 pr-3 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-[15px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {results.length > 0 && (
-                      <ul className="mt-2 rounded-xl border border-line bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
-                        {results.map((p) => (
-                          <li key={p.degree_code}>
-                            <button
-                              type="button"
-                              onClick={() => chooseTarget(p)}
-                              className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
-                            >
-                              <span className="block text-[15px] font-semibold text-ink-strong">{p.program_name}</span>
-                              <span className="block text-sm text-ink-muted">{[p.degree_code, p.faculty].filter(Boolean).join(" · ")}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                </div>
+
+                <div className="flex gap-4 pt-6 border-t border-line">
+                  <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-blue-600">2</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink-muted">Compare with</p>
+                    {target ? (
+                      <div className="mt-0.5 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-lg font-bold text-ink-strong">{target.program_name}</p>
+                          <p className="text-[15px] text-ink-muted">{[target.degree_code, target.faculty].filter(Boolean).join(" · ")}</p>
+                        </div>
+                        <button type="button" onClick={() => chooseTarget(null)} className="flex-shrink-0 text-sm font-semibold text-link hover:underline">Change</button>
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                          <input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search a program, e.g. Computer Science or 3778"
+                            aria-label="Search for a program to compare with"
+                            className="w-full pl-9 pr-3 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-[15px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        {results.length > 0 ? (
+                          <ul className="mt-2 rounded-xl border border-line bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+                            {results.map((p) => (
+                              <li key={p.degree_code}>
+                                <button
+                                  type="button"
+                                  onClick={() => chooseTarget(p)}
+                                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                  <span className="block text-[15px] font-semibold text-ink-strong">
+                                    {p.program_name}
+                                    {p.degree_code === program.degree_code && (
+                                      <span className="ml-2 align-middle px-2 py-0.5 rounded-full text-xs font-bold text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900/50">Your program</span>
+                                    )}
+                                  </span>
+                                  <span className="block text-sm text-ink-muted">{[p.degree_code, p.faculty].filter(Boolean).join(" · ")}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          !query.trim() &&
+                          nearby.length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-sm text-ink-muted">Or pick one from your faculty</p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {nearby.map((p) => (
+                                  <button
+                                    key={p.degree_code}
+                                    type="button"
+                                    onClick={() => chooseTarget(p)}
+                                    className="px-3.5 py-1.5 rounded-full text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+                                  >
+                                    {p.program_name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                    {target && majors.length > 0 && (
+                      <label className="mt-4 block">
+                        <span className="text-sm font-semibold text-ink">
+                          {sameProgram ? "Specialisation to compare with" : "Major or stream (optional)"}
+                        </span>
+                        <select
+                          value={majorCode}
+                          onChange={(e) => setMajorCode(e.target.value)}
+                          className="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-900 text-[15px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">{sameProgram ? "Choose one" : "Not sure yet"}</option>
+                          {majors.map((m) => (
+                            <option key={m.id} value={m.major_code}>{m.major_name}</option>
+                          ))}
+                        </select>
+                      </label>
                     )}
                   </div>
-                )}
+                </div>
 
-                {target && majors.length > 0 && (
-                  <label className="mt-4 block">
-                    <span className="text-sm font-semibold text-ink">Major or stream (optional)</span>
-                    <select
-                      value={majorCode}
-                      onChange={(e) => setMajorCode(e.target.value)}
-                      className="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-900 text-[15px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Not sure yet</option>
-                      {majors.map((m) => (
-                        <option key={m.id} value={m.major_code}>{m.major_name}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
+                <div className="pt-6 border-t border-line">
+                  <button
+                    type="button"
+                    onClick={compare}
+                    disabled={!target || (sameProgram && !majorCode) || status === "comparing" || status === "advising"}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {status === "comparing" ? "Comparing your courses..." : "Compare"}
+                    {status !== "comparing" && <ArrowRight className="h-5 w-5" />}
+                  </button>
+                  {!comparison && (
+                    <p className="mt-3 text-center text-sm text-ink-muted">
+                      You'll see which of your courses count, what's left, the extra terms, and an advisor's view.
+                    </p>
+                  )}
+                </div>
+              </section>
 
-                <button
-                  type="button"
-                  onClick={compare}
-                  disabled={!target || status === "comparing" || status === "advising"}
-                  className="mt-5 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {status === "comparing" ? "Comparing your courses..." : "Compare"}
-                  {status !== "comparing" && <ArrowRight className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
+              {status === "error" && (
+                <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-5 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[15px] text-red-800 dark:text-red-200">The comparison couldn't be run. Please try again.</p>
+                  <button type="button" onClick={compare} className={secondary}>Try again</button>
+                </div>
+              )}
 
-            {status === "error" && (
-              <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-5 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[15px] text-red-800 dark:text-red-200">The comparison couldn't be run. Please try again.</p>
-                <button type="button" onClick={compare} className={secondary}>Try again</button>
-              </div>
-            )}
-
-            {comparison && target && <Answer target={target} comparison={comparison} advice={advice} adviceLoading={status === "advising"} />}
-          </>
-        )}
+              {comparison && target && <Answer target={target} comparison={comparison} advice={advice} adviceLoading={status === "advising"} />}
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
