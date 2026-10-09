@@ -18,7 +18,7 @@ const GROUPS = [
     label: "Explore",
     items: [
       { path: "/handbook", label: "Handbook", icon: BookOpen },
-      { path: "/progress", label: "Compare programs", icon: Repeat, universityOnly: true },
+      { path: "/compare", label: "Compare programs", icon: Repeat, universityOnly: true },
     ],
   },
   {

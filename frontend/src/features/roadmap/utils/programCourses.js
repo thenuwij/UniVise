@@ -56,7 +56,7 @@ export async function fetchSpecialisationOptions(degreeCode) {
   const groups = await Promise.all(degrees.map(async (d) => {
     const { data } = await supabase
       .from("unsw_specialisations")
-      .select("id, major_name, specialisation_type")
+      .select("id, major_name, major_code, specialisation_type")
       .contains("sections_degrees", JSON.stringify([{ degree_code: d.degree_code }]))
       .in("specialisation_type", ["Major", "Honours"])
       .order("major_name");

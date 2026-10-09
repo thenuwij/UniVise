@@ -73,7 +73,7 @@ export default function ProgramCard({ facts }) {
       <div className="mt-6 pt-5 border-t border-line flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            to="/progress"
+            to="/compare"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
           >
             <Repeat className="h-5 w-5" />

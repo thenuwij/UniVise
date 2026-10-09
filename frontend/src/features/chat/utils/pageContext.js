@@ -9,7 +9,7 @@ const PAGES = [
   [/^\/dashboard/, "their dashboard"],
   [/^\/handbook/, "the Handbook search"],
   [/^\/saved/, "their shortlist"],
-  [/^\/progress/, "Compare programs"],
+  [/^\/compare/, "Compare programs"],
   [/^\/profile/, "their account page"],
 ];
 
