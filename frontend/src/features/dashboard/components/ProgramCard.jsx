@@ -33,6 +33,9 @@ export default function ProgramCard({ facts }) {
             <Compass className="h-5 w-5" />
             Explore a program's roadmap
           </Link>
+          <Link to="/roadmap" className="text-base font-semibold text-link hover:underline">
+            Set your program
+          </Link>
           <Link to="/handbook" className="inline-flex items-center gap-2 text-base font-semibold text-link hover:underline">
             Search the Handbook
             <ArrowRight className="h-4 w-4" />
@@ -53,6 +56,9 @@ export default function ProgramCard({ facts }) {
           <h2 className="mt-2 text-2xl md:text-[28px] font-extrabold leading-tight text-ink-strong">{program.program_name}</h2>
           <p className="mt-2 text-[15px] text-ink-muted">
             {[specNames.length ? specNames.join(" · ") : "No specialisation chosen yet", ...details].join("  ·  ")}
+            <Link to="/roadmap" className="ml-3 whitespace-nowrap text-sm font-semibold text-link hover:underline">
+              Change program
+            </Link>
           </p>
         </div>
       </div>

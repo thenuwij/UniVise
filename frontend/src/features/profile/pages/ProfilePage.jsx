@@ -1,5 +1,6 @@
 import { Label, Select, TextInput } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Check, GraduationCap, Pencil, User, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
@@ -7,6 +8,7 @@ import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
+import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 import YourDataCard from "../components/YourDataCard";
 
 const TAG_MAX_LENGTH = 60;
@@ -69,6 +71,26 @@ function Field({ label, value, wide }) {
       ) : (
         <p className="mt-0.5 text-[15px] text-slate-400 dark:text-slate-500">Not added</p>
       )}
+    </div>
+  );
+}
+
+function ProgramField({ program, loading }) {
+  return (
+    <div className="sm:col-span-2">
+      <p className="text-sm text-ink-muted">Your program</p>
+      <div className="mt-0.5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        {loading ? (
+          <div className="h-5 w-40 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        ) : program ? (
+          <p className="text-[15px] font-semibold text-ink-strong break-words">{program.program_name} ({program.degree_code})</p>
+        ) : (
+          <p className="text-[15px] text-slate-400 dark:text-slate-500">Not set</p>
+        )}
+        <Link to="/roadmap" className="text-sm font-semibold text-link hover:underline">
+          Change program
+        </Link>
+      </div>
     </div>
   );
 }
@@ -184,6 +206,7 @@ function ProfilePage() {
   const [snapshot, setSnapshot] = useState(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState({});
+  const { program: enrolledProgram, loading: programLoading } = useEnrolledProgram();
 
   const isHS = useMemo(() => studentType === "high_school", [studentType]);
   const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -446,6 +469,7 @@ function ProfilePage() {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-5">
+                  {!isHS && <ProgramField program={enrolledProgram} loading={programLoading} />}
                   <Field label="Year" value={shown(form.year)} />
                   {isHS ? (
                     <>
