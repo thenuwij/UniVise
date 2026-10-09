@@ -9,7 +9,6 @@ import {
 import { TbRobot } from "react-icons/tb";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, TrendingUp } from "lucide-react";
-import { card } from "@/shared/ui/cardStyles";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
@@ -43,7 +42,7 @@ function ProgressBar({ value }) {
 
 function BoardShell({ label, footer, children }) {
   return (
-    <section className={`${card} p-6 md:p-8`}>
+    <section>
       <h2 className="text-xl font-bold text-ink-strong">{label}</h2>
       <p className="mt-1 text-sm text-ink-muted">Ranked by how well they suit you</p>
       <div className="mt-5">{children}</div>

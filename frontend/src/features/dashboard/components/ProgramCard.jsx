@@ -35,7 +35,7 @@ export default function ProgramCard({ facts }) {
   const details = [`Program ${program.degree_code}`, minimumUoc ? `${minimumUoc} UOC` : null].filter(Boolean);
 
   return (
-    <section className="rounded-3xl border border-blue-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 md:p-8 shadow-xl shadow-blue-900/10 dark:shadow-black/40">
+    <section>
       <div>
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">Your program</p>
