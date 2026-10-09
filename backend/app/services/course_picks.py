@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
 from app.models.course_picks import CoursePicks
+from app.services.requirements import to_uoc
 from app.services.roadmap.industry import replace_unlisted_codes
 from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
 
@@ -84,7 +85,7 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
                 code = (course.get("code") or "").strip().upper() if isinstance(course, dict) else ""
                 if COURSE_CODE.match(code) and code not in codes:
                     codes.append(code)
-    section_lists = [(spec.get("id"), parse_sections_json(spec.get("sections"))) for spec in specs]
+    section_lists = [(spec.get("major_name") or spec.get("id"), parse_sections_json(spec.get("sections"))) for spec in specs]
     return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists
 
 
@@ -103,12 +104,18 @@ def load_inputs(user_id: str) -> dict | None:
     program_name = enrolled[0].get("program_name") or degree_code
 
     spec_names, spec_codes, spec_sections = _specialisations(user_id, degree_code, program_name)
-    completed = {
-        r["course_code"]
-        for r in supabase.from_("user_completed_courses").select("course_code, is_completed").eq("user_id", user_id).execute().data or []
+    completed_rows = [
+        r
+        for r in supabase.from_("user_completed_courses").select("course_code, uoc, is_completed").eq("user_id", user_id).execute().data or []
         if r.get("is_completed")
+    ]
+    completed = {r["course_code"] for r in completed_rows}
+    added = {
+        r["course_code"]
+        for r in supabase.from_("user_custom_courses").select("course_code").eq("user_id", user_id).execute().data or []
+        if r.get("course_code")
     }
-    program = supabase.from_("unsw_degrees_final").select("sections").eq("degree_code", degree_code).limit(1).execute().data
+    program = supabase.from_("unsw_degrees_final").select("sections, minimum_uoc").eq("degree_code", degree_code).limit(1).execute().data
     program_sections = parse_sections_json(program[0].get("sections")) if program else []
     skip = not_needed_codes([(degree_code, program_sections), *spec_sections], completed)
     courses = [c for c in fetch_program_course_list(degree_code, spec_codes) if c["code"] not in skip]
@@ -149,6 +156,10 @@ def load_inputs(user_id: str) -> dict | None:
         "saved_careers": saved_careers,
         "completed": sorted(completed),
         "candidates": available_courses(courses, completed, prereq_groups(edges), set(spec_codes)),
+        "requirement_lists": [(None, program_sections), *spec_sections],
+        "minimum_uoc": program[0].get("minimum_uoc") if program else None,
+        "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
+        "added": sorted(added),
     }
 
 
