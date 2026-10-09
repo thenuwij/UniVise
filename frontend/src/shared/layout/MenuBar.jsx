@@ -22,7 +22,7 @@ const GROUPS = [
     ],
   },
   {
-    label: "Help",
+    label: "Get advice",
     items: [{ path: "/chat", label: "Ask Eunice", icon: MessageCircle }],
   },
 ];
@@ -138,18 +138,18 @@ export function MenuBar({ isOpen, handleClose }) {
                           aria-current={active ? "page" : undefined}
                           className={`group w-full flex items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors ${
                             active
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25"
+                              ? "bg-blue-100 dark:bg-blue-900/50"
                               : "hover:bg-blue-50 dark:hover:bg-slate-800"
                           }`}
                         >
                           <span
                             className={`flex-shrink-0 h-8 w-8 rounded-lg inline-flex items-center justify-center ${
-                              active ? "bg-white/20 text-white" : "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 group-hover:bg-white dark:group-hover:bg-slate-900"
+                              active ? "bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300" : "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 group-hover:bg-white dark:group-hover:bg-slate-900"
                             }`}
                           >
                             <Icon className="h-4 w-4" />
                           </span>
-                          <span className={`text-[15px] font-semibold ${active ? "text-white" : "text-ink-strong"}`}>{label}</span>
+                          <span className={`text-[15px] font-semibold ${active ? "text-blue-800 dark:text-blue-200" : "text-ink-strong"}`}>{label}</span>
                         </button>
                       </li>
                     );
