@@ -22,7 +22,7 @@ function TitleBlock({ eyebrow, title, subtitle, compact, back }) {
               {eyebrow && <span aria-hidden className="h-4 w-px bg-white/30" />}
             </span>
           )}
-          {eyebrow && <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-band-soft">{eyebrow}</p>}
+          {eyebrow && <p data-eyebrow className="text-[13px] font-bold uppercase tracking-[0.14em] text-band-soft">{eyebrow}</p>}
         </div>
       )}
       {title ? (

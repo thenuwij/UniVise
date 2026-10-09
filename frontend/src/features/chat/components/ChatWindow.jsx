@@ -18,7 +18,7 @@ function titleFrom(text) {
   return `${cut.slice(0, cut.lastIndexOf(" ") > 30 ? cut.lastIndexOf(" ") : TITLE_MAX)}…`;
 }
 
-export default function ChatWindow({ convId, onCreated }) {
+export default function ChatWindow({ convId, onCreated, compact = false, getPage }) {
   const { session } = UserAuth();
 
   const firstName = session?.user?.user_metadata?.first_name;
@@ -119,7 +119,7 @@ export default function ChatWindow({ convId, onCreated }) {
       res = await apiFetch(`/chat/conversations/${id}/reply/stream`, {
         method: "POST",
         token: session?.access_token,
-        body: { content: text },
+        body: { content: text, page: getPage?.() || null },
       });
     } catch {
       setLoading(false);
@@ -183,11 +183,11 @@ export default function ChatWindow({ convId, onCreated }) {
       >
         <div
           className={`
-            max-w-[60ch] p-4 text-base break-words transition-all duration-200
+            max-w-[60ch] break-words transition-all duration-200 ${compact ? "p-3 text-[15px]" : "p-4 text-base"}
             ${
               isUser
-                ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ml-12"
-                : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md mr-12 border border-slate-200 dark:border-slate-700 shadow-sm"
+                ? `bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ${compact ? "ml-8" : "ml-12"}`
+                : `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md border border-slate-200 dark:border-slate-700 shadow-sm ${compact ? "mr-4" : "mr-12"}`
             }
           `}
         >
@@ -241,21 +241,29 @@ return (
     <div className="flex flex-col h-full relative">
       {/* ─── Scrollable Messages (Full Height) ───────────────────────────────────────────────── */}
       <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
-        <div className="mx-auto max-w-4xl p-4 space-y-3 mt-5 pb-32">
+        <div className={`mx-auto max-w-4xl space-y-3 ${compact ? "p-3 pb-40" : "p-4 mt-5 pb-32"}`}>
           {
             messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full py-20 px-6 text-center">
-                <div className="p-4 rounded-full bg-blue-100 dark:bg-blue-900/40 mb-5">
-                  <MessageCircle className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              <div className={`flex flex-col items-center justify-center h-full text-center ${compact ? "py-6 px-2" : "py-20 px-6"}`}>
+                <div className={`rounded-full bg-blue-100 dark:bg-blue-900/40 ${compact ? "p-3 mb-3" : "p-4 mb-5"}`}>
+                  <MessageCircle className={`text-blue-600 dark:text-blue-400 ${compact ? "w-7 h-7" : "w-10 h-10"}`} />
                 </div>
-                <h2 className="text-2xl font-bold text-ink-strong mb-1">Hi{firstName ? ` ${firstName}` : ""}, I'm Eunice</h2>
-                <p className="text-base text-ink-muted max-w-md mb-8">Your academic and career advisor. Ask me anything about your courses, career paths or university life, or pick a question to start.</p>
-                <div className="grid grid-cols-2 gap-3 max-w-lg w-full">
+                <h2 className={`font-bold text-ink-strong mb-1 ${compact ? "text-lg" : "text-2xl"}`}>Hi{firstName ? ` ${firstName}` : ""}, I'm Eunice</h2>
+                <p className={`text-ink-muted max-w-md ${compact ? "text-sm mb-5" : "text-base mb-8"}`}>
+                  {compact
+                    ? "Ask about your courses, what's left in your degree, or this page."
+                    : "Your academic and career advisor. Ask me anything about your courses, career paths or university life, or pick a question to start."}
+                </p>
+                <div className={`grid gap-3 max-w-lg w-full ${compact ? "grid-cols-1" : "grid-cols-2"}`}>
                   {(userType === "high_school" ? [
                     "What degrees suit my interests?",
                     "How do I improve my ATAR?",
                     "What subjects should I pick?",
                     "Tell me about my recommendations",
+                  ] : compact ? [
+                    "How many courses do I have left?",
+                    "Which courses should I take next?",
+                    "Explain this page for me",
                   ] : [
                     "What careers suit my profile?",
                     "How can I improve my WAM?",
@@ -300,8 +308,8 @@ return (
       </div>
 
       {/* ─── Floating Input Bar ─────────────────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100/90 to-transparent dark:from-slate-950 dark:via-slate-950/90 dark:to-transparent pt-8 pb-4">
-        <div className="mx-auto max-w-3xl px-4">
+      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t to-transparent dark:to-transparent ${compact ? "from-white via-white/90 dark:from-slate-900 dark:via-slate-900/90 pt-6 pb-3" : "from-slate-100 via-slate-100/90 dark:from-slate-950 dark:via-slate-950/90 pt-8 pb-4"}`}>
+        <div className={`mx-auto max-w-3xl ${compact ? "px-3" : "px-4"}`}>
           <div className="relative flex items-end bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-600 shadow-xl backdrop-blur-sm">
             <Textarea
               ref={textAreaRef}
@@ -319,16 +327,16 @@ return (
                   sendMessage();
                 }
               }}
-              className="
-                flex-1 resize-none overflow-y-auto max-h-40 min-h-[80px]
-                text-md p-6 pr-16 rounded-2xl border-0 focus:ring-0 focus:outline-none
+              className={`
+                flex-1 resize-none overflow-y-auto max-h-40 rounded-2xl border-0 focus:ring-0 focus:outline-none
                 bg-transparent placeholder-slate-400 dark:placeholder-slate-500 scrollbar-hide
-              "
+                ${compact ? "min-h-[56px] text-[15px] p-4 pr-14" : "min-h-[80px] text-md p-6 pr-16"}
+              `}
             />
             <button
               type="button"
               aria-label="Send"
-              className="absolute right-3 bottom-3 w-12 h-12 inline-flex items-center justify-center rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`absolute inline-flex items-center justify-center rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "right-2 bottom-2 w-10 h-10" : "right-3 bottom-3 w-12 h-12"}`}
               disabled={loading || input.trim() === ""}
               onClick={() => sendMessage()}
             >
@@ -336,7 +344,9 @@ return (
             </button>
           </div>
           <p className="mt-2 text-center text-xs text-ink-muted">
-            Enter to send, Shift + Enter for a new line. Eunice can make mistakes, so check important details in the Handbook.
+            {compact
+              ? "Eunice can make mistakes. Check important details in the Handbook."
+              : "Enter to send, Shift + Enter for a new line. Eunice can make mistakes, so check important details in the Handbook."}
           </p>
         </div>
       </div>

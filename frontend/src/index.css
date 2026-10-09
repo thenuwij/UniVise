@@ -133,6 +133,10 @@
   .app-page { animation: none; }
 }
 
+.has-eunice .app-page {
+  padding-bottom: 5.5rem;
+}
+
 .dark .app-page {
   background: radial-gradient(1200px 360px at 50% -140px, rgba(99, 102, 241, 0.14), transparent 70%), var(--color-page);
 }
