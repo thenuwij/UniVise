@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, CircleCheck, Info, MapPin, Plus, Search, X } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase";
-import { ADDED_SECTION, matchesRule } from "@/features/roadmap/utils/myCourses";
+import { ADDED_SECTION, canCheckRules, matchesRule } from "@/features/roadmap/utils/myCourses";
 
 const MIN_SEARCH = 2;
 const YOURS = "Your added courses";
@@ -149,7 +149,7 @@ export default function ElectivesPanel({
                   const isListed = target && section === LISTED;
                   const isAdded = target ? (isListed ? added.has(option.code) : options.some((o) => o.code === option.code)) : added.has(option.code);
                   const elsewhere = target && !isListed && !isAdded ? listedIn?.get(option.code) : null;
-                  const check = target && rule && !isListed && !elsewhere ? (matchesRule(option.code, rule.patterns) ? "match" : "warn") : null;
+                  const check = target && rule && !isListed && !elsewhere ? (matchesRule(option.code, rule.patterns) ? "match" : canCheckRules(rule.patterns) || !rule.patterns.length ? "warn" : null) : null;
                   return (
                     <li key={option.code} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                       <span className="min-w-0">

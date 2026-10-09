@@ -11,7 +11,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, fetchSpecialisationOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
-import { ADDED_SECTION, matchesRule, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, ruleCheck, rulePatterns, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
+import { ADDED_SECTION, canCheckRules, matchesRule, sectionRules, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, ruleCheck, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
 import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
@@ -261,7 +261,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
   const total = section.uoc ?? sumUoC(section.courses);
   const count = section.courses?.length || 0;
   const listedCount = section.courses?.filter((c) => !c.extra).length || 0;
-  const patterns = section.elective ? rulePatterns(section.description) : [];
+  const patterns = section.elective ? sectionRules(section) : [];
   const meta = section.open
     ? `${count} added · needs ${section.uoc} UOC`
     : section.elective && Number(section.uoc) > 0
@@ -310,7 +310,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
                   </span>
                   <span className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1">{c.name}</span>
                   {c.list && <span className="text-xs text-ink-muted">{c.list}</span>}
-                  {c.extra && section.elective && !matchesRule(c.code, patterns) && (
+                  {c.extra && section.elective && (!patterns.length || canCheckRules(patterns)) && !matchesRule(c.code, patterns) && (
                     <span className="mt-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Not on the Handbook list. Check with your school.</span>
                   )}
                 </div>
@@ -738,7 +738,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           groupName={groups.find((g) => g.sections.includes(addSection))?.name}
           listedOptions={addSection.elective ? addSection.courses.filter((c) => !c.extra) : []}
           options={addSection.courses.filter((c) => c.extra).map((c) => ({ ...c, section: addSection.place }))}
-          rule={addSection.elective ? { text: addSection.description, patterns: rulePatterns(addSection.description) } : null}
+          rule={addSection.elective ? { text: addSection.description, patterns: sectionRules(addSection) } : null}
           listedIn={listedIn}
           added={added}
           completed={doneSet}

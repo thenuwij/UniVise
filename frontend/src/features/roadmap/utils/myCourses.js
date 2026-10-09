@@ -123,15 +123,22 @@ export function ruleCheck(section, completedRows) {
 
 export function rulePatterns(text) {
   const found = [];
-  for (const m of String(text || "").matchAll(/\b([A-Za-z]{4})(\d)(?:\*{3}|x{3})(?![A-Za-z0-9])/gi)) {
-    const pattern = { prefix: m[1].toUpperCase(), level: Number(m[2]) };
-    if (!found.some((p) => p.prefix === pattern.prefix && p.level === pattern.level)) found.push(pattern);
+  for (const m of String(text || "").matchAll(/\b([A-Za-z]{4}\d{0,3})([*x#]{1,4})(?![A-Za-z0-9*#])/gi)) {
+    if (m[1].length + m[2].length !== 8) continue;
+    const prefix = m[1].toUpperCase();
+    if (!found.some((p) => p.prefix === prefix)) found.push({ prefix });
   }
   return found;
 }
 
-export const matchesRule = (code, patterns) =>
-  (patterns || []).some((p) => String(code).toUpperCase().startsWith(p.prefix) && levelOfCode(code) === p.level);
+export const sectionRules = (section) => (section?.rules?.length ? section.rules : rulePatterns(section?.description));
+
+export const canCheckRules = (rules) => (rules || []).length > 0 && rules.every((r) => r.prefix);
+
+export const matchesRule = (code, rules) => {
+  const upper = String(code).toUpperCase();
+  return (rules || []).some((r) => r.prefix && upper.startsWith(r.prefix) && !(r.except || []).includes(upper));
+};
 
 const TARGET_TEXT = /(\d+)\s*(?:UOC|units of credit)\s+(?:of|from) the following/i;
 const LOOSE_TARGET = /(?:at least|either|take|complete)\s+(\d+)\s*(?:UOC|units of credit)/i;

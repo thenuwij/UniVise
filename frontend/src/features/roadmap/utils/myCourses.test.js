@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADDED_SECTION, matchesRule, showsOnCourses, tidySections, myCourseCodes, notNeededCodes, openRequirementParts, orderSections, ruleCheck, rulePatterns, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "./myCourses";
+import { ADDED_SECTION, canCheckRules, matchesRule, sectionRules, showsOnCourses, tidySections, myCourseCodes, notNeededCodes, openRequirementParts, orderSections, ruleCheck, rulePatterns, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "./myCourses";
 
 const typed = [
   {
@@ -151,15 +151,27 @@ describe("ruleCheck", () => {
 describe("rulePatterns", () => {
   it("reads course code patterns from rule text", () => {
     const patterns = rulePatterns("any COMP4***, COMP6*** or COMP9*** course, or ACCT3xxx");
-    expect(patterns).toEqual([
-      { prefix: "COMP", level: 4 },
-      { prefix: "COMP", level: 6 },
-      { prefix: "COMP", level: 9 },
-      { prefix: "ACCT", level: 3 },
-    ]);
+    expect(patterns).toEqual([{ prefix: "COMP4" }, { prefix: "COMP6" }, { prefix: "COMP9" }, { prefix: "ACCT3" }]);
     expect(matchesRule("COMP6771", patterns)).toBe(true);
     expect(matchesRule("COMP3311", patterns)).toBe(false);
     expect(matchesRule("ACCT3563", patterns)).toBe(true);
+  });
+
+  it("reads longer and whole-subject patterns", () => {
+    const patterns = rulePatterns("Also counts: any DART13** or LAWS**** course.");
+    expect(patterns).toEqual([{ prefix: "DART13" }, { prefix: "LAWS" }]);
+    expect(matchesRule("DART1300", patterns)).toBe(true);
+    expect(matchesRule("DART2300", patterns)).toBe(false);
+    expect(matchesRule("LAWS3001", patterns)).toBe(true);
+  });
+
+  it("prefers stored rules and honours exceptions", () => {
+    const rules = sectionRules({ description: "any COMP3*** course", rules: [{ prefix: "MATH3", except: ["MATH3599"] }] });
+    expect(matchesRule("MATH3711", rules)).toBe(true);
+    expect(matchesRule("MATH3599", rules)).toBe(false);
+    expect(matchesRule("COMP3311", rules)).toBe(false);
+    expect(canCheckRules(rules)).toBe(true);
+    expect(canCheckRules([{ orgs: ["School of Economics"], levels: [3] }])).toBe(false);
   });
 });
 

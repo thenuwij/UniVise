@@ -141,7 +141,7 @@ function StillToDo({ items, uocNeeded, noMajor }) {
                       item.choices.length ? `${item.choices.length} "one of" ${item.choices.length === 1 ? "choice" : "choices"}: ${item.choices.map((codes) => codes.join(" or ")).join("; ")}` : "",
                     ].filter(Boolean).join(" · ")
                   : item.type === "elective"
-                  ? `${item.uoc_left} UOC to choose from ${item.options} listed courses`
+                  ? `${item.uoc_left} UOC to choose from ${item.options} listed courses${item.also ? ` or ${item.also}` : ""}`
                   : `${item.uoc_left} UOC of ${item.note}`}
               </p>
             </li>
