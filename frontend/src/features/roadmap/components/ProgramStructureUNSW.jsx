@@ -781,21 +781,28 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                   const i = shownSections.indexOf(sec);
                   const key = `${sec.title}-${i}`;
                   return (
-                    <CourseSection
-                      key={key}
-                      section={sec}
-                      isOpen={openMap[key] ?? i === firstOpen}
-                      onToggle={() => toggleSection(key)}
-                      onCourseClick={handleCourseClick}
-                      completed={completed}
-                      progress={sectionProgresses?.[i]}
-                      onToggleDone={trackCompletion ? toggleDone : null}
-                      options={options}
-                      added={added}
-                      notNeeded={notNeeded}
-                      onToggleAdded={trackCompletion ? (c) => (c.extra ? toggleInSection(c, sec.place) : toggleAdded(c)) : null}
-                      onAdd={trackCompletion && (sec.open || sec.elective) ? () => setAddTarget(sec.place) : null}
-                    />
+                    <div key={key} className="space-y-3">
+                      {sec.heading && (
+                        <p className="pt-2 text-[15px] font-semibold text-ink-strong">
+                          {sec.heading.title}
+                          <span className="font-normal text-ink-muted"> · {sec.heading.uoc} UOC, made up of the parts below</span>
+                        </p>
+                      )}
+                      <CourseSection
+                        section={sec}
+                        isOpen={openMap[key] ?? i === firstOpen}
+                        onToggle={() => toggleSection(key)}
+                        onCourseClick={handleCourseClick}
+                        completed={completed}
+                        progress={sectionProgresses?.[i]}
+                        onToggleDone={trackCompletion ? toggleDone : null}
+                        options={options}
+                        added={added}
+                        notNeeded={notNeeded}
+                        onToggleAdded={trackCompletion ? (c) => (c.extra ? toggleInSection(c, sec.place) : toggleAdded(c)) : null}
+                        onAdd={trackCompletion && (sec.open || sec.elective) ? () => setAddTarget(sec.place) : null}
+                      />
+                    </div>
                   );
                 })}
                 {g.unlisted.map((sec) => <UnlistedLine key={sec.title} section={sec} />)}

@@ -90,6 +90,37 @@ def _listed(section) -> int:
     return len([c for c in section.get("courses") or [] if _code(c)])
 
 
+def _share(section) -> int:
+    if to_uoc(section.get("uoc")):
+        return to_uoc(section.get("uoc"))
+    if section.get("kind") == "choice":
+        first = next((c for c in section.get("courses") or [] if _code(c)), None)
+        return to_uoc(first.get("uoc")) if first else 0
+    return 0
+
+
+def _attach_headings(sections: list) -> list:
+    out = []
+    i = 0
+    while i < len(sections):
+        header = sections[i]
+        target = to_uoc(header.get("uoc"))
+        if header.get("kind") == "unlisted" and target:
+            total, j = 0, i + 1
+            while j < len(sections) and total < target and sections[j].get("kind") not in ("unlisted", "info", "limit"):
+                total += _share(sections[j])
+                j += 1
+            if j > i + 1 and total == target:
+                heading = {"title": header["title"], "uoc": target}
+                for k, child in enumerate(sections[i + 1:j]):
+                    out.append({**child, "under": header["title"], **({"heading": heading} if k == 0 else {})})
+                i = j
+                continue
+        out.append(header)
+        i += 1
+    return out
+
+
 def tidy_sections(sections) -> list:
     items = _merge_continuations([s for s in sections or [] if isinstance(s, dict) and s.get("title")])
     out = []
@@ -131,8 +162,7 @@ def tidy_sections(sections) -> list:
             tidied = {**tidied, "pick_one": key, "courses": [{**c, "choice": key} if c.get("choice") == tidied["pick_one"] else c for c in tidied["courses"]]}
         out.append(tidied)
         i += 1
-    return out
-
+    return _attach_headings(out)
 
 def _level(code: str) -> int:
     return int(code[4]) if len(code) > 4 and code[4].isdigit() else 0

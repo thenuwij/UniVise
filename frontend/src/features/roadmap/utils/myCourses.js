@@ -91,7 +91,7 @@ const noUoc = (section) =>
   section?.courses?.length > 0 && section.courses.every((c) => c.uoc !== "" && c.uoc != null && Number(c.uoc) === 0);
 
 export function orderSections(sections) {
-  const rank = (s) => (noUoc(s) ? 1000 : levelOf(s.title));
+  const rank = (s) => (noUoc(s) ? 1000 : levelOf(s.under || s.title));
   return [...(sections || [])].sort((a, b) => rank(a) - rank(b));
 }
 
@@ -187,6 +187,33 @@ function tidyCore(section, nextIsChoice) {
   return { ...withTarget, kind: "elective", courses: asElective(courses) };
 }
 
+const shareOf = (section) =>
+  Number(section.uoc) || (section.kind === "choice" ? Number((section.courses || []).find((c) => c?.code)?.uoc) || 0 : 0);
+
+function attachHeadings(sections) {
+  const out = [];
+  for (let i = 0; i < sections.length; i += 1) {
+    const header = sections[i];
+    const target = Number(header.uoc) || 0;
+    if (header.kind === "unlisted" && target) {
+      let sum = 0;
+      let j = i + 1;
+      while (j < sections.length && sum < target && !["unlisted", "info", "limit"].includes(sections[j].kind)) {
+        sum += shareOf(sections[j]);
+        j += 1;
+      }
+      if (j > i + 1 && sum === target) {
+        const heading = { title: header.title, uoc: target };
+        sections.slice(i + 1, j).forEach((child, k) => out.push({ ...child, under: header.title, ...(k === 0 ? { heading } : {}) }));
+        i = j - 1;
+        continue;
+      }
+    }
+    out.push(header);
+  }
+  return out;
+}
+
 export function tidySections(sections) {
   const list = mergeContinuations((sections || []).filter((s) => s?.title));
   const out = [];
@@ -226,7 +253,7 @@ export function tidySections(sections) {
       out.push(tidied);
     }
   }
-  return out;
+  return attachHeadings(out);
 }
 
 export const showsOnCourses = (section) =>

@@ -172,3 +172,16 @@ def test_merge_continues_past_an_empty_sub_list():
     part = by_name(requirement_status(lists, set()), "Economics Electives")
 
     assert (part["uoc"], part["count"]) == (30, 2)
+
+
+def test_heading_card_is_dropped_when_parts_add_up():
+    lists = [(None, [
+        {"title": "Business Core Courses", "kind": "core", "uoc": 30, "courses": []},
+        {"title": "Integrated First Year Courses", "kind": "core", "uoc": 18, "courses": [{"code": c, "uoc": 6} for c in ("COMM1100", "COMM1110", "COMM1120")]},
+        {"title": "One of the following:", "kind": "choice", "uoc": 0, "courses": [{"code": "ACCT1501", "uoc": 6, "choice": "a"}, {"code": "FINS1612", "uoc": 6, "choice": "a"}]},
+        {"title": "One of the following:", "kind": "choice", "uoc": 0, "courses": [{"code": "ECON1101", "uoc": 6, "choice": "b"}, {"code": "ECON1102", "uoc": 6, "choice": "b"}]},
+    ])]
+    parts = requirement_status(lists, set())
+
+    assert not [p for p in parts if p["type"] == "unlisted"]
+    assert by_name(parts, "Integrated First Year Courses")["type"] == "required"

@@ -292,3 +292,31 @@ describe("tidySections empty sub-lists", () => {
     expect(tidy[0].courses.map((c) => c.code)).toEqual(["COMM3000", "ACTL3191"]);
   });
 });
+
+describe("tidySections headings", () => {
+  const sections = [
+    { title: "Business Core Courses", kind: "core", uoc: 30, courses: [] },
+    { title: "Integrated First Year Courses", kind: "core", uoc: 18, courses: [{ code: "COMM1100", uoc: 6 }, { code: "COMM1110", uoc: 6 }, { code: "COMM1120", uoc: 6 }] },
+    { title: "One of the following:", kind: "choice", uoc: 0, courses: [{ code: "ACCT1501", uoc: 6, choice: "a" }, { code: "FINS1612", uoc: 6, choice: "a" }] },
+    { title: "One of the following:", kind: "choice", uoc: 0, courses: [{ code: "ECON1101", uoc: 6, choice: "b" }, { code: "ECON1102", uoc: 6, choice: "b" }] },
+    { title: "Level 2 Core Courses", kind: "core", uoc: 12, courses: [{ code: "INFS2603", uoc: 6 }, { code: "INFS2605", uoc: 6 }] },
+  ];
+
+  it("turns a card into a heading when the parts below add up to it", () => {
+    const tidy = tidySections(sections);
+    expect(tidy.map((s) => s.title)).toEqual(["Integrated First Year Courses", "One of the following:", "One of the following:", "Level 2 Core Courses"]);
+    expect(tidy[0].heading).toEqual({ title: "Business Core Courses", uoc: 30 });
+    expect(tidy.slice(0, 3).every((s) => s.under === "Business Core Courses")).toBe(true);
+    expect(tidy[3].under).toBeUndefined();
+  });
+
+  it("keeps the parts together when ordering by level", () => {
+    const ordered = orderSections(tidySections([{ title: "Level 1 Core Courses", kind: "core", uoc: 12, courses: [] }, ...sections.slice(2, 4)]));
+    expect(ordered.map((s) => s.under)).toEqual(["Level 1 Core Courses", "Level 1 Core Courses"]);
+  });
+
+  it("keeps the card when the parts don't add up", () => {
+    const tidy = tidySections([{ title: "Core Courses", kind: "core", uoc: 30, courses: [] }, { title: "Thesis Courses", kind: "elective", uoc: 18, courses: [{ code: "MATH4001", uoc: 6 }] }]);
+    expect(tidy[0].kind).toBe("unlisted");
+  });
+});
