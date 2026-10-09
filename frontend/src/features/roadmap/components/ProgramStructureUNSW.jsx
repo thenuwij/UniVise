@@ -173,7 +173,7 @@ function SectionProgress({ progress }) {
 function GroupHeader({ group, action }) {
   const label = group.type === "Program" ? "Program requirements" : group.type === "Honours" ? "Honours specialisation" : group.type;
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 pt-6">
+    <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">
           {label}
@@ -672,7 +672,16 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   return (
     <div className="space-y-6">
 
-      <SectionHeading subtitle={trackCompletion ? null : "The courses in this program."}>
+      <SectionHeading
+        subtitle={trackCompletion ? null : "The courses in this program."}
+        action={
+          courseSections.length > 0 ? (
+            <ExpandToggle open={allOpen} onClick={() => setAllOpen(!allOpen)}>
+              {allOpen ? "Collapse all" : "Expand all"}
+            </ExpandToggle>
+          ) : null
+        }
+      >
         <span className="inline-flex flex-wrap items-center gap-3">
           Your courses
           {trackCompletion && (
@@ -700,14 +709,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           See how these courses connect in CourseMesh
           <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </button>
-      )}
-
-      {courseSections.length > 0 && (
-        <div className="flex justify-end">
-          <ExpandToggle open={allOpen} onClick={() => setAllOpen(!allOpen)}>
-            {allOpen ? "Collapse all" : "Expand all"}
-          </ExpandToggle>
-        </div>
       )}
 
       {showGuide && <SpotlightGuide steps={GUIDE_STEPS} seenKey={GUIDE_KEY} onClose={() => setShowGuide(false)} />}
@@ -757,8 +758,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 onChoose={onChangeSpecialisation}
               />
             )}
-            {groups.map((g) => (
-              <div key={g.key} className="space-y-3">
+            {groups.map((g, gi) => (
+              <div key={g.key} className={`space-y-3 ${gi ? "pt-6" : ""}`}>
                 {g.key === "program" && showMinorCard && (
                   <MinorCard uoc={optionalMinorUoc} options={minorOptions} value={minorId} saving={savingMinor} onChange={chooseMinor} />
                 )}
