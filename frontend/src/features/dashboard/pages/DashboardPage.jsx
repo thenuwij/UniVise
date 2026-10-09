@@ -6,7 +6,6 @@ import PageHeader from '@/shared/layout/PageHeader';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bookmark } from 'lucide-react';
 import ProgramCard from '../components/ProgramCard.jsx';
-import AtAGlance from '../components/AtAGlance.jsx';
 import { useDashboardFacts } from '../hooks/useDashboardFacts';
 import { RecommendationTable } from '@/features/recommendations/components/RecommendationTable';
 import { UserAuth } from '@/app/AuthContext';
@@ -69,7 +68,6 @@ function DashboardPage() {
       <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
           <ProgramCard facts={facts} />
-          <AtAGlance facts={facts} />
         </div>
 
         {/* Recommendations */}

@@ -479,7 +479,7 @@ function ProgressPage() {
                 ? undefined
                 : { label: "Back", onClick: currentStep === 4 ? () => setCurrentStep(3) : goBack }
             }
-            eyebrow="Switch Degree"
+            eyebrow="Compare programs"
             title={currentStep === 4 && baseProgram && targetProgram ? `${baseProgram.name} to ${targetProgram.name}` : STEPS[currentStep - 1].label}
             subtitle={
               currentStep === 4 && baseProgram && targetProgram

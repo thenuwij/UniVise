@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Briefcase, Compass, GraduationCap, Layers, Repeat, Users } from "lucide-react";
 import { card } from "@/shared/ui/cardStyles";
+import AtAGlance from "./AtAGlance";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const STEP_LINKS = [
   { key: "overview", title: "Overview", text: "What your degree covers and requires", icon: GraduationCap },
-  { key: "structure", title: "Courses", text: "Tick what you've done, add electives", icon: Layers },
+  { key: "structure", title: "Courses", text: "Tick what you've done, add courses", icon: Layers },
   { key: "careers", title: "Careers", text: "Roles, pay and job ads", icon: Briefcase },
   { key: "internships", title: "Internships", text: "Programs open now", icon: BookOpen },
   { key: "societies", title: "Societies", text: "Clubs and professional bodies", icon: Users },
@@ -45,6 +46,8 @@ export default function ProgramCard({ facts }) {
         </div>
       </div>
 
+      <AtAGlance facts={facts} />
+
       <p className="mt-7 text-sm font-semibold text-ink-muted">Jump straight to</p>
       <nav aria-label="Roadmap steps" className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {STEP_LINKS.map(({ key, title, text, icon: Icon }, i) => (
@@ -70,10 +73,10 @@ export default function ProgramCard({ facts }) {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/progress"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
           >
             <Repeat className="h-5 w-5" />
-            Switch Degree
+            Compare programs
           </Link>
           <Link
             to="/roadmap"

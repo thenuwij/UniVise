@@ -44,7 +44,7 @@ The student's courses as a prerequisite graph, coloured Completed, Can take next
 
 One search across every UNSW degree, major, minor, honours plan, and course, with results grouped by type. Each detail page links to the official UNSW Handbook and to the matching roadmap.
 
-### Switch Degree
+### Compare programs
 
 Compares the student's current program with a target program: what transfers, what does not, what is left, and what it costs in extra terms. An AI advisor weighs those facts to reach a recommendation, and can summarise how the target degree fits the student's interests and goals.
 
@@ -119,7 +119,7 @@ supabase/migrations/  database schema and row level security policies as SQL mig
 1. Sign in with Google and complete the short onboarding survey, including your UNSW program and, optionally, your major or stream.
 2. Open your dashboard. Your roadmap is already being built, and the dashboard suggests your next step.
 3. Tick the courses you have completed in the roadmap's Structure step, then open CourseMesh to see what you can take next and why.
-4. Use **Handbook** to look up any degree, major, or course, and **Switch Degree** to compare your program with another.
+4. Use **Handbook** to look up any degree, major, or course, and **Compare programs** to see what transfers to another program.
 5. Ask Eunice anything about your courses or career plans.
 
 ---

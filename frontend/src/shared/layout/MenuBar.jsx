@@ -19,7 +19,7 @@ const GROUPS = [
     label: "Explore",
     items: [
       { path: "/handbook", label: "Handbook", hint: "Degrees, majors and courses", icon: BookOpen },
-      { path: "/progress", label: "Switch Degree", hint: "Compare another program", icon: Repeat, universityOnly: true },
+      { path: "/progress", label: "Compare programs", hint: "See what transfers to another program", icon: Repeat, universityOnly: true },
     ],
   },
   {
