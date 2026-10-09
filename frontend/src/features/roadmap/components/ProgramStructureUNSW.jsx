@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
+import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, fetchSpecialisationOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
 import { ADDED_SECTION, matchesRule, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, ruleCheck, rulePatterns, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
 import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
@@ -376,6 +376,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [minimumUoc, setMinimumUoc] = useState(null);
   const [programName, setProgramName] = useState("");
   const [minorOptions, setMinorOptions] = useState([]);
+  const [hasMajors, setHasMajors] = useState(true);
   const [minorId, setMinorId] = useState(null);
   const [savingMinor, setSavingMinor] = useState(false);
   const [specsVersion, setSpecsVersion] = useState(0);
@@ -411,7 +412,13 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     });
     if (trackCompletion) {
       const program = built[built.length - 1];
-      for (const part of openParts.filter((p) => !p.optional)) {
+      const unlistedProgram = !hasMajors && !programCourseSections.length;
+      const disciplinary = unlistedProgram
+        ? sections
+            .filter((sec) => sec.kind === "info" && Number(sec.uoc) > 0 && !sec.courses?.length)
+            .map((sec) => ({ title: sec.title, uoc: Number(sec.uoc) }))
+        : [];
+      for (const part of [...disciplinary, ...openParts.filter((p) => !p.optional)]) {
         program.sections.push({ title: part.title, uoc: part.uoc, open: true, place: part.title, courses: [] });
       }
       const targets = built.flatMap((g) => g.sections.filter((sec) => sec.open || sec.elective));
@@ -422,7 +429,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       }
     }
     return built.filter((g) => g.sections.length || g.rules.length || g.unlisted.length);
-  }, [specs, programName, minimumUoc, programCourseSections, trackCompletion, openParts, mine, listedCodes]);
+  }, [specs, programName, minimumUoc, programCourseSections, trackCompletion, openParts, mine, listedCodes, hasMajors, sections]);
 
   const shownSections = useMemo(() => groups.flatMap((g) => g.sections), [groups]);
   const doneSet = useMemo(() => new Set(Object.values(completed).filter((r) => r?.is_completed).map((r) => r.course_code)), [completed]);
@@ -548,6 +555,13 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     });
     return () => { active = false; };
   }, [degreeCode, userId, specsVersion]);
+
+  useEffect(() => {
+    if (!degreeCode) return;
+    let active = true;
+    fetchSpecialisationOptions(degreeCode).then((groups) => active && setHasMajors(groups.length > 0));
+    return () => { active = false; };
+  }, [degreeCode]);
 
   useEffect(() => {
     if (!trackCompletion || !degreeCode || !userId) return;
@@ -754,7 +768,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         ) : (
           <>
-            {thin && (
+            {thin && hasMajors && (
               <ChooseSpecialisationCard
                 handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`}
                 onChoose={onChangeSpecialisation}
