@@ -8,7 +8,7 @@ import {
 } from "react-icons/hi";
 import { TbRobot } from "react-icons/tb";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
@@ -111,8 +111,7 @@ function UniItemCard({ rec }) {
     <div className="rounded-xl border border-line bg-surface px-5 py-4">
       <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1.6fr_1.1fr_1.1fr] items-center gap-4 md:gap-8">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 text-base font-bold text-ink-strong">
-            <TrendingUp className="h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+          <p className="text-base font-bold text-ink-strong">
             {rec.career_title}
           </p>
           <p className="mt-0.5 text-sm text-ink-muted">{rec.industry}</p>
