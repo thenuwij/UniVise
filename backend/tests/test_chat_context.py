@@ -118,3 +118,14 @@ def test_failing_summary_returns_none(monkeypatch):
 
     monkeypatch.setattr(chat_context, "load_inputs", broken)
     assert asyncio.run(chat_context.safe_student_summary("u1")) is None
+
+
+def test_system_prompt_carries_the_page_as_information():
+    prompt = build_system_prompt("university", UNI_INFO, [], "- Program: X", "UNSW course page: COMP3231 Operating Systems")
+
+    assert "They asked from this UniVise page: UNSW course page: COMP3231 Operating Systems." in prompt
+    assert "Where the student is describe the student" in prompt
+
+
+def test_system_prompt_has_no_page_block_without_a_page():
+    assert "## Where the student is" not in build_system_prompt("university", UNI_INFO, [], "- Program: X")
