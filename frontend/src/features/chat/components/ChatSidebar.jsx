@@ -1,201 +1,78 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react';
-import { TbMessageChatbotFilled, TbTrash, TbChevronLeft} from 'react-icons/tb';
-import { Button, Modal } from 'flowbite-react';
-import { UserAuth } from '@/app/AuthContext';
-import { supabase } from '@/shared/lib/supabase';
-import Conversation from './Conversation';
-import { FiSidebar } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { MessageCircle, PanelLeftClose, PanelLeftOpen, Plus, Trash2 } from "lucide-react";
 
-function ChatSidebar({ isCollapsed = false, onToggleCollapse }) {
-
-  const { session } = UserAuth();
-  const [showModal, setShowModal] = useState(false);
-  const [conversations, setConversations] = useState([]);
-  const [hoveredConversation, setHoveredConversation] = useState(null);
+function ChatSidebar({ conversations, activeId, isCollapsed = false, onToggleCollapse, onDelete }) {
   const navigate = useNavigate();
 
-
-  const handleCreate = async ({ title, conversationId }) => {
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert(
-        { id: conversationId,
-          user_id: session.user.id,
-          title,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString() })
-      .select()
-    if (error) {
-      console.error(error);
-      return;
-    }
-    setShowModal(false);
-    setConversations([...conversations, data[0]]);
-    navigate(`/chat/${conversationId}`);
-  };
-
-  const deleteConversation = async (conversationId, e) => {
-    e.stopPropagation(); // Prevent navigation when clicking delete
-    
-    if (!confirm('Are you sure you want to delete this conversation?')) {
-      return;
-    }
-
-    try {
-      // Delete all messages in the conversation first
-      await supabase
-        .from("conversation_messages")
-        .delete()
-        .eq("conversation_id", conversationId);
-
-      // Then delete the conversation
-      const { error } = await supabase
-        .from("conversations")
-        .delete()
-        .eq("id", conversationId);
-
-      if (error) {
-        console.error("Error deleting conversation:", error);
-        return;
-      }
-
-      // Remove from local state
-      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
-      
-      // Navigate away if currently viewing deleted conversation
-      const currentPath = window.location.pathname;
-      if (currentPath.includes(conversationId)) {
-        navigate('/chat');
-      }
-    } catch (err) {
-      console.error("Error deleting conversation:", err);
-    }
-  };
-
-  useEffect(() => {
-    const fetchConversations = async () => {
-      const response = await supabase.from('conversations').select('*')
-        .eq('user_id', session?.user.id)
-        .order('created_at', { ascending: false });
-
-      if (response.error) {
-        console.error('Error fetching conversations:', response.error);
-      } else {
-        setConversations(response.data);
-      }
-    }
-
-    fetchConversations();
-  }, [session]);
-
   return (
-    <>
-      <Conversation
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={handleCreate}
-      />
-      <Sidebar className="w-full h-screen [&>div]:bg-white/70 dark:[&>div]:bg-slate-900/80 [&>div]:border-r [&>div]:border-slate-200 dark:[&>div]:border-slate-700/50 [&>div]:backdrop-blur-md">
-        <SidebarItems className="h-full flex flex-col">
-          {/* Toggle button */}
-          
-          <div className={`flex-shrink-0 flex ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
-            <Button
-              size="sm"
-              color="alternative"
-              onClick={() => onToggleCollapse?.(!isCollapsed)}
-              className='justify-center bg-transparent border-0'
-            >
-            { isCollapsed ? (
-              <FiSidebar className='h-6 w-6'/>
-            ) : (
-              <TbChevronLeft className='h-6 w-6'/>
-            )
-            }
-            
-            </Button>
-          </div>
+    <aside className="h-full flex flex-col gap-3 p-3 border-r border-line bg-white/70 dark:bg-slate-900/80 backdrop-blur-md">
+      <div className={`flex ${isCollapsed ? "justify-center" : "justify-end"}`}>
+        <button
+          type="button"
+          onClick={() => onToggleCollapse?.(!isCollapsed)}
+          aria-label={isCollapsed ? "Show chats" : "Hide chats"}
+          title={isCollapsed ? "Show chats" : "Hide chats"}
+          className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+        >
+          {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+        </button>
+      </div>
 
-          {/* New chat button section */}
-          <SidebarItemGroup className="flex-shrink-0 flex justify-center">
-            {isCollapsed ? (
-              <Button 
-                size="sm"
-                pill
-                className="button-primary"
-                onClick={() => setShowModal(true)}
-                title="New chat"
-              >
-                <TbMessageChatbotFilled className="h-6 w-6" />
-              </Button>
-            ) : (
-              <Button 
-                size="md" 
-                className="w-full button-primary" 
-                onClick={() => setShowModal(true)}
-              >
-                <TbMessageChatbotFilled className="mr-3 h-6 w-6" />
-                New Chat
-              </Button>
-            )}
-          </SidebarItemGroup>
-          
-          {/* Scrollable chats section */}
-          <SidebarItemGroup className='flex-1 overflow-y-auto scrollbar-hide'>
-            {!isCollapsed && (
-              <h1 className='text-sm ml-2 text-slate-800 dark:text-slate-300 mb-2'>Chats</h1>
-            )}
-            {conversations.length > 0 ? (
-              conversations.map((conversation) => (
-                <div 
-                  key={conversation.id}
-                  className="relative"
-                  onMouseEnter={() => setHoveredConversation(conversation.id)}
-                  onMouseLeave={() => setHoveredConversation(null)}
-                >
-                  <SidebarItem 
-                    onClick={() => navigate(`/chat/${conversation.id}`)} 
-                    className={`flex items-center ${isCollapsed ? 'h-12 justify-center' : 'h-14'} group cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all rounded-lg`}
-                    title={isCollapsed ? (conversation.title || 'Untitled Conversation') : ''}
+      <button
+        type="button"
+        onClick={() => navigate("/chat")}
+        title="New chat"
+        className={`inline-flex items-center justify-center gap-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors ${isCollapsed ? "h-10 w-10 self-center" : "w-full px-4 py-2.5"}`}
+      >
+        <Plus className="h-5 w-5" strokeWidth={2.5} />
+        {!isCollapsed && "New chat"}
+      </button>
+
+      <nav aria-label="Your chats" className="flex-1 overflow-y-auto scrollbar-hide">
+        {!isCollapsed && <p className="px-2 mb-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Chats</p>}
+        {conversations.length > 0 ? (
+          <ul className="space-y-0.5">
+            {conversations.map((conversation) => {
+              const active = conversation.id === activeId;
+              const title = conversation.title || "Untitled chat";
+              return (
+                <li key={conversation.id} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/chat/${conversation.id}`)}
+                    aria-current={active ? "page" : undefined}
+                    title={title}
+                    className={`w-full flex items-center gap-2.5 rounded-lg text-left text-sm transition-colors ${
+                      isCollapsed ? "h-10 justify-center" : "pl-2.5 pr-10 py-2"
+                    } ${
+                      active
+                        ? "bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 font-semibold"
+                        : "text-ink hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                   >
-                    {isCollapsed ? (
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-2">
-                        {(conversation.title || 'U').charAt(0).toUpperCase()}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between w-full">
-                        <span className="truncate flex-1 text-sm">
-                          {conversation.title || 'Untitled Conversation'}
-                        </span>
-                        {hoveredConversation === conversation.id && (
-                          <Button
-                            size="sm"
-                            color="failure"
-                            className="ml-2 p-1 w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => deleteConversation(conversation.id, e)}
-                            title="Delete conversation"
-                          >
-                            <TbTrash className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </SidebarItem>
-                </div>
-              ))
-            ) : (
-              !isCollapsed && (
-                <p className='text-center text-sm text-slate-400 dark:text-slate-500 mt-4'>No conversations yet</p>
-              )
-            )}
-          </SidebarItemGroup>
-
-        </SidebarItems>
-      </Sidebar>
-    </>
+                    <MessageCircle className={`h-4 w-4 flex-shrink-0 ${active ? "text-blue-600 dark:text-blue-400" : "text-slate-400"}`} />
+                    {!isCollapsed && <span className="truncate">{title}</span>}
+                  </button>
+                  {!isCollapsed && (
+                    <button
+                      type="button"
+                      onClick={() => onDelete(conversation.id)}
+                      aria-label={`Delete ${title}`}
+                      title="Delete chat"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 opacity-0 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100 transition"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          !isCollapsed && <p className="px-2 text-sm text-ink-muted">No chats yet. Ask Eunice anything to start one.</p>
+        )}
+      </nav>
+    </aside>
   );
 }
 

@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from "react";
-import { Textarea, Button, Avatar } from "flowbite-react";
-import { IoSend } from "react-icons/io5";
+import { Textarea } from "flowbite-react";
+import { MessageCircle, SendHorizontal } from "lucide-react";
+import { v4 as uuid } from "uuid";
 import { supabase } from "@/shared/lib/supabase";
-import { TbRobot } from "react-icons/tb";
 import { UserAuth } from "@/app/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/shared/lib/api";
 import { readStreamText, withCutOffNote } from "../utils/streamText";
 
-export default function ChatWindow({ convId }) {
+const TITLE_MAX = 60;
+
+function titleFrom(text) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= TITLE_MAX) return clean;
+  const cut = clean.slice(0, TITLE_MAX);
+  return `${cut.slice(0, cut.lastIndexOf(" ") > 30 ? cut.lastIndexOf(" ") : TITLE_MAX)}…`;
+}
+
+export default function ChatWindow({ convId, onCreated }) {
   const { session } = UserAuth();
 
   const firstName = session?.user?.user_metadata?.first_name;
@@ -20,6 +29,7 @@ export default function ChatWindow({ convId }) {
   const [loading, setLoading]   = useState(false);
   const chatEndRef              = useRef(null);
   const textAreaRef             = useRef(null);
+  const skipLoadRef             = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,7 +37,14 @@ export default function ChatWindow({ convId }) {
 
   // load history
   useEffect(() => {
-    if (!convId) return;
+    if (!convId) {
+      setMessages([]);
+      return;
+    }
+    if (convId === skipLoadRef.current) {
+      skipLoadRef.current = null;
+      return;
+    }
     const load = async () => {
       const { data, error } = await supabase
         .from("conversation_messages")
@@ -46,16 +63,37 @@ export default function ChatWindow({ convId }) {
     load();
   }, [convId]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (preset) => {
+    const text = (preset ?? input).trim();
+    if (!text || loading) return;
 
     setLoading(true);
     setStreamStarted(false)
+
+    let id = convId;
+    if (!id) {
+      id = uuid();
+      const now = new Date().toISOString();
+      const { data: created, error: createError } = await supabase
+        .from("conversations")
+        .insert({ id, user_id: session.user.id, title: titleFrom(text), created_at: now, updated_at: now })
+        .select()
+        .single();
+      if (createError) {
+        console.error(createError);
+        setLoading(false);
+        setMessages(ms => [...ms, { sender: "bot", text: "Your chat couldn't be started. Please try again.", created_at: new Date().toISOString() }]);
+        return;
+      }
+      skipLoadRef.current = id;
+      onCreated?.(created);
+    }
+
     // insert user message
     const { error: saveError } = await supabase
       .from("conversation_messages")
       .insert({
-        conversation_id: convId,
+        conversation_id: id,
         sender: "user",
         content: text,
       });
@@ -78,7 +116,7 @@ export default function ChatWindow({ convId }) {
 
     let res;
     try {
-      res = await apiFetch(`/chat/conversations/${convId}/reply/stream`, {
+      res = await apiFetch(`/chat/conversations/${id}/reply/stream`, {
         method: "POST",
         token: session?.access_token,
         body: { content: text },
@@ -175,12 +213,13 @@ export default function ChatWindow({ convId }) {
                 <ol className="list-decimal ml-4 my-1" {...props} />
               ),
               li: ({ ...props }) => <li className="ml-2" {...props} />,
+              pre: ({ children }) => <>{children}</>,
               // code blocks / inline code
-              code: ({ inline, ...props }) =>
-                inline ? (
-                  <code className="bg-slate-700 px-1 rounded text-sm" {...props} />
+              code: ({ className, children, ...props }) =>
+                !/language-/.test(className || "") && !String(children).includes("\n") ? (
+                  <code className={`px-1 rounded text-sm ${isUser ? "bg-white/20" : "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-100"}`} {...props}>{children}</code>
                 ) : (
-                  <pre className="bg-slate-700 p-2 rounded overflow-auto text-sm" {...props} />
+                  <pre className={`p-2 rounded overflow-auto text-sm ${isUser ? "bg-white/15" : "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100"}`}><code {...props}>{children}</code></pre>
                 ),
             }}
           >
@@ -206,11 +245,11 @@ return (
           {
             messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-20 px-6 text-center">
-                <div className="p-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 mb-5">
-                  <TbRobot className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                <div className="p-4 rounded-full bg-blue-100 dark:bg-blue-900/40 mb-5">
+                  <MessageCircle className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-1">Hi {firstName}, I'm Eunice</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-8">Your personal academic and career advisor. Ask me anything about your courses, career paths, or university life.</p>
+                <h2 className="text-2xl font-bold text-ink-strong mb-1">Hi{firstName ? ` ${firstName}` : ""}, I'm Eunice</h2>
+                <p className="text-base text-ink-muted max-w-md mb-8">Your academic and career advisor. Ask me anything about your courses, career paths or university life, or pick a question to start.</p>
                 <div className="grid grid-cols-2 gap-3 max-w-lg w-full">
                   {(userType === "high_school" ? [
                     "What degrees suit my interests?",
@@ -225,8 +264,9 @@ return (
                   ]).map((q) => (
                     <button
                       key={q}
-                      onClick={() => setInput(q)}
-                      className="text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all"
+                      onClick={() => sendMessage(q)}
+                      disabled={loading}
+                      className="text-left px-4 py-3 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50"
                     >
                       {q}
                     </button>
@@ -276,7 +316,6 @@ return (
               onKeyDown={e => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (loading || input.trim() === "") return;
                   sendMessage();
                 }
               }}
@@ -286,21 +325,19 @@ return (
                 bg-transparent placeholder-slate-400 dark:placeholder-slate-500 scrollbar-hide
               "
             />
-            <Button
-              size="lg"
-              className="
-                absolute right-3 bottom-3 w-12 h-12 p-0 
-                bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
-                rounded-xl border-0 shadow-md hover:shadow-lg transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-                flex items-center justify-center
-              "
+            <button
+              type="button"
+              aria-label="Send"
+              className="absolute right-3 bottom-3 w-12 h-12 inline-flex items-center justify-center rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || input.trim() === ""}
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
             >
-              <IoSend className="w-5 h-5 text-white" />
-            </Button>
+              <SendHorizontal className="w-5 h-5" />
+            </button>
           </div>
+          <p className="mt-2 text-center text-xs text-ink-muted">
+            Enter to send, Shift + Enter for a new line. Eunice can make mistakes, so check important details in the Handbook.
+          </p>
         </div>
       </div>
     </div>
