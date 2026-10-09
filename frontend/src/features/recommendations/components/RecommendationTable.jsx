@@ -14,6 +14,7 @@ import SectionHeading from "@/shared/ui/SectionHeading";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
+import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
 // Utils
 const toPercent = (v) => {
@@ -229,6 +230,7 @@ export function RecommendationTable() {
   const { session } = UserAuth();
   const userType = session?.user?.user_metadata?.student_type;
   const userId = session?.user?.id;
+  const { program } = useEnrolledProgram();
   const [loading, setLoading] = useState(true);
   const [preparing, setPreparing] = useState(false);
   const [stuck, setStuck] = useState(false);
@@ -327,8 +329,8 @@ export function RecommendationTable() {
       label={label}
       footer={
         userType !== "high_school" && recommendations.length > 0 && !preparing && !stuck ? (
-          <Link to={roadmapStepUrl("careers")} className="group mt-5 inline-flex items-center gap-1.5 text-[15px] font-bold text-blue-700 dark:text-blue-300 hover:underline">
-            Explore careers for your degree
+          <Link to={program ? roadmapStepUrl("careers") : "/roadmap"} className="group mt-5 inline-flex items-center gap-1.5 text-[15px] font-bold text-blue-700 dark:text-blue-300 hover:underline">
+            {program ? "Explore careers for your degree" : "Explore careers by program"}
             <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         ) : null
