@@ -8,6 +8,7 @@ import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import DegreeSelectorSection from "../components/DegreeSelectorSection";
+import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import SpecialisationPicker from "../components/SpecialisationPicker";
 import { fetchSavedChoices, saveChoices } from "../utils/programCourses";
@@ -20,7 +21,7 @@ function RoadmapPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDegreeId, setSelectedDegreeId] = useState(null);
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
-  const { program: enrolledProgram } = useEnrolledProgram();
+  const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const [searchParams] = useSearchParams();
@@ -120,7 +121,7 @@ function RoadmapPage() {
 
             <SpecialisationPicker key={selectedCode} degreeCode={selectedCode} value={choices} onChange={setChoices} />
 
-            <div className="mt-6 pt-6 border-t border-line">
+            <div className="mt-6 pt-6 border-t border-line flex flex-col sm:flex-row sm:items-center gap-3">
               <button
                 onClick={handleProceed}
                 disabled={saving}
@@ -129,6 +130,15 @@ function RoadmapPage() {
                 Generate roadmap
                 <HiArrowRight className="w-5 h-5" />
               </button>
+              {!enrolledLoading && selectedDegreeObject.program_name && selectedCode !== enrolledProgram?.degree_code && (
+                <MakeMyProgramButton
+                  degreeCode={selectedCode}
+                  programName={selectedDegreeObject.program_name}
+                  label="Set as my program"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+                  onBeforeChange={() => saveChoices(userId, choices)}
+                />
+              )}
             </div>
           </section>
         )}

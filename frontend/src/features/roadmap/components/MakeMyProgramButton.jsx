@@ -6,7 +6,7 @@ import { bandButton } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
 import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 
-export default function MakeMyProgramButton({ degreeCode, programName }) {
+export default function MakeMyProgramButton({ degreeCode, programName, label = "Make this my program", className = bandButton, onBeforeChange }) {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -24,6 +24,7 @@ export default function MakeMyProgramButton({ degreeCode, programName }) {
     setSaving(true);
     setError("");
     try {
+      if (onBeforeChange) await onBeforeChange();
       await changeEnrolledProgram(userId, { degree_code: degreeCode, program_name: programName });
     } catch (err) {
       console.error("Changing program failed:", err);
@@ -36,9 +37,9 @@ export default function MakeMyProgramButton({ degreeCode, programName }) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={bandButton}>
+      <button type="button" onClick={() => setOpen(true)} className={className}>
         <GraduationCap className="h-4 w-4" />
-        Make this my program
+        {label}
       </button>
 
       <Modal show={open} size="md" onClose={close} popup>
@@ -66,7 +67,7 @@ export default function MakeMyProgramButton({ degreeCode, programName }) {
                 disabled={saving || !userId}
                 className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Make this my program"}
+                {saving ? "Saving..." : label}
               </button>
             </div>
           </div>
