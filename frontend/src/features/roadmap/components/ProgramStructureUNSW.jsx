@@ -1,12 +1,16 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ArrowRight, Check, ChevronDown, ChevronUp, Layers, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Layers, Plus, Sparkles } from "lucide-react";
+import ExpandIcon from "@/shared/ui/ExpandIcon";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
+import CoursesGuide from "./CoursesGuide";
+import { hasSeenCoursesGuide } from "../utils/coursesGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenSpecialisations, hasCourses, parseSections, setCourseAdded } from "../utils/programCourses";
-import { ADDED_SECTION, notNeededCodes, progressOf, requiredCount, splitCourses, withAddedCourses } from "../utils/myCourses";
+import { ADDED_SECTION, notNeededCodes, orderSections, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
 import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
@@ -43,47 +47,30 @@ function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
   );
 }
 
-function TickStepCard({ ticked, total, uoc }) {
+function ProgressStrip({ ticked, total, uoc, onOpen, disabled }) {
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   return (
-    <div className={`${card} p-5 md:p-6`}>
-      <div className="flex items-center gap-3">
-        <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">1</span>
-        <p className="text-lg font-bold text-ink-strong">Tick the courses you've done</p>
+    <div className={`${card} px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6`}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-[15px] text-ink">
+            <span className="text-xl font-bold text-ink-strong">{ticked}</span> of {total} courses ticked
+            <span className="text-ink-muted"> · {uoc} UOC</span>
+          </p>
+          <p className="hidden sm:block text-sm text-ink-muted">Tick the box on each course you've done</p>
+        </div>
+        <div className="mt-2 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+        </div>
       </div>
-      <p className="mt-2 text-[15px] text-ink-muted">Open each part below and press <span className="font-semibold text-ink">Done</span> on every course you've completed.</p>
-      <div className="mt-4 flex items-baseline justify-between gap-3">
-        <p className="text-[15px] text-ink">
-          <span className="text-xl font-bold text-ink-strong">{ticked}</span> of {total} courses in your plan ticked
-        </p>
-        <p className="text-sm font-semibold text-ink-muted">{uoc} UOC</p>
-      </div>
-      <div className="mt-2 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-        <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function CourseMeshStepCard({ ticked, onOpen, disabled }) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 p-5 md:p-6">
-      <div className="flex items-center gap-3">
-        <span className="h-8 w-8 flex-shrink-0 rounded-full inline-flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">2</span>
-        <p className="text-lg font-bold text-ink-strong">See what you can take next</p>
-      </div>
-      <p className="mt-2 text-[15px] text-ink-muted">
-        {ticked > 0
-          ? `You've ticked ${ticked} ${ticked === 1 ? "course" : "courses"}. CourseMesh shows what they unlock and how your courses connect.`
-          : "Once you've ticked your courses, CourseMesh shows what they unlock and how your courses connect."}
-      </p>
       <button
         onClick={onOpen}
         disabled={disabled}
-        className="mt-4 group w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+        data-tour="coursemesh-strip"
+        className="group flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
       >
         <Layers className="h-4 w-4" />
-        Open CourseMesh
+        See what's next in CourseMesh
         <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
       </button>
     </div>
@@ -91,7 +78,7 @@ function CourseMeshStepCard({ ticked, onOpen, disabled }) {
 }
 
 // Expandable Section Card with courses 
-function DoneToggle({ done, onClick }) {
+function DoneCheck({ done, code, onClick, tour }) {
   return (
     <button
       type="button"
@@ -99,15 +86,21 @@ function DoneToggle({ done, onClick }) {
         e.stopPropagation();
         onClick();
       }}
-      aria-pressed={done}
-      className={`ml-2 flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border-2 transition-all ${
-        done
-          ? "bg-green-500 border-green-500 text-white"
-          : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-green-500 hover:text-green-600"
-      }`}
+      role="checkbox"
+      aria-checked={done}
+      aria-label={`${code} done`}
+      data-tour={tour ? "course-tick" : undefined}
+      className="-m-1.5 mr-1.5 p-1.5 flex-shrink-0 rounded-lg"
     >
-      <Check className="h-3.5 w-3.5" strokeWidth={3} />
-      Done
+      <span
+        className={`flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors ${
+          done
+            ? "bg-green-500 border-green-500 text-white"
+            : "bg-white dark:bg-slate-900 border-slate-400 dark:border-slate-500 text-transparent hover:border-green-500"
+        }`}
+      >
+        <Check className="h-4 w-4" strokeWidth={3.5} />
+      </span>
     </button>
   );
 }
@@ -133,7 +126,29 @@ function AddToggle({ added, onClick }) {
   );
 }
 
-function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, onToggleDone, options, added, notNeeded, onToggleAdded }) {
+function SectionProgress({ progress }) {
+  const { done, total } = progress;
+  if (total > 0 && done === total) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900/40">
+        <Check className="h-4 w-4" strokeWidth={3} />
+        All done
+      </span>
+    );
+  }
+  return (
+    <span className="flex w-32 flex-col items-end gap-1.5">
+      <span className={`text-sm font-semibold ${total ? "text-ink-strong" : "text-ink-muted"}`}>
+        {total ? `${done} of ${total} done` : "None picked yet"}
+      </span>
+      <span className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+        <span className="block h-full rounded-full bg-green-500" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+      </span>
+    </span>
+  );
+}
+
+function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, progress, onToggleDone, options, added, notNeeded, onToggleAdded }) {
   const total = section.uoc ?? sumUoC(section.courses);
   const count = section.courses?.length || 0;
 
@@ -146,12 +161,21 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
       >
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
+          {progress && (
+            <p className="mt-0.5 text-sm text-ink-muted">
+              {count} {count === 1 ? "course" : "courses"} · {total} UOC
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
-            {count} {count === 1 ? "course" : "courses"} · {total} UOC
-          </span>
-          {isOpen ? <ChevronUp className="h-5 w-5 text-slate-400 group-hover:text-blue-600" /> : <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-blue-600" />}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          {progress ? (
+            <SectionProgress progress={progress} />
+          ) : (
+            <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
+              {count} {count === 1 ? "course" : "courses"} · {total} UOC
+            </span>
+          )}
+          <ExpandIcon open={isOpen} />
         </div>
       </button>
 
@@ -164,6 +188,9 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
                 onClick={() => onCourseClick?.(c)}
                 className={`group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer ${notNeeded?.has(c.code) ? "opacity-60 " : ""}bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md transition-all`}
               >
+                {onToggleDone && (
+                  <DoneCheck done={!!completed?.[c.code]?.is_completed} code={c.code} tour={isOpen} onClick={() => onToggleDone(c, section.title)} />
+                )}
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">
                     {c.code}
@@ -178,9 +205,6 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, on
                 )}
                 {onToggleAdded && options?.has(c.code) && !completed?.[c.code]?.is_completed && (
                   <AddToggle added={added.has(c.code)} onClick={() => onToggleAdded(c)} />
-                )}
-                {onToggleDone && (
-                  <DoneToggle done={!!completed?.[c.code]?.is_completed} onClick={() => onToggleDone(c, section.title)} />
                 )}
               </div>
             ))}
@@ -210,15 +234,19 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const programCourseSections = useMemo(() => sections.filter(hasCourses), [sections]);
 
   const courseSections = useMemo(
-    () => [
-      ...programCourseSections,
-      ...(specs || []).flatMap((spec) => spec.sections.map((sec) => ({ ...sec, title: `${spec.name}: ${sec.title}` }))),
-    ],
+    () =>
+      orderSections([
+        ...programCourseSections,
+        ...(specs || []).flatMap((spec) => spec.sections.map((sec) => ({ ...sec, title: `${spec.name}: ${sec.title}` }))),
+      ]),
     [programCourseSections, specs]
   );
 
   const allCourses = useMemo(() => courseCodesOf(courseSections), [courseSections]);
   const [addedRows, setAddedRows] = useState([]);
+  const [ticksLoaded, setTicksLoaded] = useState(false);
+  const [firstOpen, setFirstOpen] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const added = useMemo(() => new Set(addedRows.map((r) => r.code)), [addedRows]);
 
@@ -245,6 +273,24 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     const uoc = [...seen.values()].filter((c) => doneCodes.has(c.code)).reduce((sum, c) => sum + (Number(c.uoc) || 0), 0);
     return { ticked: done, total, uoc };
   }, [shownSections, completed, mine, added]);
+
+  const sectionProgresses = useMemo(
+    () => (trackCompletion ? shownSections.map((sec) => sectionProgress(sec, doneSet, added)) : null),
+    [trackCompletion, shownSections, doneSet, added]
+  );
+
+  useEffect(() => {
+    if (firstOpen !== null || specs === null || !shownSections.length) return;
+    if (trackCompletion && userId && !ticksLoaded) return;
+    const index = sectionProgresses ? sectionProgresses.findIndex((p) => p.total > 0 && p.done < p.total) : 0;
+    setFirstOpen(index === -1 ? 0 : index);
+  }, [firstOpen, specs, shownSections, trackCompletion, userId, ticksLoaded, sectionProgresses]);
+
+  useEffect(() => {
+    if (!trackCompletion || firstOpen === null || hasSeenCoursesGuide()) return;
+    const timer = setTimeout(() => setShowGuide(true), 700);
+    return () => clearTimeout(timer);
+  }, [trackCompletion, firstOpen]);
 
   const thin = specs?.length === 0 && requiredCount(splitCourses([{ key: degreeCode, sections: programCourseSections }])) <= THIN_PROGRAM_COURSES;
 
@@ -280,15 +326,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const parsed = parseSections(data?.sections);
 
-        const ordered = parsed
-          .filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))
-          .sort((a, b) => {
-            const getLevel = (t) =>
-              /level\s*(\d+)/i.test(t) ? parseInt(t.match(/level\s*(\d+)/i)[1]) : 99;
-            return getLevel(a.title) - getLevel(b.title);
-          });
-
-        setSections(ordered);
+        setSections(parsed.filter((s) => s && s.title && !s.title.toLowerCase().includes("overview")));
         setHandbookUrl(data?.source_url || "");
         setOpenMap({});
       } catch (e) {
@@ -305,6 +343,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   useEffect(() => {
     let active = true;
     setSpecs(null);
+    setFirstOpen(null);
     fetchChosenSpecialisations(degreeCode, userId).then((found) => {
       if (active) setSpecs(found);
     });
@@ -315,6 +354,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     if (!trackCompletion || !userId) return;
     fetchCompletedCourses(userId).then((rows) => {
       setCompleted(Object.fromEntries(rows.map((r) => [r.course_code, r])));
+      setTicksLoaded(true);
     });
     fetchAddedRows(userId).then(setAddedRows);
   }, [trackCompletion, userId]);
@@ -355,11 +395,10 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const expandAll = () =>
-    setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, true])));
+  const allOpen = shownSections.length > 0 && shownSections.every((s, i) => openMap[`${s.title}-${i}`] ?? i === firstOpen);
 
-  const collapseAll = () =>
-    setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, false])));
+  const setAllOpen = (open) =>
+    setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, open])));
   
 
   const handleCourseClick = async (course) => {
@@ -381,10 +420,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       </SectionHeading>
 
       {trackCompletion ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <TickStepCard {...tickedStats} />
-          <CourseMeshStepCard ticked={tickedStats.ticked} onOpen={handleVisualise} disabled={!allCourses.length} />
-        </div>
+        <ProgressStrip {...tickedStats} onOpen={handleVisualise} disabled={!allCourses.length} />
       ) : (
         <button
           onClick={handleVisualise}
@@ -413,21 +449,20 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             {trackCompletion && (
               <button
                 onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 transition-colors"
               >
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                <Plus className="h-5 w-5" strokeWidth={3} />
                 Add a course
               </button>
             )}
-            <button onClick={expandAll} className="px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-              Expand all
-            </button>
-            <button onClick={collapseAll} className="px-3 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              Collapse all
-            </button>
+            <ExpandToggle open={allOpen} onClick={() => setAllOpen(!allOpen)}>
+              {allOpen ? "Collapse all" : "Expand all"}
+            </ExpandToggle>
           </div>
         )}
       </div>
+
+      {showGuide && <CoursesGuide onClose={() => setShowGuide(false)} />}
 
       {showAdd && (
         <ElectivesPanel
@@ -471,10 +506,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
                 <div key={key}>
                   <CourseSection
                     section={sec}
-                    isOpen={openMap[key] ?? i === 0}
+                    isOpen={openMap[key] ?? i === firstOpen}
                     onToggle={() => toggleSection(key)}
                     onCourseClick={handleCourseClick}
                     completed={completed}
+                    progress={sectionProgresses?.[i]}
                     onToggleDone={trackCompletion ? toggleDone : null}
                     options={options}
                     added={added}

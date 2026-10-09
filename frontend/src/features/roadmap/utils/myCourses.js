@@ -64,3 +64,33 @@ export function progressOf(mine, completed, added) {
     extras.filter((code) => completed.has(code)).length;
   return { done, total: requiredCount(mine) + extras.length };
 }
+
+export function sectionProgress(section, completed, added) {
+  let done = 0;
+  let total = 0;
+  const groups = new Map();
+  const count = (isDone) => {
+    total += 1;
+    if (isDone) done += 1;
+  };
+  for (const course of section?.courses || []) {
+    if (!course?.code) continue;
+    const isDone = completed.has(course.code);
+    if (course.choice) groups.set(course.choice, groups.get(course.choice) || isDone);
+    else if (section.title !== ADDED_SECTION && OPTION_KINDS.has(kindOf(section, course))) {
+      if (isDone || added.has(course.code)) count(isDone);
+    } else count(isDone);
+  }
+  for (const groupDone of groups.values()) count(groupDone);
+  return { done, total };
+}
+
+const levelOf = (title) => Number(title?.match(/level\s*(\d+)/i)?.[1] ?? 99);
+
+const noUoc = (section) =>
+  section?.courses?.length > 0 && section.courses.every((c) => c.uoc !== "" && c.uoc != null && Number(c.uoc) === 0);
+
+export function orderSections(sections) {
+  const rank = (s) => (noUoc(s) ? 1000 : levelOf(s.title));
+  return [...(sections || [])].sort((a, b) => rank(a) - rank(b));
+}

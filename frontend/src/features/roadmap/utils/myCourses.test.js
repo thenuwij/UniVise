@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADDED_SECTION, myCourseCodes, notNeededCodes, progressOf, requiredCount, splitCourses, withAddedCourses } from "./myCourses";
+import { ADDED_SECTION, myCourseCodes, notNeededCodes, orderSections, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "./myCourses";
 
 const typed = [
   {
@@ -79,5 +79,35 @@ describe("withAddedCourses", () => {
   it("an added outside course counts in the plan", () => {
     const result = withAddedCourses(mine, [{ code: "COMP4418" }]);
     expect(myCourseCodes(result, new Set(), new Set(["COMP4418"]))).toContain("COMP4418");
+  });
+});
+
+describe("sectionProgress", () => {
+  it("counts core courses and one per choice group", () => {
+    const section = { title: "Core", courses: [{ code: "A" }, { code: "B" }, { code: "C", choice: "1" }, { code: "D", choice: "1" }] };
+    expect(sectionProgress(section, new Set(["A", "D"]), new Set())).toEqual({ done: 2, total: 3 });
+  });
+
+  it("counts only the electives you picked or finished", () => {
+    const section = { title: "Electives", kind: "elective", courses: [{ code: "A" }, { code: "B" }, { code: "C" }] };
+    expect(sectionProgress(section, new Set(["A"]), new Set(["B"]))).toEqual({ done: 1, total: 2 });
+    expect(sectionProgress(section, new Set(), new Set())).toEqual({ done: 0, total: 0 });
+  });
+
+  it("counts every added course", () => {
+    const section = { title: ADDED_SECTION, courses: [{ code: "A" }, { code: "B" }] };
+    expect(sectionProgress(section, new Set(["B"]), new Set())).toEqual({ done: 1, total: 2 });
+  });
+});
+
+describe("orderSections", () => {
+  it("sorts by level and puts 0 UOC sections last", () => {
+    const sections = [
+      { title: "Industrial Training", courses: [{ code: "ENGG4999", uoc: 0 }] },
+      { title: "Level 2 Core", courses: [{ code: "B", uoc: 6 }] },
+      { title: "Electives", courses: [{ code: "C", uoc: 6 }] },
+      { title: "Level 1 Core", courses: [{ code: "A", uoc: 6 }] },
+    ];
+    expect(orderSections(sections).map((s) => s.title)).toEqual(["Level 1 Core", "Level 2 Core", "Electives", "Industrial Training"]);
   });
 });
