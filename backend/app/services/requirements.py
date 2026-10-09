@@ -101,14 +101,14 @@ def tidy_sections(sections) -> list:
         if kind in ("elective", "core") and uoc > 0 and not _listed(section):
             j = i + 1
             children = []
-            while j < len(items) and _listed(items[j]) and not to_uoc(items[j].get("uoc")) and (items[j].get("kind") or "core") == kind:
+            while j < len(items) and not to_uoc(items[j].get("uoc")) and (items[j].get("kind") or "core") == kind:
                 children.append(items[j])
                 j += 1
             if children:
                 seen = set()
                 courses = []
                 for child in children:
-                    for c in child["courses"]:
+                    for c in child.get("courses") or []:
                         if _code(c) and _code(c) not in seen:
                             seen.add(_code(c))
                             courses.append({**c, "kind": "elective", "list": child["title"]})

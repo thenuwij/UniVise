@@ -197,14 +197,14 @@ export function tidySections(sections) {
     if ((parentKind === "elective" || parentKind === "core") && uoc > 0 && !listedCount(section)) {
       const children = [];
       let j = i + 1;
-      while (j < list.length && listedCount(list[j]) && !Number(list[j].uoc) && (list[j].kind || "core") === parentKind) {
+      while (j < list.length && !Number(list[j].uoc) && (list[j].kind || "core") === parentKind) {
         children.push(list[j]);
         j += 1;
       }
       if (children.length) {
         const seen = new Set();
         const courses = children.flatMap((child) =>
-          child.courses.filter((c) => c?.code && !seen.has(c.code) && seen.add(c.code)).map((c) => ({ ...c, kind: "elective", list: child.title }))
+          (child.courses || []).filter((c) => c?.code && !seen.has(c.code) && seen.add(c.code)).map((c) => ({ ...c, kind: "elective", list: child.title }))
         );
         out.push({ ...section, kind: "elective", courses });
         i = j - 1;

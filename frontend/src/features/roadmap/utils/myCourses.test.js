@@ -277,3 +277,18 @@ describe("tidySections split requirements", () => {
     expect(section).toMatchObject({ kind: "elective", uoc: 6 });
   });
 });
+
+describe("tidySections empty sub-lists", () => {
+  it("keeps merging past an empty sub-list, like Economics Electives", () => {
+    const tidy = tidySections([
+      { title: "Economics Electives", kind: "elective", uoc: 30, courses: [] },
+      { title: "Level 2 Economics course", kind: "elective", uoc: 0, courses: [] },
+      { title: "Level 3 Economics course", kind: "elective", uoc: 0, courses: [{ code: "COMM3000", uoc: 6 }] },
+      { title: "Actuarial Studies Options", kind: "elective", uoc: 0, courses: [{ code: "ACTL3191", uoc: 6 }] },
+      { title: "UNSW Business School Electives", kind: "elective", uoc: 12, courses: [{ code: "COMM1100", uoc: 6 }] },
+    ]);
+    expect(tidy.map((s) => s.title)).toEqual(["Economics Electives", "UNSW Business School Electives"]);
+    expect(tidy[0]).toMatchObject({ uoc: 30 });
+    expect(tidy[0].courses.map((c) => c.code)).toEqual(["COMM3000", "ACTL3191"]);
+  });
+});

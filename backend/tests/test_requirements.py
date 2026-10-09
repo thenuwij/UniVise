@@ -160,3 +160,15 @@ def test_split_requirements_match_the_handbook():
     assert core["type"] == "required" and core["left"] == ["COMM1100", "COMM1110", "COMM1120"]
     flexible = by_name(parts, "Level 3 Flexible Core Courses")
     assert (flexible["type"], flexible["uoc"]) == ("options", 6)
+
+
+def test_merge_continues_past_an_empty_sub_list():
+    lists = [(None, [
+        {"title": "Economics Electives", "kind": "elective", "uoc": 30, "courses": []},
+        {"title": "Level 2 Economics course", "kind": "elective", "uoc": 0, "courses": []},
+        {"title": "Level 3 Economics course", "kind": "elective", "uoc": 0, "courses": [{"code": "COMM3000", "uoc": 6}]},
+        {"title": "Actuarial Studies Options", "kind": "elective", "uoc": 0, "courses": [{"code": "ACTL3191", "uoc": 6}]},
+    ])]
+    part = by_name(requirement_status(lists, set()), "Economics Electives")
+
+    assert (part["uoc"], part["count"]) == (30, 2)
