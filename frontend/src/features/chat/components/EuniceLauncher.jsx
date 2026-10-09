@@ -10,6 +10,20 @@ export default function EuniceLauncher() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [convId, setConvId] = useState(null);
+  const [tucked, setTucked] = useState(false);
+
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 8;
+      const small = window.innerWidth < 768;
+      setTucked(small && !atBottom && y > last + 4 && y > 80);
+      if (Math.abs(y - last) > 4) last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -86,9 +100,11 @@ export default function EuniceLauncher() {
         aria-expanded={open}
         aria-label={open ? "Close Eunice" : "Ask Eunice"}
         title={open ? "Close Eunice" : "Ask Eunice"}
-        className="fixed z-40 bottom-5 right-4 sm:right-6 h-14 w-14 inline-flex items-center justify-center rounded-full text-white bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-xl shadow-blue-600/30 transition"
+        className={`fixed z-40 bottom-4 right-4 sm:bottom-5 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full text-white bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-xl shadow-blue-600/30 transition duration-300 ${
+          tucked && !open ? "translate-y-24 opacity-0 pointer-events-none" : ""
+        }`}
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-7 w-7" />}
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7" />}
       </button>
     </>
   );
