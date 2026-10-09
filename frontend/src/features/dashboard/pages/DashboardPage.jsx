@@ -1,20 +1,54 @@
 // src/pages/DashboardPage.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardNavBar } from '@/shared/layout/DashboardNavBar';
 import { MenuBar } from '@/shared/layout/MenuBar';
 import PageHeader from '@/shared/layout/PageHeader';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bookmark } from 'lucide-react';
+import { ArrowRight, Bookmark, HelpCircle } from 'lucide-react';
+import SpotlightGuide from '@/shared/ui/SpotlightGuide';
+import { hasSeenGuide } from '@/shared/lib/guideSeen';
 import ProgramCard from '../components/ProgramCard.jsx';
 import { useDashboardFacts } from '../hooks/useDashboardFacts';
 import { RecommendationTable } from '@/features/recommendations/components/RecommendationTable';
 import { UserAuth } from '@/app/AuthContext';
 
 
+const GUIDE_KEY = 'univise-dashboard-guide-seen';
+
+const GUIDE_STEPS = [
+  {
+    targets: ['[data-tour="dash-glance"] > *'],
+    title: "Where you're at",
+    text: "Your UOC so far, your specialisation and the courses you can take next. Click a box to act on it.",
+  },
+  {
+    targets: ['[data-tour="dash-steps"]'],
+    title: 'Jump into your roadmap',
+    text: 'Go straight to any part of your roadmap: courses, careers, internships or societies.',
+  },
+  {
+    targets: ['[data-tour="dash-open"]'],
+    title: 'Start here',
+    text: 'Open your roadmap to work through your degree step by step.',
+  },
+  {
+    targets: ['[data-tour="menu"]'],
+    title: 'Everything else',
+    text: 'The Menu has CourseMesh, the Handbook, Compare programs and Eunice, your AI advisor.',
+  },
+];
+
 function DashboardPage() {
   const { session } = UserAuth();
   const [isOpen, setIsOpen] = useState(false);
   const facts = useDashboardFacts();
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    if (!facts || hasSeenGuide(GUIDE_KEY)) return;
+    const timer = setTimeout(() => setShowGuide(true), 700);
+    return () => clearTimeout(timer);
+  }, [facts]);
   const openDrawer = () => setIsOpen(true);
   const closeDrawer = () => setIsOpen(false);
 
@@ -42,6 +76,7 @@ function DashboardPage() {
     <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+      {showGuide && <SpotlightGuide steps={GUIDE_STEPS} seenKey={GUIDE_KEY} onClose={() => setShowGuide(false)} />}
 
       <PageHeader
         eyebrow={today}
@@ -53,6 +88,17 @@ function DashboardPage() {
         }
         subtitle="Let's keep your degree on track."
         actionsAtBottom
+        help={
+          <button
+            type="button"
+            onClick={() => setShowGuide(true)}
+            aria-label="How the dashboard works"
+            title="How the dashboard works"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-full text-white bg-white/15 ring-1 ring-white/40 hover:bg-white/25 transition-colors"
+          >
+            <HelpCircle className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+        }
         actions={
           <Link
             to="/saved"

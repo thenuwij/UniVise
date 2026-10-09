@@ -2,8 +2,8 @@
 import { ArrowRight, Check, HelpCircle, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandIcon from "@/shared/ui/ExpandIcon";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
-import CoursesGuide from "./CoursesGuide";
-import { hasSeenCoursesGuide } from "../utils/coursesGuide";
+import SpotlightGuide from "@/shared/ui/SpotlightGuide";
+import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
@@ -18,6 +18,21 @@ import { card } from "@/shared/ui/cardStyles";
 function sumUoC(list = []) {
   return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
 }
+
+const GUIDE_KEY = "univise-courses-guide-seen";
+
+const GUIDE_STEPS = [
+  {
+    targets: ['[data-tour="course-tick"][aria-checked="false"]', '[data-tour="course-tick"]'],
+    title: "Tick what you've done",
+    text: "Tick the box next to each course you've finished. Each part shows how much is left.",
+  },
+  {
+    targets: ['[data-tour="coursemesh-strip"]'],
+    title: "See what's next",
+    text: "CourseMesh shows what your ticked courses unlock and which ones you can take next.",
+  },
+];
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
 
@@ -287,7 +302,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   }, [firstOpen, specs, shownSections, trackCompletion, userId, ticksLoaded, sectionProgresses]);
 
   useEffect(() => {
-    if (!trackCompletion || firstOpen === null || hasSeenCoursesGuide()) return;
+    if (!trackCompletion || firstOpen === null || hasSeenGuide(GUIDE_KEY)) return;
     const timer = setTimeout(() => setShowGuide(true), 700);
     return () => clearTimeout(timer);
   }, [trackCompletion, firstOpen]);
@@ -474,7 +489,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         )}
       </div>
 
-      {showGuide && <CoursesGuide onClose={() => setShowGuide(false)} />}
+      {showGuide && <SpotlightGuide steps={GUIDE_STEPS} seenKey={GUIDE_KEY} onClose={() => setShowGuide(false)} />}
 
       {showAdd && (
         <ElectivesPanel

@@ -1,41 +1,37 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowBigDown, ArrowRight, X } from "lucide-react";
-import { markCoursesGuideSeen } from "../utils/coursesGuide";
-
-const STEPS = [
-  { title: "Tick what you've done", text: "Tick the box next to each course you've finished. Each part shows how much is left." },
-  { title: "See what's next", text: "CourseMesh shows what your ticked courses unlock and which ones you can take next." },
-];
+import { markGuideSeen } from "@/shared/lib/guideSeen";
 
 const CARD_W = 320;
 const GAP = 14;
 const ARROW = 44;
 
-function findTarget(step) {
-  if (step === 0) {
-    return document.querySelector('[data-tour="course-tick"][aria-checked="false"]') || document.querySelector('[data-tour="course-tick"]');
+function findTarget(targets) {
+  for (const selector of targets) {
+    const el = document.querySelector(selector);
+    if (el && el.getBoundingClientRect().width > 0) return el;
   }
-  return document.querySelector('[data-tour="coursemesh-strip"]');
+  return null;
 }
 
-export default function CoursesGuide({ onClose }) {
+export default function SpotlightGuide({ steps, seenKey, onClose }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState(null);
   const [cardH, setCardH] = useState(170);
   const cardRef = useRef(null);
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  const live = useRef({ onClose, seenKey });
+  live.current = { onClose, seenKey };
 
-  const finish = () => {
-    markCoursesGuideSeen();
-    closeRef.current();
-  };
+  const finish = useCallback(() => {
+    markGuideSeen(live.current.seenKey);
+    live.current.onClose();
+  }, []);
 
   useEffect(() => {
-    const el = findTarget(step);
+    const el = findTarget(steps[step].targets);
     if (!el) {
-      if (step + 1 < STEPS.length) setStep(step + 1);
+      if (step + 1 < steps.length) setStep(step + 1);
       else finish();
       return;
     }
@@ -58,7 +54,7 @@ export default function CoursesGuide({ onClose }) {
       clearInterval(timer);
       window.removeEventListener("keydown", onKey);
     };
-  }, [step]);
+  }, [step, steps, finish]);
 
   useLayoutEffect(() => {
     if (cardRef.current) setCardH(cardRef.current.offsetHeight);
@@ -66,8 +62,8 @@ export default function CoursesGuide({ onClose }) {
 
   if (!rect) return null;
 
-  const current = STEPS[step];
-  const last = step === STEPS.length - 1;
+  const current = steps[step];
+  const last = step === steps.length - 1;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const width = Math.min(CARD_W, vw - 24);
@@ -105,7 +101,7 @@ export default function CoursesGuide({ onClose }) {
       >
         <div className="flex items-start justify-between gap-3">
           <p className="text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
-            Step {step + 1} of {STEPS.length}
+            Step {step + 1} of {steps.length}
           </p>
           <button onClick={finish} aria-label="Close guide" className="-mt-1 -mr-1 p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <X className="h-4 w-4" />
