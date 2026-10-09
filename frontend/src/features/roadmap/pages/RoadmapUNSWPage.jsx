@@ -11,6 +11,7 @@ import CareerPathways from "../components/CareerPathways";
 import DegreeRequirements from "../components/DegreeRequirements";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
+import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
@@ -316,7 +317,7 @@ export default function RoadmapUNSWPage() {
 
   const fetchedDegree = useDegreeData(header.degree_code);
   const activeDegree = degree || fetchedDegree;
-  const { program: enrolledProgram } = useEnrolledProgram();
+  const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
   const [specNames, setSpecNames] = useState([]);
@@ -429,6 +430,9 @@ export default function RoadmapUNSWPage() {
       back={isOwnProgram ? undefined : { label: "Back to my roadmap", onClick: handleBackClick }}
       actions={
         <>
+          {!enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
+            <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} />
+          )}
           <Link to="/saved" className={bandButton}>
             <Bookmark className="h-4 w-4" />
             My shortlist
