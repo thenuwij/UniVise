@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import FormattedText from "@/shared/ui/FormattedText";
 import ExpandIcon from "@/shared/ui/ExpandIcon";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { card } from "@/shared/ui/cardStyles";
 import { hasContent } from "@/shared/lib/format";
+import { tidySections } from "@/features/roadmap/utils/myCourses";
 import { courseTile, staticTile } from "./DetailLayout";
 
 const sumUoc = (courses = []) => courses.reduce((sum, c) => sum + (Number(c?.uoc) || 0), 0);
@@ -27,7 +28,14 @@ function CourseTile({ course, known }) {
   return linked ? <Link to={`/course/${course.code}`}>{body}</Link> : body;
 }
 
-export default function RequirementSections({ sections, known }) {
+function byList(courses) {
+  const lists = new Map();
+  for (const course of courses) lists.set(course.list || "", [...(lists.get(course.list || "") || []), course]);
+  return [...lists];
+}
+
+export default function RequirementSections({ sections: raw, known }) {
+  const sections = useMemo(() => tidySections(raw), [raw]);
   const [open, setOpen] = useState(() => new Set([0]));
   const allOpen = open.size === sections.length;
 
@@ -77,13 +85,16 @@ export default function RequirementSections({ sections, known }) {
                     <FormattedText text={`Note: ${section.notes}`} collapsedHeight={null} className="text-sm text-pick-ink" />
                   </div>
                 )}
-                {count > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {section.courses.map((course, ci) => (
-                      <CourseTile key={course.code || ci} course={course} known={known} />
-                    ))}
+                {byList(section.courses || []).map(([list, courses]) => (
+                  <div key={list || "courses"}>
+                    {list && <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-muted">{list}</p>}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {courses.map((course, ci) => (
+                        <CourseTile key={course.code || ci} course={course} known={known} />
+                      ))}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </div>
