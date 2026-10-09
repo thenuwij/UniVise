@@ -1,4 +1,3 @@
-// src/pages/SavedItemsPage.jsx
 import { useEffect, useState } from "react";
 import {
   HiBookmark,
@@ -18,7 +17,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const SHORTLIST_TYPES = ["career_path", "internship", "society"];
-const CAREERS_STEP = roadmapStepUrl("careers");
+const TYPE_OF = { careers: "career_path", internships: "internship", societies: "society" };
 
 function SavedItemsPage() {
   const navigate = useNavigate();
@@ -47,28 +46,22 @@ function SavedItemsPage() {
   const internshipItems  = savedItems.filter((i) => i.item_type === "internship");
   const societyItems     = savedItems.filter((i) => i.item_type === "society");
 
-  const ALL_TABS = [
-    { id: "all",         label: "All",         icon: <HiViewGrid className="w-4 h-4" />,       items: savedItems },
-    { id: "careers",     label: "Careers",     icon: <HiBriefcase className="w-4 h-4" />,      items: careerItems },
+  const tabs = [
+    { id: "all", label: "All", icon: <HiViewGrid className="w-4 h-4" />, items: savedItems },
+    { id: "careers", label: "Careers", icon: <HiBriefcase className="w-4 h-4" />, items: careerItems },
     { id: "internships", label: "Internships", icon: <HiOfficeBuilding className="w-4 h-4" />, items: internshipItems },
-    { id: "societies",   label: "Societies",   icon: <HiUsers className="w-4 h-4" />,          items: societyItems },
+    { id: "societies", label: "Societies", icon: <HiUsers className="w-4 h-4" />, items: societyItems },
   ];
+  const active = tabs.find((t) => t.id === activeTab) || tabs[0];
 
-  const visibleTabs = ALL_TABS;
-  const activeItems = ALL_TABS.find((t) => t.id === activeTab)?.items ?? savedItems;
-
-  // If current tab becomes empty (after remove), fall back to "all"
   useEffect(() => {
-    const tab = ALL_TABS.find((t) => t.id === activeTab);
-    if (tab && tab.id !== "all" && tab.items.length === 0) setActiveTab("all");
-  }, [savedItems]);
+    if (activeTab !== "all" && !savedItems.some((i) => i.item_type === TYPE_OF[activeTab])) setActiveTab("all");
+  }, [savedItems, activeTab]);
 
   const handleRemove = async (itemId) => {
     const { error } = await supabase.from("user_saved_items").delete().eq("id", itemId);
     if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
-
-  const openCareers = { action: () => navigate(CAREERS_STEP), text: "Open the Careers step" };
 
   const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
 
@@ -83,127 +76,71 @@ function SavedItemsPage() {
         subtitle={`${savedItems.length} item${savedItems.length !== 1 ? "s" : ""} saved${withNotes > 0 ? ` · ${withNotes} with notes` : ""}`}
       />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
-
-        <div className="flex items-start justify-end mt-8 mb-6 gap-4 flex-wrap">
-          {/* Mini stat pills */}
-          {!loading && savedItems.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {ALL_TABS.filter((t) => t.id !== "all" && t.items.length > 0).map((t) => (
+      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8 space-y-6">
+        {savedItems.length > 0 && (
+          <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter your shortlist">
+            {tabs.map((tab) => {
+              const on = tab.id === active.id;
+              return (
                 <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                    activeTab === t.id
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400"
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  disabled={!tab.items.length}
+                  aria-pressed={on}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                    on
+                      ? "text-white bg-blue-600 border-blue-600"
+                      : "text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900"
                   }`}
                 >
-                  {t.icon}
-                  {t.label}
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    activeTab === t.id ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                  }`}>
-                    {t.items.length}
-                  </span>
+                  {tab.icon}
+                  {tab.label}
+                  <span className={`px-1.5 rounded-full text-xs font-bold ${on ? "bg-white/25" : "bg-white/70 dark:bg-slate-900/50"}`}>{tab.items.length}</span>
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-slate-200 dark:border-slate-700">
-          <nav className="flex gap-1 overflow-x-auto">
-            {visibleTabs.map((tab) => (
-              <TabButton
-                key={tab.id}
-                active={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                icon={tab.icon}
-                label={tab.label}
-                count={tab.items.length}
-              />
-            ))}
+              );
+            })}
           </nav>
-        </div>
+        )}
 
-        {/* Content */}
-        <div className="mt-6 pb-16">
-          {loading ? (
-            <LoadingState />
-          ) : activeItems.length === 0 ? (
-            <EmptyState
-              tab={activeTab}
-              onAction={openCareers.action}
-              actionText={openCareers.text}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {activeItems.map((item) => (
-                <SavedItemCard key={item.id} item={item} onRemove={handleRemove} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+        {loading ? (
+          <LoadingState />
+        ) : active.items.length === 0 ? (
+          <EmptyState onAction={() => navigate(roadmapStepUrl("careers"))} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {active.items.map((item) => (
+              <SavedItemCard key={item.id} item={item} onRemove={handleRemove} />
+            ))}
+          </div>
+        )}
+      </main>
     </div>
-  );
-}
-
-function TabButton({ active, onClick, icon, label, count }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-sm ${
-        active
-          ? "border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 font-medium"
-          : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-      }`}
-    >
-      {icon}
-      <span>{label}</span>
-      {count > 0 && (
-        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
-          active ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
-                 : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-        }`}>
-          {count}
-        </span>
-      )}
-    </button>
   );
 }
 
 function LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
+      <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4" />
       <p className="text-sm text-slate-500 dark:text-slate-400">Loading your shortlist...</p>
     </div>
   );
 }
 
-function EmptyState({ tab, onAction, actionText }) {
+function EmptyState({ onAction }) {
   return (
-    <div className={`${card} p-12 text-center`}>
-      <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-        <HiBookmark className="w-7 h-7 text-slate-400" />
+    <div className={`${card} p-10 text-center`}>
+      <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+        <HiBookmark className="w-7 h-7 text-blue-600 dark:text-blue-400" />
       </div>
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-        {tab === "all" ? "Nothing saved yet" : `No ${tab} saved yet`}
-      </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
-        Save careers, internships and societies from the Careers, Internships and Societies steps of your roadmap to keep them here.
+      <h3 className="text-lg font-bold text-ink-strong">Nothing saved yet</h3>
+      <p className="mt-2 text-[15px] text-ink-muted max-w-md mx-auto">
+        Use the save button on careers, internships and societies in your roadmap. They'll collect here so you can compare them and add notes.
       </p>
-      {onAction && (
-        <button
-          onClick={onAction}
-          className="button-primary px-5 py-2.5 rounded-xl text-sm font-bold"
-        >
-          {actionText}
-        </button>
-      )}
+      <button type="button" onClick={onAction} className="button-primary mt-6 px-5 py-2.5 rounded-xl text-sm font-bold">
+        Open the Careers step
+      </button>
     </div>
   );
 }
