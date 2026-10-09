@@ -200,3 +200,80 @@ describe("tidySections", () => {
     expect(tidySections(sections)).toEqual(sections);
   });
 });
+
+describe("tidySections core rules", () => {
+  it("turns a core list that lists more than its target into a pick-UOC section", () => {
+    const [section] = tidySections([{ title: "Level 1 Core", kind: "core", uoc: 12, courses: [{ code: "PPEC1001", uoc: 6 }, { code: "ARTS1810", uoc: 6 }, { code: "ECON1101", uoc: 6 }] }]);
+    expect(section.kind).toBe("elective");
+    expect(section.uoc).toBe(12);
+  });
+
+  it("turns a core list that lists less than its target into a pick-UOC section", () => {
+    const [section] = tidySections([{ title: "Level 5 Core", kind: "core", uoc: 48, courses: [{ code: "OPTM5001", uoc: 40 }] }]);
+    expect(section.kind).toBe("elective");
+  });
+
+  it("reads a target from the text for 0 UOC core lists", () => {
+    const [section] = tidySections([{ title: "Thesis Courses", kind: "core", uoc: 0, description: "Students must take at least 12 UOC of the following courses.", courses: [{ code: "CVEN4951", uoc: 4 }, { code: "CVEN4952", uoc: 4 }] }]);
+    expect(section).toMatchObject({ kind: "elective", uoc: 12 });
+  });
+
+  it("treats an undescribed 0 UOC core list as pick one", () => {
+    const [section] = tidySections([{ title: "Business FYS Course", kind: "core", uoc: 0, courses: [{ code: "COMM1100" }, { code: "COMM1110" }] }]);
+    expect(section.courses.every((c) => c.choice === "Business FYS Course: one of")).toBe(true);
+  });
+
+  it("makes neighbouring undescribed 0 UOC lists one pick-one choice, like the Handbook's FYS rule", () => {
+    const tidy = tidySections([
+      { title: "Business FYS Course", kind: "core", uoc: 0, courses: [{ code: "COMM3900" }, { code: "MGMT3004" }] },
+      { title: "Non-Business FYS Course", kind: "core", uoc: 0, courses: [{ code: "CDEV3000" }, { code: "CDEV3300" }] },
+    ]);
+    const keys = new Set(tidy.flatMap((s) => s.courses.map((c) => c.choice)));
+    expect([...keys]).toEqual(["Business FYS Course: one of"]);
+    expect(requiredCount(splitCourses([{ key: "3502", sections: tidy }]))).toBe(1);
+  });
+
+  it("keeps core lists that add up exactly, including one-of groups", () => {
+    const sections = [{ title: "Level 1 Core", kind: "core", uoc: 12, courses: [{ code: "COMP1511", uoc: 6 }, { code: "MATH1131", uoc: 6, choice: "a" }, { code: "MATH1141", uoc: 6, choice: "a" }] }];
+    expect(tidySections(sections)).toEqual(sections);
+  });
+
+  it("leaves core lists with an unknown course UOC alone", () => {
+    const sections = [{ title: "Core", kind: "core", uoc: 96, courses: [{ code: "COMM1100" }, { code: "COMM1110" }] }];
+    expect(tidySections(sections)).toEqual(sections);
+  });
+});
+
+describe("tidySections plural core lists", () => {
+  it("keeps plural 0 UOC core lists as all required", () => {
+    const sections = [{ title: "Level 1 Core Courses", kind: "core", uoc: 0, courses: [{ code: "ACCT1501", uoc: 6 }, { code: "ECON1101", uoc: 6 }] }];
+    expect(tidySections(sections)).toEqual(sections);
+  });
+});
+
+describe("tidySections split requirements", () => {
+  it("merges a continuation list back into its requirement", () => {
+    const tidy = tidySections([
+      { title: "Level 1 Core Courses", kind: "core", uoc: 30, description: "Students must take 30 UOC of the following courses.", courses: [1, 2, 3, 4, 5, 6].map((n) => ({ code: `CLIM100${n}`, uoc: 6 })) },
+      { title: "Level 1 Core Courses", kind: "core", uoc: 0, courses: [{ code: "MATH1131", uoc: 6 }, { code: "MATH1141", uoc: 6 }] },
+    ]);
+    expect(tidy).toHaveLength(1);
+    expect(tidy[0]).toMatchObject({ kind: "elective", uoc: 30 });
+    expect(tidy[0].courses).toHaveLength(8);
+  });
+
+  it("keeps a core list required when a one-of group right after it makes up the target", () => {
+    const tidy = tidySections([
+      { title: "Core Courses", kind: "core", uoc: 0, description: "Students must complete 24 UOC of the following courses.", courses: [] },
+      { title: "Core Courses", kind: "core", uoc: 0, courses: [{ code: "COMM1100", uoc: 6 }, { code: "COMM1110", uoc: 6 }, { code: "COMM1120", uoc: 6 }] },
+      { title: "One of the Following", kind: "choice", uoc: 0, courses: [{ code: "COMM2501", uoc: 6, choice: "x" }, { code: "COMM2101", uoc: 6, choice: "x" }] },
+    ]);
+    expect(tidy[0]).toMatchObject({ title: "Core Courses", kind: "core", uoc: 24 });
+    expect(tidy[0].courses).toHaveLength(3);
+  });
+
+  it("reads 'from the following' targets", () => {
+    const [section] = tidySections([{ title: "Level 3 Flexible Core Courses", kind: "core", description: "Students must take a minimum of 6 UOC from the following courses.", courses: [{ code: "ECON3101", uoc: 6 }, { code: "ECON3102", uoc: 6 }] }]);
+    expect(section).toMatchObject({ kind: "elective", uoc: 6 });
+  });
+});

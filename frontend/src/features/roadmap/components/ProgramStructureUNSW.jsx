@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, parseSections, saveMinor, setCourseAdded } from "../utils/programCourses";
+import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
 import { ADDED_SECTION, matchesRule, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, ruleCheck, rulePatterns, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
 import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
@@ -487,7 +487,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         const filtered = propSections.filter(
           (s) => !s?.title?.toLowerCase()?.includes("overview")
         );
-        setSections(filtered);
+        const [filled] = await withCourseUoc([filtered]);
+        setSections(filled);
         setOpenMap({});
         return;
       }
@@ -507,7 +508,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const parsed = parseSections(data?.sections);
 
-        setSections(parsed.filter((s) => s && s.title && !s.title.toLowerCase().includes("overview")));
+        const [filled] = await withCourseUoc([parsed.filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))]);
+        setSections(filled);
         setHandbookUrl(data?.source_url || "");
         setOpenMap({});
       } catch (e) {

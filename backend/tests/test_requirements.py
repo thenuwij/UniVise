@@ -129,3 +129,34 @@ def test_parent_requirement_and_its_lists_become_one_elective_part():
     text = format_requirements(parts, None, 0)
     assert "- Business Core Courses: 30 UOC; the course list isn't in UniVise" in text
     assert "- Prescribed WIL Course: 0 of 6 UOC done; the Handbook data lists no courses for this" in text
+
+
+def test_core_rules_match_the_handbook():
+    lists = [(None, [
+        {"title": "Level 1 Core Courses", "kind": "core", "uoc": 12, "courses": [{"code": "PPEC1001", "uoc": 6}, {"code": "ARTS1810", "uoc": 6}, {"code": "ECON1101", "uoc": 6}]},
+        {"title": "Business FYS Course", "kind": "core", "uoc": 0, "courses": [{"code": "COMM3900", "uoc": 6}, {"code": "MGMT3004", "uoc": 6}]},
+        {"title": "Non-Business FYS Course", "kind": "core", "uoc": 0, "courses": [{"code": "CDEV3000", "uoc": 6}, {"code": "CDEV3300", "uoc": 6}]},
+    ])]
+    parts = requirement_status(lists, {"CDEV3000"})
+
+    assert by_name(parts, "Level 1 Core Courses")["type"] == "options"
+    choices = [p for p in parts if p["type"] == "choice"]
+    assert len(choices) == 1
+    assert choices[0]["codes"] == ["COMM3900", "MGMT3004", "CDEV3000", "CDEV3300"]
+    assert choices[0]["done"] == ["CDEV3000"]
+
+
+def test_split_requirements_match_the_handbook():
+    lists = [(None, [
+        {"title": "Core Courses", "kind": "core", "uoc": 0, "description": "Students must complete 24 UOC of the following courses.", "courses": []},
+        {"title": "Core Courses", "kind": "core", "uoc": 0, "courses": [{"code": c, "uoc": 6} for c in ("COMM1100", "COMM1110", "COMM1120")]},
+        {"title": "One of the Following", "kind": "choice", "uoc": 0, "courses": [{"code": "COMM2501", "uoc": 6, "choice": "x"}, {"code": "COMM2101", "uoc": 6, "choice": "x"}]},
+        {"title": "Level 3 Flexible Core Courses", "kind": "core", "description": "Students must take a minimum of 6 UOC from the following courses.",
+         "courses": [{"code": "ECON3101", "uoc": 6}, {"code": "ECON3102", "uoc": 6}]},
+    ])]
+    parts = requirement_status(lists, set())
+
+    core = by_name(parts, "Core Courses")
+    assert core["type"] == "required" and core["left"] == ["COMM1100", "COMM1110", "COMM1120"]
+    flexible = by_name(parts, "Level 3 Flexible Core Courses")
+    assert (flexible["type"], flexible["uoc"]) == ("options", 6)

@@ -133,11 +133,62 @@ export function rulePatterns(text) {
 export const matchesRule = (code, patterns) =>
   (patterns || []).some((p) => String(code).toUpperCase().startsWith(p.prefix) && levelOfCode(code) === p.level);
 
-const TARGET_TEXT = /(\d+)\s*(?:UOC|units of credit)\s+of the following/i;
+const TARGET_TEXT = /(\d+)\s*(?:UOC|units of credit)\s+(?:of|from) the following/i;
+const LOOSE_TARGET = /(?:at least|either|take|complete)\s+(\d+)\s*(?:UOC|units of credit)/i;
+const readTarget = (text) => Number((String(text || "").match(TARGET_TEXT) || String(text || "").match(LOOSE_TARGET) || [])[1]) || 0;
 const listedCount = (section) => (section?.courses || []).filter((c) => c?.code).length;
+const hasText = (section) => Boolean(String(section?.description || "").trim());
+const baseTitle = (title) => {
+  const full = String(title || "").trim();
+  return (full.replace(/\s*(?:core\s+)?courses?\s*$/i, "") || full).toLowerCase();
+};
+const asElective = (courses) => courses.map((c) => ({ ...c, kind: "elective", choice: undefined }));
+
+function isContinuation(previous, section) {
+  if (!previous || !listedCount(section) || hasText(section) || Number(section.uoc)) return false;
+  const kind = section.kind || "core";
+  if (kind === "choice" || (previous.kind || "core") !== kind) return false;
+  const base = baseTitle(previous.title);
+  return Boolean(base) && baseTitle(section.title).startsWith(base);
+}
+
+function mergeContinuations(list) {
+  const out = [];
+  for (const section of list) {
+    const previous = out[out.length - 1];
+    if (isContinuation(previous, section)) {
+      const seen = new Set((previous.courses || []).map((c) => c.code));
+      out[out.length - 1] = { ...previous, courses: [...(previous.courses || []), ...section.courses.filter((c) => c?.code && !seen.has(c.code))] };
+    } else {
+      out.push(section);
+    }
+  }
+  return out;
+}
+
+function tidyCore(section, nextIsChoice) {
+  const courses = (section.courses || []).filter((c) => c?.code);
+  if (!courses.length) return section;
+  const plain = courses.filter((c) => !c.choice);
+  const target = Number(section.uoc) || readTarget(section.description);
+  if (!target) {
+    const zero = section.uoc === 0 || section.uoc === "0";
+    if (zero && plain.length > 1 && !hasText(section) && /\bcourse$/i.test(String(section.title).trim())) {
+      return { ...section, pickOne: `${section.title}: one of`, courses: courses.map((c) => (c.choice ? c : { ...c, choice: `${section.title}: one of` })) };
+    }
+    return section;
+  }
+  const withTarget = { ...section, uoc: target };
+  if (plain.some((c) => c.uoc == null || c.uoc === "")) return withTarget;
+  const groups = new Map();
+  for (const c of courses) if (c.choice && !groups.has(c.choice)) groups.set(c.choice, Number(c.uoc) || 0);
+  const listed = plain.reduce((sum, c) => sum + (Number(c.uoc) || 0), 0) + [...groups.values()].reduce((x, y) => x + y, 0);
+  if (listed === target || (listed < target && nextIsChoice)) return withTarget;
+  return { ...withTarget, kind: "elective", courses: asElective(courses) };
+}
 
 export function tidySections(sections) {
-  const list = (sections || []).filter((s) => s?.title);
+  const list = mergeContinuations((sections || []).filter((s) => s?.title));
   const out = [];
   for (let i = 0; i < list.length; i += 1) {
     const section = list[i];
@@ -163,11 +214,17 @@ export function tidySections(sections) {
       continue;
     }
     if (parentKind === "elective" && listedCount(section) && !uoc) {
-      const target = String(section.description || "").match(TARGET_TEXT);
-      out.push(target ? { ...section, uoc: Number(target[1]) } : section);
+      const target = readTarget(section.description);
+      out.push(target ? { ...section, uoc: target } : section);
       continue;
     }
-    out.push(section);
+    const tidied = parentKind === "core" ? tidyCore(section, list[i + 1]?.kind === "choice") : section;
+    const previous = out[out.length - 1];
+    if (tidied.pickOne && previous?.pickOne) {
+      out.push({ ...tidied, pickOne: previous.pickOne, courses: tidied.courses.map((c) => (c.choice === tidied.pickOne ? { ...c, choice: previous.pickOne } : c)) });
+    } else {
+      out.push(tidied);
+    }
   }
   return out;
 }

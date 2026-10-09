@@ -89,6 +89,26 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
     return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists
 
 
+def _missing_uoc(course) -> bool:
+    return isinstance(course, dict) and bool(course.get("code")) and course.get("uoc") in (None, "")
+
+
+def fill_course_uoc(section_lists: list) -> list:
+    codes = {c["code"] for _, sections in section_lists for s in sections if isinstance(s, dict) for c in s.get("courses") or [] if _missing_uoc(c)}
+    if not codes:
+        return section_lists
+    rows = supabase.from_("unsw_courses").select("code, uoc").in_("code", sorted(codes)).execute().data or []
+    uocs = {r["code"]: r["uoc"] for r in rows}
+
+    def fill(section):
+        if not isinstance(section, dict):
+            return section
+        courses = [{**c, "uoc": uocs[c["code"]]} if _missing_uoc(c) and c["code"] in uocs else c for c in section.get("courses") or []]
+        return {**section, "courses": courses}
+
+    return [(label, [fill(s) for s in sections]) for label, sections in section_lists]
+
+
 def load_inputs(user_id: str) -> dict | None:
     enrolled = (
         supabase.from_("user_enrolled_program")
@@ -157,7 +177,7 @@ def load_inputs(user_id: str) -> dict | None:
         "saved_careers": saved_careers,
         "completed": sorted(completed),
         "candidates": available_courses(courses, completed, prereq_groups(edges), set(spec_codes)),
-        "requirement_lists": [(None, program_sections), *spec_sections],
+        "requirement_lists": fill_course_uoc([(None, program_sections), *spec_sections]),
         "minimum_uoc": program[0].get("minimum_uoc") if program else None,
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
         "added": sorted(added),

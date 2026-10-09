@@ -2,7 +2,74 @@ import re
 
 OPTION_KINDS = {"elective", "general_education", "free_elective"}
 RULE = re.compile(r"minimum of (\d+)\s*UOC of Level (\d)", re.IGNORECASE)
-TARGET_TEXT = re.compile(r"(\d+)\s*(?:UOC|units of credit)\s+of the following", re.IGNORECASE)
+TARGET_TEXT = re.compile(r"(\d+)\s*(?:UOC|units of credit)\s+(?:of|from) the following", re.IGNORECASE)
+LOOSE_TARGET = re.compile(r"(?:at least|either|take|complete)\s+(\d+)\s*(?:UOC|units of credit)", re.IGNORECASE)
+
+
+def _read_target(text) -> int:
+    match = TARGET_TEXT.search(text or "") or LOOSE_TARGET.search(text or "")
+    return int(match.group(1)) if match else 0
+
+
+def _as_elective(courses: list) -> list:
+    return [{**{k: v for k, v in c.items() if k != "choice"}, "kind": "elective"} for c in courses]
+
+
+def _has_text(section: dict) -> bool:
+    return bool((section.get("description") or "").strip())
+
+
+def _base_title(title: str) -> str:
+    full = (title or "").strip()
+    return (re.sub(r"\s*(?:core\s+)?courses?\s*$", "", full, flags=re.IGNORECASE) or full).lower()
+
+
+def _is_continuation(previous, section) -> bool:
+    if not previous or not _listed(section) or _has_text(section) or to_uoc(section.get("uoc")):
+        return False
+    kind = section.get("kind") or "core"
+    if kind == "choice" or (previous.get("kind") or "core") != kind:
+        return False
+    base = _base_title(previous.get("title"))
+    return bool(base) and _base_title(section.get("title")).startswith(base)
+
+
+def _merge_continuations(items: list) -> list:
+    out = []
+    for section in items:
+        previous = out[-1] if out else None
+        if _is_continuation(previous, section):
+            seen = {_code(c) for c in previous.get("courses") or []}
+            extra = [c for c in section["courses"] if _code(c) and _code(c) not in seen]
+            out[-1] = {**previous, "courses": [*(previous.get("courses") or []), *extra]}
+        else:
+            out.append(section)
+    return out
+
+
+def _tidy_core(section: dict, next_is_choice: bool = False) -> dict:
+    courses = [c for c in section.get("courses") or [] if _code(c)]
+    if not courses:
+        return section
+    plain = [c for c in courses if not c.get("choice")]
+    target = to_uoc(section.get("uoc")) or _read_target(section.get("description"))
+    if not target:
+        zero = str(section.get("uoc")) == "0"
+        if zero and len(plain) > 1 and not (section.get("description") or "").strip() and re.search(r"\bcourse$", section["title"].strip(), re.IGNORECASE):
+            key = f"{section['title']}: one of"
+            return {**section, "pick_one": key, "courses": [c if c.get("choice") else {**c, "choice": key} for c in courses]}
+        return section
+    with_target = {**section, "uoc": target}
+    if any(c.get("uoc") in (None, "") for c in plain):
+        return with_target
+    groups: dict = {}
+    for c in courses:
+        if c.get("choice"):
+            groups.setdefault(c["choice"], to_uoc(c.get("uoc")))
+    listed = sum(to_uoc(c.get("uoc")) for c in plain) + sum(groups.values())
+    if listed == target or (listed < target and next_is_choice):
+        return with_target
+    return {**with_target, "kind": "elective", "courses": _as_elective(courses)}
 OPEN_KINDS = {"free_elective", "general_education"}
 STANDARD_COURSE_UOC = 6
 MAX_CODES = 12
@@ -24,7 +91,7 @@ def _listed(section) -> int:
 
 
 def tidy_sections(sections) -> list:
-    items = [s for s in sections or [] if isinstance(s, dict) and s.get("title")]
+    items = _merge_continuations([s for s in sections or [] if isinstance(s, dict) and s.get("title")])
     out = []
     i = 0
     while i < len(items):
@@ -52,11 +119,17 @@ def tidy_sections(sections) -> list:
             i += 1
             continue
         if kind == "elective" and _listed(section) and not uoc:
-            target = TARGET_TEXT.search(section.get("description") or "")
-            out.append({**section, "uoc": int(target.group(1))} if target else section)
+            target = _read_target(section.get("description"))
+            out.append({**section, "uoc": target} if target else section)
             i += 1
             continue
-        out.append(section)
+        following = items[i + 1] if i + 1 < len(items) else None
+        tidied = _tidy_core(section, bool(following) and following.get("kind") == "choice") if kind == "core" else section
+        previous = out[-1] if out else None
+        if tidied.get("pick_one") and previous and previous.get("pick_one"):
+            key = previous["pick_one"]
+            tidied = {**tidied, "pick_one": key, "courses": [{**c, "choice": key} if c.get("choice") == tidied["pick_one"] else c for c in tidied["courses"]]}
+        out.append(tidied)
         i += 1
     return out
 

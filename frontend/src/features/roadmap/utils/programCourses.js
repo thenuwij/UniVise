@@ -75,19 +75,21 @@ export async function fetchChosenSpecialisations(degreeCode, userId) {
     .eq("user_id", userId)
     .in("degree_code", codes);
   const seen = new Set();
-  return (rows || [])
+  const chosen = (rows || [])
     .flatMap((r) => [
       r.major && { ...r.major, type: "Major" },
       r.honours && { ...r.honours, type: "Honours" },
       r.minor && { ...r.minor, type: "Minor" },
     ])
-    .filter((spec) => spec && !seen.has(spec.id) && seen.add(spec.id))
-    .map((spec) => ({
+    .filter((spec) => spec && !seen.has(spec.id) && seen.add(spec.id));
+  const filled = await withCourseUoc(chosen.map((spec) => parseSections(spec.sections).filter((s) => !isOverview(s))));
+  return chosen
+    .map((spec, i) => ({
       id: spec.id,
       name: spec.major_name,
       type: spec.type,
       uoc: Number(spec.uoc_required) || null,
-      sections: tidySections(parseSections(spec.sections).filter((s) => !isOverview(s))).filter(showsOnCourses),
+      sections: tidySections(filled[i]).filter(showsOnCourses),
     }))
     .filter((spec) => spec.sections.length);
 }
@@ -115,7 +117,8 @@ export async function fetchMyCourses(degreeCode, userId) {
     fetchChosenSpecialisations(degreeCode, userId),
     fetchAddedRows(userId),
   ]);
-  const program = { key: degreeCode, sections: tidySections(parseSections(data?.sections)).filter(hasCourses) };
+  const [programSections] = await withCourseUoc([parseSections(data?.sections)]);
+  const program = { key: degreeCode, sections: tidySections(programSections).filter(hasCourses) };
   const mine = withAddedCourses(splitCourses([program, ...specialisations.map((s) => ({ key: s.id, sections: s.sections }))]), addedRows);
   return {
     ...mine,
@@ -188,4 +191,16 @@ export async function saveMinor(userId, degreeCode, minorId) {
     .from("user_specialisation_selections")
     .upsert({ user_id: userId, degree_code: degreeCode, minor_id: minorId || null }, { onConflict: "user_id,degree_code" });
   if (error) throw error;
+}
+
+const missingUoc = (c) => c?.code && (c.uoc == null || c.uoc === "");
+
+export async function withCourseUoc(sectionLists) {
+  const codes = [...new Set(sectionLists.flat().flatMap((s) => (s?.courses || []).filter(missingUoc).map((c) => c.code)))];
+  if (!codes.length) return sectionLists;
+  const { data } = await supabase.from("unsw_courses").select("code, uoc").in("code", codes);
+  const uocs = new Map((data || []).map((r) => [r.code, r.uoc]));
+  return sectionLists.map((sections) =>
+    sections.map((s) => ({ ...s, courses: (s.courses || []).map((c) => (missingUoc(c) && uocs.has(c.code) ? { ...c, uoc: uocs.get(c.code) } : c)) }))
+  );
 }
