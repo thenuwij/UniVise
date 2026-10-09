@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toBlocks } from "@/shared/lib/format";
+import ExpandToggle from "./ExpandToggle";
 
-export default function FormattedText({ text, collapsedHeight = "14rem", className = "text-base text-ink", lists = true, maxWidth = "max-w-[72ch]" }) {
+export default function FormattedText({ text, collapsedHeight = "14rem", className = "text-base text-ink", lists = true, maxWidth = "max-w-none" }) {
   const blocks = useMemo(() => toBlocks(text, { lists }), [text, lists]);
   const ref = useRef(null);
   const [expanded, setExpanded] = useState(false);
@@ -55,9 +56,11 @@ export default function FormattedText({ text, collapsedHeight = "14rem", classNa
         })}
       </div>
       {(clamped || expanded) && (
-        <button onClick={() => setExpanded(!expanded)} className="mt-2 text-sm font-semibold text-link hover:underline">
-          {expanded ? "Show less" : "Read more"}
-        </button>
+        <div className="mt-3">
+          <ExpandToggle open={expanded} onClick={() => setExpanded(!expanded)}>
+            {expanded ? "Show less" : "Read more"}
+          </ExpandToggle>
+        </div>
       )}
     </div>
   );

@@ -1,12 +1,7 @@
 // src/pages/CourseDetailPage.jsx
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import {
-  HiAcademicCap,
-  HiCheckCircle,
-  HiExternalLink,
-  HiSparkles,
-} from "react-icons/hi";
+import { Circle, CircleCheck, ExternalLink, Sparkles } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import CourseRelatedDegrees from "../components/CourseRelatedDegrees";
 import { useBackToHandbook } from "../hooks/useBackToHandbook";
@@ -22,6 +17,8 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { MYPLAN_URL, useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
+
+const COURSE_CODE = /^[A-Za-z]{4}\d{4}$/;
 
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au";
 
@@ -45,7 +42,7 @@ function CourseDetailPage() {
       const { data, error } = await supabase
         .from("unsw_courses")
         .select("*")
-        .eq("id", courseId)
+        .eq(COURSE_CODE.test(courseId) ? "code" : "id", COURSE_CODE.test(courseId) ? courseId.toUpperCase() : courseId)
         .single();
 
       if (!alive) return;
@@ -110,7 +107,7 @@ function CourseDetailPage() {
           <div className="flex flex-wrap gap-3">
             <a href={handbookUrl} target="_blank" rel="noopener noreferrer" className={bandButton}>
               Official Handbook
-              <HiExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4" />
             </a>
             {userId && (
               <button
@@ -118,7 +115,7 @@ function CourseDetailPage() {
                 disabled={savingCompleted}
                 className={`${isCompleted ? "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-colors" : bandButtonSolid} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isCompleted ? <HiCheckCircle className="w-4 h-4" /> : <HiAcademicCap className="w-4 h-4" />}
+                {isCompleted ? <CircleCheck className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 {isCompleted ? "Completed" : "Mark as completed"}
               </button>
             )}
@@ -135,7 +132,7 @@ function CourseDetailPage() {
             {pick && (
               <div className="mb-8 p-5 rounded-2xl bg-pick-soft border border-amber-200 dark:border-amber-900">
                 <p className="flex items-center gap-2 text-sm font-bold text-pick-ink">
-                  <HiSparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4" />
                   Recommended for you
                 </p>
                 <p className="mt-1.5 text-base text-ink">{pick.reason}</p>
@@ -146,7 +143,7 @@ function CourseDetailPage() {
                   className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-pick-ink hover:underline"
                 >
                   Plan it in myPlan
-                  <HiExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             )}
@@ -192,7 +189,7 @@ function CourseDetailPage() {
                 {course.faculty && <FactRow label="Faculty" value={course.faculty.replace(/^Faculty of\s+/i, "")} />}
                 {userId && <FactRow label="Your status" value={isCompleted ? "Completed" : "Not ticked yet"} />}
               </div>
-              <Link to="/coursemesh" className="button-secondary mt-5 w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold">
+              <Link to={`/coursemesh?focus=${encodeURIComponent(course.code)}`} className="button-secondary mt-5 w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold">
                 See it in CourseMesh
               </Link>
             </div>

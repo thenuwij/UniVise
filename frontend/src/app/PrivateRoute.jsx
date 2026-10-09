@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
+import EuniceLauncher from "@/features/chat/components/EuniceLauncher";
 
 const UniversityOnlyNotice = ({ onSignOut }) => (
   <div className="min-h-screen flex items-center justify-center px-4 app-page">
@@ -32,7 +33,18 @@ const PrivateRoute = ({ children }) => {
     return <UniversityOnlyNotice onSignOut={signOut} />;
   }
 
-  return <div>{session ? <>{children}</> : <Navigate to="/login" replace />}</div>;
+  return (
+    <div>
+      {session ? (
+        <>
+          {children}
+          <EuniceLauncher />
+        </>
+      ) : (
+        <Navigate to="/login" replace />
+      )}
+    </div>
+  );
 };
 
 export default PrivateRoute;

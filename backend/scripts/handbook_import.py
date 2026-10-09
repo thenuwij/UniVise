@@ -47,6 +47,7 @@ HANDBOOK = "https://www.handbook.unsw.edu.au"
 SITEMAP = f"{HANDBOOK}/sitemap.xml"
 REQUEST_GAP_SECONDS = 1.0
 AI_DIR = Path(__file__).resolve().parents[2] / "ai"
+ORG_NAMES: dict = {}
 KINDS = ("programs", "specialisations", "courses")
 COURSE_CODE = re.compile(r"^[A-Z]{4}\d{4}$")
 NEXT_DATA = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
@@ -206,6 +207,7 @@ def build_sections(structure: dict) -> list[dict]:
 
     for top in ordered((structure or {}).get("container")):
         add(top, None)
+    with_rules(structure, sections)
     for section in sections:
         seen = set()
         section["courses"] = [c for c in section["courses"] if not (c["code"] in seen or seen.add(c["code"]))]
@@ -215,6 +217,17 @@ def build_sections(structure: dict) -> list[dict]:
         if not section["courses"] and listed_in_text and not NOT_ALLOWED.search(f"{section['title']} {section.get('description')}"):
             section["courses"] = [{"uoc": None, "code": code, "name": None, "kind": "elective"} for code in dict.fromkeys(listed_in_text)]
     return sections
+
+
+def with_rules(structure: dict, sections: list[dict]) -> None:
+    from scripts.elective_rules import SKIP_KINDS, is_major_area, rule_text, section_rules
+
+    for section, found in zip(sections, section_rules(structure, ORG_NAMES)):
+        rules = found["rules"]
+        if not rules or found["kind"] in SKIP_KINDS or is_major_area(rules):
+            continue
+        section["rules"] = rules
+        section["description"] = "\n".join(x for x in (section.get("description"), rule_text(rules)) if x)
 
 
 def campus(content: dict) -> str:
@@ -381,6 +394,9 @@ def load_snapshot(level: str, year: str) -> tuple[dict, dict]:
     for kind in KINDS:
         for path in sorted((folder / kind).glob("*.json")):
             pages[kind][path.stem] = json.loads(path.read_text())
+    from scripts.elective_rules import org_names
+
+    ORG_NAMES.update(org_names(pages))
     return manifest, pages
 
 

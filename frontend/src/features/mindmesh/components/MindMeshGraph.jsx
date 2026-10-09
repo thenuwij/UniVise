@@ -14,7 +14,7 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
     nodePointerAreaPaint,
     linkColor,
     linkWidth,
-    linkLineDash,
+    onZoom,
   },
   graphRef
 ) {
@@ -126,7 +126,6 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
         nodeId="id"
         linkColor={linkColor}
         linkWidth={linkWidth}
-        linkLineDash={linkLineDash}
         linkDirectionalArrowLength={16}
         linkDirectionalArrowRelPos={linkDirectionalArrowRelPos}
         linkDirectionalArrowColor={linkColor}
@@ -135,6 +134,7 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
         onNodeClick={handleNodeClick}
         onBackgroundClick={onBackgroundClick}
         onLinkHover={setHoverLink}
+        onZoom={onZoom}
       />
     </div>
   );

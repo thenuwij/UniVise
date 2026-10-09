@@ -8,7 +8,7 @@ import { bandButton } from "@/shared/ui/cardStyles";
 import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
 import CareerPathways from "../components/CareerPathways";
-import CourseProgress from "../components/CourseProgress";
+import DegreeRequirements from "../components/DegreeRequirements";
 import GeneratingMessage from "../components/GeneratingMessage";
 import IndustryExperience from "../components/IndustryExperience";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
@@ -350,7 +350,16 @@ export default function RoadmapUNSWPage() {
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
     const renderers = {
-      overview: () => <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty} />,
+      overview: () => (
+        <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty}>
+          {degreeCodeValue && (
+            <DegreeRequirements
+              degreeCode={degreeCodeValue}
+              onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+            />
+          )}
+        </CapstoneHonours>
+      ),
       structure: () => {
         if (!degreeCodeValue) {
           return (
@@ -417,7 +426,7 @@ export default function RoadmapUNSWPage() {
 
   const programHeader = (
     <PageHeader
-      back={{ label: isOwnProgram ? "Back" : "Back to my roadmap", onClick: handleBackClick }}
+      back={isOwnProgram ? undefined : { label: "Back to my roadmap", onClick: handleBackClick }}
       actions={
         <>
           <Link to="/saved" className={bandButton}>
@@ -433,13 +442,13 @@ export default function RoadmapUNSWPage() {
       eyebrow={isOwnProgram ? "Your degree" : "Exploring"}
       title={headerProgramName}
       subtitle={specNames.length > 0 ? specNames.join(" · ") : null}
-      aside={isOwnProgram ? <CourseProgress degreeCode={shownDegreeCode} /> : null}
+      compact
     >
-      <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-4">
+      <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
         {headerFacts.map(([label, value]) => (
           <div key={label}>
             <dt className="text-[13px] text-band-soft">{label}</dt>
-            <dd className="mt-1 text-[17px] font-semibold text-band-ink">{value}</dd>
+            <dd className="text-base font-semibold text-band-ink">{value}</dd>
           </div>
         ))}
       </dl>

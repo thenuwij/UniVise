@@ -1,6 +1,6 @@
 export const ROADMAP_STEPS = [
   { key: "overview", title: "Overview" },
-  { key: "structure", title: "Structure" },
+  { key: "structure", title: "Courses" },
   { key: "careers", title: "Careers" },
   { key: "internships", title: "Internships" },
   { key: "societies", title: "Societies" },

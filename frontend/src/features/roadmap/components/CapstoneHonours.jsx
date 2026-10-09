@@ -1,13 +1,8 @@
-import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { motion } from "framer-motion";
-import { getLevelColor } from "@/features/mindmesh/utils";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { card, clickable } from "@/shared/ui/cardStyles";
-import { useEffect, useState } from "react";
-
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase";
-
+import { useState } from "react";
 
 const honoursRuleSet = (faculty = "") => {
   const f = faculty.toLowerCase();
@@ -16,63 +11,9 @@ const honoursRuleSet = (faculty = "") => {
   return "UNSW";
 };
 
-export default function CapstoneHonours({ data, handbookUrl, faculty }) {
-  const navigate = useNavigate();
-  const [validCourses, setValidCourses] = useState([]);
-  const [loadingCourses, setLoadingCourses] = useState(true);
+export default function CapstoneHonours({ data, handbookUrl, faculty, children }) {
   const [activeTab, setActiveTab] = useState(0);
   const [honoursOpen, setHonoursOpen] = useState(false);
-
-  // Fetch and validate courses on mount
-  useEffect(() => {
-    const fetchValidCourses = async () => {
-      const capstoneCourses = data?.capstone?.courses || [];
-      if (capstoneCourses.length === 0) {
-        setLoadingCourses(false);
-        return;
-      }
-
-      // Extract course codes
-      const courseCodes = capstoneCourses
-        .map(course => {
-          if (typeof course === "string") {
-            const match = course.match(/[A-Z]{4}\d{4}/i);
-            return match ? match[0].toUpperCase() : null;
-          } else if (typeof course === "object") {
-            return course.code || null;
-          }
-          return null;
-        })
-        .filter(Boolean);
-
-      if (courseCodes.length === 0) {
-        setLoadingCourses(false);
-        return;
-      }
-
-      // Fetch from database
-      try {
-        const { data: courseData, error } = await supabase
-          .from("unsw_courses")
-          .select("id, code, title")
-          .in("code", courseCodes);
-
-        if (!error && courseData) {
-          setValidCourses(courseData);
-        }
-      } catch (err) {
-        console.error("Error fetching courses:", err);
-      }
-      
-      setLoadingCourses(false);
-    };
-
-    fetchValidCourses();
-  }, [data?.capstone?.courses]);
-
-  const handleCourseClick = (courseId) => {
-    if (courseId) navigate(`/course/${courseId}`);
-  };
 
   const formatTextContent = (text) => {
     if (!text) return text;
@@ -90,7 +31,6 @@ export default function CapstoneHonours({ data, handbookUrl, faculty }) {
   };
 
   const summary = data?.summary;
-  const highlights = data?.capstone?.highlights;
 
   const honours = data?.honours || {};
   const {
@@ -136,7 +76,6 @@ export default function CapstoneHonours({ data, handbookUrl, faculty }) {
   ].filter(tab => tab.sections.length > 0 || tab.extra);
 
   const hasHonours = overviewSections.length > 0 || classes.length > 0 || awards || careerOutcomes;
-  const levelOf = (code) => Number(String(code).match(/\d/)?.[0]) || null;
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
@@ -147,54 +86,26 @@ export default function CapstoneHonours({ data, handbookUrl, faculty }) {
         </section>
       )}
 
-      {highlights && (
-        <section>
-          <SectionHeading>What makes this program special</SectionHeading>
-          <p className="mt-6 text-base md:text-[17px] leading-relaxed text-slate-700 dark:text-slate-300">{highlights}</p>
-        </section>
-      )}
-
-      {!loadingCourses && validCourses.length > 0 && (
-        <section>
-          <SectionHeading>Key courses</SectionHeading>
-          <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {validCourses.map((course) => {
-              const level = levelOf(course.code);
-              return (
-                <button
-                  key={course.id}
-                  onClick={() => handleCourseClick(course.id)}
-                  className={`${card} ${clickable} group flex items-center justify-between gap-3 px-6 py-5 text-left`}
-                >
-                  <span className="min-w-0">
-                    <span className="block text-xs font-bold uppercase tracking-wider" style={{ color: getLevelColor(level) }}>
-                      {level ? `Level ${level}` : "Course"}
-                    </span>
-                    <span className="mt-1 block text-lg font-bold text-slate-900 dark:text-white">{course.code}</span>
-                    <span className="block text-[15px] text-slate-600 dark:text-slate-300 line-clamp-2">{course.title}</span>
-                  </span>
-                  <ChevronRight className="h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {children}
 
       {hasHonours && (
         <section>
-          <div className={`${card} overflow-hidden`}>
+          <div className="overflow-hidden rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60">
             <button
               type="button"
               onClick={() => setHonoursOpen((open) => !open)}
               aria-expanded={honoursOpen}
-              className="group w-full flex items-center justify-between gap-4 px-6 md:px-8 py-5 text-left hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
+              className="group w-full flex items-center justify-between gap-4 px-6 md:px-8 py-5 text-left"
             >
               <span className="min-w-0">
                 <span className="block text-lg font-semibold text-slate-900 dark:text-slate-100">Honours: general {honoursRuleSet(faculty)} rules</span>
                 <span className="mt-1 block text-[15px] text-slate-500 dark:text-slate-400">These are the faculty's general rules. Check the Handbook for your program's exact Honours rules.</span>
               </span>
-              <ChevronDown className={`h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-blue-600 transition-transform ${honoursOpen ? "rotate-180" : ""}`} />
+              <span className="flex-shrink-0">
+                <ExpandToggle as="span" open={honoursOpen}>
+                  {honoursOpen ? "Hide rules" : "Show rules"}
+                </ExpandToggle>
+              </span>
             </button>
             {honoursOpen && (
               <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2">
@@ -267,10 +178,10 @@ export default function CapstoneHonours({ data, handbookUrl, faculty }) {
             href={handbookUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 shadow-sm hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
           >
             <ExternalLink className="h-4 w-4" />
-            Official UNSW Handbook
+            View this program in the official UNSW Handbook
           </a>
         </div>
       )}

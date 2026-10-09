@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from "react";
-import { Textarea, Button, Avatar } from "flowbite-react";
-import { IoSend } from "react-icons/io5";
+import { Textarea } from "flowbite-react";
+import { MessageCircle, SendHorizontal } from "lucide-react";
+import { v4 as uuid } from "uuid";
 import { supabase } from "@/shared/lib/supabase";
-import { TbRobot } from "react-icons/tb";
 import { UserAuth } from "@/app/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/shared/lib/api";
 import { readStreamText, withCutOffNote } from "../utils/streamText";
 
-export default function ChatWindow({ convId }) {
+const TITLE_MAX = 60;
+
+function titleFrom(text) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= TITLE_MAX) return clean;
+  const cut = clean.slice(0, TITLE_MAX);
+  return `${cut.slice(0, cut.lastIndexOf(" ") > 30 ? cut.lastIndexOf(" ") : TITLE_MAX)}…`;
+}
+
+export default function ChatWindow({ convId, onCreated, compact = false, getPage }) {
   const { session } = UserAuth();
 
   const firstName = session?.user?.user_metadata?.first_name;
@@ -20,6 +29,7 @@ export default function ChatWindow({ convId }) {
   const [loading, setLoading]   = useState(false);
   const chatEndRef              = useRef(null);
   const textAreaRef             = useRef(null);
+  const skipLoadRef             = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,7 +37,14 @@ export default function ChatWindow({ convId }) {
 
   // load history
   useEffect(() => {
-    if (!convId) return;
+    if (!convId) {
+      setMessages([]);
+      return;
+    }
+    if (convId === skipLoadRef.current) {
+      skipLoadRef.current = null;
+      return;
+    }
     const load = async () => {
       const { data, error } = await supabase
         .from("conversation_messages")
@@ -46,16 +63,37 @@ export default function ChatWindow({ convId }) {
     load();
   }, [convId]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (preset) => {
+    const text = (preset ?? input).trim();
+    if (!text || loading) return;
 
     setLoading(true);
     setStreamStarted(false)
+
+    let id = convId;
+    if (!id) {
+      id = uuid();
+      const now = new Date().toISOString();
+      const { data: created, error: createError } = await supabase
+        .from("conversations")
+        .insert({ id, user_id: session.user.id, title: titleFrom(text), created_at: now, updated_at: now })
+        .select()
+        .single();
+      if (createError) {
+        console.error(createError);
+        setLoading(false);
+        setMessages(ms => [...ms, { sender: "bot", text: "Your chat couldn't be started. Please try again.", created_at: new Date().toISOString() }]);
+        return;
+      }
+      skipLoadRef.current = id;
+      onCreated?.(created);
+    }
+
     // insert user message
     const { error: saveError } = await supabase
       .from("conversation_messages")
       .insert({
-        conversation_id: convId,
+        conversation_id: id,
         sender: "user",
         content: text,
       });
@@ -78,10 +116,10 @@ export default function ChatWindow({ convId }) {
 
     let res;
     try {
-      res = await apiFetch(`/chat/conversations/${convId}/reply/stream`, {
+      res = await apiFetch(`/chat/conversations/${id}/reply/stream`, {
         method: "POST",
         token: session?.access_token,
-        body: { content: text },
+        body: { content: text, page: getPage?.() || null },
       });
     } catch {
       setLoading(false);
@@ -139,17 +177,17 @@ export default function ChatWindow({ convId }) {
 
     return (
       <div
-        className={`flex items-end mb-4 ${
+        className={`flex items-end ${compact ? "mb-4" : "mb-6"} ${
           isUser ? "justify-end" : "justify-start"
         }`}
       >
         <div
           className={`
-            max-w-[60ch] p-4 text-base break-words transition-all duration-200
+            break-words transition-all duration-200 ${compact ? "max-w-full px-4 py-3 text-[15px]" : "max-w-[72ch] px-5 py-4 text-base"}
             ${
               isUser
-                ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ml-12"
-                : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md mr-12 border border-slate-200 dark:border-slate-700 shadow-sm"
+                ? `bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md ${compact ? "ml-8" : "ml-12"}`
+                : `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-md border border-slate-200 dark:border-slate-700 shadow-sm ${compact ? "mr-4" : "mr-12"}`
             }
           `}
         >
@@ -158,36 +196,38 @@ export default function ChatWindow({ convId }) {
             components={{
               // strip default <p> margin
               p: ({ node, ...props }) => (
-                <p className="m-0 leading-snug" {...props} />
+                <p className="my-2.5 first:mt-0 last:mb-0 leading-relaxed" {...props} />
               ),
               // tighten headings
               h1: ({ ...props }) => (
-                <h1 className="m-0 text-xl font-semibold" {...props} />
+                <h1 className="mt-4 mb-2 first:mt-0 text-xl font-semibold" {...props} />
               ),
               h2: ({ ...props }) => (
-                <h2 className="m-0 text-lg font-semibold" {...props} />
+                <h2 className="mt-4 mb-2 first:mt-0 text-lg font-semibold" {...props} />
               ),
               // lists: no top/bottom margin, small indent
               ul: ({ ...props }) => (
-                <ul className="list-disc ml-4 my-1" {...props} />
+                <ul className="list-disc ml-5 my-2.5 space-y-1.5" {...props} />
               ),
               ol: ({ ...props }) => (
-                <ol className="list-decimal ml-4 my-1" {...props} />
+                <ol className="list-decimal ml-5 my-2.5 space-y-1.5" {...props} />
               ),
-              li: ({ ...props }) => <li className="ml-2" {...props} />,
+              li: ({ ...props }) => <li className="pl-1 leading-relaxed" {...props} />,
+              h3: ({ ...props }) => <h3 className="mt-3 mb-1.5 first:mt-0 text-base font-semibold" {...props} />,
+              pre: ({ children }) => <>{children}</>,
               // code blocks / inline code
-              code: ({ inline, ...props }) =>
-                inline ? (
-                  <code className="bg-slate-700 px-1 rounded text-sm" {...props} />
+              code: ({ className, children, ...props }) =>
+                !/language-/.test(className || "") && !String(children).includes("\n") ? (
+                  <code className={`px-1 rounded text-sm ${isUser ? "bg-white/20" : "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-100"}`} {...props}>{children}</code>
                 ) : (
-                  <pre className="bg-slate-700 p-2 rounded overflow-auto text-sm" {...props} />
+                  <pre className={`p-2 rounded overflow-auto text-sm ${isUser ? "bg-white/15" : "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100"}`}><code {...props}>{children}</code></pre>
                 ),
             }}
           >
             {text}
           </ReactMarkdown>
 
-          <div className={`text-[11px] mt-2 text-right ${isUser ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
+          <div className={`text-[11px] mt-3 text-right ${isUser ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
             {new Date(created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -202,21 +242,29 @@ return (
     <div className="flex flex-col h-full relative">
       {/* ─── Scrollable Messages (Full Height) ───────────────────────────────────────────────── */}
       <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
-        <div className="mx-auto max-w-4xl p-4 space-y-3 mt-5 pb-32">
+        <div className={`mx-auto max-w-4xl ${compact ? "p-3 pb-40" : "p-4 mt-5 pb-32"}`}>
           {
             messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full py-20 px-6 text-center">
-                <div className="p-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 mb-5">
-                  <TbRobot className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              <div className={`flex flex-col items-center justify-center h-full text-center ${compact ? "py-6 px-2" : "py-20 px-6"}`}>
+                <div className={`rounded-full bg-blue-100 dark:bg-blue-900/40 ${compact ? "p-3 mb-3" : "p-4 mb-5"}`}>
+                  <MessageCircle className={`text-blue-600 dark:text-blue-400 ${compact ? "w-7 h-7" : "w-10 h-10"}`} />
                 </div>
-                <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-1">Hi {firstName}, I'm Eunice</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-8">Your personal academic and career advisor. Ask me anything about your courses, career paths, or university life.</p>
-                <div className="grid grid-cols-2 gap-3 max-w-lg w-full">
+                <h2 className={`font-bold text-ink-strong mb-1 ${compact ? "text-lg" : "text-2xl"}`}>Hi{firstName ? ` ${firstName}` : ""}, I'm Eunice</h2>
+                <p className={`text-ink-muted max-w-md ${compact ? "text-sm mb-5" : "text-base mb-8"}`}>
+                  {compact
+                    ? "Ask about your courses, what's left in your degree, or this page."
+                    : "Your academic and career advisor. Ask me anything about your courses, career paths or university life, or pick a question to start."}
+                </p>
+                <div className={`grid gap-3 max-w-lg w-full ${compact ? "grid-cols-1" : "grid-cols-2"}`}>
                   {(userType === "high_school" ? [
                     "What degrees suit my interests?",
                     "How do I improve my ATAR?",
                     "What subjects should I pick?",
                     "Tell me about my recommendations",
+                  ] : compact ? [
+                    "How many courses do I have left?",
+                    "Which courses should I take next?",
+                    "Explain this page for me",
                   ] : [
                     "What careers suit my profile?",
                     "How can I improve my WAM?",
@@ -225,8 +273,9 @@ return (
                   ]).map((q) => (
                     <button
                       key={q}
-                      onClick={() => setInput(q)}
-                      className="text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all"
+                      onClick={() => sendMessage(q)}
+                      disabled={loading}
+                      className="text-left px-4 py-3 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50"
                     >
                       {q}
                     </button>
@@ -260,8 +309,8 @@ return (
       </div>
 
       {/* ─── Floating Input Bar ─────────────────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100/90 to-transparent dark:from-slate-950 dark:via-slate-950/90 dark:to-transparent pt-8 pb-4">
-        <div className="mx-auto max-w-3xl px-4">
+      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t to-transparent dark:to-transparent ${compact ? "from-white via-white/90 dark:from-slate-900 dark:via-slate-900/90 pt-6 pb-3" : "from-slate-100 via-slate-100/90 dark:from-slate-950 dark:via-slate-950/90 pt-8 pb-4"}`}>
+        <div className={`mx-auto max-w-3xl ${compact ? "px-3" : "px-4"}`}>
           <div className="relative flex items-end bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-600 shadow-xl backdrop-blur-sm">
             <Textarea
               ref={textAreaRef}
@@ -276,31 +325,30 @@ return (
               onKeyDown={e => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (loading || input.trim() === "") return;
                   sendMessage();
                 }
               }}
-              className="
-                flex-1 resize-none overflow-y-auto max-h-40 min-h-[80px]
-                text-md p-6 pr-16 rounded-2xl border-0 focus:ring-0 focus:outline-none
+              className={`
+                flex-1 resize-none overflow-y-auto max-h-40 rounded-2xl border-0 focus:ring-0 focus:outline-none
                 bg-transparent placeholder-slate-400 dark:placeholder-slate-500 scrollbar-hide
-              "
+                ${compact ? "min-h-[56px] text-[15px] p-4 pr-14" : "min-h-[80px] text-md p-6 pr-16"}
+              `}
             />
-            <Button
-              size="lg"
-              className="
-                absolute right-3 bottom-3 w-12 h-12 p-0 
-                bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
-                rounded-xl border-0 shadow-md hover:shadow-lg transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-                flex items-center justify-center
-              "
+            <button
+              type="button"
+              aria-label="Send"
+              className={`absolute inline-flex items-center justify-center rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "right-2 bottom-2 w-10 h-10" : "right-3 bottom-3 w-12 h-12"}`}
               disabled={loading || input.trim() === ""}
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
             >
-              <IoSend className="w-5 h-5 text-white" />
-            </Button>
+              <SendHorizontal className="w-5 h-5" />
+            </button>
           </div>
+          <p className="mt-2 text-center text-xs text-ink-muted">
+            {compact
+              ? "Eunice can make mistakes. Check important details in the Handbook."
+              : "Enter to send, Shift + Enter for a new line. Eunice can make mistakes, so check important details in the Handbook."}
+          </p>
         </div>
       </div>
     </div>

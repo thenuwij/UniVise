@@ -19,7 +19,7 @@ export function prereqGroups(edges) {
   return new Map([...byCourse].map(([code, groups]) => [code, [...groups.values()]]));
 }
 
-export function unmetGroups(code, completed, groups) {
+function unmetGroups(code, completed, groups) {
   return (groups.get(code) || [])
     .filter((g) => (g.logic === "and" ? !g.codes.every((c) => completed.has(c)) : !g.codes.some((c) => completed.has(c))))
     .map((g) => (g.logic === "and" ? { ...g, codes: g.codes.filter((c) => !completed.has(c)) } : g));

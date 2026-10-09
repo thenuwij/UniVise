@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveButton from "@/shared/ui/SaveButton";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { motion } from "framer-motion";
 import {
   Briefcase,
   DollarSign,
-  ChevronDown,
-  ChevronUp,
   ChevronRight,
   CheckCircle2,
   ExternalLink,
@@ -21,9 +18,10 @@ import {
 } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { card } from "@/shared/ui/cardStyles";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { useHiringNow } from "../hooks/useHiringNow";
 import JobAdList from "./JobAdList";
-import { AiSuggestedTag, SourceLink } from "./SourceTags";
+import { SourceLink } from "./SourceTags";
 
 const TECH = /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems|math|statistic|actuar|quantitative|modell?er)/i;
 const SCIENCE = /\b(scien|research|laborator|biolog|chemi|physic|environment|sustainab|climate|ecolog|conservation|renewable|energy)/i;
@@ -94,7 +92,7 @@ function GraduateOutlook({ outlook }) {
                 [CheckCircle2, "In full-time work after graduating", area.full_time_employment_rate != null ? `${area.full_time_employment_rate}%` : null],
                 [DollarSign, "Median starting salary", area.median_salary != null ? `$${area.median_salary.toLocaleString()}` : null],
               ].filter(([, , value]) => value).map(([Icon, label, value]) => (
-                <div key={label} className={`${card} p-6`}>
+                <div key={label} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-6">
                   <p className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                     <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> {label}
                   </p>
@@ -109,40 +107,18 @@ function GraduateOutlook({ outlook }) {
   );
 }
 
-function RoleDescription({ text }) {
-  const ref = useRef(null);
-  const [expanded, setExpanded] = useState(false);
-  const [clamped, setClamped] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || expanded) return;
-    const check = () => setClamped(el.scrollHeight > el.clientHeight + 1);
-    check();
-    const observer = new ResizeObserver(check);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [text, expanded]);
-
-  return (
-    <>
-      <p ref={ref} className={`mt-4 text-lg text-slate-700 dark:text-slate-300 leading-relaxed ${expanded ? "" : "line-clamp-3"}`}>
-        {text}
-      </p>
-      {(clamped || expanded) && (
-        <button onClick={() => setExpanded(!expanded)} className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-          {expanded ? "Show less" : "Read more"}
-        </button>
-      )}
-    </>
-  );
-}
-
 export default function CareerPathways({ careerPathways, personal = false }) {
   const navigate = useNavigate();
   const interestAreas = useInterestAreas(personal);
   const [activeTab, setActiveTab] = useState('entry');
   const [showAllCerts, setShowAllCerts] = useState(false);
+  const [openRoles, setOpenRoles] = useState(() => new Set());
+  const toggleRole = (key) => setOpenRoles((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  });
   const hiringNow = useHiringNow(careerPathways?.entry_level?.roles);
 
   const entryLevel = careerPathways?.entry_level;
@@ -160,6 +136,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
   ];
 
   const activeData = tabs.find(t => t.id === activeTab)?.data;
+  const isOpen = (idx) => openRoles.has(`${activeTab}-${idx}`);
   const displayedCerts = showAllCerts ? certifications : certifications.slice(0, 3);
 
   const openCourse = async (code) => {
@@ -179,7 +156,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
         <SectionHeading
           action={
 <div className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="inline-flex gap-1 p-1.5 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 ring-1 ring-slate-200/70 dark:ring-slate-700/60">
+          <div className="inline-flex gap-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -187,15 +164,15 @@ export default function CareerPathways({ careerPathways, personal = false }) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold whitespace-nowrap transition-colors ${
-                    isActive ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  aria-pressed={isActive}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-semibold whitespace-nowrap transition-all ${
+                    isActive
+                      ? "text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25"
+                      : "text-slate-600 dark:text-slate-300 bg-surface border border-line hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300"
                   }`}
                 >
-                  {isActive && (
-                    <motion.span layoutId="career-level-tab" className="absolute inset-0 rounded-xl bg-white dark:bg-slate-700 shadow-md" transition={{ type: "spring", stiffness: 450, damping: 38 }} />
-                  )}
-                  <Icon className={`relative h-4 w-4 ${isActive ? "text-blue-600 dark:text-blue-400" : ""}`} />
-                  <span className="relative">{tab.label}</span>
+                  <Icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
@@ -209,149 +186,171 @@ export default function CareerPathways({ careerPathways, personal = false }) {
         {activeData?.roles?.length > 0 && (
           <div className="mt-6 space-y-6">
             {activeData.roles.map((role, idx) => (
-              <article key={idx} className={`${card} p-6 md:p-8`}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h5 className="text-[22px] font-bold text-slate-900 dark:text-white">{role.title}</h5>
-                    {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {personal && matchesInterests(role.title, interestAreas) && (
-                          <span className="px-3 py-1 rounded-full text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 ring-1 ring-emerald-200 dark:ring-emerald-800">
-                            Matches your interests
+              <article key={idx} className={`${card} p-6 md:p-7`}>
+                <div
+                  onClick={() => toggleRole(`${activeTab}-${idx}`)}
+                  className="group -m-3 p-3 rounded-xl cursor-pointer hover:bg-blue-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h5 className="text-lg md:text-xl font-bold text-ink-strong leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{role.title}</h5>
+                      {((personal && matchesInterests(role.title, interestAreas)) || role.in_demand_nsw) && (
+                        <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
+                          {personal && matchesInterests(role.title, interestAreas) && (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                              <CheckCircle2 className="h-4 w-4" /> Matches your interests
+                            </span>
+                          )}
+                          {role.in_demand_nsw && (
+                            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                              <TrendingUp className="h-4 w-4" /> In demand in NSW
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-start gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      {role.salary_range && (
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-bold text-ink-strong">{cleanSalary(role.salary_range)}</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {role.salary_source?.url
+                              ? <>Source: <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink></>
+                              : "AI-suggested salary"}
                           </span>
-                        )}
-                        {role.in_demand_nsw && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-800">
-                            <TrendingUp className="h-3.5 w-3.5" /> In demand in NSW
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-start gap-3 flex-shrink-0">
-                    {role.salary_range && (
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-semibold text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40">
-                          <DollarSign className="h-4 w-4" />
-                          {cleanSalary(role.salary_range)}
-                        </span>
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                          {role.salary_source?.url
-                            ? <>Source: <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink></>
-                            : <AiSuggestedTag />}
-                        </span>
-                      </div>
-                    )}
-                    <SaveButton itemType="career_path" itemId={`${role.title}-${activeTab}`} itemName={role.title} itemData={{ ...role, level: activeTab }} />
-                  </div>
-                </div>
-
-                {role.description && <RoleDescription key={`${activeTab}-${idx}`} text={role.description} />}
-
-                {role.typical_pay?.weekly && (
-                  <p className="mt-4 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                    <Briefcase className="inline h-4 w-4 mr-1.5 -mt-0.5 text-blue-600 dark:text-blue-400" />
-                    {role.occupation_title || "This occupation"} earn a typical <span className="font-semibold">${role.typical_pay.weekly.toLocaleString()} a week</span> full-time, across all experience levels.{" "}
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                      Source: <SourceLink href={role.typical_pay.source_url}>Jobs and Skills Australia{earningsMonth(role.typical_pay.period) ? `, ${earningsMonth(role.typical_pay.period)}` : ""}</SourceLink>
-                    </span>
-                  </p>
-                )}
-
-                {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
-                  <div className="mt-6 p-5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40">
-                    <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-                      <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      How your degree gets you there
-                    </p>
-                    {role.degree_path && <p className="mt-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">{role.degree_path}</p>}
-                    {role.degree_courses?.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {role.degree_courses.map((code) => (
-                          <button
-                            key={code}
-                            type="button"
-                            onClick={() => openCourse(code)}
-                            className="group inline-flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
-                          >
-                            {code}
-                            <ChevronRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition-transform" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {role.specialisations?.length > 0 && (
-                      <>
-                        <p className="mt-4 text-sm font-semibold text-slate-600 dark:text-slate-300">Specialisations to consider</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {role.specialisations.map((spec) => (
-                            <button
-                              key={spec.id}
-                              type="button"
-                              onClick={() => navigate(specialisationPath(spec))}
-                              className="group inline-flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
-                            >
-                              {spec.name}
-                              <ChevronRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition-transform" />
-                            </button>
-                          ))}
                         </div>
-                      </>
-                    )}
+                      )}
+                      <SaveButton itemType="career_path" itemId={`${role.title}-${activeTab}`} itemName={role.title} itemData={{ ...role, level: activeTab }} />
+                    </div>
                   </div>
-                )}
 
-                {(role.next_steps?.length > 0 || role.requirements) && (
-                  <div className="mt-6 grid md:grid-cols-2 gap-6">
-                    {role.next_steps?.length > 0 && (
-                      <div>
-                        <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-                          <ListChecks className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Next steps
-                        </p>
-                        <ol className="mt-2 space-y-1.5">
-                          {role.next_steps.slice(0, 3).map((step, sIdx) => (
-                            <li key={sIdx} className="flex gap-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                              <span className="font-semibold text-blue-600 dark:text-blue-400">{sIdx + 1}.</span>
-                              <span>{step}</span>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                    )}
-                    {role.requirements && (
-                      <div>
-                        <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-                          <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" /> Requirements
-                        </p>
-                        <ul className="mt-2 space-y-1.5">
-                          {role.requirements.split(";").map((req, rIdx) => req.trim() && (
-                            <li key={rIdx} className="flex gap-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                              <span className="text-emerald-500">•</span>
-                              <span>{req.trim()}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  {role.description && (
+                    <p className={`mt-3 text-base text-slate-700 dark:text-slate-300 leading-relaxed ${isOpen(idx) ? "" : "line-clamp-2"}`}>{role.description}</p>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    {activeTab === "entry" && hiringNow[idx]?.length > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted">
+                        <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        {hiringNow[idx].length} {hiringNow[idx].length === 1 ? "job" : "jobs"} hiring now
+                      </span>
+                    ) : <span />}
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <ExpandToggle large open={isOpen(idx)} onClick={() => toggleRole(`${activeTab}-${idx}`)}>
+                        {isOpen(idx) ? "Hide details" : "Show details"}
+                      </ExpandToggle>
+                    </span>
                   </div>
-                )}
-
-                {activeTab === "entry" && hiringNow[idx]?.length > 0 && (
-                  <div className="mt-6">
-                    <JobAdList title="Hiring now" ads={hiringNow[idx]} />
-                  </div>
-                )}
-
-                <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                  <a
-                    href={seekSearchUrl(role.title)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 transition-colors"
-                  >
-                    See all current ads <ExternalLink className="h-4 w-4" />
-                  </a>
                 </div>
+
+                {isOpen(idx) && (
+                  <div className="mt-2">
+                    {role.typical_pay?.weekly && (
+                      <p className="mt-4 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                        <Briefcase className="inline h-4 w-4 mr-1.5 -mt-0.5 text-blue-600 dark:text-blue-400" />
+                        {role.occupation_title || "This occupation"} earn a typical <span className="font-semibold">${role.typical_pay.weekly.toLocaleString()} a week</span> full-time, across all experience levels.{" "}
+                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                          Source: <SourceLink href={role.typical_pay.source_url}>Jobs and Skills Australia{earningsMonth(role.typical_pay.period) ? `, ${earningsMonth(role.typical_pay.period)}` : ""}</SourceLink>
+                        </span>
+                      </p>
+                    )}
+
+                    {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
+                      <div className="mt-6 p-5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40">
+                        <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+                          <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          How your degree gets you there
+                        </p>
+                        {role.degree_path && <p className="mt-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">{role.degree_path}</p>}
+                        {role.degree_courses?.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {role.degree_courses.map((code) => (
+                              <button
+                                key={code}
+                                type="button"
+                                onClick={() => openCourse(code)}
+                                className="group inline-flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+                              >
+                                {code}
+                                <ChevronRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition-transform" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {role.specialisations?.length > 0 && (
+                          <>
+                            <p className="mt-4 text-sm font-semibold text-slate-600 dark:text-slate-300">Specialisations to consider</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {role.specialisations.map((spec) => (
+                                <button
+                                  key={spec.id}
+                                  type="button"
+                                  onClick={() => navigate(specialisationPath(spec))}
+                                  className="group inline-flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+                                >
+                                  {spec.name}
+                                  <ChevronRight className="h-4 w-4 opacity-80 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {(role.next_steps?.length > 0 || role.requirements) && (
+                      <div className="mt-6 grid md:grid-cols-2 gap-6">
+                        {role.next_steps?.length > 0 && (
+                          <div>
+                            <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+                              <ListChecks className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Next steps
+                            </p>
+                            <ol className="mt-2 space-y-1.5">
+                              {role.next_steps.slice(0, 3).map((step, sIdx) => (
+                                <li key={sIdx} className="flex gap-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                                  <span className="font-semibold text-blue-600 dark:text-blue-400">{sIdx + 1}.</span>
+                                  <span>{step}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+                        {role.requirements && (
+                          <div>
+                            <p className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+                              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" /> Requirements
+                            </p>
+                            <ul className="mt-2 space-y-1.5">
+                              {role.requirements.split(";").map((req, rIdx) => req.trim() && (
+                                <li key={rIdx} className="flex gap-2 text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                                  <span className="text-emerald-500">•</span>
+                                  <span>{req.trim()}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === "entry" && hiringNow[idx]?.length > 0 && (
+                      <div className="mt-6">
+                        <JobAdList title="Hiring now" ads={hiringNow[idx]} />
+                      </div>
+                    )}
+
+                    <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                      <a
+                        href={seekSearchUrl(role.title)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:border-blue-400 transition-colors"
+                      >
+                        See all current ads <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -363,7 +362,7 @@ export default function CareerPathways({ careerPathways, personal = false }) {
           <SectionHeading>
             Professional certifications
           </SectionHeading>
-          <div className={`${card} mt-6 px-6 md:px-8 divide-y divide-slate-100 dark:divide-slate-700`}>
+          <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 mt-6 px-6 md:px-8 divide-y divide-slate-300 dark:divide-slate-700">
             {displayedCerts.map((cert, idx) => (
               <div key={idx} className="flex items-start justify-between gap-4 py-5">
                 <div className="min-w-0">
@@ -391,16 +390,9 @@ export default function CareerPathways({ careerPathways, personal = false }) {
             ))}
           </div>
           {certifications.length > 3 && (
-            <button
-              onClick={() => setShowAllCerts(!showAllCerts)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              {showAllCerts ? (
-                <>Show fewer <ChevronUp className="h-5 w-5" /></>
-              ) : (
-                <>Show {certifications.length - 3} more certifications <ChevronDown className="h-5 w-5" /></>
-              )}
-            </button>
+            <ExpandToggle wide open={showAllCerts} onClick={() => setShowAllCerts(!showAllCerts)}>
+              {showAllCerts ? "Show fewer" : `Show ${certifications.length - 3} more certifications`}
+            </ExpandToggle>
           )}
         </section>
       )}

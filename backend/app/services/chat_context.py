@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from app.services.course_picks import input_hash, load_inputs, read_cache
+from app.services.requirements import format_requirements, requirement_status
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,15 @@ def format_student_summary(inputs: dict | None, picks: list) -> str:
     recommended = [c for c in inputs["careers"] if c not in saved]
     lines.append(f"- Shortlisted careers: {', '.join(saved[:MAX_CAREERS]) or 'none yet'}")
     lines.append(f"- Career recommendations: {', '.join(recommended[:MAX_CAREERS]) or 'none yet'}")
+
+    if inputs.get("requirement_lists"):
+        parts = requirement_status(inputs["requirement_lists"], set(completed), set(inputs.get("added") or []), inputs.get("placed"), inputs.get("completed_uoc_by_code"))
+        lines.append("")
+        lines.append("## Degree progress (from their ticked courses and the 2026 Handbook)")
+        lines.append(format_requirements(parts, inputs.get("minimum_uoc"), inputs.get("completed_uoc") or 0))
+        planned = [code for code in inputs.get("added") or [] if code not in completed]
+        if planned:
+            lines.append(f"- Courses they've added to their plan: {', '.join(planned)}")
     return "\n".join(lines)
 
 

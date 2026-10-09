@@ -81,7 +81,7 @@ def stream_of(tokens, fail=False):
 
 
 def test_broken_stream_ends_with_marker_and_saves_nothing(inserts, monkeypatch):
-    monkeypatch.setattr(chat, "ask_gpt_stream", stream_of(["Take ", "COMP2521"], fail=True))
+    monkeypatch.setattr(chat, "ask_gpt_stream_with_tools", stream_of(["Take ", "COMP2521"], fail=True))
 
     response = TestClient(app).post("/chat/conversations/conv-1/reply/stream")
 
@@ -90,7 +90,7 @@ def test_broken_stream_ends_with_marker_and_saves_nothing(inserts, monkeypatch):
 
 
 def test_finished_reply_is_saved(inserts, monkeypatch):
-    monkeypatch.setattr(chat, "ask_gpt_stream", stream_of(["Take ", "COMP2521"]))
+    monkeypatch.setattr(chat, "ask_gpt_stream_with_tools", stream_of(["Take ", "COMP2521"]))
 
     response = TestClient(app).post("/chat/conversations/conv-1/reply/stream")
 

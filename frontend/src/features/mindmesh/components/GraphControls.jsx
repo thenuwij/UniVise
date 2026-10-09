@@ -1,9 +1,12 @@
 // src/pages/mindmesh/components/GraphControls.jsx
-import { forwardRef, useRef, useImperativeHandle, useState } from "react";
-import { ChevronLeft } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { forwardRef, useRef, useImperativeHandle } from "react";
+import { HelpCircle, LayoutGrid, Maximize2, Pause, Play, RotateCcw, Undo2 } from "lucide-react";
 import AutoLayoutControls from "./AutoLayoutControls";
-import WelcomeModal from "./WelcomeModal";
+
+const TOOL =
+  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors";
+const TOOL_ON =
+  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-blue-600 border border-blue-600 shadow-sm hover:bg-blue-700 transition-colors";
 
 export default forwardRef(function GraphControls({
   graphHistory,
@@ -17,119 +20,67 @@ export default forwardRef(function GraphControls({
   canvasSize,
   graphRef,
   setFrozen,
+  onHelp,
 }, ref) {
-  const navigate = useNavigate();
-  const location = useLocation();
   const layoutControlsRef = useRef(null);
-  const [showWelcome, setShowWelcome] = useState(false);
 
   useImperativeHandle(ref, () => ({
     autoLayout: () => layoutControlsRef.current?.autoLayout?.(),
   }));
 
-  const goBack = () => (location.key === "default" ? navigate("/dashboard") : navigate(-1));
-
   return (
     <div className="border-b border-slate-200 dark:border-slate-700
                     bg-white/95 dark:bg-slate-900/95
                     shadow-sm backdrop-blur-sm">
-
-      <div className="px-4 py-2.5 flex items-center justify-between gap-4">
-
-        {/* Left: back button */}
-        <div className="flex items-center gap-4 min-w-0">
-          <button
-            onClick={goBack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg flex-shrink-0
-                       bg-slate-100 dark:bg-slate-800
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-700 dark:text-slate-200
-                       font-medium text-sm
-                       hover:bg-slate-200 dark:hover:bg-slate-700
-                       transition-all duration-200"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back
-          </button>
-        </div>
-
-        {/* Right: compact toolbar */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+        <p className="text-sm text-ink-muted">Click a course to see what it needs and what it unlocks.</p>
+        <div data-tour="view-tools" className="flex flex-wrap items-center justify-end gap-2">
           {graphHistory?.current?.length > 0 && (
             <>
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
-                title="Go back to previous graph state"
-              >
-                ← Back
+              <button onClick={handleBack} className={TOOL} title="Undo the last step">
+                <Undo2 className="h-4 w-4" />
+                Undo
               </button>
-              <button
-                onClick={handleHome}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
-                title="Return to initial graph state"
-              >
-                ⌂ Home
+              <button onClick={handleHome} className={TOOL} title="Go back to the full graph">
+                <RotateCcw className="h-4 w-4" />
+                Reset view
               </button>
             </>
           )}
-
-          <button
-            onClick={() => setShowWelcome(true)}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium
-                       bg-slate-100 dark:bg-slate-800
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-700 dark:text-slate-200
-                       hover:bg-slate-200 dark:hover:bg-slate-700
-                       transition-all duration-200"
-          >
-            Help
-          </button>
-
-          <button
-            onClick={fitView}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium
-                       bg-slate-100 dark:bg-slate-800
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-700 dark:text-slate-200
-                       hover:bg-slate-200 dark:hover:bg-slate-700
-                       transition-all duration-200"
-            title="Fit all nodes in view"
-          >
-            Fit View
-          </button>
-
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={fitView} className={TOOL} title="Fit all courses on screen">
+              <Maximize2 className="h-4 w-4" />
+              Fit to screen
+            </button>
+            <button
+              onClick={() => layoutControlsRef.current?.autoLayout?.()}
+              disabled={!graph?.nodes?.length}
+              className={TOOL}
+              title="Arrange courses by level"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Arrange by level
+            </button>
+          </div>
           <button
             onClick={toggleFreeze}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-              frozen
-                ? "bg-blue-600 text-white border border-blue-500 shadow-sm"
-                : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
-            }`}
-            title={frozen ? "Unfreeze graph movement" : "Freeze graph movement"}
+            aria-pressed={frozen}
+            className={frozen ? TOOL_ON : TOOL}
+            title={frozen ? "Let the graph move again" : "Stop the graph moving"}
           >
+            {frozen ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
             {frozen ? "Unfreeze" : "Freeze"}
           </button>
-
           <button
-            onClick={() => layoutControlsRef.current?.autoLayout?.()}
-            disabled={!graph?.nodes?.length}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium
-                       bg-slate-100 dark:bg-slate-800
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-700 dark:text-slate-200
-                       hover:bg-slate-200 dark:hover:bg-slate-700
-                       disabled:opacity-40 disabled:cursor-not-allowed
-                       transition-all duration-200"
-            title="Automatically arrange courses by level"
+            onClick={onHelp}
+            aria-label="How CourseMesh works"
+            title="How CourseMesh works"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-full text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-slate-700 transition-colors"
           >
-            Auto Layout
+            <HelpCircle className="h-5 w-5" />
           </button>
-
-
         </div>
       </div>
-
       {/* Hidden AutoLayoutControls — keeps ref alive for programmatic autoLayout on graph change */}
       <div className="hidden">
         <AutoLayoutControls
@@ -142,7 +93,6 @@ export default forwardRef(function GraphControls({
         />
       </div>
 
-      <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
     </div>
   );
 });

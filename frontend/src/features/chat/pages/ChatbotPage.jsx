@@ -1,51 +1,73 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
-import { TbRobot } from "react-icons/tb";
+
+const startsCollapsed = () => typeof window !== "undefined" && window.innerWidth < 768;
 
 export default function ChatbotPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(startsCollapsed);
+  const [conversations, setConversations] = useState([]);
   const { conversationId } = useParams();
+  const { session } = UserAuth();
+  const userId = session?.user?.id;
+  const navigate = useNavigate();
 
-  const openDrawer = () => setIsOpen(true);
-  const closeDrawer = () => setIsOpen(false);
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("conversations")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error("Error fetching conversations:", error);
+        else setConversations(data || []);
+      });
+  }, [userId]);
 
- return (
-  <div className="flex flex-col h-screen app-page">
-    {/*  Top navbars */}
-    <div>
-      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
-    </div>
+  const deleteConversation = async (id) => {
+    if (!confirm("Delete this chat? This can't be undone.")) return;
+    await supabase.from("conversation_messages").delete().eq("conversation_id", id);
+    const { error } = await supabase.from("conversations").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting conversation:", error);
+      return;
+    }
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (id === conversationId) navigate("/chat");
+  };
 
-    {/* Two-column chat layout */}
-    <div className="flex overflow-hidden flex-1">
-      {/* Dynamic Sidebar - changes width based on collapse state */}
-      <div className={`${sidebarCollapsed ? 'w-24' : 'w-64'} flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
-        <ChatSidebar 
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={setSidebarCollapsed}
-        />
-      </div>
+  return (
+    <div className="flex flex-col h-screen app-page">
+      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
+      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      {/* Chat window takes remaining space */}
-      <div className="flex-1 overflow-hidden">
-          {conversationId
-            ? <ChatWindow convId={conversationId} />
-            : <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-500">
-                <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800">
-                  <TbRobot className="w-10 h-10 text-slate-400 dark:text-slate-500" />
-                </div>
-                <p className="text-sm font-medium">Select or start a new chat to begin</p>
-              </div>
-          }
+      <div className="flex overflow-hidden flex-1">
+        <div className={`${sidebarCollapsed ? "w-16" : "w-64"} flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
+          <ChatSidebar
+            conversations={conversations}
+            activeId={conversationId}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={setSidebarCollapsed}
+            onDelete={deleteConversation}
+          />
         </div>
+        <div className="flex-1 overflow-hidden">
+          <ChatWindow
+            convId={conversationId}
+            onCreated={(conversation) => {
+              setConversations((prev) => [conversation, ...prev]);
+              navigate(`/chat/${conversation.id}`, { replace: true });
+            }}
+          />
+        </div>
+      </div>
     </div>
-  </div>
-);
-
+  );
 }

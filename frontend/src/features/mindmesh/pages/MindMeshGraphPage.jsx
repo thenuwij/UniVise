@@ -5,8 +5,6 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
-import PageHeader from "@/shared/layout/PageHeader";
-import { bandButtonPrimary } from "@/shared/ui/cardStyles";
 import GraphControls from "../components/GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "../components/NodeRenderer";
 import useMindMeshData from "../hooks/useMindMeshData";
@@ -15,14 +13,18 @@ import MindMeshGraph from "../components/MindMeshGraph";
 import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
 import StatusLegend from "../components/StatusLegend";
 import PicksPanel from "../components/PicksPanel";
+import CourseMeshTour from "../components/CourseMeshTour";
 import ElectivesPanel from "../components/ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
-import { courseStatus, prereqGroups, unmetGroups } from "../utils/availability";
+import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
+import { hasSeenGuide } from "../utils/onboarding";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
-import { Plus } from "lucide-react";
+import { ArrowRight, Plus, X } from "lucide-react";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
 
 export default function MindMeshGraphPage() {
   const { session } = UserAuth();
@@ -32,7 +34,14 @@ export default function MindMeshGraphPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
-  const [showHint, setShowHint] = useState(true);
+  const [showHint, setShowHint] = useState(() => hasSeenGuide());
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide());
+  const [expandCount, setExpandCount] = useState(0);
+  const transformRef = useRef(null);
+  const focusedRef = useRef(null);
+  const lastAddedRef = useRef(null);
+  const [pendingFocus, setPendingFocus] = useState(() => searchParams.get("focus"));
+  const lastCenterRef = useRef(0);
 
   const graphRef = useRef(null);
   const controlsRef = useRef(null);
@@ -45,7 +54,7 @@ export default function MindMeshGraphPage() {
   const programCode = searchParams.get("program") || enrolled?.degree_code || null;
   const userId = session?.user?.id;
   const {
-    graph, setGraph, programCourses, programMeta, loading, thin, mine, reload,
+    graph, setGraph, programMeta, loading, thin, mine, reload,
     completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges,
   } = useMindMeshData({ programCode, userId });
   const noProgram = !programCode && !enrolledLoading;
@@ -59,22 +68,33 @@ export default function MindMeshGraphPage() {
     [notNeeded, completed, groups]
   );
   const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
+  const counts = useMemo(() => {
+    const c = { completed: 0, available: 0, locked: 0 };
+    for (const n of graph?.nodes || []) {
+      const st = statusOf(n.id);
+      if (st in c) c[st] += 1;
+    }
+    return c;
+  }, [graph?.nodes, statusOf]);
   const coursePicks = useCoursePicks(isOwnProgram);
   const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
   const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
   const [showElectives, setShowElectives] = useState(false);
   const [savingAdded, setSavingAdded] = useState(false);
   const options = useMemo(() => new Map((mine?.options || []).map((o) => [o.code, o])), [mine]);
-  const canAdd = useCallback(
-    (code) => options.has(code) && !graph.nodes.some((n) => n.id === code),
-    [options, graph.nodes]
-  );
+  const onMap = useCallback((code) => graph.nodes.some((n) => n.id === code), [graph.nodes]);
+
+  const addPickToMap = async (pick) => {
+    await toggleAdded(options.get(pick.code) || { code: pick.code, name: pick.name, uoc: pick.uoc ?? null, section: ADDED_SECTION }, true);
+    setPendingFocus(pick.code);
+  };
 
   const toggleAdded = async (option, added) => {
     if (!userId || !option || savingAdded) return;
     setSavingAdded(true);
     try {
       await setCourseAdded({ userId, course: option, section: option.section, added });
+      lastAddedRef.current = added ? option.code : lastAddedRef.current === option.code ? null : lastAddedRef.current;
       await reload();
     } catch (err) {
       console.error("Error saving elective:", err);
@@ -105,13 +125,36 @@ export default function MindMeshGraphPage() {
     }
   };
 
-  const focusCourse = (code) => {
-    const node = graph.nodes.find((n) => n.id === code);
-    if (!node) return;
-    setShowHint(false);
-    setFocusedNode(node);
-    graphRef.current?.centerAt(node.x, node.y, 600);
+  const showOnMap = (code) => {
+    setShowElectives(false);
+    lastAddedRef.current = null;
+    setPendingFocus(code);
   };
+
+  const closeElectives = () => {
+    setShowElectives(false);
+    if (lastAddedRef.current) setPendingFocus(lastAddedRef.current);
+    lastAddedRef.current = null;
+  };
+
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const timer = setInterval(() => {
+      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.x));
+      if (!node) return;
+      clearInterval(timer);
+      setPendingFocus(null);
+      setShowHint(false);
+      setFocusedNode(node);
+      graphRef.current?.centerAt(node.x, node.y, 600);
+      graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 600);
+    }, 300);
+    const stop = setTimeout(() => clearInterval(timer), 10000);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(stop);
+    };
+  }, [pendingFocus, graph]);
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -139,7 +182,7 @@ export default function MindMeshGraphPage() {
   // Hide hint after 4 seconds
   useEffect(() => {
     if (showHint) {
-      const t = setTimeout(() => setShowHint(false), 4000);
+      const t = setTimeout(() => setShowHint(false), 8000);
       return () => clearTimeout(t);
     }
   }, [showHint]);
@@ -150,10 +193,7 @@ export default function MindMeshGraphPage() {
 
     const computeSize = () => {
       const rect = containerRef.current.getBoundingClientRect();
-      const viewportH = window.innerHeight;
-      const reserved = 140;
-      const h = Math.max(420, viewportH - reserved);
-      setCanvasSize({ w: Math.floor(rect.width), h });
+      setCanvasSize({ w: Math.floor(rect.width), h: Math.max(320, Math.floor(rect.height)) });
     };
 
     const ro = new ResizeObserver(computeSize);
@@ -187,21 +227,13 @@ export default function MindMeshGraphPage() {
 
   const linkColor = useCallback((l) => {
     const isFocused = !focusedNode || isEdgeOfFocus(l);
-    if (l.logic_type === 'and') {
-      return isFocused ? "#3b82f6" : "rgba(148,163,184,0.35)";
-    }
-    return isFocused ? "#8b5cf6" : "rgba(148,163,184,0.35)";
+    return isFocused ? "#3b82f6" : "rgba(148,163,184,0.35)";
   }, [focusedNode, isEdgeOfFocus]);
 
   const linkWidth = useCallback((l) => {
     const isFocused = !focusedNode || isEdgeOfFocus(l);
     return isFocused ? 2 : 1;
   }, [focusedNode, isEdgeOfFocus]);
-
-  const linkLineDash = useCallback((l) => {
-    if (l.logic_type === 'and') return null;
-    return [6, 6];
-  }, []);
 
   // Neighbour helper
   const getDirectNeighbours = useCallback(
@@ -219,6 +251,7 @@ export default function MindMeshGraphPage() {
 
   // Graph interactions
   const expandGlobalMindMesh = async (n) => {
+    setExpandCount((c) => c + 1);
     graphHistoryRef.current.push(graph);
     const courseKey = n.id;
 
@@ -287,6 +320,30 @@ export default function MindMeshGraphPage() {
 
   };
 
+  focusedRef.current = focusedNode;
+
+  const getNodeRect = () => {
+    const fg = graphRef.current;
+    const canvas = containerRef.current?.querySelector("canvas");
+    const nodes = (graph?.nodes || []).filter((n) => Number.isFinite(n.x) && Number.isFinite(n.y));
+    if (!fg || !canvas || !nodes.length) return null;
+    const node =
+      nodes.find((n) => n.id === focusedRef.current?.id) ||
+      nodes.find((n) => statusOf(n.id) === "available") ||
+      nodes[0];
+    const box = canvas.getBoundingClientRect();
+    const p = fg.graph2ScreenCoords(node.x, node.y);
+    const offScreen = p.x < 40 || p.y < 40 || p.x > box.width - 40 || p.y > box.height - 40;
+    if (offScreen && Date.now() - lastCenterRef.current > 1000) {
+      lastCenterRef.current = Date.now();
+      fg.centerAt(node.x, node.y, 400);
+    }
+    const k = transformRef.current?.k || 1;
+    const halfW = Math.max(30, 46 * k);
+    const halfH = Math.max(14, 21 * k);
+    return { top: box.top + p.y - halfH, left: box.left + p.x - halfW, width: halfW * 2, height: halfH * 2 };
+  };
+
   // UI Controls
   const onBackgroundClick = () => setFocusedNode(null);
   const fitView = () => graphRef.current?.zoomToFit(400, 40);
@@ -312,25 +369,49 @@ export default function MindMeshGraphPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen app-page text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div className="flex flex-col min-h-screen md:h-[100dvh] md:overflow-hidden app-page text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <PageHeader
-        compact
-        eyebrow="CourseMesh"
-        title={programMeta?.program_name || (programCode ? programCode : "How your courses connect")}
-        subtitle={programCourses?.length ? `How your courses connect · ${programCourses.length} courses` : "How your courses connect"}
-        aside={
-          isOwnProgram && options.size > 0 ? (
-            <button onClick={() => setShowElectives(true)} className={bandButtonPrimary}>
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
-              Add electives
-            </button>
-          ) : null
-        }
-      />
+      <section className="relative overflow-hidden bg-gradient-to-r from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+        <div aria-hidden className="absolute -top-24 -right-16 h-64 w-64 rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
+        <div className="relative max-w-[1600px] mx-auto px-5 md:px-8 py-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-band-soft">CourseMesh</p>
+            <h1 className="truncate text-lg md:text-xl font-extrabold text-band-ink">
+              {programMeta?.program_name || programCode || "How your courses connect"}
+            </h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {isOwnProgram && graph?.nodes?.length > 0 &&
+              [["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
+                <span key={key} className="inline-flex items-center gap-2 text-sm text-band-soft">
+                  <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/40" style={{ backgroundColor: STATUS[key].color }} />
+                  <span className="font-bold text-band-ink">{counts[key]}</span> {text}
+                </span>
+              ))}
+            {isOwnProgram && (
+              <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
+                <Link
+                  to={roadmapStepUrl("structure")}
+                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white shadow-md hover:bg-blue-50 hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
+                >
+                  Tick courses in your roadmap
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <button
+                  onClick={() => setShowElectives(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.5} />
+                  Add courses
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {showElectives && (
         <ElectivesPanel
@@ -339,7 +420,8 @@ export default function MindMeshGraphPage() {
           completed={completed}
           saving={savingAdded}
           onToggle={toggleAdded}
-          onClose={() => setShowElectives(false)}
+          onShow={showOnMap}
+          onClose={closeElectives}
         />
       )}
 
@@ -356,25 +438,35 @@ export default function MindMeshGraphPage() {
         canvasSize={canvasSize}
         graphRef={graphRef}
         setFrozen={setFrozen}
+        onHelp={() => setTourOpen(true)}
+      />
+
+      <CourseMeshTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        focusedId={focusedNode?.id || null}
+        expandCount={expandCount}
+        getTransform={() => transformRef.current}
+        getNodeRect={getNodeRect}
       />
 
       {/* Graph Canvas */}
-      <div className="flex-grow flex justify-center px-4 relative">
-        <div ref={containerRef} className="w-full max-w-[1600px] relative">
+      <div className="flex-1 min-h-0 flex justify-center px-3 pt-2 pb-3 relative">
+        <div ref={containerRef} data-tour="graph" className="w-full max-w-[1600px] h-[70vh] md:h-full relative overflow-hidden rounded-2xl border-2 border-blue-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg shadow-blue-900/5">
 
           {(noProgram || noCourses || needsSpecialisation) && (
             <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">
-              <div className="max-w-md p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm text-center">
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+              <div className="max-w-md p-6 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200 dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 shadow-lg text-center">
+                <p className="text-[15px] font-medium text-ink-strong">
                   {noProgram
                     ? "We don't know your program yet, so there is nothing to show here."
                     : "Most of this program's courses sit inside its majors or streams. Choose yours in your roadmap to see them here."}
                 </p>
                 <Link
                   to={noProgram ? "/roadmap-entryload" : `/roadmap?program=${programCode}`}
-                  className="inline-block mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
                 >
-                  {noProgram ? "Open My Roadmap" : "Choose your major or stream"}
+                  {noProgram ? "Open Roadmap" : "Choose your major or stream"}
                 </Link>
               </div>
             </div>
@@ -382,24 +474,37 @@ export default function MindMeshGraphPage() {
 
           {graph?.nodes?.length > 0 && <StatusLegend />}
 
+          {graph?.nodes?.length > 0 && !focusedNode && (
+            <p className="absolute bottom-3 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium text-slate-500 dark:text-slate-400 bg-white/90 dark:bg-slate-900/90 border border-line pointer-events-none">
+              Scroll to zoom · drag to move
+            </p>
+          )}
+
           {isOwnProgram && graph?.nodes?.length > 0 && (
             <PicksPanel
               picks={coursePicks.picks}
               loading={coursePicks.loading}
               failed={coursePicks.failed}
               onRetry={coursePicks.retry}
-              onSelect={focusCourse}
-              canAdd={canAdd}
-              onAdd={(code) => toggleAdded(options.get(code), true)}
+              onMap={onMap}
+              onShow={setPendingFocus}
+              onAdd={addPickToMap}
               saving={savingAdded}
             />
           )}
 
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-              <div className="bg-slate-900/80 dark:bg-slate-100/90 text-white dark:text-slate-900 text-sm font-medium px-4 py-2 rounded-full shadow-lg backdrop-blur-sm animate-pulse">
-                Click any course node to explore its prerequisites
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-3 pl-4 pr-2 py-2 rounded-full text-sm font-medium text-blue-800 dark:text-blue-100 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 shadow-lg">
+                Tip: click any course to see what it needs and what it unlocks
+                <button
+                  onClick={() => setShowHint(false)}
+                  aria-label="Dismiss tip"
+                  className="h-7 w-7 inline-flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
@@ -418,20 +523,19 @@ export default function MindMeshGraphPage() {
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}
             linkWidth={linkWidth}
-            linkLineDash={linkLineDash}
+            onZoom={(t) => { transformRef.current = t; }}
+          />
+          <MindMeshInfoPanel
+            focusedNode={focusedNode}
+            status={focusedNode ? statusOf(focusedNode.id) : null}
+            requirements={focusedNode ? groups.get(focusedNode.id) || [] : []}
+            completed={completed}
+            onToggleDone={isOwnProgram ? toggleDone : null}
+            saving={savingDone}
+            onDismiss={() => setFocusedNode(null)}
           />
         </div>
       </div>
-
-      {/* Bottom info panel — shown when a node is focused */}
-      <MindMeshInfoPanel
-        focusedNode={focusedNode}
-        status={focusedNode ? statusOf(focusedNode.id) : null}
-        missing={focusedNode ? unmetGroups(focusedNode.id, completed, groups) : []}
-        onToggleDone={isOwnProgram ? toggleDone : null}
-        saving={savingDone}
-        onDismiss={() => setFocusedNode(null)}
-      />
     </div>
   );
 }

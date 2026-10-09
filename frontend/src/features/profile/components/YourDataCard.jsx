@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Modal, ModalBody, ModalHeader, TextInput } from "flowbite-react";
-import { HiOutlineCircleStack } from "react-icons/hi2";
+import { Database, Download, Trash2 } from "lucide-react";
+import { card } from "@/shared/ui/cardStyles";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { apiFetch } from "@/shared/lib/api";
@@ -62,22 +63,31 @@ export default function YourDataCard() {
   };
 
   return (
-    <div className="card-glass-spotlight">
-      <div />
-      <div className="relative p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <HiOutlineCircleStack className="h-5 w-5 text-slate-500" />
-          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Your data</h2>
-        </div>
-        <div className="space-y-3">
-          <Button pill size="sm" color="light" className="w-full" onClick={downloadData} disabled={downloading}>
-            {downloading ? "Preparing your data..." : "Download my data"}
-          </Button>
-          {downloadError && <p className="text-sm text-red-600 dark:text-red-400">{downloadError}</p>}
-          <Button pill size="sm" color="red" outline className="w-full" onClick={() => setShowDelete(true)}>
-            Delete my account
-          </Button>
-        </div>
+    <section className={`${card} p-6`}>
+      <h2 className="flex items-center gap-2 text-lg font-bold text-ink-strong">
+        <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        Your data
+      </h2>
+      <p className="mt-2 text-[15px] text-ink-muted">Get a copy of everything UniVise stores about you, or delete your account.</p>
+      <div className="mt-4 space-y-3">
+        <button
+          type="button"
+          onClick={downloadData}
+          disabled={downloading}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50"
+        >
+          <Download className="h-4 w-4" />
+          {downloading ? "Preparing your data..." : "Download my data"}
+        </button>
+        {downloadError && <p className="text-sm text-red-600 dark:text-red-400">{downloadError}</p>}
+        <button
+          type="button"
+          onClick={() => setShowDelete(true)}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-red-700 dark:text-red-300 bg-white dark:bg-slate-900 border-2 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete my account
+        </button>
       </div>
 
       <Modal show={showDelete} size="md" onClose={closeDelete} popup>
@@ -114,6 +124,6 @@ export default function YourDataCard() {
           </div>
         </ModalBody>
       </Modal>
-    </div>
+    </section>
   );
 }

@@ -21,7 +21,7 @@ import OldCourseMeshLink from "./features/mindmesh/pages/OldCourseMeshLink";
 import TraitsPage from "./features/traits/pages/TraitsPage";
 import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDetailPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
-import ProgressPage from "./features/transfer/pages/ProgressPage";
+import ComparePage from "./features/transfer/pages/ComparePage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
 import { roadmapStepUrl } from "./features/roadmap/utils/roadmapSteps";
 
@@ -34,8 +34,7 @@ export const router = createBrowserRouter([
   { path: "/register", element: <RegisterPage/> },
   { path: "/survey", element: <PrivateRoute><SurveyPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
-  { path: "/chat", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
-  { path: "/chat/:conversationId", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
+  { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute><ProfilePage/></PrivateRoute>},
   { path: "/recommendation/:id", element: <Navigate to={roadmapStepUrl("careers")} replace /> },
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
@@ -61,7 +60,8 @@ export const router = createBrowserRouter([
   { path: "/specialisation/minor/:id", element: <PrivateRoute><SpecialisationDetailPage variant="minor" /></PrivateRoute> },
   { path: "/specialisation/honours/:id", element: <PrivateRoute><SpecialisationDetailPage variant="honours" /></PrivateRoute> },
   { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
-  { path: "/progress", element: <PrivateRoute><ProgressPage /></PrivateRoute> },
+  { path: "/compare", element: <PrivateRoute><ComparePage /></PrivateRoute> },
+  { path: "/progress", element: <Navigate to="/compare" replace /> },
   { path: "/auth/callback", element: <AuthCallback /> },
   
 ]);

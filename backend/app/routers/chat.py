@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,9 +11,11 @@ from app.services.user_profile import (
     get_user_recommendations,
 )
 from app.core.database import supabase
-from app.llm.openai_client import ask_gpt_stream
-from app.services.chat import build_system_prompt
+from app.models.chat import ReplyRequest
+from app.llm.openai_client import ask_gpt_stream_with_tools
+from app.services.chat import EUNICE_MAX_TOKENS, EUNICE_MODEL, EUNICE_TEMPERATURE, build_system_prompt
 from app.services.chat_context import safe_student_summary
+from app.services.eunice_tools import TOOLS, run_tool
 from fastapi.responses import StreamingResponse
 
 router = APIRouter()
@@ -22,7 +25,7 @@ STREAM_ERROR_MARKER = "[STREAM_ERROR]"
 
 
 @router.post("/conversations/{conv_id}/reply/stream")
-async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_user)):
+async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | None = None, user=Depends(get_current_user)):
     try:
         conversation = (
             supabase.table("conversations")
@@ -64,14 +67,20 @@ async def reply_to_conversation_stream(conv_id: str, user=Depends(get_current_us
             history.append({"role": role, "content": row["content"]})
 
         student_summary = await safe_student_summary(user.id)
-        system_prompt = build_system_prompt(student_type, user_info, recommendations, student_summary)
+        page = payload.page if payload else None
+        system_prompt = build_system_prompt(student_type, user_info, recommendations, student_summary, page)
 
-        token_stream = ask_gpt_stream(
+        async def lookup(name: str, arguments: str) -> str:
+            return await asyncio.to_thread(run_tool, name, arguments, user.id)
+
+        token_stream = ask_gpt_stream_with_tools(
             history,
             system_prompt,
-            temperature=0.7,
-            max_tokens=1500,
-            model="gpt-5.4-mini",
+            TOOLS,
+            lookup,
+            temperature=EUNICE_TEMPERATURE,
+            max_tokens=EUNICE_MAX_TOKENS,
+            model=EUNICE_MODEL,
         )
 
         async def event_generator():

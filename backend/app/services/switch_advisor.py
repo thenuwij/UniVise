@@ -3,6 +3,9 @@ import json
 
 # ─── Context Builder ─────────────────────────────────────────────
 
+EARLY_UOC = 48
+
+
 def safe_int(x, default=0) -> int:
     try:
         return int(x)
@@ -17,226 +20,89 @@ def safe_float(x, default=0.0) -> float:
         return default
 
 
-def build_context(comparison: dict, personality_data: dict = None, survey_data: dict = None) -> dict:
-    """Extract the most relevant data from comparison results for the AI prompt."""
-    if personality_data is None:
-        personality_data = {}
-    if survey_data is None:
-        survey_data = {}
-
-    summary = comparison.get("summary", {}) or {}
-    transfer = comparison.get("transfer_analysis", {}) or {}
-    breakdown = comparison.get("detailed_breakdown", {}) or {}
-    critical = comparison.get("critical_issues", []) or []
-    reqs_by_level = comparison.get("requirements_by_level", {}) or {}
-
-    # Handle cases where some fields accidentally arrive as strings
-    if isinstance(transfer, str):
+def _as_dict(value) -> dict:
+    if isinstance(value, str):
         try:
-            transfer = json.loads(transfer)
+            value = json.loads(value)
         except Exception:
-            transfer = {}
-    if isinstance(summary, str):
-        try:
-            summary = json.loads(summary)
-        except Exception:
-            summary = {}
-    if isinstance(breakdown, str):
-        try:
-            breakdown = json.loads(breakdown)
-        except Exception:
-            breakdown = {}
-    if isinstance(reqs_by_level, str):
-        try:
-            reqs_by_level = json.loads(reqs_by_level)
-        except Exception:
-            reqs_by_level = {}
+            return {}
+    return value if isinstance(value, dict) else {}
 
-    # Pull transferred / wasted lists using BOTH possible keys
-    transferred = transfer.get("transferred_courses", []) or []
-    wasted = (
-        transfer.get("non_transferable_courses")
-        or transfer.get("wasted_courses")
-        or transfer.get("nontransferable_courses")
-        or []
-    )
 
-    # Course code lists
-    def _codes(items, limit):
-        out = []
-        for c in items[:limit]:
-            if isinstance(c, dict):
-                out.append(c.get("code") or c.get("course_code") or "")
-            else:
-                out.append(str(c))
-        return [x for x in out if x]
+def _codes(items, limit):
+    out = []
+    for c in (items or [])[:limit]:
+        out.append((c.get("code") or c.get("course_code") or "") if isinstance(c, dict) else str(c))
+    return [x for x in out if x]
 
-    transferred_codes = _codes(transferred, 15)
-    wasted_codes = _codes(wasted, 10)
 
-    # TRUE completed denominator (course count)
-    total_completed_courses = (
-        transfer.get("total_completed_courses")
-        or summary.get("completed_courses_count")
-        or transfer.get("completed_courses_count")
-        or comparison.get("completed_courses_count")
-    )
-    total_completed_courses = safe_int(total_completed_courses, default=(len(transferred) + len(wasted)))
-
-    # UOC totals
-    completed_uoc = (
-        transfer.get("completed_uoc")
-        or summary.get("completed_uoc")
-        or 0
-    )
-    completed_uoc = safe_int(completed_uoc)
-
-    transferred_uoc = transfer.get("transferred_uoc")
-    if transferred_uoc is None:
-        # fallback: sum from transferred list
-        transferred_uoc = sum(safe_int(c.get("uoc")) for c in transferred if isinstance(c, dict))
-    transferred_uoc = safe_int(transferred_uoc)
-
-    wasted_uoc = transfer.get("wasted_uoc")
-    if wasted_uoc is None:
-        wasted_uoc = sum(safe_int(c.get("uoc")) for c in wasted if isinstance(c, dict))
-    wasted_uoc = safe_int(wasted_uoc)
-
-    # Rates
-    transfer_rate_courses = (
-        transfer.get("transfer_rate")
-        or summary.get("transfer_rate_courses")
-        or 0
-    )
-    transfer_rate_courses = safe_float(transfer_rate_courses)
-
-    transfer_rate_uoc = summary.get("transfer_rate_uoc")
-    if transfer_rate_uoc is None:
-        transfer_rate_uoc = (transferred_uoc / max(completed_uoc, 1)) * 100 if completed_uoc else 0
-    transfer_rate_uoc = float(transfer_rate_uoc)
-
-    # Remaining requirements: aggregate from requirements_by_level (dict of LevelGroup)
-    needed_courses = []
-    prereq_issues = []
-
-    if isinstance(reqs_by_level, dict):
-        level_groups = reqs_by_level.values()
-    elif isinstance(reqs_by_level, list):
-        level_groups = reqs_by_level
-    else:
-        level_groups = []
-
-    for level_group in level_groups:
-        if not isinstance(level_group, dict):
+def _todo_lines(items, limit=8):
+    lines = []
+    for item in (items or [])[:limit]:
+        if not isinstance(item, dict):
             continue
-        courses = level_group.get("courses", []) or []
-        for course in courses:
-            if isinstance(course, str):
-                needed_courses.append(course)
-                continue
-            code = course.get("code") or course.get("course_code") or ""
-            if code:
-                needed_courses.append(code)
-            if course.get("has_prereq_issue"):
-                prereq_issues.append({
-                    "code": code,
-                    "missing_prerequisites": course.get("missing_prerequisites", []),
-                    "prereq_type": course.get("prereq_type", ""),
-                })
-
-    # Critical issues
-    critical_descriptions = []
-    for issue in (critical[:5] if critical else []):
-        if isinstance(issue, dict):
-            # Compare uses "message"
-            critical_descriptions.append(issue.get("message") or issue.get("description") or str(issue))
+        if item.get("type") == "core":
+            parts = []
+            if item.get("left"):
+                parts.append(f"{len(item['left'])} courses ({', '.join(item['left'][:6])})")
+            if item.get("choices"):
+                parts.append(f"{len(item['choices'])} one-of choices")
+            lines.append(f"{item.get('title')}: {' and '.join(parts)}")
+        elif item.get("type") == "elective":
+            lines.append(f"{item.get('title')}: {item.get('uoc_left')} UOC from {item.get('options')} listed courses")
         else:
-            critical_descriptions.append(str(issue))
+            lines.append(f"{item.get('title')}: {item.get('uoc_left')} UOC of {item.get('note')}")
+    return lines
 
-    # Target program total UOC
-    target_total_uoc = 0
-    base_faculty = ""
-    target_faculty = ""
-    if isinstance(breakdown, dict):
-        bp = breakdown.get("base_program", {}) or {}
-        tp = breakdown.get("target_program", {}) or {}
-        target_total_uoc = safe_int(tp.get("total_uoc") or 0)
-        base_faculty = bp.get("faculty", "") or ""
-        target_faculty = tp.get("faculty", "") or ""
 
-    # Remaining UOC: use compare summary if present
-    remaining_uoc = safe_int(summary.get("uoc_needed") or 0)
-    remaining_courses_count = safe_int(summary.get("courses_needed") or 0)
+def build_context(comparison: dict, survey_data: dict = None) -> dict:
+    """Pass the /compare figures through unchanged so the advisor never works out its own numbers."""
+    survey_data = survey_data or {}
+    summary = _as_dict(comparison.get("summary"))
+    transfer = _as_dict(comparison.get("transfer_analysis"))
+    breakdown = _as_dict(comparison.get("detailed_breakdown"))
+    base = _as_dict(breakdown.get("base_program"))
+    target = _as_dict(breakdown.get("target_program"))
+    pool = _as_dict(transfer.get("free_pool"))
 
-    # Estimated terms (calculate from UOC if not provided)
-    estimated_terms = safe_int(summary.get("estimated_terms") or 0)
-    if estimated_terms == 0 and remaining_uoc > 0:
-        estimated_terms = max(1, (remaining_uoc + 17) // 18)
-
-    # Progress percentage
-    progress_percentage = safe_float(summary.get("progress_percentage") or 0)
-
-    # Base degree terms remaining (how long they'd stay in current degree)
-    base_total_uoc = 0
-    if isinstance(breakdown, dict):
-        bp = breakdown.get("base_program", {}) or {}
-        base_total_uoc = safe_int(bp.get("total_uoc") or 0)
-    # Use ceiling division to match estimated_terms so both sides are
-    # whole-term integers — a student cannot complete a fraction of a term.
-    base_terms_remaining = max(0, (base_total_uoc - completed_uoc + 17) // 18) if base_total_uoc > 0 else 0
-    additional_terms = max(0, estimated_terms - base_terms_remaining)
+    lost = transfer.get("wasted_courses") or transfer.get("non_transferable_courses") or []
+    candidates = pool.get("candidates") or []
+    fits = safe_int(pool.get("fits_count"))
+    completed_uoc = safe_int(summary.get("completed_uoc") or transfer.get("completed_uoc"))
+    base_total_uoc = safe_int(base.get("total_uoc"))
 
     return {
-        "can_transfer": comparison.get("can_transfer", True),
-        "recommendation": comparison.get("recommendation", ""),
+        "base_program": base.get("name", ""),
+        "target_program": target.get("name", ""),
+        "base_faculty": base.get("faculty") or "",
+        "target_faculty": target.get("faculty") or "",
+        "is_faculty_change": bool(base.get("faculty") and target.get("faculty") and base.get("faculty") != target.get("faculty")),
 
-        "base_program": (breakdown.get("base_program", {}) or {}).get("name", "") if isinstance(breakdown, dict) else "",
-        "target_program": (breakdown.get("target_program", {}) or {}).get("name", "") if isinstance(breakdown, dict) else "",
-        "base_faculty": base_faculty,
-        "target_faculty": target_faculty,
-        "is_faculty_change": base_faculty != target_faculty and base_faculty and target_faculty,
-
-        # Denominators
-        "total_completed_courses": total_completed_courses,
+        "total_completed_courses": safe_int(summary.get("completed_courses_count") or transfer.get("total_completed_courses")),
         "total_completed_uoc": completed_uoc,
-        "total_target_uoc": target_total_uoc,
+        "base_total_uoc": base_total_uoc,
+        "total_target_uoc": safe_int(target.get("total_uoc")),
 
-        # Transfer counts
-        "transferred_count": len(transferred),
-        "wasted_count": len(wasted),
+        "transferred_count": safe_int(transfer.get("transferred_count") or summary.get("courses_transfer")),
+        "transferred_uoc": safe_int(transfer.get("transferred_uoc") or summary.get("uoc_transfer")),
+        "transferred_courses": _codes(transfer.get("transferred_courses"), 15),
+        "transfer_rate_courses": round(safe_float(summary.get("transfer_rate_courses") or transfer.get("transfer_rate")), 1),
+        "free_elective_uoc": safe_int(pool.get("uoc")),
+        "free_elective_candidates": _codes(candidates, 10),
+        "free_elective_fits": fits,
+        "wasted_count": len(lost) + max(len(candidates) - fits, 0),
+        "wasted_courses": _codes(lost, 10),
 
-        # Transfer UOC
-        "transferred_uoc": transferred_uoc,
-        "wasted_uoc": wasted_uoc,
+        "remaining_uoc": safe_int(summary.get("uoc_needed")),
+        "remaining_courses_count": safe_int(summary.get("courses_needed")),
+        "base_uoc_left": safe_int(summary.get("base_uoc_left")),
+        "extra_uoc": safe_int(summary.get("extra_uoc")),
+        "estimated_terms": safe_int(summary.get("estimated_terms")),
+        "base_terms_remaining": safe_int(summary.get("base_terms_remaining")),
+        "additional_terms": safe_int(summary.get("extra_terms")),
+        "estimated_completion": summary.get("estimated_completion") or "",
+        "still_to_do": _todo_lines(transfer.get("still_to_do")),
 
-        # Lists
-        "transferred_courses": transferred_codes,
-        "wasted_courses": wasted_codes,
-
-        # Remaining
-        "remaining_courses_count": remaining_courses_count,
-        "remaining_uoc": remaining_uoc,
-        "estimated_terms": estimated_terms,
-        "progress_percentage": round(progress_percentage, 1),
-        "needed_courses": needed_courses[:20],
-        "prereq_issues": prereq_issues[:10],
-        "critical_issues": critical_descriptions,
-
-        "estimated_completion": summary.get("estimated_completion") or summary.get("estimated_completion_date") or "",
-        "transfer_rate_courses": round(transfer_rate_courses, 1),
-        "transfer_rate_uoc": round(transfer_rate_uoc, 1),
-
-        # Time delta
-        "base_terms_remaining": base_terms_remaining,
-        "additional_terms": additional_terms,
-
-        # Personality
-        "personality_top_types": personality_data.get("top_types", []),
-        "personality_summary": personality_data.get("result_summary", ""),
-
-        # Survey context
-        "academic_year": survey_data.get("academic_year", ""),
-        "study_feelings": survey_data.get("study_feelings", ""),
         "interest_areas": survey_data.get("interest_areas", []),
         "switching_pathway": survey_data.get("switching_pathway", ""),
     }
@@ -247,35 +113,41 @@ def build_context(comparison: dict, personality_data: dict = None, survey_data: 
 def build_system_prompt() -> str:
     return """You are Eunice, a UNSW academic advisor. You reason through program transfer requests like a real advisor: not by computing scores, but by thinking through key factors and arriving at a verdict naturally.
 
-You have been given structured facts about a student's transfer request. Reason through these 5 factors in order:
+You have been given checked facts about a student's transfer request. Reason through these 4 factors in order:
 
-FACTOR 1 - COURSE TRANSFER RATE
-- 80%+ transferring: strong foundation, student loses little
-- 50-79% transferring: some loss, worth noting
-- Under 50% transferring: most work does not carry over, significant cost
+FACTOR 1 - HOW MUCH CARRIES OVER
+- Look at courses counted and UOC carried over
+- Courses that could fill free electives count only up to the free elective room given
+- Name the courses that won't count only if there are any
 
-FACTOR 2 - TIME IMPACT
-- Use additional_terms (delta vs current degree, not total remaining)
-- 0 additional terms: no extra time, non-issue
-- 1-2 additional terms: manageable, worth noting
-- 3-6 additional terms: real cost, think carefully
-- 6+ additional terms: only if truly essential
+FACTOR 2 - EXTRA STUDY
+- extra_uoc is how much more (or less, if negative) the student studies than if they stay
+- 0 or less: no extra study, a strong signal for the switch
+- 6 to 12 UOC (1 to 2 courses): small, usually fits with a heavier term
+- 18 to 36 UOC: about one to two extra terms, a real cost
+- More than 36 UOC: a large cost, only worth it for a clear reason
+- Additional terms is at 3 courses a term. When it is 0 but extra_uoc is above 0, say the extra courses could fit with a heavier load, never that there is no extra study
 
 FACTOR 3 - FACULTY CHANGE
 - Same faculty: convenient, just a disciplinary shift
-- Different faculty: prompt student to check alternatives within their own faculty first
+- Different faculty: suggest checking options within their own faculty too
 
-FACTOR 4 - PREREQUISITE GAPS
-- Only flag genuine gaps where student should have completed something by now but has not
-- Not "has not done it yet" but only "behind for their year level"
+FACTOR 4 - HOW FAR THROUGH THEY ARE
+- Use UOC completed against their current program's total, nothing else
+- Up to 48 UOC done (about a full-time year): switching now is low cost, a good window
+- Most of the program done: weigh what is left in the current program heavily
 
-FACTOR 5 - HOW EARLY THE STUDENT IS
-- completed_uoc <= 54 (first year): switching now is low cost regardless of other factors, ideal window
+VERDICT CONSISTENCY
+- No extra study and most courses carry over: "recommended"
+- "not_recommended" only when the extra study or the lost courses are large
+- Never give a cautious verdict while saying the switch costs nothing; name the actual trade-off
 
-ADDITIONAL CONTEXT
-- Use personality_top_types and study_feelings to personalise tone
-- Use interest_areas to check if target degree aligns with interests
-- Use switching_pathway: if student said they are happy with current path but is now exploring a switch, acknowledge that nuance
+ACCURACY RULES
+- Use only the numbers given. Never calculate, round or estimate new numbers
+- Never mention the student's year level or year of study
+- Never mention personality
+- Don't say a course is missing a prerequisite; prerequisites were not checked
+- Use interests and the switching pathway only to judge fit
 
 FORMATTING RULES:
 - Never use em dashes anywhere
@@ -301,46 +173,42 @@ Respond in JSON with exactly this structure:
 
 
 def build_user_prompt(context: dict) -> str:
-    total_completed = context["total_completed_courses"]
-    prereq_count = len(context.get("prereq_issues", []))
-    is_first_year = context.get("total_completed_uoc", 0) <= 54
+    free = (
+        f"- Could fill free electives: {', '.join(context['free_elective_candidates'])} "
+        f"({context['free_elective_fits']} of these fit in {context['free_elective_uoc']} UOC of free electives)"
+        if context["free_elective_candidates"] else "- No courses left over for free electives"
+    )
+    base_total = context["base_total_uoc"]
+    progress = f"{context['total_completed_uoc']} of {base_total} UOC" if base_total else f"{context['total_completed_uoc']} UOC"
 
-    return f"""STUDENT PROFILE
+    return f"""STUDENT
 - Program: {context['base_program']} -> {context['target_program']}
-- Academic year: {context.get('academic_year') or 'Unknown'}
-- Personality: {context.get('personality_top_types') or 'Not available'} ({context.get('personality_summary') or 'No summary'})
 - Interests: {context.get('interest_areas') or 'Not specified'}
-- How they feel about studying: {context.get('study_feelings') or 'Not specified'}
 - Were they considering switching: {context.get('switching_pathway') or 'Not specified'}
 
-FACTOR 1 - TRANSFER RATE
-- {context['transferred_count']} of {total_completed} courses transfer ({context['transfer_rate_courses']:.1f}%)
-- UOC preserved: {context['transferred_uoc']} of {context['total_completed_uoc']}
-- Courses lost: {context['wasted_count']}
-{f"- Transferring: {', '.join(context['transferred_courses'][:10])}" if context['transferred_courses'] else "- No courses transfer"}
-{f"- Lost: {', '.join(context['wasted_courses'][:8])}" if context['wasted_courses'] else "- No courses lost"}
+FACTOR 1 - HOW MUCH CARRIES OVER
+- Courses counted: {context['transferred_count']} of {context['total_completed_courses']}
+- UOC carried over: {context['transferred_uoc']} of {context['total_completed_uoc']}
+{f"- In its course lists: {', '.join(context['transferred_courses'][:10])}" if context['transferred_courses'] else "- None in its course lists"}
+{free}
+- Courses that won't count: {context['wasted_count']}{f" ({', '.join(context['wasted_courses'][:8])})" if context['wasted_courses'] else ""}
 
-FACTOR 2 - TIME IMPACT
-- Estimated completion: {context.get('estimated_completion') or 'Not calculated'}
-- Terms remaining in target degree: {context['estimated_terms']}
-- Terms remaining in current degree: {context['base_terms_remaining']}
-- Additional terms from switching: {context['additional_terms']}
-- Additional courses needed: {context['remaining_courses_count']} courses ({context['remaining_uoc']} UOC)
+FACTOR 2 - EXTRA STUDY
+- UOC left if they switch: {context['remaining_uoc']} (about {context['remaining_courses_count']} courses)
+- UOC left if they stay: {context['base_uoc_left']}
+- extra_uoc: {context['extra_uoc']}
+- Terms left if they switch: {context['estimated_terms']}
+- Terms left if they stay: {context['base_terms_remaining']}
+- Additional terms: {context['additional_terms']}
+- Estimated finish if they switch: {context.get('estimated_completion') or 'Not calculated'}
+- Still to do in the new program:
+{chr(10).join(f"  - {line}" for line in context['still_to_do']) or "  - Nothing listed"}
 
 FACTOR 3 - FACULTY
-- Base faculty: {context.get('base_faculty') or 'Unknown'}
-- Target faculty: {context.get('target_faculty') or 'Unknown'}
+- Current faculty: {context.get('base_faculty') or 'Unknown'}
+- New faculty: {context.get('target_faculty') or 'Unknown'}
 - Faculty change: {context.get('is_faculty_change', False)}
 
-FACTOR 4 - PREREQUISITE GAPS
-- Prereq issues identified: {prereq_count}
-  (Note: many may be normal for year level, not genuine blockers)
-{json.dumps(context['prereq_issues'][:8], indent=2) if context['prereq_issues'] else '  None detected'}
-
-FACTOR 5 - HOW EARLY
-- Completed UOC: {context['total_completed_uoc']}
-- First year threshold: 54 UOC
-- Is first year: {is_first_year}
-
-SYSTEM RECOMMENDATION: {context['recommendation']}
-CAN TRANSFER: {context['can_transfer']}"""
+FACTOR 4 - HOW FAR THROUGH THEY ARE
+- Completed in current program: {progress}
+- Within the low-cost window (up to 48 UOC): {context['total_completed_uoc'] <= EARLY_UOC}"""

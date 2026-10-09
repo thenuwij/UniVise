@@ -1,7 +1,7 @@
 import logging
 import os
 import openai
-from typing import List, Dict, AsyncGenerator, TypeVar
+from typing import List, Dict, AsyncGenerator, Awaitable, Callable, TypeVar
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
@@ -143,22 +143,59 @@ async def ask_gpt_web_search(
     return response.output_parsed, sources
 
 
-async def ask_gpt_stream(
+async def ask_gpt_stream_with_tools(
     history: List[Dict[str, str]],
     system_prompt: str,
-    max_tokens: int = 500,
+    tools: list,
+    run_tool: Callable[[str, str], Awaitable[str]],
+    max_tokens: int = 1500,
     temperature: float = 1,
     model: str = _GPT_MODEL,
+    max_rounds: int = 4,
 ) -> AsyncGenerator[str, None]:
-    """Async streaming GPT call."""
-    response = await _openai_async_client.chat.completions.create(
-        model=model,
-        messages=[{"role": "system", "content": system_prompt}] + history,
-        max_completion_tokens=max_tokens,
-        temperature=temperature,
-        stream=True,
-    )
-    async for chunk in response:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            yield delta
+    """Streaming GPT call that can look things up with tools before or while answering.
+
+    Text streams out as it arrives. When the model asks for tools, run_tool(name, arguments)
+    supplies each result and the model continues. After max_rounds of tools it must answer.
+    """
+    messages = [{"role": "system", "content": system_prompt}] + list(history)
+    for round_number in range(max_rounds + 1):
+        tool_param = {"tools": tools} if round_number < max_rounds else {}
+        response = await _openai_async_client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_completion_tokens=max_tokens,
+            temperature=temperature,
+            stream=True,
+            **tool_param,
+        )
+        text = ""
+        calls: dict = {}
+        async for chunk in response:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            if delta.content:
+                text += delta.content
+                yield delta.content
+            for call in delta.tool_calls or []:
+                slot = calls.setdefault(call.index, {"id": "", "name": "", "arguments": ""})
+                if call.id:
+                    slot["id"] = call.id
+                if call.function and call.function.name:
+                    slot["name"] += call.function.name
+                if call.function and call.function.arguments:
+                    slot["arguments"] += call.function.arguments
+        if not calls:
+            return
+        ordered = [calls[i] for i in sorted(calls)]
+        messages.append({
+            "role": "assistant",
+            "content": text or None,
+            "tool_calls": [
+                {"id": c["id"], "type": "function", "function": {"name": c["name"], "arguments": c["arguments"]}}
+                for c in ordered
+            ],
+        })
+        for c in ordered:
+            messages.append({"role": "tool", "tool_call_id": c["id"], "content": await run_tool(c["name"], c["arguments"])})

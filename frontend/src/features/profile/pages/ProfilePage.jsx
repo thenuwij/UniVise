@@ -1,205 +1,239 @@
-import {
-  Avatar,
-  Badge,
-  Button,
-  Dropdown,
-  DropdownItem,
-  Label,
-  Select,
-  TextInput
-} from "flowbite-react";
+import { Label, Select, TextInput } from "flowbite-react";
 import { useEffect, useMemo, useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
-import { HiOutlineAcademicCap, HiOutlineSparkles, HiOutlineUserCircle, HiX } from "react-icons/hi";
-import { HiOutlineIdentification } from "react-icons/hi2";
-import { useNavigate } from "react-router-dom";
+import { Check, GraduationCap, Pencil, User, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import { card } from "@/shared/ui/cardStyles";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
 import YourDataCard from "../components/YourDataCard";
 
-function Panel({ title, icon: Icon, children, hint }) {
+const TAG_MAX_LENGTH = 60;
+const TAG_MAX_COUNT = 10;
+const NOT_SET = "Not Specified";
+
+const pill = "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold";
+const secondaryButton =
+  "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50";
+const primaryButton =
+  "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors disabled:opacity-50";
+
+const toArr = (v) => (Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : []);
+const shown = (v) => (v && v !== NOT_SET ? v : "");
+
+function Section({ title, icon: Icon, editing, onEdit, onCancel, onSave, saving, status, children }) {
   return (
-    <div className="card-glass-spotlight">
-      <div />
-      <div className="relative p-6">
-        <div className="flex items-center gap-2 mb-1">
-          {Icon && <Icon className="h-5 w-5 text-slate-500" />}
-          <h2 className="text-lg font-semibold">{title}</h2>
-        </div>
-        {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{hint}</p>}
-        <div className="mt-3">{children}</div>
+    <section className={`${card} p-6`}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-ink-strong">
+          <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          {title}
+        </h2>
+        {!editing && onEdit && (
+          <button type="button" onClick={onEdit} className={secondaryButton}>
+            <Pencil className="h-4 w-4" />
+            Edit
+          </button>
+        )}
       </div>
+      <div className="mt-5">{children}</div>
+      {editing && (
+        <div className="mt-6 pt-5 border-t border-line flex flex-wrap items-center justify-end gap-3">
+          {status?.error && <p className="mr-auto text-sm font-semibold text-red-600 dark:text-red-400">{status.error}</p>}
+          <button type="button" onClick={onCancel} disabled={saving} className={secondaryButton}>
+            Cancel
+          </button>
+          <button type="button" onClick={onSave} disabled={saving} className={primaryButton}>
+            <Check className="h-4 w-4" strokeWidth={3} />
+            {saving ? "Saving..." : "Save changes"}
+          </button>
+        </div>
+      )}
+      {!editing && status?.saved && (
+        <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 dark:text-green-300">
+          <Check className="h-4 w-4" strokeWidth={3} />
+          Saved
+        </p>
+      )}
+    </section>
+  );
+}
+
+function Field({ label, value, wide }) {
+  return (
+    <div className={wide ? "sm:col-span-2" : ""}>
+      <p className="text-sm text-ink-muted">{label}</p>
+      {value ? (
+        <p className="mt-0.5 text-[15px] font-semibold text-ink-strong break-words">{value}</p>
+      ) : (
+        <p className="mt-0.5 text-[15px] text-slate-400 dark:text-slate-500">Not added</p>
+      )}
     </div>
   );
 }
 
-function KeyValue({ label, value }) {
+function TagField({ label, items }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400">{label}</p>
-      <p className="mt-0.5 text-sm font-medium">{value || "Not specified"}</p>
+    <div className="sm:col-span-2">
+      <p className="text-sm text-ink-muted">{label}</p>
+      {items?.length ? (
+        <div className="mt-1.5 flex flex-wrap gap-2">
+          {items.map((item, i) => (
+            <span key={item + i} className="px-3 py-1 rounded-full text-sm font-medium text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-200 dark:ring-blue-800">
+              {item}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-0.5 text-[15px] text-slate-400 dark:text-slate-500">Not added</p>
+      )}
     </div>
   );
 }
 
-function TagList({ items }) {
-  if (!items?.length) return <span className="text-sm text-slate-400">None specified</span>;
+function TagInput({ id, values, setValues, placeholder }) {
+  const [next, setNext] = useState("");
+  const full = values.length >= TAG_MAX_COUNT;
+  const addTag = () => {
+    const t = cleanText(next, TAG_MAX_LENGTH);
+    if (t && !values.includes(t) && !full) setValues([...values, t]);
+    setNext("");
+  };
+  const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTag();
+    } else if (e.key === "Backspace" && !next && values.length) removeTag(values.length - 1);
+  };
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
-      {items.map((item, i) => (
-        <span key={item + i} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
-          {item}
-        </span>
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <TextInput id={id} placeholder={placeholder} maxLength={TAG_MAX_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
+        <button type="button" onClick={addTag} disabled={!cleanText(next, TAG_MAX_LENGTH) || full} className={secondaryButton}>
+          Add
+        </button>
+      </div>
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {values.map((tag, i) => (
+            <span key={tag + i} className="inline-flex items-center gap-1 pl-3 pr-1 py-1 rounded-full text-sm font-medium text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-200 dark:ring-blue-800">
+              {tag}
+              <button type="button" onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-ink-muted">Press Enter or Add. Up to {TAG_MAX_COUNT}.</p>
+    </div>
+  );
+}
+
+function LoadingRows() {
+  return (
+    <div className="animate-pulse grid sm:grid-cols-2 gap-5">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i}>
+          <div className="h-3.5 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="mt-2 h-5 w-40 rounded bg-slate-200 dark:bg-slate-700" />
+        </div>
       ))}
     </div>
   );
 }
 
-const TAG_MAX_LENGTH = 60;
-const TAG_MAX_COUNT = 10;
-
-function TagInput({ values, setValues, placeholder }) {
-  const [next, setNext] = useState("");
-  const addTag = () => {
-    const t = cleanText(next, TAG_MAX_LENGTH);
-    if (t && !values.includes(t) && values.length < TAG_MAX_COUNT) setValues([...values, t]);
-    setNext("");
-  };
-  const removeTag = (i) => setValues(values.filter((_, idx) => idx !== i));
-  const onKeyDown = (e) => {
-    if (e.key === "Enter") { e.preventDefault(); addTag(); }
-    else if (e.key === "Backspace" && !next && values.length) removeTag(values.length - 1);
-  };
+function Avatar({ url, name }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("");
+  if (url && !failed) {
+    return <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} className="h-20 w-20 rounded-full object-cover ring-4 ring-blue-100 dark:ring-blue-900/60" />;
+  }
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <TextInput placeholder={placeholder} maxLength={TAG_MAX_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} onKeyDown={onKeyDown} className="w-full" />
-        <Button onClick={addTag} disabled={!cleanText(next, TAG_MAX_LENGTH) || values.length >= TAG_MAX_COUNT}>Add</Button>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {values.map((tag, i) => (
-          <span key={tag + i} className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs">
-            {tag}
-            <button type="button" onClick={() => removeTag(i)} className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-slate-200 transition" aria-label={`Remove ${tag}`}>
-              <HiX className="h-3 w-3 text-slate-500" />
-            </button>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LoadingCard() {
-  return (
-    <div className="animate-pulse space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-8 rounded bg-slate-100 dark:bg-slate-700" />)}
-      </div>
-    </div>
+    <span className="h-20 w-20 inline-flex items-center justify-center rounded-full text-2xl font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600 ring-4 ring-blue-100 dark:ring-blue-900/60">
+      {initials || <User className="h-8 w-8" />}
+    </span>
   );
 }
 
 function ProfilePage() {
-  const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [dob, setDob] = useState("");
-  const [gender, setGender] = useState("Not Specified");
-  const [studentType, setStudentType] = useState("");
-  const [careerInterests, setCareerInterests] = useState([]);
-  const [degreeInterests, setDegreeInterests] = useState([]);
-  const [year, setYear] = useState("");
-  const [academicStrengths, setAcademicStrengths] = useState([]);
-  const [confidence, setConfidence] = useState("Not Specified");
-  const [hobbies, setHobbies] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [atar, setAtar] = useState("");
-  const [degreeStage, setDegreeStage] = useState("");
-  const [degreeField, setDegreeField] = useState("");
-  const [wam, setWam] = useState("");
-  const [, setUserId] = useState();
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [studentType, setStudentType] = useState("");
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    dob: "",
+    gender: NOT_SET,
+    hobbies: [],
+    year: "",
+    atar: "",
+    confidence: NOT_SET,
+    academicStrengths: [],
+    degreeInterests: [],
+    careerInterests: [],
+    degreeStage: "",
+    degreeField: "",
+    wam: "",
+  });
+  const [editing, setEditing] = useState(null);
+  const [snapshot, setSnapshot] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState({});
 
-  const openDrawer = () => setIsOpen(true);
-  const closeDrawer = () => setIsOpen(false);
-  const isHS = useMemo(() => studentType === "High School" || studentType === "high_school", [studentType]);
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      const { error: emailError } = await supabase.auth.updateUser({ email });
-      if (emailError) { console.error("Error updating email:", emailError); return; }
-
-      const { error: authError } = await supabase.auth.updateUser({
-        data: { first_name: firstName, last_name: lastName, email, dob, gender },
-      });
-      if (authError) { console.error("Error updating auth metadata:", authError); return; }
-
-      if (isHS) {
-        const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from("student_school_data").update({
-          hobbies, academic_strengths: academicStrengths,
-          degree_interest: degreeInterests, career_interests: careerInterests, confidence,
-        }).eq("user_id", user.id);
-      } else if (studentType === "University") {
-        const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from("student_uni_data").update({
-          wam, degree_field: cleanText(degreeField, 100) || null, degree_stage: degreeStage,
-          interest_areas: careerInterests, hobbies, confidence, academic_year: year,
-        }).eq("user_id", user.id);
-      }
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving profile:", error);
-    }
-  };
+  const isHS = useMemo(() => studentType === "high_school", [studentType]);
+  const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const onInput = (key) => (e) => set(key)(e.target.value);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        setLoading(true);
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) throw error;
         if (!user) return;
-
-        const fn = user.user_metadata.first_name || user.user_metadata.full_name?.split(" ")[0] || "";
-        const ln = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || "";
-        setUserId(user.id);
-        setFirstName(fn);
-        setLastName(ln);
+        const meta = user.user_metadata || {};
+        const st = meta.student_type || "";
         setEmail(user.email || "");
-        setGender(user.user_metadata.gender || "Not Specified");
-        setDob(user.user_metadata.dob || "");
-
-        const st = user.user_metadata.student_type || "";
-
+        setAvatarUrl(meta.avatar_url || meta.picture || "");
+        setStudentType(st);
+        const base = {
+          firstName: meta.first_name || meta.full_name?.split(" ")[0] || "",
+          lastName: meta.last_name || meta.full_name?.split(" ")[1] || "",
+          dob: meta.dob || "",
+          gender: meta.gender || NOT_SET,
+        };
         if (st === "high_school") {
           const { data } = await supabase.from("student_school_data").select("*").eq("user_id", user.id).single();
-          setStudentType("High School");
-          setAtar(data?.atar ?? "");
-          setYear(data?.year ?? "");
-          setConfidence(data?.confidence ?? "Not Specified");
-          const toArr = (v) => Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
-          setAcademicStrengths(toArr(data?.academic_strengths));
-          setCareerInterests(toArr(data?.career_interests));
-          setDegreeInterests(toArr(data?.degree_interests));
-          setHobbies(toArr(data?.hobbies));
+          setForm((prev) => ({
+            ...prev,
+            ...base,
+            atar: data?.atar ?? "",
+            year: data?.year ?? "",
+            confidence: data?.confidence ?? NOT_SET,
+            academicStrengths: toArr(data?.academic_strengths),
+            careerInterests: toArr(data?.career_interests),
+            degreeInterests: toArr(data?.degree_interests),
+            hobbies: toArr(data?.hobbies),
+          }));
         } else if (st === "university") {
           const { data } = await supabase.from("student_uni_data").select("*").eq("user_id", user.id).single();
-          setStudentType("University");
-          setWam(data?.wam ?? "");
-          setDegreeField(data?.degree_field ?? "");
-          setDegreeStage(data?.degree_stage ?? "");
-          setCareerInterests(data?.interest_areas ?? []);
-          setHobbies(data?.hobbies ?? []);
-          setConfidence(data?.confidence ?? "Not Specified");
-          setYear(data?.academic_year ?? "");
+          setForm((prev) => ({
+            ...prev,
+            ...base,
+            wam: data?.wam ?? "",
+            degreeField: data?.degree_field ?? "",
+            degreeStage: data?.degree_stage ?? "",
+            careerInterests: data?.interest_areas ?? [],
+            hobbies: data?.hobbies ?? [],
+            confidence: data?.confidence ?? NOT_SET,
+            year: data?.academic_year ?? "",
+          }));
+        } else {
+          setForm((prev) => ({ ...prev, ...base }));
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -210,262 +244,233 @@ function ProfilePage() {
     fetchUserInfo();
   }, []);
 
+  const startEdit = (section) => {
+    setSnapshot(form);
+    setStatus({});
+    setEditing(section);
+  };
+
+  const cancelEdit = () => {
+    if (snapshot) setForm(snapshot);
+    setStatus({});
+    setEditing(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setStatus({});
+    try {
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { first_name: form.firstName, last_name: form.lastName, dob: form.dob, gender: form.gender },
+      });
+      if (authError) throw authError;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (isHS) {
+        const { error } = await supabase.from("student_school_data").update({
+          hobbies: form.hobbies,
+          academic_strengths: form.academicStrengths,
+          degree_interest: form.degreeInterests,
+          career_interests: form.careerInterests,
+          confidence: form.confidence,
+        }).eq("user_id", user.id);
+        if (error) throw error;
+      } else if (studentType === "university") {
+        const { error } = await supabase.from("student_uni_data").update({
+          wam: form.wam === "" ? null : form.wam,
+          degree_field: cleanText(form.degreeField, 100) || null,
+          degree_stage: form.degreeStage,
+          interest_areas: form.careerInterests,
+          hobbies: form.hobbies,
+          confidence: form.confidence,
+          academic_year: form.year,
+        }).eq("user_id", user.id);
+        if (error) throw error;
+      }
+      setStatus({ [editing]: { saved: true } });
+      setEditing(null);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      setStatus({ [editing]: { error: "Couldn't save your changes. Please try again." } });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fullName = `${form.firstName} ${form.lastName}`.trim();
+  const typeLabel = isHS ? "High school student" : studentType === "university" ? "University student" : "";
+  const yearOptions = isHS
+    ? [NOT_SET, "Year 10", "Year 11", "Year 12"]
+    : [NOT_SET, "Year 1", "Year 2", "Year 3", "Year 4", "Year 5+", "Postgraduate/Other"];
+
+  const sectionProps = (key) => ({
+    editing: editing === key,
+    onEdit: editing ? null : () => startEdit(key),
+    onCancel: cancelEdit,
+    onSave: save,
+    saving,
+    status: status[key],
+  });
+
   return (
     <div className="min-h-screen app-page">
-      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={closeDrawer} />
+      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
+      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
 
-      <PageHeader
-        back={{ label: "Back to Dashboard", onClick: () => navigate("/dashboard") }}
-        actions={
-          isEditing ? (
-            <div className="flex gap-2">
-              <Button pill size="sm" color="light" onClick={() => setIsEditing(false)}>Cancel</Button>
-              <Button pill size="sm" color="light" type="submit" form="profileForm">Save changes</Button>
-            </div>
-          ) : (
-            <Button pill size="sm" color="light" onClick={() => setIsEditing(true)}>
-              <FaRegEdit className="mr-1.5 h-4 w-4" />
-              Edit
-            </Button>
-          )
-        }
-        eyebrow="Profile"
-        title="My account"
-      />
+      <PageHeader eyebrow="Account" title="My account" subtitle="Your details, your studies and your data." />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-16">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-16 space-y-5">
+        <section className={`${card} p-6 flex flex-col sm:flex-row sm:items-center gap-5`}>
+          <Avatar key={avatarUrl} url={avatarUrl} name={fullName} />
+          <div className="min-w-0">
+            {loading ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-7 w-56 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-4 w-72 rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-extrabold text-ink-strong">{fullName || "Your account"}</p>
+                <p className="mt-0.5 text-[15px] text-ink-muted break-all">{email}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {typeLabel && <span className={`${pill} text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-200 dark:ring-blue-800`}>{typeLabel}</span>}
+                  {shown(form.year) && <span className={`${pill} text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-200 dark:ring-blue-800`}>{form.year}</span>}
+                  <span className={`${pill} text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800`}>Signed in with Google</span>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
 
-        {isEditing ? (
-          <form id="profileForm" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 space-y-5">
-              <Panel title="About Me" icon={HiOutlineUserCircle}>
-                <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+          <div className="lg:col-span-2 space-y-5">
+            <Section title="About you" icon={User} {...sectionProps("about")}>
+              {loading ? (
+                <LoadingRows />
+              ) : editing === "about" ? (
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <TextInput id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    <Label htmlFor="firstName">First name</Label>
+                    <TextInput id="firstName" value={form.firstName} onChange={onInput("firstName")} />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <TextInput id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    <Label htmlFor="lastName">Last name</Label>
+                    <TextInput id="lastName" value={form.lastName} onChange={onInput("lastName")} />
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <Label htmlFor="email">Email</Label>
-                    <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <TextInput id="email" value={email} disabled />
+                    <p className="mt-1 text-xs text-ink-muted">Your email comes from your Google sign-in, so it can't be changed here.</p>
                   </div>
                   <div>
-                    <Label htmlFor="dob">Date of Birth</Label>
-                    <TextInput id="dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                    <Label htmlFor="dob">Date of birth</Label>
+                    <TextInput id="dob" type="date" value={form.dob} onChange={onInput("dob")} />
                   </div>
                   <div>
                     <Label htmlFor="gender">Gender</Label>
-                    <Select id="gender" value={gender} onChange={(e) => setGender(e.target.value)}>
-                      <option value="Not Specified">Not Specified</option>
+                    <Select id="gender" value={form.gender} onChange={onInput("gender")}>
+                      <option value={NOT_SET}>Not added</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
                       <option value="Prefer not to say">Prefer not to say</option>
                     </Select>
                   </div>
-                  <div className="col-span-2">
-                    <Label>Hobbies</Label>
-                    <TagInput values={hobbies} setValues={setHobbies} placeholder="Type a hobby and press Add" />
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="hobbies">Hobbies</Label>
+                    <TagInput id="hobbies" values={form.hobbies} setValues={set("hobbies")} placeholder="Type a hobby" />
                   </div>
                 </div>
-              </Panel>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <Field label="Name" value={fullName} />
+                  <Field label="Email" value={email} />
+                  <Field label="Date of birth" value={form.dob} />
+                  <Field label="Gender" value={shown(form.gender)} />
+                  <TagField label="Hobbies" items={form.hobbies} />
+                </div>
+              )}
+            </Section>
 
-              <Panel title="Academic Information" icon={HiOutlineAcademicCap}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="studentType">Student Type</Label>
-                    <Select id="studentType" value={isHS ? "High School" : "University"} disabled>
-                      <option>High School</option>
-                      <option>University</option>
-                    </Select>
-                    <p className="mt-1 text-xs text-slate-400">Cannot be changed.</p>
-                  </div>
+            <Section title="Your studies" icon={GraduationCap} {...sectionProps("studies")}>
+              {loading ? (
+                <LoadingRows />
+              ) : editing === "studies" ? (
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="year">Year</Label>
-                    <Select id="year" value={year} onChange={(e) => setYear(e.target.value)}>
-                      {isHS ? (
-                        ["Not Specified","Year 10","Year 11","Year 12"].map(v => <option key={v} value={v}>{v}</option>)
-                      ) : (
-                        ["Not Specified","Year 1","Year 2","Year 3","Year 4","Year 5+","Postgraduate/Other"].map(v => <option key={v} value={v}>{v}</option>)
-                      )}
+                    <Select id="year" value={form.year || NOT_SET} onChange={onInput("year")}>
+                      {yearOptions.map((v) => (
+                        <option key={v} value={v}>{v === NOT_SET ? "Not added" : v}</option>
+                      ))}
                     </Select>
                   </div>
-
                   {isHS ? (
                     <>
                       <div>
                         <Label htmlFor="atar">ATAR</Label>
-                        <TextInput id="atar" type="number" value={atar} onChange={(e) => setAtar(e.target.value)} />
+                        <TextInput id="atar" type="number" value={form.atar} onChange={onInput("atar")} />
                       </div>
-                      <div>
-                        <Label>Confidence Level</Label>
-                        <Dropdown label={confidence || "Select…"} className="bg-white">
-                          {["Very confident - I know what I want","Somewhat confident - I have ideas but unsure","Not confident - I need help figuring out"].map(v => (
-                            <DropdownItem key={v} onClick={() => setConfidence(v)}>{v}</DropdownItem>
-                          ))}
-                        </Dropdown>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="strengths">Academic strengths</Label>
+                        <TagInput id="strengths" values={form.academicStrengths} setValues={set("academicStrengths")} placeholder="Add a strength" />
                       </div>
-                      <div className="col-span-2">
-                        <Label>Academic Strengths</Label>
-                        <TagInput values={academicStrengths} setValues={setAcademicStrengths} placeholder="Add a strength" />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Degree Interests</Label>
-                        <TagInput values={degreeInterests} setValues={setDegreeInterests} placeholder="Add a degree interest" />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Career Interests</Label>
-                        <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="degreeInterests">Degree interests</Label>
+                        <TagInput id="degreeInterests" values={form.degreeInterests} setValues={set("degreeInterests")} placeholder="Add a degree interest" />
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <Label htmlFor="degreeStage">Degree Stage</Label>
-                        <Select id="degreeStage" value={degreeStage || "Not Specified"} onChange={(e) => setDegreeStage(e.target.value)}>
-                          {["Not Specified","Bachelors Degree","Masters Degree","PhD or Doctoral Program","Other"].map(v => <option key={v} value={v}>{v}</option>)}
+                        <Label htmlFor="degreeStage">Degree stage</Label>
+                        <Select id="degreeStage" value={form.degreeStage || NOT_SET} onChange={onInput("degreeStage")}>
+                          {[NOT_SET, "Bachelors Degree", "Masters Degree", "PhD or Doctoral Program", "Other"].map((v) => (
+                            <option key={v} value={v}>{v === NOT_SET ? "Not added" : v}</option>
+                          ))}
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="degreeField">Degree Field</Label>
-                        <TextInput id="degreeField" maxLength={100} value={degreeField} onChange={(e) => setDegreeField(e.target.value)} />
+                        <Label htmlFor="degreeField">Field of study</Label>
+                        <TextInput id="degreeField" maxLength={100} value={form.degreeField} onChange={onInput("degreeField")} />
                       </div>
                       <div>
                         <Label htmlFor="wam">WAM</Label>
-                        <TextInput id="wam" type="number" value={wam ?? ""} onChange={(e) => setWam(e.target.value)} />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Career Interests</Label>
-                        <TagInput values={careerInterests} setValues={setCareerInterests} placeholder="Add a career interest" />
+                        <TextInput id="wam" type="number" min={0} max={100} value={form.wam ?? ""} onChange={onInput("wam")} />
                       </div>
                     </>
                   )}
-                </div>
-              </Panel>
-            </div>
-
-            <div className="space-y-5">
-              <Panel title="Profile Picture" icon={HiOutlineIdentification}>
-                <div className="flex flex-col items-center gap-3 py-2">
-                  <Avatar rounded size="xl" />
-                  <p className="text-xs text-slate-400 text-center">Upload a profile picture.</p>
-                </div>
-              </Panel>
-
-            </div>
-          </form>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Left: About Me + Academic Information merged */}
-            <div className="lg:col-span-2">
-              <div className="card-glass-spotlight">
-                <div />
-                <div className="relative p-6">
-                  {/* About Me section */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <HiOutlineUserCircle className="h-5 w-5 text-slate-500" />
-                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">About Me</h2>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="careerInterests">Career interests</Label>
+                    <TagInput id="careerInterests" values={form.careerInterests} setValues={set("careerInterests")} placeholder="Add a career interest" />
                   </div>
-                  {loading ? <LoadingCard /> : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <KeyValue label="First Name" value={firstName} />
-                      <KeyValue label="Last Name" value={lastName} />
-                      <KeyValue label="Email" value={email} />
-                      <KeyValue label="Gender" value={gender} />
-                      <KeyValue label="Date of Birth" value={dob} />
-                      <div className="col-span-2 md:col-span-3">
-                        <p className="text-xs uppercase tracking-wide text-slate-400">Hobbies</p>
-                        <TagList items={hobbies} />
-                      </div>
-                    </div>
-                  )}
-
-                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
-
-                  {/* Academic Information section */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <HiOutlineAcademicCap className="h-5 w-5 text-slate-500" />
-                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Academic Information</h2>
-                  </div>
-                  {loading ? <LoadingCard /> : (
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <Field label="Year" value={shown(form.year)} />
+                  {isHS ? (
                     <>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {studentType && <Badge color="info">{studentType}</Badge>}
-                        {year && <Badge color="purple">{year}</Badge>}
-                        {confidence && confidence !== "Not Specified" && <Badge color="success">{confidence}</Badge>}
-                      </div>
-                      {isHS ? (
-                        <div className="grid grid-cols-2 gap-4">
-                          <KeyValue label="ATAR" value={atar} />
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-400">Academic Strengths</p>
-                            <TagList items={academicStrengths} />
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-400">Career Interests</p>
-                            <TagList items={careerInterests} />
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-400">Degree Interests</p>
-                            <TagList items={degreeInterests} />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-4">
-                          <KeyValue label="Degree Stage" value={degreeStage} />
-                          <KeyValue label="Degree Field" value={degreeField} />
-                          <KeyValue label="WAM" value={wam} />
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-400">Career Interests</p>
-                            <TagList items={careerInterests} />
-                          </div>
-                        </div>
-                      )}
+                      <Field label="ATAR" value={form.atar} />
+                      <TagField label="Academic strengths" items={form.academicStrengths} />
+                      <TagField label="Degree interests" items={form.degreeInterests} />
+                      <Field label="How sure you are about your path" value={shown(form.confidence)} wide />
+                    </>
+                  ) : (
+                    <>
+                      <Field label="Degree stage" value={shown(form.degreeStage)} />
+                      <Field label="Field of study" value={form.degreeField} />
+                      <Field label="WAM" value={form.wam === null ? "" : String(form.wam)} />
                     </>
                   )}
-
-                  <hr className="border-slate-200 dark:border-slate-700 my-6" />
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/traits")}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    <HiOutlineSparkles className="h-5 w-5" />
-                    Discover your personality type
-                  </button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Optional: a short quiz about how you like to work.
-                  </p>
+                  <TagField label="Career interests" items={form.careerInterests} />
                 </div>
-              </div>
-            </div>
-
-            {/* Right: Profile Picture */}
-            <div className="space-y-5">
-              <div className="card-glass-spotlight">
-                <div />
-                <div className="relative p-6">
-                  {/* Profile Picture section */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <HiOutlineIdentification className="h-5 w-5 text-slate-500" />
-                    <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">Profile Picture</h2>
-                  </div>
-                  <div className="flex flex-col items-center gap-3 py-2">
-                    <Avatar rounded size="xl" />
-                    <p className="text-xs text-slate-400 text-center">Upload a profile picture.</p>
-                  </div>
-
-                </div>
-              </div>
-              <YourDataCard />
-            </div>
+              )}
+            </Section>
           </div>
-        )}
+
+          <div className="space-y-5">
+            <YourDataCard />
+          </div>
+        </div>
       </div>
     </div>
   );

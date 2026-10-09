@@ -67,6 +67,11 @@ describe("toBlocks", () => {
     ]);
   });
 
+  test("keeps a sentence that repeats the same courses as one paragraph", () => {
+    const note = "Students taking a major and minor that require INFS1603 and COMP3311 as core courses should take only COMP3311 and replace INFS1603 with an Information Systems Level 2 or 3 course.";
+    expect(toBlocks(note)).toEqual([{ type: "p", text: note }]);
+  });
+
   test("leaves enrolment rules with course logic as text", () => {
     const rule = "Prerequisite: (ACTL2131 or MATH2901) and ACTL2102 and ACTL2111 and ACCT1511. Corequisite: ACTL3141.";
     expect(toBlocks(rule).every((b) => b.type === "p")).toBe(true);

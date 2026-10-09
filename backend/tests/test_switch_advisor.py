@@ -88,3 +88,50 @@ def test_returns_500_when_ai_reply_is_unusable(client, monkeypatch):
 
     assert response.status_code == 500
     assert response.json() == {"detail": "Could not create the switch advice. Please try again."}
+
+
+COMPARISON = {
+    "summary": {
+        "completed_courses_count": 13, "completed_uoc": 78, "courses_transfer": 11, "uoc_transfer": 66,
+        "courses_needed": 21, "uoc_needed": 126, "base_uoc_left": 114, "extra_uoc": 12,
+        "estimated_terms": 7, "base_terms_remaining": 7, "extra_terms": 0, "estimated_completion": "Term 1, 2029",
+    },
+    "transfer_analysis": {
+        "transferred_count": 11, "transferred_uoc": 66, "transferred_courses": [{"code": "COMP1511"}],
+        "free_pool": {"uoc": 6, "used_uoc": 6, "fits_count": 1, "candidates": [{"code": "ARTS1000"}, {"code": "ARTS1001"}]},
+        "wasted_courses": [{"code": "PSYC1001"}],
+        "still_to_do": [{"title": "Level 3 Core", "type": "core", "left": ["ELEC3115"], "choices": []}],
+    },
+    "detailed_breakdown": {
+        "base_program": {"name": "Computer Science", "faculty": "Engineering", "total_uoc": 192},
+        "target_program": {"name": "Electrical Engineering", "faculty": "Engineering", "total_uoc": 192},
+    },
+}
+
+
+def test_context_passes_compare_numbers_through_unchanged():
+    from app.services.switch_advisor import build_context
+
+    context = build_context(COMPARISON, {"academic_year": "3"})
+
+    assert (context["extra_uoc"], context["additional_terms"], context["remaining_uoc"], context["base_uoc_left"]) == (12, 0, 126, 114)
+    assert context["remaining_courses_count"] == 21
+    assert context["wasted_count"] == 2
+    assert "academic_year" not in context
+
+
+def test_prompt_has_no_year_or_personality_and_shows_extra_uoc():
+    from app.services.switch_advisor import build_context, build_user_prompt
+
+    prompt = build_user_prompt(build_context(COMPARISON, {"academic_year": "3"}))
+
+    assert "extra_uoc: 12" in prompt
+    assert "78 of 192 UOC" in prompt
+    assert "1 of these fit in 6 UOC" in prompt
+    assert "year" not in prompt.lower() and "personality" not in prompt.lower()
+
+
+def test_empty_comparison_still_builds_a_prompt():
+    from app.services.switch_advisor import build_context, build_user_prompt
+
+    assert "Nothing listed" in build_user_prompt(build_context({}))

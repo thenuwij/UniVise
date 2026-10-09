@@ -7,6 +7,8 @@ import PageHeader from "@/shared/layout/PageHeader";
 import { supabase } from "@/shared/lib/supabase";
 import { toSearchTerm } from "@/shared/lib/search";
 import { card, clickable } from "@/shared/ui/cardStyles";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
+import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
 
 const MIN_CHARS = 2;
 const DEBOUNCE_MS = 250;
@@ -60,6 +62,11 @@ const GROUPS = [
   },
 ];
 
+const EXAMPLES = ["COMP1511", "Computer Science", "Finance"];
+
+const chip =
+  "px-4 py-2 rounded-full text-sm font-semibold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors";
+
 const FILTERS = [{ key: "all", label: "All" }, ...GROUPS.map(({ key, label }) => ({ key, label }))];
 
 function ResultGroup({ group, result }) {
@@ -97,12 +104,9 @@ function ResultGroup({ group, result }) {
         </div>
       )}
       {items.length > SHOWN_RESULTS && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-4 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 hover:border-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-        >
+        <ExpandToggle wide open={expanded} onClick={() => setExpanded(!expanded)}>
           {expanded ? "Show fewer" : `Show all ${items.length}`}
-        </button>
+        </ExpandToggle>
       )}
       {expanded && result.count > items.length && (
         <p className="mt-2 text-sm text-center text-slate-500 dark:text-slate-400">
@@ -120,6 +124,7 @@ export default function HandbookPage() {
   const [results, setResults] = useState(null);
   const [status, setStatus] = useState("idle");
   const [attempt, setAttempt] = useState(0);
+  const { program } = useEnrolledProgram();
   const filter = FILTERS.some((f) => f.key === searchParams.get("type")) ? searchParams.get("type") : "all";
   const term = toSearchTerm(query);
 
@@ -213,9 +218,24 @@ export default function HandbookPage() {
 
         <div className="mt-8">
           {status === "idle" && (
-            <p className="text-base text-slate-500 dark:text-slate-400">
-              Type at least {MIN_CHARS} characters to search every degree, major, minor, honours plan and course in the 2026 Handbook.
-            </p>
+            <div>
+              <p className="text-base text-slate-500 dark:text-slate-400">
+                Type at least {MIN_CHARS} characters to search every degree, major, minor, honours plan and course in the 2026 Handbook.
+              </p>
+              <p className="mt-6 text-sm font-semibold text-ink-muted">Or try one of these</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {program?.degree_code && (
+                  <button type="button" onClick={() => onQueryChange(program.degree_code)} className={chip}>
+                    Your program: {program.program_name || program.degree_code}
+                  </button>
+                )}
+                {EXAMPLES.map((example) => (
+                  <button key={example} type="button" onClick={() => onQueryChange(example)} className={chip}>
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           {status === "loading" && (
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">

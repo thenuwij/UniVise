@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { courseTile } from "./DetailLayout";
 
 const INITIAL_VISIBLE = 6;
@@ -73,7 +74,7 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
                 )}
               </div>
               {deg.program_code && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 flex-shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 flex-shrink-0">
                   {deg.program_code}
                 </span>
               )}
@@ -82,13 +83,9 @@ export default function CourseRelatedDegrees({ courseId, courseCode }) {
         ))}
       </div>
       {items.length > INITIAL_VISIBLE && (
-        <button
-          type="button"
-          onClick={() => setShowAll((value) => !value)}
-          className="text-sm font-semibold text-link hover:underline"
-        >
+        <ExpandToggle wide open={showAll} onClick={() => setShowAll((value) => !value)}>
           {showAll ? "Show fewer" : `Show all ${items.length} programs`}
-        </button>
+        </ExpandToggle>
       )}
     </div>
   );
