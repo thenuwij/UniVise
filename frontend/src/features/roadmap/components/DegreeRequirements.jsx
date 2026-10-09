@@ -5,7 +5,6 @@ import { UserAuth } from "@/app/AuthContext";
 import { hasContent } from "@/shared/lib/format";
 import FormattedText from "@/shared/ui/FormattedText";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { card } from "@/shared/ui/cardStyles";
 import { fetchChosenSpecialisations, parseSections } from "../utils/programCourses";
 
 const levelOf = (title) => (/level\s*(\d+)/i.test(title) ? parseInt(title.match(/level\s*(\d+)/i)[1], 10) : 99);
@@ -14,11 +13,11 @@ const uocOf = (section) => section.uoc ?? (section.courses || []).reduce((sum, c
 function RequirementPart({ section }) {
   const uoc = uocOf(section);
   return (
-    <div className={`${card} px-5 py-4`}>
+    <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-base font-semibold text-ink-strong">{section.title}</h3>
         {uoc > 0 && (
-          <span className="flex-shrink-0 px-2.5 py-0.5 rounded-full text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50">
+          <span className="flex-shrink-0 px-2.5 py-0.5 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900">
             {uoc} UOC
           </span>
         )}
@@ -29,7 +28,7 @@ function RequirementPart({ section }) {
         </div>
       )}
       {hasContent(section.notes) && (
-        <div className="mt-2 pt-2 border-t border-line">
+        <div className="mt-2 pt-2 border-t border-slate-300 dark:border-slate-700">
           <FormattedText text={section.notes} collapsedHeight="5.5rem" className="text-sm text-ink" maxWidth="max-w-none" />
         </div>
       )}
