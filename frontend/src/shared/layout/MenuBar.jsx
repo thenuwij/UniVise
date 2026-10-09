@@ -9,21 +9,21 @@ const GROUPS = [
   {
     label: "Your plan",
     items: [
-      { path: "/dashboard", label: "Dashboard", hint: "Your program at a glance", icon: LayoutDashboard },
-      { path: "/roadmap-entryload", label: "Roadmap", hint: "Your degree step by step", icon: Map },
-      { path: "/coursemesh", label: "CourseMesh", hint: "What you can take next", icon: Network },
+      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/roadmap-entryload", label: "Roadmap", icon: Map },
+      { path: "/coursemesh", label: "CourseMesh", icon: Network },
     ],
   },
   {
     label: "Explore",
     items: [
-      { path: "/handbook", label: "Handbook", hint: "Degrees, majors and courses", icon: BookOpen },
-      { path: "/progress", label: "Compare programs", hint: "See what transfers to another program", icon: Repeat, universityOnly: true },
+      { path: "/handbook", label: "Handbook", icon: BookOpen },
+      { path: "/progress", label: "Compare programs", icon: Repeat, universityOnly: true },
     ],
   },
   {
     label: "Help",
-    items: [{ path: "/chat", label: "Ask Eunice", hint: "Your AI study and career advisor", icon: MessageCircle }],
+    items: [{ path: "/chat", label: "Ask Eunice", icon: MessageCircle }],
   },
 ];
 
@@ -129,14 +129,14 @@ export function MenuBar({ isOpen, handleClose }) {
               <ul className="space-y-0.5">
                 {group.items
                   .filter((item) => !(item.universityOnly && userType === "high_school"))
-                  .map(({ path, label, hint, icon: Icon }) => {
+                  .map(({ path, label, icon: Icon }) => {
                     const active = isActive(path);
                     return (
                       <li key={path}>
                         <button
                           onClick={() => go(path)}
                           aria-current={active ? "page" : undefined}
-                          className={`group w-full flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition-colors ${
+                          className={`group w-full flex items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors ${
                             active
                               ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25"
                               : "hover:bg-blue-50 dark:hover:bg-slate-800"
@@ -149,10 +149,7 @@ export function MenuBar({ isOpen, handleClose }) {
                           >
                             <Icon className="h-4 w-4" />
                           </span>
-                          <span className="min-w-0">
-                            <span className={`block text-[15px] font-semibold leading-tight ${active ? "text-white" : "text-ink-strong"}`}>{label}</span>
-                            <span className={`block truncate text-xs leading-tight ${active ? "text-blue-100" : "text-ink-muted"}`}>{hint}</span>
-                          </span>
+                          <span className={`text-[15px] font-semibold ${active ? "text-white" : "text-ink-strong"}`}>{label}</span>
                         </button>
                       </li>
                     );
