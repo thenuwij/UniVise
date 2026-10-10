@@ -10,117 +10,40 @@ UniVise is an AI-powered academic and career planning platform for UNSW students
 
 ---
 
-## Motivation
-
-Degree planning at UNSW is spread across handbook pages, program rules, and specialisation requirements that rarely line up. Four gaps follow from that.
-
-1. **Rules are fragmented.** Prerequisites, progression constraints, and specialisation requirements live in different places and formats, so reasoning about a pathway end to end is hard.
-
-2. **Switching programs is a guess.** Students considering a transfer have no clear view of what carries over, what does not, or what it costs in extra terms.
-
-3. **Prerequisite chains surface too late.** Bottleneck courses are usually discovered after they have already delayed progression or closed off a specialisation.
-
-4. **Career links are indirect.** Students want to know how program choices map to real roles and employers, but that connection is scattered at best.
-
-UniVise pulls these into one place: structured program data from the UNSW Handbook, rule-aware program comparison, a prerequisite graph of the student's own courses, and AI-generated advice grounded in that data.
-
----
-
 ## Key Features
 
-### Dashboard
-
-The starting point after sign-in. It shows the student's journey through their roadmap with one suggested next step, their progress at a glance (units of credit completed, specialisation, and how many courses they can take next), and the careers that fit them.
-
-### Roadmap
-
-A five-step view of the student's own degree: Overview, Structure, Careers, Internships, and Societies. The specialisation is chosen first, and the roadmap starts building in the background as soon as the student finishes onboarding. Structure lists the program and specialisation courses with completion ticks and AI course suggestions. Careers links the degree to real roles, with official pay and graduate outcomes and live job ads. Internships lists open ads and company programs with their usual opening months.
-
-### CourseMesh
-
-The student's courses as a prerequisite graph, coloured Completed, Can take next, or Not yet. It shows core courses by default, lets the student add the electives they choose, and treats "one of the following" courses as a single choice. It exposes prerequisite chains and bottleneck courses, and highlights AI-recommended courses the student can take now, each with a one-line reason linked to their career goals.
-
-### Handbook
-
-One search across every UNSW degree, major, minor, honours plan, and course, with results grouped by type. Each detail page links to the official UNSW Handbook and to the matching roadmap.
-
-### Compare programs
-
-Compares the student's current program with a target program, or a different specialisation in the same program. It shows which completed courses count (from the target's course lists and its Handbook elective rules, such as any level 3 Computer Science course), which could fill free electives, which would not count, what is still to do, and how much extra study the switch adds. An AI advisor reads only those computed numbers to reach a recommendation.
-
-### Ask Eunice
-
-An AI chat adviser, available from a button on every page, that knows the student's program, specialisation, completed courses, the courses they can take now, their shortlisted careers, and the page they are on. It can look up Handbook programs and courses, so it answers specifically before pointing to official sources.
+- **Dashboard.** The home page after sign-in. A program card shows your UOC completed, specialisation and how many courses you can take next, with one main button to tick courses and see what comes next. Shortcuts jump to each roadmap step, your top career matches show with salary ranges, and a short first-visit guide explains the page. You can change your saved program here, or explore any UNSW program's roadmap before choosing one.
+- **Roadmap.** A five-step guide to a degree, built in the background once you finish onboarding and cached per program so it usually opens instantly. You pick your major or stream (and an optional minor) first, and every step follows that choice.
+  - **Overview:** what the program is about and your chosen specialisation, with tabs for entry criteria, program requirements and progression rules, WAM and honours calculation with the classes of honours, and awards plus career and further study paths.
+  - **Courses:** every Handbook requirement group (core, prescribed electives, free electives, gen ed) with its UOC target and progress. Choose a minor if your program has one, tick the courses you have done, add any other UNSW course, and open any course in CourseMesh. Elective rules such as "any level 3 COMP course" are checked so the counts stay accurate.
+  - **Careers:** roles split into entry level, mid-career and senior, with official starting salaries, employment rates and their data source, live job ads marked "Hiring now" on entry-level roles, and specialisations worth considering.
+  - **Internships:** ads open right now, programs that open at set times each year with the months they usually open, any required placement, and UNSW career resources.
+  - **Societies:** student societies matched to the program with their benefits and activities, relevant professional bodies, leadership opportunities and skills you will build, plus a link to every club in the Arc UNSW directory.
+- **CourseMesh.** Your courses as an interactive prerequisite graph, coloured Completed, Can take next, Not yet, or Not needed (when you chose another option in a "one of" rule).
+  - Click a course to see what it needs, what it unlocks and its Handbook rule. Double-click to open its prerequisites one level deeper.
+  - Add the electives you plan to take, arrange courses by level (1 to 4), fit everything on screen, undo, or reset the view.
+  - A Suggested next panel recommends courses you can take that fit your career goals, each with a short reason.
+  - A hands-on guided tour teaches the controls on first visit.
+- **Compare programs.** Shows how your ticked courses would count in another UNSW program or a different specialisation of your own. Search for any program or pick one from your faculty, and choose its major.
+  - Stat cards show courses that count, UOC carried over, extra study and estimated finish.
+  - Courses are sorted into what counts (from course lists and Handbook elective rules), what fills free electives, what would not count, and what is still left.
+  - An AI advisor gives reasons to switch, reasons to stay and next steps, reading only those computed numbers.
+- **Ask Eunice.** An AI academic and career adviser, opened from a floating button on every page or as a full chat page with saved chats. Eunice knows your program, specialisation, completed courses, courses you can take now, shortlisted careers and the page you are on. It can look up courses, programs and specialisations and check prerequisites live, so answers are specific to UNSW rules.
 
 ---
 
-## System Overview
+## How It Works
 
-A React frontend, a FastAPI backend, and a PostgreSQL database, with an LLM layer that spans Anthropic and OpenAI and picks a model per task for quality and cost.
+React 19 + Vite frontend, FastAPI (Python 3.12) backend, PostgreSQL on Supabase with row level security, and Google OAuth. The backend computes structured facts from Handbook data first (requirements left, prerequisite chains, transfer credit), then calls Anthropic Claude and OpenAI models in parallel with schema-constrained output. Any course code a model returns is checked against the student's real program, so advice stays grounded in real rules.
 
-### Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite, TailwindCSS 4 with design tokens for light and dark mode, React Router 7 |
-| Backend | FastAPI, Python 3.12 |
-| Database | PostgreSQL with row level security policies on every table, managed on Supabase |
-| AI Layer | OpenAI GPT-5.4-mini and Anthropic Claude (Sonnet 5, Haiku 4.5), selected per task, with structured JSON output |
-| Graphs | react-force-graph, graphology |
-| Auth | Google OAuth with JWT bearer tokens, validated on every protected endpoint |
-| Quality | pytest, Vitest, ESLint, and knip, run in GitHub Actions on every pull request |
-
-### How It Works
-
-A request hits CloudFront, then FastAPI on Lambda. Program rules, course data, and prerequisites come from Postgres, and the backend computes the structured facts first: transfer rates, prerequisite chains, remaining requirements, courses available next, extra terms. Only then does it call the LLM layer, with independent prompts running in parallel and responses constrained to a schema.
-
-The models reason over facts the backend has already computed, not over raw handbook text, and any course code a model returns is checked against the student's real program. That keeps advice grounded in real program rules rather than in whatever the model recalls about UNSW.
-
-Career figures come from official government data, and job ads are fetched weekly. Roadmaps are cached per program, so most open instantly.
-
-Handbook data is cleaned before it is displayed. Placeholder values are stored as empty rather than as text, durations are stored as numbers, and one shared formatter turns long handbook text into paragraphs and real lists. A read-only audit script checks every displayed field after each data import.
-
-### Deployment
-
-| Component | Service |
-|---|---|
-| Frontend | S3 serving the Vite build, delivered by CloudFront with SPA fallback and HTTPS via ACM |
-| Backend | Lambda running an arm64 container, with the Lambda Web Adapter running FastAPI as a real uvicorn server so streaming works |
-| API delivery | CloudFront at `api.uni-vise.com`, caching disabled for personalised responses |
-| Images | ECR, tagged by commit SHA |
-| Secrets | AWS Secrets Manager, loaded at runtime |
-| CI/CD | GitHub Actions on push to `main`, authenticated by OIDC with no stored AWS keys |
-| Monitoring | CloudWatch alarms on errors, throttles, and p95 duration, notified through SNS |
-| Scheduled jobs | GitHub Actions: weekly job ads, roadmap refresh on demand |
-
-### Repository Structure
+Deployed on AWS: S3 + CloudFront for the frontend, an arm64 container on Lambda (with the Lambda Web Adapter for streaming) behind CloudFront for the API, Secrets Manager, CloudWatch alarms, and GitHub Actions CI/CD over OIDC.
 
 ```
-frontend/src/
-  app/          auth context and route guard
-  shared/       Supabase and API clients, display formatting, layout (page header, navigation), shared UI
-  features/     one folder per product area (dashboard, roadmap, mindmesh, explore, transfer, chat, ...),
-                each with its own pages/, plus components/, hooks/ or utils/ where needed
-backend/app/
-  routers/      FastAPI endpoints
-  services/     business logic: roadmap generation, course picks, program comparison, advisors, chat context
-  llm/          OpenAI and Claude clients, structured output and parsing of model output
-  models/       Pydantic request and response schemas
-  core/         configuration, database client, JWT auth
-backend/scripts/  data maintenance: yearly Handbook import, display-data audit, clean-up and repair scripts
-backend/tests/    API route contract and core logic tests
-supabase/migrations/  database schema and row level security policies as SQL migrations
+frontend/src/   app/, shared/, features/ (one folder per product area)
+backend/app/    routers/, services/, llm/, models/, core/
+backend/tests/  route contract and core logic tests
+supabase/       schema and RLS migrations
 ```
-
----
-
-## Using It
-
-1. Sign in with Google and complete the short onboarding survey, including your UNSW program and, optionally, your major or stream.
-2. Open your dashboard. Your roadmap is already being built, and the dashboard suggests your next step.
-3. Tick the courses you have completed in the roadmap's Courses step, then open CourseMesh to see what you can take next and why.
-4. Use **Handbook** to look up any degree, major, or course, and **Compare programs** to see what transfers to another program.
-5. Ask Eunice anything about your courses or career plans.
 
 ---
 
