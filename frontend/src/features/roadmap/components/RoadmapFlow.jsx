@@ -38,6 +38,8 @@ function StepBar({ steps, activeIndex, onChange }) {
               <button
                 ref={(el) => { stepRefs.current[i] = el; }}
                 onClick={() => onChange?.(i)}
+                data-tour={`roadmap-section-${s.key}`}
+                aria-label={s.title}
                 aria-current={active ? "step" : undefined}
                 className="flex-shrink-0 flex items-center gap-3 group"
               >

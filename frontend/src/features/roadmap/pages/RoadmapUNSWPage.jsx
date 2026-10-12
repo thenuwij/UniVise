@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bookmark, Compass } from "lucide-react";
+import { Bookmark, Compass, HelpCircle } from "lucide-react";
+import SpotlightGuide from "@/shared/ui/SpotlightGuide";
+import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
@@ -25,6 +27,18 @@ import { UserAuth } from "@/app/AuthContext";
 
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
+const SECTION_GUIDE_TEXT = {
+  overview: "Understand your degree requirements here. You can jump straight to any section using this bar—there's no need to finish them in order.",
+  structure: "See your courses and mark the ones you've completed. The Courses help button explains how to manage them.",
+  careers: "Explore career paths connected to your degree and the skills they need.",
+  internships: "Find placement and industry experience opportunities for your degree.",
+  societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
+};
+const SECTION_GUIDE_STEPS = ROADMAP_STEPS.map(({ key, title }) => ({
+  targets: [`[data-tour="roadmap-section-${key}"]`],
+  title,
+  text: SECTION_GUIDE_TEXT[key],
+}));
 
 const INDUSTRY_KEYS = ["industry_societies", "industry_experience", "career_pathways"];
 const SECTION_POLL_MS = 5000;
@@ -307,6 +321,8 @@ export default function RoadmapUNSWPage() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { session } = UserAuth();
+  const [showSectionGuide, setShowSectionGuide] = useState(false);
+  const sectionGuideKey = `univise-roadmap-sections-guide-v1-${session?.user?.id || "guest"}`;
 
   const { data, loading, error, header, updateHeader, sectionsStatus, retrySections } = useRoadmapData(
     preloadedPayload,
@@ -316,6 +332,12 @@ export default function RoadmapUNSWPage() {
 
 
   const fetchedDegree = useDegreeData(header.degree_code);
+  const roadmapReady = !!data;
+  useEffect(() => {
+    if (!roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
+    const timer = setTimeout(() => setShowSectionGuide(true), 500);
+    return () => clearTimeout(timer);
+  }, [roadmapReady, sectionGuideKey, session?.user?.id]);
   const activeDegree = degree || fetchedDegree;
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
@@ -430,6 +452,17 @@ export default function RoadmapUNSWPage() {
       back={isOwnProgram ? undefined : { label: "Back to my roadmap", onClick: handleBackClick }}
       actions={
         <>
+          {data && (
+            <button
+              type="button"
+              onClick={() => setShowSectionGuide(true)}
+              className={bandButton}
+              aria-label="Show roadmap section tour"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Section tour
+            </button>
+          )}
           {!enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
             <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} />
           )}
@@ -463,6 +496,13 @@ export default function RoadmapUNSWPage() {
     <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
+      {showSectionGuide && data && (
+        <SpotlightGuide
+          steps={SECTION_GUIDE_STEPS}
+          seenKey={sectionGuideKey}
+          onClose={() => setShowSectionGuide(false)}
+        />
+      )}
 
       <ContentSection
         header={programHeader}
