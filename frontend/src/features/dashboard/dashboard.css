@@ -1,11 +1,6 @@
-.dashboard-page {
-  background-color: var(--color-page);
-  background-image:
-    radial-gradient(ellipse 580px 580px at 105% 170px, transparent 58%, color-mix(in srgb, var(--color-link) 7%, transparent) 58.2%, transparent 58.5%, transparent 68%, color-mix(in srgb, var(--color-link) 5%, transparent) 68.2%, transparent 68.5%),
-    radial-gradient(ellipse 720px 520px at 100% 0%, color-mix(in srgb, var(--color-link) 14%, transparent), transparent 75%),
-    radial-gradient(ellipse 600px 700px at -10% 55%, color-mix(in srgb, var(--color-link) 9%, transparent), transparent 75%),
-    radial-gradient(ellipse 600px 420px at 90% 100%, color-mix(in srgb, #38b2ac 7%, transparent), transparent 75%);
-  background-repeat: no-repeat;
+.app-page.dashboard-page,
+.dark .app-page.dashboard-page {
+  background: var(--color-page);
 }
 .dashboard-main {
   max-width: 1440px;
@@ -84,7 +79,7 @@
   height: 18px;
   color: var(--color-link);
 }
-.dashboard-page .dashboard-button:hover {
+.dashboard-page .dashboard-button:not(.dashboard-button-primary):hover {
   background: var(--color-surface-tint);
   border-color: color-mix(in srgb, var(--color-link) 40%, var(--color-line));
   transform: translateY(-2px);
@@ -94,7 +89,8 @@
     0 9px 18px #17243a1a;
 }
 .dashboard-page .dashboard-button-primary {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-blue) 85%, white), var(--color-brand-blue));
+  background-color: var(--color-brand-blue);
+  background-image: linear-gradient(180deg, #ffffff26, transparent);
   border-color: var(--color-brand-blue);
   color: white;
   padding: 14px 26px;
@@ -103,8 +99,9 @@
   box-shadow: inset 0 1px 0 #ffffff40, 0 4px 0 #183b9c, 0 8px 16px #1d4ed82b;
 }
 .dashboard-page .dashboard-button-primary:hover {
-  background: var(--color-brand-navy);
+  background-color: var(--color-brand-navy);
   border-color: var(--color-brand-navy);
+  transform: translateY(-2px);
   box-shadow: inset 0 1px 0 #ffffff30, 0 6px 0 #142e7b, 0 11px 20px #1d4ed833;
 }
 .dashboard-page .dashboard-open-roadmap {
@@ -497,6 +494,7 @@
   .dashboard-section:active,
   .dashboard-help:hover,
   .dashboard-help:active,
+  .dashboard-page .dashboard-button:not(.dashboard-button-primary):hover,
   .dashboard-page .dashboard-button:hover,
   .dashboard-page .dashboard-button:active {
     transform: none;
