@@ -1,118 +1,194 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Compass, Repeat } from "lucide-react";
-import { card } from "@/shared/ui/cardStyles";
-import AtAGlance from "./AtAGlance";
+import {
+  ArrowRight,
+  BookOpen,
+  Briefcase,
+  Building2,
+  Compass,
+  GitCompare,
+  GraduationCap,
+  Layers,
+  Users,
+} from "lucide-react";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import AtAGlance from "./AtAGlance";
 
 const STEP_LINKS = [
-  { key: "overview", title: "Overview", text: "What your degree covers and requires" },
-  { key: "structure", title: "Courses", text: "Tick what you've done, add courses" },
-  { key: "careers", title: "Careers", text: "Roles, pay and job ads" },
-  { key: "internships", title: "Internships", text: "Programs open now" },
-  { key: "societies", title: "Societies", text: "Clubs and professional bodies" },
+  {
+    key: "overview",
+    title: "Overview",
+    text: "Understand your degree and requirements",
+    icon: BookOpen,
+  },
+  {
+    key: "structure",
+    title: "Courses",
+    text: "Plan courses and track completion",
+    icon: Layers,
+  },
+  {
+    key: "careers",
+    title: "Careers",
+    text: "Explore roles connected to your degree",
+    icon: Briefcase,
+  },
+  {
+    key: "internships",
+    title: "Internships",
+    text: "Browse opportunities and programs",
+    icon: Building2,
+  },
+  {
+    key: "societies",
+    title: "Societies",
+    text: "Find clubs and professional communities",
+    icon: Users,
+  },
 ];
 
 export default function ProgramCard({ facts }) {
-  if (!facts) {
-    return <div className="h-[300px] rounded-2xl bg-white/70 dark:bg-slate-900 border border-blue-100 dark:border-slate-800 animate-pulse" />;
-  }
-
+  if (!facts)
+    return (
+      <div
+        className="dashboard-degree dashboard-skeleton animate-pulse"
+        role="status"
+      >
+        <span className="sr-only">Loading your degree</span>
+      </div>
+    );
   if (!facts.program) {
     return (
-      <section className={`${card} p-6 md:p-8`}>
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">Your program</p>
-        <p className="mt-3 text-[19px] font-bold text-ink-strong">Explore any UNSW program</p>
-        <p className="mt-1 text-[15px] text-ink-muted max-w-2xl">
-          Your program isn't in our list yet, so there's no personal roadmap. You can still open the roadmap for any program to see its courses, careers, internships and societies.
-        </p>
-        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <section
+        className="dashboard-degree"
+        aria-labelledby="dashboard-no-program"
+      >
+        <div className="dashboard-degree-heading">
+          <span className="dashboard-program-mark">
+            <Compass aria-hidden="true" />
+          </span>
+          <div className="dashboard-degree-copy">
+            <p className="dashboard-eyebrow">Your next step</p>
+            <h2 id="dashboard-no-program">Explore any UNSW program</h2>
+            <p className="dashboard-muted">
+              Your program isn't in our list yet. You can still explore degree
+              requirements, courses and careers.
+            </p>
+          </div>
+        </div>
+        <div className="dashboard-fallback-actions">
           <Link
             to="/roadmap"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 transition-colors"
+            className="dashboard-button dashboard-button-primary"
           >
-            <Compass className="h-5 w-5" />
             Explore a program's roadmap
           </Link>
-          <Link to="/roadmap" className="text-base font-semibold text-link hover:underline">
-            Set your program
-          </Link>
-          <Link to="/handbook" className="inline-flex items-center gap-2 text-base font-semibold text-link hover:underline">
+          <Link to="/handbook" className="dashboard-button">
             Search the Handbook
-            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
     );
   }
-
-  const { program, specNames = [], minimumUoc } = facts;
-  const details = [`Program ${program.degree_code}`, minimumUoc ? `${minimumUoc} UOC` : null].filter(Boolean);
-
+  const { program, minimumUoc, specNames = [] } = facts;
+  const details = [
+    "UNSW",
+    `Program ${program.degree_code}`,
+    minimumUoc ? `${minimumUoc} UOC` : null,
+  ].filter(Boolean);
   return (
-    <section>
-      <div>
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">Your program</p>
-          <h2 className="mt-2 text-2xl md:text-[28px] font-extrabold leading-tight text-ink-strong">{program.program_name}</h2>
-          <p className="mt-2 text-[15px] text-ink-muted">
-            {[specNames.length ? specNames.join(" · ") : "No specialisation chosen yet", ...details].join("  ·  ")}
-            <Link to="/roadmap" className="ml-3 whitespace-nowrap text-sm font-semibold text-link hover:underline">
-              Change program
+    <>
+      <section
+        className="dashboard-degree"
+        data-tour="dash-degree"
+        aria-labelledby="dashboard-degree-title"
+      >
+        <div className="dashboard-degree-heading">
+          <span className="dashboard-program-mark">
+            <GraduationCap aria-hidden="true" />
+          </span>
+          <div className="dashboard-degree-copy">
+            <p className="dashboard-eyebrow">Your degree</p>
+            <div className="dashboard-degree-name-row">
+              <h2 id="dashboard-degree-title">{program.program_name}</h2>
+              <div className="dashboard-degree-links">
+                <Link to="/roadmap">Change program</Link>
+              </div>
+            </div>
+            <p className="dashboard-muted">{details.join(" · ")}</p>
+            {(specNames.length > 0 || (!facts.failed && facts.hasSpecOptions)) && (
+              <div className="dashboard-degree-name-row">
+                <p className="dashboard-muted">
+                  {specNames.length > 0
+                    ? specNames.join(" · ")
+                    : "No specialisation selected"}
+                </p>
+                {!facts.failed && facts.hasSpecOptions && (
+                  <div className="dashboard-degree-links">
+                    <Link to={`/roadmap?program=${program.degree_code}`}>
+                      Change specialisation
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <Link
+            to="/roadmap-entryload"
+            className="dashboard-button dashboard-button-primary dashboard-open-roadmap"
+            data-tour="dash-open"
+          >
+            Open roadmap
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AtAGlance facts={facts} />
+      </section>
+      <section
+        className="dashboard-roadmap"
+        aria-labelledby="dashboard-roadmap-title"
+      >
+        <div className="dashboard-section-heading">
+          <h2 id="dashboard-roadmap-title">Explore your roadmap</h2>
+          <p className="dashboard-muted">Choose a section to open it.</p>
+        </div>
+        <nav
+          className="dashboard-sections"
+          aria-label="Roadmap sections"
+          data-tour="dash-steps"
+        >
+          {STEP_LINKS.map(({ key, title, text, icon: Icon }) => (
+            <Link
+              key={key}
+              to={roadmapStepUrl(key)}
+              className="dashboard-section"
+            >
+              <span className="dashboard-section-icon">
+                <Icon aria-hidden="true" />
+              </span>
+              <span className="dashboard-section-title">{title}</span>
+              <span className="dashboard-section-description">{text}</span>
             </Link>
+          ))}
+        </nav>
+      </section>
+      <section
+        className="dashboard-compare"
+        aria-labelledby="dashboard-compare-title"
+        data-tour="dash-compare"
+      >
+        <span className="dashboard-compare-icon">
+          <GitCompare aria-hidden="true" />
+        </span>
+        <div>
+          <h2 id="dashboard-compare-title">Considering a different program?</h2>
+          <p className="dashboard-muted">
+            See how another degree compares with yours.
           </p>
         </div>
-      </div>
-
-      <div data-tour="dash-glance">
-        <AtAGlance facts={facts} />
-      </div>
-
-      <p className="mt-7 text-sm font-semibold text-ink-muted">Jump straight to</p>
-      <nav aria-label="Roadmap steps" data-tour="dash-steps" className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {STEP_LINKS.map(({ key, title, text }, i) => (
-          <Link
-            key={key}
-            to={roadmapStepUrl(key)}
-            className="group flex flex-col gap-2 rounded-2xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/50 dark:to-slate-900 p-4 shadow-sm hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-600/15 hover:border-blue-400 dark:hover:border-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-all"
-          >
-            <span className="flex items-center gap-2">
-              <span className="h-7 w-7 flex-shrink-0 rounded-full inline-flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-600">
-                {i + 1}
-              </span>
-              <ArrowRight className="ml-auto h-4 w-4 text-blue-500 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-            <span className="text-base font-semibold text-ink-strong group-hover:text-blue-700 dark:group-hover:text-blue-300">{title}</span>
-            <span className="text-sm text-ink-muted">{text}</span>
-          </Link>
-        ))}
-      </nav>
-
-      <div className="mt-6 pt-5 border-t border-line flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            to="/compare"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
-          >
-            <Repeat className="h-5 w-5" />
-            Compare programs
-          </Link>
-          <Link
-            to="/roadmap"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-base font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-200 dark:hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all"
-          >
-            <Compass className="h-5 w-5" />
-            Explore other programs
-          </Link>
-        </div>
-        <Link
-          to="/roadmap-entryload"
-          data-tour="dash-open"
-          className="group flex-shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-xl shadow-blue-600/35 ring-4 ring-blue-100 dark:ring-blue-900/50 hover:-translate-y-0.5 hover:shadow-2xl transition-all"
-        >
-          Open roadmap
-          <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
+        <Link to="/compare" className="dashboard-button">
+          Compare programs
         </Link>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
