@@ -213,7 +213,7 @@
 .dashboard-personalise {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 22px;
   border-top: 1px solid var(--color-line);
   padding-top: 19px;
