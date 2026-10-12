@@ -4,7 +4,6 @@ import { hasContent } from "@/shared/lib/format";
 import ExpandIcon from "@/shared/ui/ExpandIcon";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
-import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
@@ -476,11 +475,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   };
   const openGuide = () => openGuideRef.current?.();
 
-  useEffect(() => {
-    if (!trackCompletion || firstOpen === null || hasSeenGuide(GUIDE_KEY)) return;
-    const timer = setTimeout(() => openGuide(), 700);
-    return () => clearTimeout(timer);
-  }, [trackCompletion, firstOpen]);
 
   const thin = specs?.length === 0 && requiredCount(splitCourses([{ key: degreeCode, sections: programCourseSections }])) <= THIN_PROGRAM_COURSES;
 
