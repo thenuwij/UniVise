@@ -10,7 +10,7 @@ const FEATURES = [
 export default function AuthLayout({ title, subtitle, children }) {
   return (
     <div className="min-h-screen flex flex-col app-page">
-      <Header />
+      <Header matchDashboard />
       <div className="-mt-4 flex-1 grid lg:grid-cols-2">
         <section className="relative overflow-hidden bg-gradient-to-br from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 px-6 py-8 md:px-12 lg:px-16 lg:py-16">
           <div aria-hidden className="absolute -top-32 -right-24 h-[380px] w-[380px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />

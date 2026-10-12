@@ -3,7 +3,7 @@ import { HiMoon, HiSun } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.svg";
 
-export function Header() {
+export function Header({ matchDashboard = false }) {
   const [isDark, setIsDark] = useState(
     localStorage.getItem("color-theme") === "dark" ||
     document.documentElement.classList.contains("dark")
@@ -24,7 +24,7 @@ export function Header() {
 
   return (
     <div className="mb-4" id="header">
-      <div className="flex items-center justify-between px-6 h-16 backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
+      <div className={`flex items-center justify-between px-6 h-16 ${matchDashboard ? "app-header-surface" : "backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800"}`}>
         <Link to="/" className="flex items-center gap-1 hover:opacity-80 transition-opacity">
           <img src={logo} alt="UniVise Logo" className="h-12 w-12" />
           <span className="whitespace-nowrap text-4xl font-bold font-heading tracking-tight">
