@@ -12,6 +12,7 @@ import { ArrowRight } from "lucide-react";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { apiFetch } from "@/shared/lib/api";
+import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
@@ -280,6 +281,7 @@ export function RecommendationTable() {
 
   // Call /recommendation/prompt to (re)generate from scratch
   const regenerate = useCallback(async () => {
+    if (userType === "university" && !RANKED_CAREER_RECOMMENDATIONS_ENABLED) return;
     if (!session?.access_token) return;
     setRegenerating(true);
     setStuck(false);
@@ -298,10 +300,10 @@ export function RecommendationTable() {
     } finally {
       setRegenerating(false);
     }
-  }, [session, startPolling]);
+  }, [session, startPolling, userType]);
 
   useEffect(() => {
-    if (!userType || !userId) return;
+    if (!userType || !userId || (userType === "university" && !RANKED_CAREER_RECOMMENDATIONS_ENABLED)) return;
 
     const load = async () => {
       setLoading(true);
@@ -320,7 +322,7 @@ export function RecommendationTable() {
     return stopPolling;
   }, [userType, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!userType || !userId) return null;
+  if (!userType || !userId || (userType === "university" && !RANKED_CAREER_RECOMMENDATIONS_ENABLED)) return null;
 
   const label = userType === "high_school" ? "Your top degree matches" : "Your top career matches";
 

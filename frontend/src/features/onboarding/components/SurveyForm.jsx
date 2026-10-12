@@ -8,6 +8,7 @@ import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
+import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { cleanText } from "@/shared/lib/cleanText";
 import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
@@ -359,6 +360,7 @@ function SurveyForm() {
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
   const generateRecommendations = async (token = session?.access_token) => {
+    if (userType === "university" && !RANKED_CAREER_RECOMMENDATIONS_ENABLED) return;
     await apiFetch("/recommendation/prompt", {
       method: "POST",
       token,
