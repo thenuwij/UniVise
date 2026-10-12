@@ -1,6 +1,7 @@
 import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { Bookmark, BookOpen, LayoutDashboard, LogOut, Map, MessageCircle, Network, Repeat, X } from "lucide-react";
+import { Bookmark, BookOpen, Compass, LayoutDashboard, LogOut, Map, MessageCircle, Network, Repeat, X } from "lucide-react";
+import { isNavigationActive } from "./navigation";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -18,6 +19,7 @@ const GROUPS = [
     label: "Explore",
     items: [
       { path: "/handbook", label: "Handbook", icon: BookOpen },
+      { path: "/roadmap", label: "Explore other programs", icon: Compass },
       { path: "/compare", label: "Compare programs", icon: Repeat, universityOnly: true },
     ],
   },
@@ -73,7 +75,7 @@ export function MenuBar({ isOpen, handleClose }) {
 
   const isActive = (path) => {
     if (path === "/roadmap-entryload") {
-      return location.pathname === "/roadmap-entryload" || location.pathname === "/roadmap" || location.pathname.startsWith("/roadmap/");
+      return isNavigationActive("roadmap", location.pathname);
     }
     if (path === "/handbook") {
       return ["/handbook", "/degrees/", "/course/", "/specialisation/"].some((p) => location.pathname.startsWith(p));
