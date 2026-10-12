@@ -55,7 +55,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
     `app-nav-link${isNavigationActive(section, pathname) ? " is-active" : ""}`;
 
   return (
-    <header id="header" className="app-navigation" data-tour="app-navigation">
+    <header id="header" className="app-navigation app-header-surface" data-tour="app-navigation">
       <div className="app-nav-inner">
         <button
           type="button"

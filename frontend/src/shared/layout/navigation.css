@@ -2,14 +2,6 @@
   position: relative;
   z-index: 30;
   flex-shrink: 0;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--color-link) 22%, var(--color-line));
-  background: linear-gradient(
-    110deg,
-    var(--color-surface-tint),
-    color-mix(in srgb, var(--color-brand-blue) 16%, var(--color-surface))
-  );
-  color: var(--color-ink-strong);
 }
 .app-nav-inner {
   display: flex;

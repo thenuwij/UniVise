@@ -120,6 +120,16 @@
   background: radial-gradient(1200px 360px at 50% -140px, rgba(99, 102, 241, 0.08), transparent 70%), var(--color-page);
 }
 
+.app-header-surface {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-link) 22%, var(--color-line));
+  background: linear-gradient(
+    110deg,
+    var(--color-surface-tint),
+    color-mix(in srgb, var(--color-brand-blue) 16%, var(--color-surface))
+  );
+  color: var(--color-ink-strong);
+}
+
 @keyframes page-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
