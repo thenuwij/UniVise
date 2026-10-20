@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/shared/lib/supabase";
-import { assignAds } from "../utils/hiringNow";
 
 const MAX_AGE_DAYS = 30;
 const adsBySearch = new Map();
@@ -38,9 +37,4 @@ export function useJobAds(roles) {
   }, [searchKey]);
 
   return ads;
-}
-
-export function useHiringNow(roles) {
-  const ads = useJobAds(roles);
-  return useMemo(() => assignAds(roles || [], ads || []), [roles, ads]);
 }

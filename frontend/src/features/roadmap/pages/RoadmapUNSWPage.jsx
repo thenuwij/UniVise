@@ -9,16 +9,15 @@ import PageHeader from "@/shared/layout/PageHeader";
 import { bandButton } from "@/shared/ui/cardStyles";
 import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
-import CareerPathways from "../components/CareerPathways";
 import DegreeRequirements from "../components/DegreeRequirements";
 import GeneratingMessage from "../components/GeneratingMessage";
-import IndustryExperience from "../components/IndustryExperience";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
+import CareersContent from "@/features/careers/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
@@ -261,7 +260,7 @@ const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
   return { activeIndex, setActiveIndex };
 };
 
-const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header, stacked = false }) => {
+const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header, content = null }) => {
   if (!data && loading) {
     return (
       <>
@@ -275,18 +274,11 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
     );
   }
 
-  if (data && stacked) {
+  if (data && content) {
     return (
       <>
         {header}
-        <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-12 divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-10 [&>*:first-child]:pt-0">
-          {steps.map((step) => (
-            <section key={step.key} id={step.key}>
-              <h2 className="mb-6 text-2xl font-bold text-ink-strong">{step.title}</h2>
-              {step.render()}
-            </section>
-          ))}
-        </div>
+        {content}
       </>
     );
   }
@@ -355,6 +347,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const fetchedDegree = useDegreeData(header.degree_code);
   const roadmapReady = !!data;
   const isCareers = view === "careers";
+  const [careersFocus] = useState(() => (searchParams.get("step") === "2" ? "internships" : null));
   useEffect(() => {
     if (isCareers || !roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
     const timer = setTimeout(() => setShowSectionGuide(true), 500);
@@ -444,18 +437,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             setActiveIndex(stepIndex("structure"));
           }}
         />
-      ),
-      careers: () => industrySection(
-        "career_pathways",
-        () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
-        "Generating Career Pathways...",
-        "Mapping entry-level, mid-career, and senior roles for your field."
-      ),
-      internships: () => industrySection(
-        "industry_experience",
-        () => <IndustryExperience industryExperience={data.industry_experience} entryRoles={data.career_pathways?.entry_level?.roles} />,
-        "Generating Internships...",
-        "Finding internship programs and placements for your program."
       ),
       societies: () => industrySection(
         "industry_societies",
@@ -552,7 +533,15 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         loading={loading}
         error={error}
         steps={steps}
-        stacked={isCareers}
+        content={isCareers ? (
+          <CareersContent
+            data={data}
+            sectionsStatus={sectionsStatus}
+            onRetry={retrySections}
+            personal={isOwnProgram}
+            focusSection={careersFocus}
+          />
+        ) : null}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
           setMeshFocus(null);

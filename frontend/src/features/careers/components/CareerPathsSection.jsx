@@ -1,0 +1,308 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-react";
+import SaveButton from "@/shared/ui/SaveButton";
+import ExpandToggle from "@/shared/ui/ExpandToggle";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { SourceLink } from "@/features/roadmap/components/SourceTags";
+import { SubLabel } from "./CareersSection";
+import { chipClass } from "../utils/careersStyles";
+
+const TECH = /\b(software|developer|data|cyber|security|cloud|devops|machine learning|ai\b|it\b|programmer|web|systems|math|statistic|actuar|quantitative|modell?er)/i;
+const SCIENCE = /\b(scien|research|laborator|biolog|chemi|physic|environment|sustainab|climate|ecolog|conservation|renewable|energy)/i;
+const ENGINEERING = /\b(engineer|manufactur|mechatronic|aerospace|aviation|pilot)/i;
+const ARTS = /\b(media|journalis|writer|content|communicat|artist|creative|editor|design|curator|music)/i;
+
+const INTEREST_PATTERNS = {
+  "Business & Finance": /\b(business|financ|account|audit|bank|invest|consult|marketing|commerce|econom|analyst)/i,
+  "Tech, Data & Maths": TECH,
+  "Tech & Software": TECH,
+  "Science & Environment": SCIENCE,
+  "Science & Research": SCIENCE,
+  "Engineering": ENGINEERING,
+  "Engineering & Design": /\b(engineer|design|architect|manufactur)/i,
+  "Health, Medicine & Psychology": /\b(health|medic|clinic|nurs|doctor|physio|pharmac|psycholog|counsel)/i,
+  "Health & Medicine": /\b(health|medic|clinic|nurs|doctor|physio|pharmac|psycholog)/i,
+  "Law & Policy": /\b(law|legal|lawyer|solicitor|policy|complian|paralegal)/i,
+  "Arts, Design & Media": ARTS,
+  "Arts & Media": ARTS,
+  "Architecture & Built Environment": /\b(architect|urban|planner|construct|property|landscape|interior|surveyor)/i,
+  "Humanities & Social Sciences": /\b(histor|languag|translat|interpret|politic|diplomat|international|criminolog|philosoph|heritage|archiv|social|community|behaviou?r)/i,
+  "Education & Teaching": /\b(teach|educat|tutor|lectur|trainer|curricul)/i,
+};
+
+const LEVELS = [
+  { id: "entry", label: "Entry level", key: "entry_level" },
+  { id: "mid", label: "Mid-career", key: "mid_career" },
+  { id: "senior", label: "Senior", key: "senior" },
+];
+
+const SHOWN_CERTS = 3;
+
+const matchesInterests = (title, interestAreas) =>
+  interestAreas.some((area) => INTEREST_PATTERNS[area]?.test(title || ""));
+
+const seekSearchUrl = (title) =>
+  `https://www.seek.com.au/${(title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-jobs/in-All-Sydney-NSW`;
+
+const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
+
+const earningsMonth = (period) => period?.match(/Earnings ([A-Za-z]+ \d{4})/)?.[1];
+
+const specialisationPath = (spec) => `/specialisation/${spec.type === "Honours" ? "honours" : "major"}/${spec.id}`;
+
+const linkChip = "inline-flex items-center px-2.5 py-1 rounded-md text-[13px] font-medium text-link bg-surface border border-line hover:border-blue-300 transition-colors";
+
+function useInterestAreas(enabled) {
+  const { session } = UserAuth();
+  const userId = session?.user?.id;
+  const [interestAreas, setInterestAreas] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !userId) return;
+    supabase
+      .from("student_uni_data")
+      .select("interest_areas")
+      .eq("user_id", userId)
+      .limit(1)
+      .then(({ data }) => setInterestAreas(data?.[0]?.interest_areas || []));
+  }, [enabled, userId]);
+
+  return interestAreas;
+}
+
+function Outlook({ outlook }) {
+  const source = outlook[0];
+  return (
+    <div>
+      <SubLabel>Graduate outlook</SubLabel>
+      <div className="mt-3 space-y-3">
+        {outlook.map((area) => (
+          <div key={area.study_area}>
+            {outlook.length > 1 && <p className="mb-2 text-sm font-medium text-ink">{area.study_area}</p>}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["In full-time work after graduating", area.full_time_employment_rate != null ? `${area.full_time_employment_rate}%` : null],
+                ["Median starting salary", area.median_salary != null ? `$${area.median_salary.toLocaleString()}` : null],
+              ].filter(([, value]) => value).map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
+                  <p className="text-[13px] text-ink-muted">{label}</p>
+                  <p className="mt-1 text-2xl font-semibold text-ink-strong">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-ink-muted">
+        All Australian graduates in {outlook.length > 1 ? "each study area" : source.study_area}.{" "}
+        <SourceLink href={source.source_url}>QILT Graduate Outcomes Survey {source.survey_year}</SourceLink>
+      </p>
+    </div>
+  );
+}
+
+function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCount, onOpenCourse }) {
+  const navigate = useNavigate();
+  const matches = personal && matchesInterests(role.title, interestAreas);
+
+  return (
+    <li className="py-1">
+      <div className="flex items-start gap-3 rounded-lg px-2 py-3 hover:bg-surface-tint transition-colors">
+        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 flex-1 items-start gap-3 text-left">
+          <ChevronDown className={`mt-1 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
+          <span className="min-w-0">
+            <span className="block text-[15px] font-medium text-ink-strong">{role.title}</span>
+            {(matches || role.in_demand_nsw || jobCount > 0) && (
+              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
+                {matches && (
+                  <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Matches your interests
+                  </span>
+                )}
+                {role.in_demand_nsw && (
+                  <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                    <TrendingUp className="h-3.5 w-3.5" /> In demand in NSW
+                  </span>
+                )}
+                {jobCount > 0 && <span className="text-link">{jobCount} {jobCount === 1 ? "job" : "jobs"} hiring now</span>}
+              </span>
+            )}
+          </span>
+        </button>
+        {role.salary_range && (
+          <span className="hidden sm:block flex-shrink-0 text-right">
+            <span className="block text-[15px] font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</span>
+            <span className="block text-xs text-ink-muted">
+              {role.salary_source?.url ? <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink> : "AI-suggested"}
+            </span>
+          </span>
+        )}
+        <SaveButton itemType="career_path" itemId={`${role.title}-${level}`} itemName={role.title} itemData={{ ...role, level }} />
+      </div>
+
+      {open && (
+        <div className="ml-9 mr-2 mb-3 space-y-4 text-sm text-ink leading-relaxed">
+          {role.salary_range && (
+            <p className="sm:hidden font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</p>
+          )}
+          {role.description && <p>{role.description}</p>}
+          {role.typical_pay?.weekly && (
+            <p className="text-ink-muted">
+              {role.occupation_title || "This occupation"} earn a typical{" "}
+              <span className="font-semibold text-ink-strong">${role.typical_pay.weekly.toLocaleString()} a week</span> full-time, across all experience levels.{" "}
+              <SourceLink href={role.typical_pay.source_url}>
+                Jobs and Skills Australia{earningsMonth(role.typical_pay.period) ? `, ${earningsMonth(role.typical_pay.period)}` : ""}
+              </SourceLink>
+            </p>
+          )}
+          {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4">
+              <p className="text-[13px] font-semibold text-ink-strong">How your degree gets you there</p>
+              {role.degree_path && <p className="mt-1">{role.degree_path}</p>}
+              {(role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {(role.degree_courses || []).map((code) => (
+                    <button key={code} type="button" onClick={() => onOpenCourse(code)} className={linkChip}>{code}</button>
+                  ))}
+                  {(role.specialisations || []).map((spec) => (
+                    <button key={spec.id} type="button" onClick={() => navigate(specialisationPath(spec))} className={linkChip}>{spec.name}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {(role.next_steps?.length > 0 || role.requirements) && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {role.next_steps?.length > 0 && (
+                <div>
+                  <p className="text-[13px] font-semibold text-ink-strong">Next steps</p>
+                  <ol className="mt-1 list-decimal pl-5 space-y-1">
+                    {role.next_steps.slice(0, 3).map((step) => <li key={step}>{step}</li>)}
+                  </ol>
+                </div>
+              )}
+              {role.requirements && (
+                <div>
+                  <p className="text-[13px] font-semibold text-ink-strong">Requirements</p>
+                  <ul className="mt-1 list-disc pl-5 space-y-1">
+                    {role.requirements.split(";").map((req) => req.trim()).filter(Boolean).map((req) => <li key={req}>{req}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          <a href={seekSearchUrl(role.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-link hover:underline">
+            See current ads on SEEK <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      )}
+    </li>
+  );
+}
+
+export default function CareerPathsSection({ careerPathways, personal, jobs }) {
+  const navigate = useNavigate();
+  const interestAreas = useInterestAreas(personal);
+  const [level, setLevel] = useState("entry");
+  const [openRoles, setOpenRoles] = useState(() => new Set());
+  const [showAllCerts, setShowAllCerts] = useState(false);
+
+  const outlook = careerPathways?.outlook || [];
+  const certifications = careerPathways?.certifications || [];
+  const levels = LEVELS.filter((l) => careerPathways?.[l.key]?.roles?.length);
+  const roles = careerPathways?.[LEVELS.find((l) => l.id === level)?.key]?.roles || [];
+  const shownCerts = showAllCerts ? certifications : certifications.slice(0, SHOWN_CERTS);
+
+  const toggleRole = (key) => setOpenRoles((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  });
+
+  const openCourse = async (code) => {
+    const { data: match } = await supabase.from("unsw_courses").select("id").eq("code", code).maybeSingle();
+    if (match?.id) navigate(`/course/${match.id}`);
+  };
+
+  const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.search_words === role.ad_search).length : 0);
+
+  return (
+    <div className="space-y-8">
+      {outlook.length > 0 && <Outlook outlook={outlook} />}
+
+      {levels.length > 0 && (
+        <div>
+          <SubLabel
+            action={
+              <div className="flex gap-1.5" role="group" aria-label="Career stage">
+                {levels.map((l) => (
+                  <button key={l.id} type="button" aria-pressed={level === l.id} onClick={() => setLevel(l.id)} className={chipClass(level === l.id)}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            }
+          >
+            Roles
+          </SubLabel>
+          <ul className="mt-2 divide-y divide-line border-y border-line">
+            {roles.map((role) => (
+              <RoleRow
+                key={`${level}-${role.title}`}
+                role={role}
+                level={level}
+                open={openRoles.has(`${level}-${role.title}`)}
+                onToggle={() => toggleRole(`${level}-${role.title}`)}
+                personal={personal}
+                interestAreas={interestAreas}
+                jobCount={jobCount(role)}
+                onOpenCourse={openCourse}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {certifications.length > 0 && (
+        <div>
+          <SubLabel>Certifications</SubLabel>
+          <ul className="mt-2 divide-y divide-line border-y border-line">
+            {shownCerts.map((cert) => (
+              <li key={cert.name} className="flex items-start justify-between gap-4 px-2 py-3">
+                <div className="min-w-0">
+                  <p className="text-[15px] font-medium text-ink-strong">{cert.name}</p>
+                  <p className="mt-0.5 text-[13px] text-ink-muted">{[cert.provider, cert.timeline].filter(Boolean).join(" · ")}</p>
+                  {cert.notes && <p className="mt-1 text-[13px] text-ink-muted">{cert.notes}</p>}
+                  {cert.url && (
+                    <a href={cert.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-link hover:underline">
+                      Learn more <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
+                {cert.importance && (
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-md text-xs font-semibold ${
+                    cert.importance === "Required"
+                      ? "bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                      : cert.importance === "Highly Recommended"
+                      ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  }`}>
+                    {cert.importance}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {certifications.length > SHOWN_CERTS && (
+            <ExpandToggle wide open={showAllCerts} onClick={() => setShowAllCerts(!showAllCerts)}>
+              {showAllCerts ? "Show fewer" : `Show ${certifications.length - SHOWN_CERTS} more certifications`}
+            </ExpandToggle>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
