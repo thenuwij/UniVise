@@ -501,6 +501,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       title={headerProgramName}
       subtitle={!isCareers && specNames.length > 0 ? specNames.join(" · ") : null}
       compact
+      wide={isCareers}
     >
       {!isCareers && (
         <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">

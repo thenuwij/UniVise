@@ -55,7 +55,7 @@ function SectionStatus({ status, updatedAt, onRetry }) {
 export function SubLabel({ children, action }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">{children}</h3>
+      <h3 className="border-l-[3px] border-brand-blue pl-2.5 text-[15px] font-semibold leading-5 text-ink-strong">{children}</h3>
       {action}
     </div>
   );
@@ -68,29 +68,31 @@ export default function CareersSection({ id, icon: Icon, title, description, sta
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-20 rounded-2xl border border-line bg-surface p-5 md:p-7"
+      className="scroll-mt-20 overflow-hidden rounded-2xl border border-line bg-surface"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-tint px-5 py-4 md:px-7">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface-tint text-link">
+          <span className="mt-0.5 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface text-link border border-line">
             <Icon className="h-[18px] w-[18px]" />
           </span>
           <div>
-            <h2 id={`${id}-title`} className="text-lg font-semibold text-ink-strong">{title}</h2>
+            <h2 id={`${id}-title`} className="text-xl font-semibold text-ink-strong">{title}</h2>
             {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}
           </div>
         </div>
         <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
       </div>
-      {status === "loading" && (
-        <div className="mt-4" role="status">
-          <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-            <div className="h-full rounded-full bg-brand-blue transition-all duration-500" style={{ width: `${pct}%` }} />
+      <div className="px-5 py-6 md:px-7">
+        {status === "loading" && (
+          <div className="mb-6" role="status">
+            <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+              <div className="h-full rounded-full bg-brand-blue transition-all duration-500" style={{ width: `${pct}%` }} />
+            </div>
+            {loadingText && <p className="mt-2 text-[13px] text-ink-muted">{loadingText}</p>}
           </div>
-          {loadingText && <p className="mt-2 text-[13px] text-ink-muted">{loadingText}</p>}
-        </div>
-      )}
-      <div className="mt-6">{children}</div>
+        )}
+        {children}
+      </div>
     </section>
   );
 }

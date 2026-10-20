@@ -60,7 +60,7 @@ export default function CareersContent({ data, sectionsStatus, onRetry, personal
   }, [focusSection]);
 
   return (
-    <div className="careers-page max-w-[1280px] mx-auto px-5 md:px-10 pt-6 pb-16 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
+    <div className="careers-page px-5 md:px-10 pt-6 pb-16 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
       <aside className="sticky top-0 z-20 -mx-5 px-5 py-3 mb-4 bg-page/95 backdrop-blur lg:mx-0 lg:px-0 lg:py-0 lg:mb-0 lg:top-6 lg:self-start lg:bg-transparent lg:backdrop-blur-none">
         <p className="hidden lg:block px-3 mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">On this page</p>
         <SectionNav sections={sections} />
