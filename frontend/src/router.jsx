@@ -50,6 +50,7 @@ export const router = createBrowserRouter([
   { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
   { path: "/roadmap/school", element: <Navigate to="/roadmap" replace /> },
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
+  { path: "/careers", element: <PrivateRoute><RoadmapUNSWPage view="careers" /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <Navigate to="/dashboard" replace /> },
   { path: "/planner/school", element: <Navigate to="/dashboard" replace /> },

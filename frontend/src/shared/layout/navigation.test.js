@@ -31,7 +31,9 @@ describe("shared navigation", () => {
     expect(isNavigationActive("coursemesh", "/coursemesh")).toBe(true);
     expect(isNavigationActive("explore", "/coursemesh")).toBe(false);
     expect(isNavigationActive("dashboard", "/dashboard")).toBe(true);
-    for (const section of ["dashboard", "roadmap", "explore", "coursemesh"]) {
+    expect(isNavigationActive("careers", "/careers")).toBe(true);
+    expect(isNavigationActive("roadmap", "/careers")).toBe(false);
+    for (const section of ["dashboard", "roadmap", "careers", "explore", "coursemesh"]) {
       expect(isNavigationActive(section, "/profile")).toBe(false);
       expect(isNavigationActive(section, "/chat")).toBe(false);
     }

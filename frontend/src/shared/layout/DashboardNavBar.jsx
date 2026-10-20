@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.svg";
+import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { isNavigationActive } from "./navigation";
 import "./navigation.css";
@@ -79,6 +80,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
           {[
             ["dashboard", "Dashboard", "/dashboard"],
             ["roadmap", "Roadmap", "/roadmap-entryload"],
+            ["careers", "Careers", roadmapViewUrl("careers")],
             ["coursemesh", "CourseMesh", "/coursemesh"],
           ].map(([key, label, path]) => (
             <Link

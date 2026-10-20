@@ -61,6 +61,7 @@ function LoadingRoadmapPage() {
       supabase,
       setProgress,
       returnToStep,
+      view: state?.view,
       onError: type === "unsw" ? setError : undefined,
     });
   }, [
@@ -86,7 +87,7 @@ function LoadingRoadmapPage() {
         title="We couldn't generate your roadmap"
         message="The AI service may be busy right now. Please try again in a moment."
         onRetry={retry}
-        onBack={() => navigate("/roadmap", { replace: true })}
+        onBack={() => navigate(state?.view === "careers" ? "/roadmap?view=careers" : "/roadmap", { replace: true })}
       />
     );
   }

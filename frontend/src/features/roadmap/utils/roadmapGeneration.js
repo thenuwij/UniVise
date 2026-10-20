@@ -1,4 +1,5 @@
 import { apiFetch } from "@/shared/lib/api";
+import { roadmapViewPath } from "./roadmapSteps";
 
 export async function buildRoadmap({ degreeId, accessToken }) {
   const res = await apiFetch("/roadmap/unsw", {
@@ -34,6 +35,7 @@ export async function handleRoadmapGeneration({
   supabase,
   setProgress,
   returnToStep,
+  view,
   onError,
 }) {
   try {
@@ -101,7 +103,7 @@ export async function handleRoadmapGeneration({
 
       setProgress(100);
       const stepQuery = returnToStep ? `&step=${returnToStep}` : "";
-      navigate(`/roadmap/unsw?id=${roadmapId}${stepQuery}`, { replace: true });
+      navigate(`${roadmapViewPath(view)}?id=${roadmapId}${stepQuery}`, { replace: true });
       return;
     }
 

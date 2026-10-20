@@ -6,6 +6,7 @@ const PAGES = [
   [/^\/specialisation\/honours\//, "UNSW honours page"],
   [/^\/coursemesh/, "CourseMesh, their prerequisite map"],
   [/^\/roadmap/, "their degree roadmap"],
+  [/^\/careers/, "careers and internships for their degree"],
   [/^\/dashboard/, "their dashboard"],
   [/^\/handbook/, "the Handbook search"],
   [/^\/saved/, "their shortlist"],

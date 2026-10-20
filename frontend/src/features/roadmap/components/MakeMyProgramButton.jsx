@@ -5,8 +5,9 @@ import { GraduationCap } from "lucide-react";
 import { bandButton } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
 import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
+import { roadmapViewUrl } from "../utils/roadmapSteps";
 
-export default function MakeMyProgramButton({ degreeCode, programName, label = "Make this my program", className = bandButton, onBeforeChange }) {
+export default function MakeMyProgramButton({ degreeCode, programName, label = "Make this my program", className = bandButton, onBeforeChange, view = "degree" }) {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -32,7 +33,7 @@ export default function MakeMyProgramButton({ degreeCode, programName, label = "
       setSaving(false);
       return;
     }
-    navigate("/roadmap-entryload");
+    navigate(roadmapViewUrl(view));
   };
 
   return (
