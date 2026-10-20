@@ -32,8 +32,6 @@ const SECTION_GUIDE_TEXT = {
   overview: "Understand your degree requirements here. You can jump straight to any section using this bar—there's no need to finish them in order.",
   structure: "See your courses and mark the ones you've completed. The Courses help button explains how to manage them.",
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
-  careers: "Explore career paths connected to your degree and the skills they need.",
-  internships: "Find placement and industry experience opportunities for your degree.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
 };
 const sectionGuideSteps = (view) => ROADMAP_VIEWS[view].steps.map(({ key, title }) => ({
@@ -263,7 +261,7 @@ const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
   return { activeIndex, setActiveIndex };
 };
 
-const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header }) => {
+const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header, stacked = false }) => {
   if (!data && loading) {
     return (
       <>
@@ -272,6 +270,22 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
           <SkeletonCard lines={4} />
           <SkeletonCard lines={6} />
           <SkeletonCard lines={4} />
+        </div>
+      </>
+    );
+  }
+
+  if (data && stacked) {
+    return (
+      <>
+        {header}
+        <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-12 divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-10 [&>*:first-child]:pt-0">
+          {steps.map((step) => (
+            <section key={step.key} id={step.key}>
+              <h2 className="mb-6 text-2xl font-bold text-ink-strong">{step.title}</h2>
+              {step.render()}
+            </section>
+          ))}
         </div>
       </>
     );
@@ -340,11 +354,12 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
 
   const fetchedDegree = useDegreeData(header.degree_code);
   const roadmapReady = !!data;
+  const isCareers = view === "careers";
   useEffect(() => {
-    if (!roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
+    if (isCareers || !roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
     const timer = setTimeout(() => setShowSectionGuide(true), 500);
     return () => clearTimeout(timer);
-  }, [roadmapReady, sectionGuideKey, session?.user?.id]);
+  }, [isCareers, roadmapReady, sectionGuideKey, session?.user?.id]);
   const activeDegree = degree || fetchedDegree;
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
@@ -477,7 +492,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       back={isOwnProgram ? undefined : { label: copy.back, onClick: handleBackClick }}
       actions={
         <>
-          {data && (
+          {data && !isCareers && (
             <button
               type="button"
               onClick={() => setShowSectionGuide(true)}
@@ -488,7 +503,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
               Section tour
             </button>
           )}
-          {!enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
+          {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
             <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} view={view} />
           )}
           <Link to="/saved" className={bandButton}>
@@ -503,17 +518,19 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       }
       eyebrow={isOwnProgram ? copy.own : copy.exploring}
       title={headerProgramName}
-      subtitle={specNames.length > 0 ? specNames.join(" · ") : null}
+      subtitle={!isCareers && specNames.length > 0 ? specNames.join(" · ") : null}
       compact
     >
-      <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
-        {headerFacts.map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-[13px] text-band-soft">{label}</dt>
-            <dd className="text-base font-semibold text-band-ink">{value}</dd>
-          </div>
-        ))}
-      </dl>
+      {!isCareers && (
+        <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
+          {headerFacts.map(([label, value]) => (
+            <div key={label}>
+              <dt className="text-[13px] text-band-soft">{label}</dt>
+              <dd className="text-base font-semibold text-band-ink">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </PageHeader>
   );
 
@@ -521,7 +538,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
-      {showSectionGuide && data && (
+      {showSectionGuide && data && !isCareers && (
         <SpotlightGuide
           steps={sectionGuideSteps(view)}
           seenKey={sectionGuideKey}
@@ -535,6 +552,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         loading={loading}
         error={error}
         steps={steps}
+        stacked={isCareers}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
           setMeshFocus(null);
