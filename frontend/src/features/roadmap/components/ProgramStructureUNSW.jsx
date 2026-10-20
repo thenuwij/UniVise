@@ -350,7 +350,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
 }
 
 // Main 
-export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation }) {
+export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
   const navigate = useNavigate();
   const { session } = UserAuth();
   const userId = session?.user?.id;
@@ -480,7 +480,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
   const handleVisualise = () => {
     if (!degreeCode || !allCourses.length) return;
-    navigate(`/coursemesh?program=${degreeCode}`);
+    onOpenCourseMesh?.();
   };
 
   // Fetch program structure
@@ -741,7 +741,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           onToggle={(option) =>
             addSection.courses.some((c) => !c.extra && c.code === option.code) ? toggleAdded(option) : toggleInSection(option, addSection.place)
           }
-          onShow={(code) => navigate(`/coursemesh?focus=${encodeURIComponent(code)}`)}
+          onShow={(code) => onOpenCourseMesh?.(code)}
           onClose={() => setAddTarget(null)}
         />
       )}

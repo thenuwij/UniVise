@@ -16,8 +16,6 @@ import CourseDetailPage from "./features/explore/pages/CourseDetailPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
-import MindMeshGraphPage from "./features/mindmesh/pages/MindMeshGraphPage";
-import OldCourseMeshLink from "./features/mindmesh/pages/OldCourseMeshLink";
 import TraitsPage from "./features/traits/pages/TraitsPage";
 import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDetailPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
@@ -54,8 +52,6 @@ export const router = createBrowserRouter([
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <Navigate to="/dashboard" replace /> },
   { path: "/planner/school", element: <Navigate to="/dashboard" replace /> },
-  { path: "/planner/mindmesh", element: <OldCourseMeshLink /> },
-  { path: "/coursemesh", element: <PrivateRoute><MindMeshGraphPage /></PrivateRoute> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
   { path: "/specialisation/major/:id", element: <PrivateRoute><SpecialisationDetailPage variant="major" /></PrivateRoute> },
   { path: "/specialisation/minor/:id", element: <PrivateRoute><SpecialisationDetailPage variant="minor" /></PrivateRoute> },

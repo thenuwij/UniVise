@@ -17,6 +17,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { MYPLAN_URL, useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
+import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 
 const COURSE_CODE = /^[A-Za-z]{4}\d{4}$/;
 
@@ -189,7 +190,7 @@ function CourseDetailPage() {
                 {course.faculty && <FactRow label="Faculty" value={course.faculty.replace(/^Faculty of\s+/i, "")} />}
                 {userId && <FactRow label="Your status" value={isCompleted ? "Completed" : "Not ticked yet"} />}
               </div>
-              <Link to={`/coursemesh?focus=${encodeURIComponent(course.code)}`} className="button-secondary mt-5 w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold">
+              <Link to={`${roadmapStepUrl("coursemesh")}&focus=${encodeURIComponent(course.code)}`} className="button-secondary mt-5 w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold">
                 See it in CourseMesh
               </Link>
             </div>

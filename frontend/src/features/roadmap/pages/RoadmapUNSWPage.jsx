@@ -18,6 +18,7 @@ import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
+import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
@@ -30,6 +31,7 @@ const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
   overview: "Understand your degree requirements here. You can jump straight to any section using this bar—there's no need to finish them in order.",
   structure: "See your courses and mark the ones you've completed. The Courses help button explains how to manage them.",
+  coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   careers: "Explore career paths connected to your degree and the skills they need.",
   internships: "Find placement and industry experience opportunities for your degree.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
@@ -348,6 +350,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
   const [specNames, setSpecNames] = useState([]);
+  const [meshFocus, setMeshFocus] = useState(() => searchParams.get("focus"));
 
   useEffect(() => {
     let active = true;
@@ -356,6 +359,18 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     });
     return () => { active = false; };
   }, [shownDegreeCode, session?.user?.id]);
+
+  const { activeIndex, setActiveIndex } = useStepNavigation(
+    search,
+    !!data,
+    preloadedRoadmapId
+  );
+  const stepIndex = useCallback((key) => ROADMAP_VIEWS[view].steps.findIndex((s) => s.key === key), [view]);
+  const openCourseMesh = useCallback((code) => {
+    setMeshFocus(code || null);
+    setActiveIndex(stepIndex("coursemesh"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [setActiveIndex, stepIndex]);
 
   useEffect(() => {
     if (degree) { 
@@ -401,9 +416,20 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             degreeCode={degreeCodeValue}
             trackCompletion={isOwnProgram}
             onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+            onOpenCourseMesh={openCourseMesh}
           />
         );
       },
+      coursemesh: () => (
+        <CourseMesh
+          programCode={degreeCodeValue}
+          focus={meshFocus}
+          onOpenCourses={() => {
+            setMeshFocus(null);
+            setActiveIndex(stepIndex("structure"));
+          }}
+        />
+      ),
       careers: () => industrySection(
         "career_pathways",
         () => <CareerPathways careerPathways={data.career_pathways} personal={isOwnProgram} />,
@@ -425,13 +451,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     };
 
     return ROADMAP_VIEWS[view].steps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, view]);
-
-  const { activeIndex, setActiveIndex } = useStepNavigation(
-    search, 
-    !!data, 
-    preloadedRoadmapId
-  );
+  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, view, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
 
   const headerProgramName =
     activeDegree?.degree_name ||
@@ -516,7 +536,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         error={error}
         steps={steps}
         activeIndex={activeIndex}
-        onIndexChange={setActiveIndex}
+        onIndexChange={(index) => {
+          setMeshFocus(null);
+          setActiveIndex(index);
+        }}
       />
     </div>
   );

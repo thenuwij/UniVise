@@ -31,7 +31,7 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="app-navigation"]'],
     title: "Find your way around",
-    text: "The top navigation and mobile Menu lead to Roadmap, CourseMesh, Careers and Explore. Account has your profile, appearance settings and sign out.",
+    text: "The top navigation and mobile Menu lead to Roadmap, Careers and Explore. Account has your profile, appearance settings and sign out.",
   },
 ];
 

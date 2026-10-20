@@ -4,6 +4,7 @@ export const ROADMAP_VIEWS = {
     steps: [
       { key: "overview", title: "Overview" },
       { key: "structure", title: "Courses" },
+      { key: "coursemesh", title: "CourseMesh" },
       { key: "societies", title: "Societies" },
     ],
   },
@@ -16,7 +17,7 @@ export const ROADMAP_VIEWS = {
   },
 };
 
-export const viewOfStep = (key) =>
+const viewOfStep = (key) =>
   Object.keys(ROADMAP_VIEWS).find((view) => ROADMAP_VIEWS[view].steps.some((s) => s.key === key)) || "degree";
 
 export const roadmapViewPath = (view) => (ROADMAP_VIEWS[view] || ROADMAP_VIEWS.degree).path;

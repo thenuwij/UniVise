@@ -25,7 +25,7 @@ async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
   return (rows || []).find((r) => isCurrent(r.payload) && sameIds(r.payload?.specialisation_ids || [], specialisationIds)) || null;
 }
 
-export async function openOwnRoadmap({ userId, accessToken, navigate, step, view, isActive = () => true }) {
+export async function openOwnRoadmap({ userId, accessToken, navigate, step, view, focus, isActive = () => true }) {
   const { data: programs, error: programError } = await supabase
     .from("user_enrolled_program")
     .select("degree_code")
@@ -67,7 +67,8 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, view
 
   if (roadmap) {
     const stepQuery = step ? `&step=${step}` : "";
-    navigate(`${roadmapViewPath(view)}?id=${roadmap.id}${stepQuery}`, { replace: true });
+    const focusQuery = focus ? `&focus=${encodeURIComponent(focus)}` : "";
+    navigate(`${roadmapViewPath(view)}?id=${roadmap.id}${stepQuery}${focusQuery}`, { replace: true });
     return;
   }
 

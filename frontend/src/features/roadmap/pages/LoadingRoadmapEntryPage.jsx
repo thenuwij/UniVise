@@ -14,18 +14,19 @@ function LoadingRoadmapEntryPage() {
   const userId = session?.user?.id;
   const step = searchParams.get("step");
   const view = searchParams.get("view");
+  const focus = searchParams.get("focus");
 
   const accessToken = session?.access_token;
 
   useEffect(() => {
     if (!userId) return;
     let active = true;
-    openOwnRoadmap({ userId, accessToken, navigate, step, view, isActive: () => active }).catch((err) => {
+    openOwnRoadmap({ userId, accessToken, navigate, step, view, focus, isActive: () => active }).catch((err) => {
       console.error("Opening roadmap failed:", err);
       if (active) setError(err);
     });
     return () => { active = false; };
-  }, [userId, accessToken, navigate, step, view, attempt]);
+  }, [userId, accessToken, navigate, step, view, focus, attempt]);
 
   if (error) {
     return (

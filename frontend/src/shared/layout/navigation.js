@@ -10,8 +10,6 @@ export function isNavigationActive(section, pathname) {
       );
     case "careers":
       return pathname === "/careers";
-    case "coursemesh":
-      return pathname === "/coursemesh";
     case "explore":
       return (
         pathname === "/roadmap" ||

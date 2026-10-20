@@ -7,7 +7,7 @@ describe("describePage", () => {
   });
 
   it("uses just the label when the page has no heading", () => {
-    expect(describePage("/coursemesh", undefined, undefined)).toBe("CourseMesh, their prerequisite map");
+    expect(describePage("/careers", undefined, undefined)).toBe("careers and internships for their degree");
   });
 
   it("ignores pages Eunice has no context for", () => {

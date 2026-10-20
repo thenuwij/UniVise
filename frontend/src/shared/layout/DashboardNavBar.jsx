@@ -81,7 +81,6 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
             ["dashboard", "Dashboard", "/dashboard"],
             ["roadmap", "Roadmap", "/roadmap-entryload"],
             ["careers", "Careers", roadmapViewUrl("careers")],
-            ["coursemesh", "CourseMesh", "/coursemesh"],
           ].map(([key, label, path]) => (
             <Link
               key={key}
