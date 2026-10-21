@@ -67,7 +67,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
     { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String((openAds?.length || 0) + programCount) : null },
     { id: "networking", title: "Networking", icon: Users, meta: sources ? String(events.length) : null },
-    { id: "career-paths", title: "Career paths", icon: Route, meta: null },
+    { id: "career-outlook", title: "Career outlook", icon: Route, meta: null },
   ];
 
   useEffect(() => {
@@ -77,9 +77,9 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
   const careerPaths = (
     <CareersSection
-      id="career-paths"
+      id="career-outlook"
       icon={Route}
-      title="Career paths"
+      title="Career outlook"
       description="Where your degree can take you, from first job to senior roles."
       status={careersReady ? null : careersState}
       loadingText="Mapping entry-level, mid-career and senior roles for your field."
