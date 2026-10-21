@@ -79,7 +79,7 @@ export default function InternshipsSection({ industryExperience, openAds }) {
             <>
               <AdRows ads={showAllOpen ? openAds : openAds.slice(0, SHOWN_OPEN)} />
               {openAds.length > SHOWN_OPEN && (
-                <ExpandToggle wide open={showAllOpen} onClick={() => setShowAllOpen(!showAllOpen)}>
+                <ExpandToggle quiet open={showAllOpen} onClick={() => setShowAllOpen(!showAllOpen)}>
                   {showAllOpen ? "Show fewer" : `Show all ${openAds.length} internships`}
                 </ExpandToggle>
               )}
@@ -92,14 +92,14 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
       {programs.length > 0 && (
         <div>
-          <SubLabel icon={CalendarClock} hint="Programs that open at set times each year, soonest first">Opening soon</SubLabel>
+          <SubLabel icon={CalendarClock} hint="Programs that open at set times each year, soonest first">Annual programs</SubLabel>
           <ul className="mt-3 divide-y divide-line border-b border-line">
             {shownPrograms.map((program) => (
               <ProgramRow key={`${program.company}-${program.program_name}`} program={program} />
             ))}
           </ul>
           {programs.length > SHOWN_PROGRAMS && (
-            <ExpandToggle wide open={showAllPrograms} onClick={() => setShowAllPrograms(!showAllPrograms)}>
+            <ExpandToggle quiet open={showAllPrograms} onClick={() => setShowAllPrograms(!showAllPrograms)}>
               {showAllPrograms ? "Show fewer" : `Show ${programs.length - SHOWN_PROGRAMS} more ${programs.length - SHOWN_PROGRAMS === 1 ? "program" : "programs"}`}
             </ExpandToggle>
           )}

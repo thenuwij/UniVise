@@ -24,7 +24,7 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   const prefix = name ? `${name} · ` : "";
   if (status === "loading" || status === "running") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-link">
+      <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         {prefix}Updating
       </span>
@@ -46,7 +46,7 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   const label = updatedLabel(updatedAt);
   if (!label) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+    <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
       <CheckCircle2 className="h-3.5 w-3.5" />
       {prefix}{label}
     </span>

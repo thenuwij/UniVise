@@ -35,7 +35,7 @@ export default function AdRows({ ads }) {
           >
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{ad.title}</span>
-              <span className="block mt-0.5 text-[13px] text-ink-muted">
+              <span className="block mt-0.5 text-sm text-ink">
                 <SourceTag ad={ad} />
                 {[ad.organisation, ad.location].filter(Boolean).join(" · ")}
               </span>

@@ -58,7 +58,7 @@ export default function JobsSection({ jobs, roles }) {
       )}
       <AdRows ads={shown} />
       {filtered.length > SHOWN_JOBS && (
-        <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>
+        <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
           {showAll ? "Show fewer" : `Show all ${filtered.length} jobs`}
         </ExpandToggle>
       )}

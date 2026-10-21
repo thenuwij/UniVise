@@ -45,7 +45,7 @@ export default function CertificationsList({ certifications }) {
         ))}
       </ul>
       {certifications.length > SHOWN_CERTS && (
-        <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>
+        <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
           {showAll ? "Show fewer" : `Show ${certifications.length - SHOWN_CERTS} more certifications`}
         </ExpandToggle>
       )}
