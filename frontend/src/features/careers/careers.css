@@ -2,3 +2,65 @@
   font-family: var(--font-sans);
   letter-spacing: -0.005em;
 }
+
+.careers-page .careers-section {
+  --careers-hue: #2563eb;
+  --careers-accent: #1d4ed8;
+  margin-inline: -20px;
+  padding-inline: 20px;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      color-mix(in srgb, var(--careers-hue) 8%, transparent),
+      transparent 65%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--careers-hue) 4%, var(--color-page)),
+      var(--color-page) 75%
+    );
+}
+
+.careers-page #internships {
+  --careers-hue: #fb923c;
+  --careers-accent: #c2410c;
+}
+
+.careers-page #networking {
+  --careers-hue: #10b981;
+  --careers-accent: #047857;
+}
+
+.careers-page #certifications {
+  --careers-hue: #e6a23c;
+  --careers-accent: #92400e;
+}
+
+.careers-page #career-outlook {
+  --careers-hue: #a78bfa;
+  --careers-accent: #6d28d9;
+}
+
+.careers-page .careers-subheading {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--careers-hue) 16%, var(--color-surface)),
+    color-mix(in srgb, var(--careers-hue) 6%, var(--color-surface))
+  );
+}
+
+.careers-page .careers-subheading-icon {
+  background: var(--color-surface);
+  color: var(--careers-accent);
+}
+
+.dark .careers-page .careers-subheading-icon {
+  color: color-mix(in srgb, var(--careers-hue) 55%, white);
+}
+
+@media (min-width: 768px) {
+  .careers-page .careers-section {
+    margin-inline: -40px;
+    padding-inline: 40px;
+  }
+}
