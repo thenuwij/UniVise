@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { chipClass } from "../utils/careersStyles";
-import AdRows, { AdzunaCredit } from "./AdRows";
+import AdRows from "./AdRows";
 
 const SHOWN_JOBS = 5;
 
@@ -38,27 +38,24 @@ export default function JobsSection({ jobs, roles }) {
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        {roleChips.length > 1 ? (
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter jobs by role">
-            <button type="button" aria-pressed={!role} onClick={() => setRole(null)} className={chipClass(!role)}>
-              All
+      {roleChips.length > 1 && (
+        <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter jobs by role">
+          <button type="button" aria-pressed={!role} onClick={() => setRole(null)} className={chipClass(!role)}>
+            All
+          </button>
+          {roleChips.map((r) => (
+            <button
+              key={r.ad_search}
+              type="button"
+              aria-pressed={role === r.ad_search}
+              onClick={() => setRole(r.ad_search)}
+              className={chipClass(role === r.ad_search)}
+            >
+              {r.title}
             </button>
-            {roleChips.map((r) => (
-              <button
-                key={r.ad_search}
-                type="button"
-                aria-pressed={role === r.ad_search}
-                onClick={() => setRole(r.ad_search)}
-                className={chipClass(role === r.ad_search)}
-              >
-                {r.title}
-              </button>
-            ))}
-          </div>
-        ) : <span />}
-        {jobs.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}
-      </div>
+          ))}
+        </div>
+      )}
       <AdRows ads={shown} />
       {filtered.length > SHOWN_JOBS && (
         <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>

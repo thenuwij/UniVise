@@ -72,7 +72,7 @@ export function SubLabel({ icon: Icon, hint, children, action }) {
   );
 }
 
-export default function CareersSection({ id, icon: Icon, title, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
+export default function CareersSection({ id, title, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
   const loading = status === "loading" || sources.some((s) => s.status === "running");
   const pct = useTimedProgress(loading);
 
@@ -83,10 +83,7 @@ export default function CareersSection({ id, icon: Icon, title, description, sta
       className="scroll-mt-20 border-t border-line py-10 first:border-t-0 first:pt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12"
     >
       <div className="mb-6 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-surface-tint text-link">
-          <Icon className="h-5 w-5" />
-        </span>
-        <h2 id={`${id}-title`} className="mt-3 text-2xl font-semibold text-ink-strong">{title}</h2>
+        <h2 id={`${id}-title`} className="text-2xl font-semibold text-ink-strong">{title}</h2>
         {description && <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>}
         <div className="mt-3 flex flex-col items-start gap-1">
           <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />

@@ -112,11 +112,3 @@ export function CalendarLinks({ calendars }) {
     </div>
   );
 }
-
-export function AdzunaCredit() {
-  return (
-    <a href="https://www.adzuna.com.au" target="_blank" rel="noopener noreferrer" className="text-[13px] text-ink-muted hover:underline">
-      Jobs by Adzuna
-    </a>
-  );
-}

@@ -82,7 +82,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   const certificationsSection = (
     <CareersSection
       id="certifications"
-      icon={Award}
       title="Certifications"
       description="Industry certifications that strengthen your applications, with how long each takes."
       status={careersReady ? null : careersState}
@@ -96,7 +95,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   const careerPaths = (
     <CareersSection
       id="career-outlook"
-      icon={Route}
       title="Career outlook"
       description="The roles your degree leads to, from first job to senior, with typical salaries."
       status={careersReady ? null : careersState}
@@ -136,7 +134,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
         <CareersSection
           id="jobs"
-          icon={Briefcase}
           title="Jobs hiring now"
           description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
           status={careersReady ? null : careersState}
@@ -149,7 +146,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
         <CareersSection
           id="internships"
-          icon={Building2}
           title="Internships"
           description="Internships open now, programs that open each year, and placements in your degree."
           status={internshipsState === "done" ? null : internshipsState}
@@ -167,7 +163,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
         <CareersSection
           id="networking"
-          icon={Users}
           title="Networking"
           description="Career fairs, industry nights and society events where you can meet people in your field."
           sources={statuses("ai_networking")}

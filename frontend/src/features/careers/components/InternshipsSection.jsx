@@ -5,7 +5,7 @@ import SaveButton from "@/shared/ui/SaveButton";
 import { SourceLink } from "@/features/roadmap/components/SourceTags";
 import { sameCompany } from "@/features/roadmap/utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
-import AdRows, { AdzunaCredit } from "./AdRows";
+import AdRows from "./AdRows";
 import { SubLabel } from "./CareersSection";
 
 const SHOWN_PROGRAMS = 4;
@@ -76,7 +76,7 @@ export default function InternshipsSection({ industryExperience, openAds }) {
   return (
     <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
       <div>
-        <SubLabel icon={Megaphone} hint="Live ads you can apply for today" action={openAds?.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}>Open now</SubLabel>
+        <SubLabel icon={Megaphone} hint="Live ads you can apply for today">Open now</SubLabel>
         <div className="mt-4">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
