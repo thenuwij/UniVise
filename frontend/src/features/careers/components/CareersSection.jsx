@@ -24,7 +24,7 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   const prefix = name ? `${name} · ` : "";
   if (status === "loading" || status === "running") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-link">
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-link">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         {prefix}Updating
       </span>
@@ -32,7 +32,7 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   }
   if (status === "failed") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-red-700 dark:text-red-300">
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700 dark:text-red-300">
         <AlertCircle className="h-3.5 w-3.5" />
         {prefix}Couldn't update
         {onRetry && (
@@ -46,7 +46,7 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   const label = updatedLabel(updatedAt);
   if (!label) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700 dark:text-emerald-400">
+    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" />
       {prefix}{label}
     </span>
@@ -55,16 +55,16 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
 
 export function SubLabel({ icon: Icon, hint, children, action }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-100 via-blue-50 to-transparent px-4 py-3 dark:from-blue-900/50 dark:via-blue-950/30">
       <div className="flex items-center gap-3">
         {Icon && (
-          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-link dark:bg-blue-900/40">
-            <Icon className="h-[18px] w-[18px]" />
+          <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-link shadow-sm dark:bg-slate-900">
+            <Icon className="h-5 w-5" />
           </span>
         )}
         <div>
-          <h3 className="text-[17px] font-semibold leading-6 text-ink-strong">{children}</h3>
-          {hint && <p className="text-[13px] text-ink-muted">{hint}</p>}
+          <h3 className="text-[19px] font-semibold leading-7 text-ink-strong">{children}</h3>
+          {hint && <p className="text-sm text-ink-muted">{hint}</p>}
         </div>
       </div>
       {action}
@@ -83,8 +83,8 @@ export default function CareersSection({ id, title, description, status, updated
       className="scroll-mt-20 border-t border-line py-10 first:border-t-0 first:pt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12"
     >
       <div className="mb-6 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
-        <h2 id={`${id}-title`} className="text-2xl font-semibold text-ink-strong">{title}</h2>
-        {description && <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>}
+        <h2 id={`${id}-title`} className="text-[28px] font-semibold leading-tight tracking-tight text-ink-strong">{title}</h2>
+        {description && <p className="mt-1.5 text-[15px] leading-relaxed text-ink-muted">{description}</p>}
         <div className="mt-3 flex flex-col items-start gap-1">
           <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
           {sources.map((s) => (
@@ -98,7 +98,7 @@ export default function CareersSection({ id, title, description, status, updated
             <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div className="h-full rounded-full bg-brand-blue transition-all duration-500" style={{ width: `${pct}%` }} />
             </div>
-            {loadingText && <p className="mt-2 text-[13px] text-ink-muted">{loadingText}</p>}
+            {loadingText && <p className="mt-2 text-sm text-ink-muted">{loadingText}</p>}
           </div>
         )}
         {children}

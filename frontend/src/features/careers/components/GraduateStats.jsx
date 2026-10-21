@@ -14,16 +14,16 @@ export default function GraduateStats({ outlook }) {
     <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-line bg-surface px-5 py-3">
       {outlook.map((area) => (
         <div key={area.study_area} className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-          {outlook.length > 1 && <span className="text-[13px] font-medium text-ink">{area.study_area}</span>}
+          {outlook.length > 1 && <span className="text-sm font-medium text-ink">{area.study_area}</span>}
           {formatStats(area).map(([label, value]) => (
-            <span key={label} className="text-sm text-ink-muted">
-              <span className="mr-1.5 text-xl font-semibold text-ink-strong">{value}</span>
+            <span key={label} className="text-[15px] text-ink-muted">
+              <span className="mr-2 text-2xl font-semibold text-ink-strong">{value}</span>
               {label}
             </span>
           ))}
         </div>
       ))}
-      <span className="text-xs text-ink-muted sm:ml-auto">
+      <span className="text-[13px] text-ink-muted sm:ml-auto">
         All Australian graduates in {outlook.length > 1 ? "each study area" : source.study_area} ·{" "}
         <SourceLink href={source.source_url}>QILT {source.survey_year}</SourceLink>
       </span>

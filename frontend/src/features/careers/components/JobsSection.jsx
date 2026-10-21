@@ -27,8 +27,8 @@ export default function JobsSection({ jobs, roles }) {
   if (!jobs.length) {
     return (
       <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 px-5 py-6 text-center">
-        <p className="text-[15px] font-medium text-ink-strong">No graduate job ads found today</p>
-        <p className="mt-1 text-sm text-ink-muted">We check again each day for your degree's entry roles.</p>
+        <p className="text-base font-medium text-ink-strong">No graduate job ads found today</p>
+        <p className="mt-1 text-[15px] text-ink-muted">We check again each day for your degree's entry roles.</p>
       </div>
     );
   }

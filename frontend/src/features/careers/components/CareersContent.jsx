@@ -28,11 +28,11 @@ function SectionNav({ sections }) {
           <li key={id}>
             <a
               href={`#${id}`}
-              className="flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium text-ink border border-line bg-surface hover:border-blue-300 hover:text-link transition-colors"
+              className="flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-medium text-ink border border-line bg-surface hover:border-blue-300 hover:text-link transition-colors"
             >
               <Icon className="h-4 w-4 text-ink-muted" />
               <span>{title}</span>
-              {meta && <span className="text-xs font-normal text-ink-muted">{meta}</span>}
+              {meta && <span className="text-[13px] font-normal text-ink-muted">{meta}</span>}
             </a>
           </li>
         ))}
@@ -109,7 +109,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     return (
       <div className="careers-page px-5 md:px-10 pb-16">
         <GraduateStats outlook={data?.career_pathways?.outlook} />
-        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
+        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-ink-muted">
           Jobs, internships and networking events show for your own program. Make this your program to see them.
         </p>
         {certificationsSection}
@@ -127,7 +127,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
       <div>
         {loadFailed && (
-          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
             Today's jobs, internships and events couldn't load. Refresh the page to try again.
           </p>
         )}
@@ -171,14 +171,14 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           {!ready("ai_networking") ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : (
-            <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
+            <div className="space-y-12">
               <div>
                 <SubLabel icon={CalendarDays} hint="The next 8 weeks, in Sydney and online">Upcoming events</SubLabel>
                 <div className="mt-4">
                   {events.length > 0 ? (
                     <EventRows events={events} />
                   ) : (
-                    <p className="text-sm text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
+                    <p className="text-[15px] text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
                   )}
                 </div>
               </div>
