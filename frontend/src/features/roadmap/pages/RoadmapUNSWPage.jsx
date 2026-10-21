@@ -18,6 +18,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import CareersContent from "@/features/careers/components/CareersContent";
+import { HeaderStats } from "@/features/careers/components/GraduateStats";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
@@ -498,11 +499,20 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         </>
       }
       eyebrow={isOwnProgram ? copy.own : copy.exploring}
-      title={headerProgramName}
+      title={
+        isCareers && specNames.length > 0 ? (
+          <>
+            {headerProgramName}
+            <span className="ml-2 align-middle text-base font-semibold text-band-soft md:text-lg">· {specNames.join(" · ")}</span>
+          </>
+        ) : headerProgramName
+      }
       subtitle={!isCareers && specNames.length > 0 ? specNames.join(" · ") : null}
       compact
+      slim={isCareers}
       wide={isCareers}
     >
+      {isCareers && <HeaderStats outlook={data?.career_pathways?.outlook} />}
       {!isCareers && (
         <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
           {headerFacts.map(([label, value]) => (

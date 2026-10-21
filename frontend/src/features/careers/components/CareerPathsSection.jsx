@@ -79,9 +79,9 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
         <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 flex-1 items-start gap-3 text-left">
           <ChevronDown className={`mt-1.5 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
           <span className="min-w-0">
-            <span className="block text-base font-semibold text-ink-strong">{role.title}</span>
+            <span className="block text-[15px] font-semibold text-ink-strong">{role.title}</span>
             {(matches || role.in_demand_nsw || jobCount > 0) && (
-              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm font-medium">
+              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-medium">
                 {matches && (
                   <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Matches your interests
@@ -99,8 +99,8 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
         </button>
         {role.salary_range && (
           <span className="hidden sm:block flex-shrink-0 text-right">
-            <span className="block text-base font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</span>
-            <span className="block text-sm text-ink-muted">
+            <span className="block text-[15px] font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</span>
+            <span className="block text-[13px] text-ink-muted">
               {role.salary_source?.url ? <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink> : "AI-suggested"}
             </span>
           </span>
@@ -109,14 +109,14 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
       </div>
 
       {open && (
-        <div className="ml-9 mr-2 mb-4 space-y-4 text-[15px] leading-relaxed text-ink">
+        <div className="ml-9 mr-2 mb-4 space-y-4 text-sm leading-relaxed text-ink">
           {role.salary_range && (
             <p className="sm:hidden font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</p>
           )}
           {role.description && <p>{role.description}</p>}
           {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
             <div className="rounded-xl border border-orange-200 bg-gradient-to-br from-amber-50 via-orange-50 to-white p-4 dark:border-orange-900/60 dark:from-amber-950/40 dark:via-orange-950/20 dark:to-transparent">
-              <p className="text-[15px] font-semibold text-orange-900 dark:text-orange-200">How your degree gets you there</p>
+              <p className="text-sm font-semibold text-orange-900 dark:text-orange-200">How your degree gets you there</p>
               {role.degree_path && <p className="mt-1">{role.degree_path}</p>}
               {(role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -134,7 +134,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
             <div className="grid md:grid-cols-2 gap-4">
               {role.next_steps?.length > 0 && (
                 <div>
-                  <p className="text-[15px] font-semibold text-ink-strong">Next steps</p>
+                  <p className="text-sm font-semibold text-ink-strong">Next steps</p>
                   <ol className="mt-1 list-decimal pl-5 space-y-1">
                     {role.next_steps.slice(0, 3).map((step) => <li key={step}>{step}</li>)}
                   </ol>
@@ -142,7 +142,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
               )}
               {role.requirements && (
                 <div>
-                  <p className="text-[15px] font-semibold text-ink-strong">Requirements</p>
+                  <p className="text-sm font-semibold text-ink-strong">Requirements</p>
                   <ul className="mt-1 list-disc pl-5 space-y-1">
                     {role.requirements.split(";").map((req) => req.trim()).filter(Boolean).map((req) => <li key={req}>{req}</li>)}
                   </ul>

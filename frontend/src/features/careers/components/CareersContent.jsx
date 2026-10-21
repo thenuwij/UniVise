@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { mergeListings } from "../utils/careersListings";
@@ -6,7 +6,6 @@ import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
 import CareersSection, { SubLabel } from "./CareersSection";
 import CertificationsList from "./CertificationsList";
-import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
 import "../careers.css";
@@ -20,22 +19,61 @@ const aiStatus = (data, key, sectionsStatus) => {
   return sectionsStatus === "loading" ? "loading" : "failed";
 };
 
+function useActiveSection(ids) {
+  const [active, setActive] = useState(ids[0]);
+  const key = ids.join("|");
+
+  useEffect(() => {
+    const onScroll = () => {
+      let current = key.split("|")[0];
+      for (const id of key.split("|")) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 140) current = id;
+      }
+      setActive(current);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [key]);
+
+  return active;
+}
+
 function SectionNav({ sections }) {
+  const active = useActiveSection(sections.map((s) => s.id));
+
   return (
     <nav aria-label="Careers sections">
-      <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {sections.map(({ id, title, icon: Icon, meta }) => (
-          <li key={id}>
-            <a
-              href={`#${id}`}
-              className="flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-medium text-ink border border-line bg-surface hover:border-blue-300 hover:text-link transition-colors"
-            >
-              <Icon className="h-4 w-4 text-ink-muted" />
-              <span>{title}</span>
-              {meta && <span className="text-[13px] font-normal text-ink-muted">{meta}</span>}
-            </a>
-          </li>
-        ))}
+      <ul className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {sections.map(({ id, title, icon: Icon, meta }) => {
+          const current = id === active;
+          return (
+            <li key={id}>
+              <a
+                href={`#${id}`}
+                aria-current={current ? "location" : undefined}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  current
+                    ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/25"
+                    : "border-blue-200 bg-white text-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:border-blue-900 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-blue-950"
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${current ? "text-white" : "text-blue-600 dark:text-blue-300"}`} />
+                <span>{title}</span>
+                {meta && (
+                  <span
+                    className={`rounded-full px-2 py-px text-xs font-bold ${
+                      current ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    }`}
+                  >
+                    {meta}
+                  </span>
+                )}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
@@ -108,7 +146,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   if (!personal) {
     return (
       <div className="careers-page px-5 md:px-10 pb-16">
-        <GraduateStats outlook={data?.career_pathways?.outlook} />
         <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-ink-muted">
           Jobs, internships and networking events show for your own program. Make this your program to see them.
         </p>
@@ -123,7 +160,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       <div className="sticky top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-3 bg-page/95 backdrop-blur border-b border-line">
         <SectionNav sections={sections} />
       </div>
-      <GraduateStats outlook={data?.career_pathways?.outlook} />
 
       <div>
         {loadFailed && (

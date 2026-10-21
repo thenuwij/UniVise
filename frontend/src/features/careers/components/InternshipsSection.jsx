@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, CalendarClock, ExternalLink, GraduationCap, Megaphone } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarClock, GraduationCap, Megaphone } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
-import SaveButton from "@/shared/ui/SaveButton";
-import { SourceLink } from "@/features/roadmap/components/SourceTags";
 import { sameCompany } from "@/features/roadmap/utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
 import AdRows from "./AdRows";
@@ -14,40 +12,37 @@ const SHOWN_OPEN = 5;
 function ProgramRow({ program }) {
   const details = [program.paid && "Paid", program.duration, program.timing].filter(Boolean).join(" · ");
   const searchOnly = program.apply_url?.startsWith("https://www.google.com/search");
+  const Row = program.apply_url ? "a" : "div";
+  const linkProps = program.apply_url ? { href: program.apply_url, target: "_blank", rel: "noopener noreferrer" } : {};
 
   return (
-    <li className="grid gap-x-6 gap-y-2 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-center">
-      <div className="min-w-0">
-        <p className="text-base font-semibold text-ink-strong">{program.program_name}</p>
-        <p className="mt-0.5 text-sm text-ink-muted">{[program.company, details].filter(Boolean).join(" · ")}</p>
-      </div>
-      <div className="text-sm">
-        {program.application_period ? (
-          <>
-            <span className="text-ink-muted">Usually opens </span>
-            <span className="font-semibold text-ink-strong">{program.application_period}</span>
-            <span className="block text-[13px] text-ink-muted">
-              {program.application_period_source ? <SourceLink href={program.application_period_source}>Source</SourceLink> : "AI-suggested"}
-            </span>
-          </>
-        ) : (
-          <span className="text-ink-muted">Opening time unknown</span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
+    <li>
+      <Row
+        {...linkProps}
+        className="group grid gap-x-6 gap-y-2 px-2 py-3 hover:bg-surface-tint transition-colors md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-center"
+      >
+        <span className="min-w-0">
+          <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{program.program_name}</span>
+          <span className="block mt-0.5 text-[13px] text-ink-muted">{[program.company, details].filter(Boolean).join(" · ")}</span>
+        </span>
+        <span className="text-[13px]">
+          {program.application_period ? (
+            <>
+              <span className="text-ink-muted">Usually opens </span>
+              <span className="font-semibold text-ink-strong">{program.application_period}</span>
+              <span className="block text-xs text-ink-muted">{program.application_period_source ? "From the company's site" : "AI-suggested"}</span>
+            </>
+          ) : (
+            <span className="text-ink-muted">Opening time unknown</span>
+          )}
+        </span>
         {program.apply_url && (
-          <a
-            href={program.apply_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-link border border-line hover:border-blue-300 transition-colors"
-          >
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-link">
             {searchOnly ? "Search" : "Apply"}
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+          </span>
         )}
-        <SaveButton itemType="internship" itemId={`${program.company}-${program.program_name}`} itemName={program.program_name} itemData={program} />
-      </div>
+      </Row>
     </li>
   );
 }
