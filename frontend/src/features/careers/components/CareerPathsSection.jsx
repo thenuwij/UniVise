@@ -6,6 +6,7 @@ import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { SourceLink } from "@/features/roadmap/components/SourceTags";
+import CareerResources from "./CareerResources";
 import { SubLabel } from "./CareersSection";
 import { chipClass } from "../utils/careersStyles";
 
@@ -303,6 +304,8 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
           )}
         </div>
       )}
+
+      <CareerResources />
     </div>
   );
 }
