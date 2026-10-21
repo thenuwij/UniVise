@@ -117,9 +117,11 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
     <button
       onClick={handleClick}
       disabled={isLoading}
-      title={isSaved ? "Remove from planner" : "Save to planner"}
+      title={isSaved ? "Remove from shortlist" : "Save to shortlist"}
+      aria-label={isSaved ? "Remove from shortlist" : "Save to shortlist"}
+      aria-pressed={isSaved}
       className={`
-        group flex items-center gap-2 px-4 py-2 rounded-xl border-2
+        group inline-flex flex-shrink-0 items-center justify-center p-2 rounded-xl border-2
         transition-all duration-200 font-semibold whitespace-nowrap
         ${isSaved
           ? "border-sky-600 dark:border-sky-500 text-sky-700 dark:text-sky-400"
@@ -135,10 +137,6 @@ function SaveButton({ itemType, itemId, className = "", itemName = null, itemDat
       ) : (
         <HiOutlineBookmark className="w-5 h-5" />
       )}
-
-      <span className="text-sm font-semibold">
-        {isSaved ? "Saved" : "Save"}
-      </span>
     </button>
   );
 }
