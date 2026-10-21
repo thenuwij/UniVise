@@ -21,16 +21,16 @@ const aiStatus = (data, key, sectionsStatus) => {
 function SectionNav({ sections }) {
   return (
     <nav aria-label="Careers sections">
-      <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex-col lg:gap-0.5">
+      <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {sections.map(({ id, title, icon: Icon, meta }) => (
           <li key={id}>
             <a
               href={`#${id}`}
-              className="flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-ink border border-line bg-surface lg:border-transparent lg:bg-transparent hover:bg-surface-tint hover:text-link transition-colors"
+              className="flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium text-ink border border-line bg-surface hover:border-blue-300 hover:text-link transition-colors"
             >
               <Icon className="h-4 w-4 text-ink-muted" />
-              <span className="flex-1">{title}</span>
-              {meta && <span className="hidden lg:inline text-xs font-normal text-ink-muted">{meta}</span>}
+              <span>{title}</span>
+              {meta && <span className="text-xs font-normal text-ink-muted">{meta}</span>}
             </a>
           </li>
         ))}
@@ -101,15 +101,14 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   }
 
   return (
-    <div className="careers-page px-5 md:px-10 pt-6 pb-16 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
-      <aside className="sticky top-0 z-20 -mx-5 px-5 py-3 mb-4 bg-page/95 backdrop-blur lg:mx-0 lg:px-0 lg:py-0 lg:mb-0 lg:top-6 lg:self-start lg:bg-transparent lg:backdrop-blur-none">
-        <p className="hidden lg:block px-3 mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">On this page</p>
+    <div className="careers-page px-5 md:px-10 pb-16">
+      <div className="sticky top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-3 bg-page/95 backdrop-blur border-b border-line">
         <SectionNav sections={sections} />
-      </aside>
+      </div>
 
-      <div className="space-y-6">
+      <div>
         {loadFailed && (
-          <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
             Today's jobs, internships and events couldn't load. Refresh the page to try again.
           </p>
         )}

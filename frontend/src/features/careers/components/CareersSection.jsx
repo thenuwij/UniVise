@@ -70,26 +70,22 @@ export default function CareersSection({ id, icon: Icon, title, description, sta
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-20 overflow-hidden rounded-2xl border border-line bg-surface"
+      className="scroll-mt-20 border-t border-line py-10 first:border-t-0 first:pt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-tint px-5 py-4 md:px-7">
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface text-link border border-line">
-            <Icon className="h-[18px] w-[18px]" />
-          </span>
-          <div>
-            <h2 id={`${id}-title`} className="text-xl font-semibold text-ink-strong">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}
-          </div>
-        </div>
-        <div className="flex flex-col items-start gap-1">
+      <div className="mb-6 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-surface-tint text-link">
+          <Icon className="h-5 w-5" />
+        </span>
+        <h2 id={`${id}-title`} className="mt-3 text-2xl font-semibold text-ink-strong">{title}</h2>
+        {description && <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>}
+        <div className="mt-3 flex flex-col items-start gap-1">
           <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
           {sources.map((s) => (
             <SectionStatus key={s.label} label={s.label} status={s.status} updatedAt={s.refreshedAt} onRetry={s.onRetry} />
           ))}
         </div>
       </div>
-      <div className="px-5 py-6 md:px-7">
+      <div className="min-w-0">
         {loading && (
           <div className="mb-6" role="status">
             <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
