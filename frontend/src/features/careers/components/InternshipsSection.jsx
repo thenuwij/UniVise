@@ -18,7 +18,7 @@ function ProgramRow({ program }) {
   return (
     <li className="grid gap-x-6 gap-y-2 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-center">
       <div className="min-w-0">
-        <p className="text-base font-medium text-ink-strong">{program.program_name}</p>
+        <p className="text-base font-semibold text-ink-strong">{program.program_name}</p>
         <p className="mt-0.5 text-sm text-ink-muted">{[program.company, details].filter(Boolean).join(" · ")}</p>
       </div>
       <div className="text-sm">

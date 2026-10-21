@@ -13,7 +13,7 @@ function SourceTag({ ad }) {
   const topPick = (ad.id || "").startsWith("ai_");
   return (
     <span
-      className={`mr-2 inline-block px-1.5 py-px rounded text-xs font-semibold align-[1px] ${
+      className={`mr-2 inline-block px-1.5 py-px rounded text-[13px] font-semibold align-[1px] ${
         topPick ? "text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50" : "text-ink-muted bg-slate-100 dark:bg-slate-800"
       }`}
     >
@@ -34,7 +34,7 @@ export default function AdRows({ ads }) {
             className="group flex items-center justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
           >
             <span className="min-w-0">
-              <span className="block text-base font-medium text-ink-strong group-hover:text-link">{ad.title}</span>
+              <span className="block text-base font-semibold text-ink-strong group-hover:text-link">{ad.title}</span>
               <span className="block mt-0.5 text-sm text-ink-muted">
                 <SourceTag ad={ad} />
                 {[ad.organisation, ad.location].filter(Boolean).join(" · ")}
@@ -68,7 +68,7 @@ export function EventRows({ events }) {
           >
             <span className="text-sm font-semibold text-link">{event.date_label}</span>
             <span className="min-w-0">
-              <span className="block text-base font-medium text-ink-strong group-hover:text-link">{event.title}</span>
+              <span className="block text-base font-semibold text-ink-strong group-hover:text-link">{event.title}</span>
               <span className="block mt-0.5 text-sm text-ink-muted">{[event.organisation, event.location].filter(Boolean).join(" · ")}</span>
               {event.summary && <span className="block mt-1 text-sm text-ink line-clamp-1">{event.summary}</span>}
             </span>
@@ -103,7 +103,7 @@ export function CalendarLinks({ calendars }) {
           className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 hover:border-blue-300 hover:bg-surface-tint transition-colors"
         >
           <span className="min-w-0">
-            <span className="block text-base font-medium text-ink-strong group-hover:text-link">{calendar.organisation || calendar.title}</span>
+            <span className="block text-base font-semibold text-ink-strong group-hover:text-link">{calendar.organisation || calendar.title}</span>
             <span className="block text-sm text-ink-muted">Events calendar · {siteName(calendar.url)}</span>
           </span>
           <ExternalLink className="h-4 w-4 flex-shrink-0 text-ink-muted group-hover:text-link" />

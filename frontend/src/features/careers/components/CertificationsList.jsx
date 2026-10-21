@@ -26,7 +26,7 @@ export default function CertificationsList({ certifications }) {
         {shown.map((cert) => (
           <li key={cert.name} className="flex items-start justify-between gap-4 px-2 py-3">
             <div className="min-w-0">
-              <p className="text-base font-medium text-ink-strong">{cert.name}</p>
+              <p className="text-base font-semibold text-ink-strong">{cert.name}</p>
               <p className="mt-0.5 text-sm text-ink-muted">{[cert.provider, cert.timeline].filter(Boolean).join(" · ")}</p>
               {cert.notes && <p className="mt-1 text-sm text-ink-muted">{cert.notes}</p>}
               {cert.url && (
