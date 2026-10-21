@@ -7,10 +7,10 @@
   display: flex;
   align-items: center;
   gap: 28px;
-  min-height: 78px;
+  min-height: 60px;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 12px 40px;
+  padding: 8px 40px;
 }
 .app-nav-brand {
   display: inline-flex;
@@ -18,13 +18,13 @@
   gap: 9px;
   flex-shrink: 0;
   font-family: var(--font-heading);
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: -0.8px;
 }
 .app-nav-brand img {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
 }
 .app-nav-links {
   display: flex;
@@ -144,7 +144,7 @@
 }
 @media (max-width: 900px) {
   .app-nav-inner {
-    min-height: 64px;
+    min-height: 56px;
     gap: 14px;
     padding: 10px 20px;
   }
