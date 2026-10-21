@@ -27,13 +27,14 @@ def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
 
 
-def field_slug(degree: str) -> str:
-    major = re.sub(r"\s*\([^)]*\)", "", (degree or "").split(" - ", 1)[1]) if " - " in (degree or "") else ""
-    inner = re.search(r"\(([^)]+)\)", degree or "")
-    field = major or (inner.group(1) if inner and "honours" not in inner.group(1).lower() else "")
-    if not field:
-        field = re.sub(r"^bachelor of\s+", "", (degree or "").split("/")[0], flags=re.I)
-    return slug(re.sub(r"\(honours\)", "", field, flags=re.I).split(",")[0])
+def field_slug(name: str) -> str:
+    field = re.split(r"\s+-\s+", (name or "").split("/")[0])[0]
+    inner = re.search(r"\(([^)]+)\)", field)
+    if inner and "honours" not in inner.group(1).lower() and re.match(r"\s*(bachelor|master|doctor) of", field, re.I):
+        field = inner.group(1)
+    field = re.sub(r"\([^)]*\)", "", field)
+    field = re.sub(r"^\s*(bachelor|master|doctor) of\s+", "", field, flags=re.I)
+    return slug(field.split(",")[0])
 
 
 def role_words(roles: List[Dict[str, Any]]) -> List[str]:
@@ -45,12 +46,12 @@ def role_words(roles: List[Dict[str, Any]]) -> List[str]:
     return words
 
 
-def listing_pages(source: str, degree: str, roles: List[Dict[str, Any]]) -> List[str]:
+def listing_pages(source: str, field_name: str, roles: List[Dict[str, Any]]) -> List[str]:
     words = role_words(roles)
     if source == "ai_jobs":
         pages = [f"{SEEK}/{slug(f'graduate {w}')}-jobs/in-All-Sydney-NSW" for w in words]
     else:
-        field = field_slug(degree)
+        field = field_slug(field_name)
         pages = [f"{SEEK}/{field}-internship-jobs/in-All-Sydney-NSW"] if field else []
         pages += [f"{SEEK}/{slug(f'{w} intern')}-jobs/in-All-Sydney-NSW" for w in words]
     return list(dict.fromkeys(pages))[:PAGES_PER_LIST]
@@ -115,8 +116,8 @@ def parse_picks(text: str, count: int) -> List[int]:
     return list(dict.fromkeys(i for i in picks if isinstance(i, int) and 0 <= i < count))
 
 
-async def fetch_top_picks(source: str, degree: str, roles: List[Dict[str, Any]], today: date) -> List[Dict[str, Any]]:
-    pages = listing_pages(source, degree, roles)
+async def fetch_top_picks(source: str, degree: str, field_name: str, roles: List[Dict[str, Any]], today: date) -> List[Dict[str, Any]]:
+    pages = listing_pages(source, field_name, roles)
     if not pages:
         return []
     cards = parse_cards(await read_web_pages(reader_prompt(pages), len(pages), READER_MODEL), pages)
