@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { Briefcase, Building2, Route, Users } from "lucide-react";
+import { Award, Briefcase, Building2, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { mergeListings } from "../utils/careersListings";
 import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
 import CareersSection, { SubLabel } from "./CareersSection";
+import CertificationsList from "./CertificationsList";
+import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
 import "../careers.css";
@@ -62,11 +64,13 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   };
   const statuses = (...keys) => keys.map(sourceStatus).filter(Boolean);
   const programCount = data?.industry_experience?.internship_programs?.length || 0;
+  const certifications = data?.career_pathways?.certifications || [];
 
   const sections = [
     { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
     { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String((openAds?.length || 0) + programCount) : null },
     { id: "networking", title: "Networking", icon: Users, meta: sources ? String(events.length) : null },
+    { id: "certifications", title: "Certifications", icon: Award, meta: careersReady ? String(certifications.length) : null },
     { id: "career-outlook", title: "Career outlook", icon: Route, meta: null },
   ];
 
@@ -75,12 +79,26 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     document.getElementById(focusSection)?.scrollIntoView({ behavior: "smooth" });
   }, [focusSection]);
 
+  const certificationsSection = (
+    <CareersSection
+      id="certifications"
+      icon={Award}
+      title="Certifications"
+      description="Industry certifications that strengthen your applications, with how long each takes."
+      status={careersReady ? null : careersState}
+      loadingText="Finding certifications for your field."
+      onRetry={onRetry}
+    >
+      {careersReady && <CertificationsList certifications={certifications} />}
+    </CareersSection>
+  );
+
   const careerPaths = (
     <CareersSection
       id="career-outlook"
       icon={Route}
       title="Career outlook"
-      description="Where your degree can take you, from first job to senior roles."
+      description="The roles your degree leads to, from first job to senior, with typical salaries."
       status={careersReady ? null : careersState}
       loadingText="Mapping entry-level, mid-career and senior roles for your field."
       onRetry={onRetry}
@@ -91,10 +109,12 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
   if (!personal) {
     return (
-      <div className="careers-page px-5 md:px-10 pt-6 pb-16 space-y-6">
-        <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
+      <div className="careers-page px-5 md:px-10 pb-16">
+        <GraduateStats outlook={data?.career_pathways?.outlook} />
+        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
           Jobs, internships and networking events show for your own program. Make this your program to see them.
         </p>
+        {certificationsSection}
         {careerPaths}
       </div>
     );
@@ -105,6 +125,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       <div className="sticky top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-3 bg-page/95 backdrop-blur border-b border-line">
         <SectionNav sections={sections} />
       </div>
+      <GraduateStats outlook={data?.career_pathways?.outlook} />
 
       <div>
         {loadFailed && (
@@ -178,6 +199,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           )}
         </CareersSection>
 
+        {certificationsSection}
         {careerPaths}
       </div>
     </div>
