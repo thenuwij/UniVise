@@ -58,3 +58,38 @@ async def ask_claude_structured(
     if response.parsed_output is None:
         raise ValueError(f"Claude returned no structured output (stop_reason={response.stop_reason})")
     return response.parsed_output
+
+
+async def read_web_pages(prompt: str, page_count: int, model: str, max_tokens: int = 24000, page_tokens: int = 20000) -> str:
+    """Claude call that may open up to page_count of the URLs named in the prompt with web fetch; returns its text reply."""
+    messages = [{"role": "user", "content": prompt}]
+    tools = [{"type": "web_fetch_20250910", "name": "web_fetch", "max_uses": page_count, "max_content_tokens": page_tokens}]
+    client = _async_client.with_options(timeout=90, max_retries=0)
+    try:
+        for _ in range(3):
+            async with client.messages.stream(model=model, max_tokens=max_tokens, messages=messages, tools=tools) as stream:
+                response = await stream.get_final_message()
+            if response.stop_reason != "pause_turn":
+                break
+            messages = [{"role": "user", "content": prompt}, {"role": "assistant", "content": response.content}]
+    except Exception as e:
+        logger.error(f"Claude API error (read_web_pages): {e}")
+        raise
+    return "".join(block.text for block in response.content if block.type == "text")
+
+
+async def ask_claude_text(prompt: str, model: str, max_tokens: int = 4000, effort: str = "low") -> str:
+    """Plain Claude call for models that take an effort level instead of temperature (Claude 5 family)."""
+    try:
+        response = await _async_client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            output_config={"effort": effort},
+            messages=[{"role": "user", "content": prompt}],
+        )
+    except Exception as e:
+        logger.error(f"Claude API error (ask_claude_text): {e}")
+        raise
+    if response.stop_reason == "refusal":
+        raise ValueError("Claude declined the request")
+    return "".join(block.text for block in response.content if block.type == "text")

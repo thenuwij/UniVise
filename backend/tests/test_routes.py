@@ -4,10 +4,12 @@ from app.main import app
 
 EXPECTED_ROUTES = {
     ("DELETE", "/user/me"),
+    ("GET", "/careers/feed"),
     ("GET", "/course-picks"),
     ("GET", "/health"),
     ("GET", "/traits/results"),
     ("GET", "/user/me/export"),
+    ("POST", "/careers/refresh"),
     ("POST", "/chat/conversations/{conv_id}/reply/stream"),
     ("POST", "/compare"),
     ("POST", "/final-unsw-degrees/"),
