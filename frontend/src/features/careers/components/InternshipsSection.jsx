@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, CalendarClock, ExternalLink, GraduationCap, Megaphone } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SaveButton from "@/shared/ui/SaveButton";
 import { SourceLink } from "@/features/roadmap/components/SourceTags";
@@ -74,10 +74,10 @@ export default function InternshipsSection({ industryExperience, openAds }) {
   const shownPrograms = showAllPrograms ? programs : programs.slice(0, SHOWN_PROGRAMS);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
       <div>
-        <SubLabel action={openAds?.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}>Open now</SubLabel>
-        <div className="mt-3">
+        <SubLabel icon={Megaphone} hint="Live ads you can apply for today" action={openAds?.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}>Open now</SubLabel>
+        <div className="mt-4">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : openAds.length > 0 ? (
@@ -97,8 +97,8 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
       {programs.length > 0 && (
         <div>
-          <SubLabel>Opening soon</SubLabel>
-          <ul className="mt-1 divide-y divide-line border-b border-line">
+          <SubLabel icon={CalendarClock} hint="Programs that open at set times each year, soonest first">Opening soon</SubLabel>
+          <ul className="mt-3 divide-y divide-line border-b border-line">
             {shownPrograms.map((program) => (
               <ProgramRow key={`${program.company}-${program.program_name}`} program={program} />
             ))}
@@ -113,9 +113,9 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
       {hasPlacements && (
         <div>
-          <SubLabel>Placements in your degree</SubLabel>
+          <SubLabel icon={GraduationCap} hint="Work experience built into your degree">Placements in your degree</SubLabel>
           <div
-            className={`mt-3 rounded-xl p-5 ${
+            className={`mt-4 rounded-xl p-5 ${
               placements?.required
                 ? "border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
                 : "bg-slate-50 dark:bg-slate-800/50"

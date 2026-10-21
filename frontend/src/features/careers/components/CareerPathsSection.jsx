@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ExternalLink, Signpost, TrendingUp, CheckCircle2 } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { UserAuth } from "@/app/AuthContext";
@@ -194,10 +194,12 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
   const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.role === role.ad_search).length : 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
       {levels.length > 0 && (
         <div>
           <SubLabel
+            icon={Signpost}
+            hint="Open a role for pay, next steps and how your degree gets you there"
             action={
               <div className="flex gap-1.5" role="group" aria-label="Career stage">
                 {levels.map((l) => (
@@ -208,9 +210,9 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
               </div>
             }
           >
-            Roles
+            Roles by career stage
           </SubLabel>
-          <ul className="mt-2 divide-y divide-line border-y border-line">
+          <ul className="mt-4 divide-y divide-line border-y border-line">
             {roles.map((role) => (
               <RoleRow
                 key={`${level}-${role.title}`}

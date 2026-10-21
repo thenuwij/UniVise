@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Award, Briefcase, Building2, Route, Users } from "lucide-react";
+import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { mergeListings } from "../utils/careersListings";
 import { CalendarLinks, EventRows } from "./AdRows";
@@ -176,10 +176,10 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           {!ready("ai_networking") ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
               <div>
-                <SubLabel>Upcoming events</SubLabel>
-                <div className="mt-3">
+                <SubLabel icon={CalendarDays} hint="The next 8 weeks, in Sydney and online">Upcoming events</SubLabel>
+                <div className="mt-4">
                   {events.length > 0 ? (
                     <EventRows events={events} />
                   ) : (
@@ -189,8 +189,8 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
               </div>
               {calendars.length > 0 && (
                 <div>
-                  <SubLabel>Event calendars to keep an eye on</SubLabel>
-                  <div className="mt-3">
+                  <SubLabel icon={CalendarRange} hint="Organisations that run events in your field">Event calendars to keep an eye on</SubLabel>
+                  <div className="mt-4">
                     <CalendarLinks calendars={calendars} />
                   </div>
                 </div>

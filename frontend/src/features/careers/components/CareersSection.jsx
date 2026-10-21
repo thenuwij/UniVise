@@ -53,10 +53,20 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   );
 }
 
-export function SubLabel({ children, action }) {
+export function SubLabel({ icon: Icon, hint, children, action }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h3 className="border-l-[3px] border-brand-blue pl-2.5 text-[15px] font-semibold leading-5 text-ink-strong">{children}</h3>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-link dark:bg-blue-900/40">
+            <Icon className="h-[18px] w-[18px]" />
+          </span>
+        )}
+        <div>
+          <h3 className="text-[17px] font-semibold leading-6 text-ink-strong">{children}</h3>
+          {hint && <p className="text-[13px] text-ink-muted">{hint}</p>}
+        </div>
+      </div>
       {action}
     </div>
   );
