@@ -79,8 +79,8 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
         <nav className="app-nav-links" aria-label="Main navigation">
           {[
             ["dashboard", "Dashboard", "/dashboard"],
-            ["roadmap", "Roadmap", "/roadmap-entryload"],
-            ["careers", "Careers", roadmapViewUrl("careers")],
+            ["roadmap", "My Program", "/roadmap-entryload"],
+            ["careers", "My Career", roadmapViewUrl("careers")],
           ].map(([key, label, path]) => (
             <Link
               key={key}

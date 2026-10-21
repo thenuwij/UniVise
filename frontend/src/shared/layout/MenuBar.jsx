@@ -12,8 +12,8 @@ const GROUPS = [
     label: "Your plan",
     items: [
       { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { path: "/roadmap-entryload", label: "Roadmap", icon: Map },
-      { path: roadmapViewUrl("careers"), label: "Careers", icon: Briefcase },
+      { path: "/roadmap-entryload", label: "My Program", icon: Map },
+      { path: roadmapViewUrl("careers"), label: "My Career", icon: Briefcase },
     ],
   },
   {

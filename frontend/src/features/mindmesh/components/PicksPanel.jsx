@@ -29,7 +29,7 @@ export default function PicksPanel({ picks, loading, failed, onRetry, onMap, onS
           </p>
         ) : picks.length === 0 ? (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            No recommendations yet. Mark the courses you've finished as done in your roadmap to see what fits next.
+            No recommendations yet. Mark the courses you've finished as done in My Program to see what fits next.
           </p>
         ) : (
           <ul className="space-y-2.5">

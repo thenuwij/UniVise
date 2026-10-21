@@ -136,7 +136,7 @@ function EmptyState({ onAction }) {
       </div>
       <h3 className="text-lg font-bold text-ink-strong">Nothing saved yet</h3>
       <p className="mt-2 text-[15px] text-ink-muted max-w-md mx-auto">
-        Use the save button on careers, internships and societies in your roadmap. They'll collect here so you can compare them and add notes.
+        Use the save button on careers, internships and societies in My Program and My Career. They'll collect here so you can compare them and add notes.
       </p>
       <button type="button" onClick={onAction} className="button-primary mt-6 px-5 py-2.5 rounded-xl text-sm font-bold">
         Open the Careers step

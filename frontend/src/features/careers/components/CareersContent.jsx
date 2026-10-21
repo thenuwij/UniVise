@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { mergeListings } from "../utils/careersListings";
@@ -112,10 +112,14 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     { id: "career-outlook", title: "Career outlook", icon: Route, meta: null },
   ];
 
+  const scrolledTo = useRef(null);
+  const listsLoaded = !personal || !!sources;
   useEffect(() => {
-    if (!focusSection) return;
-    document.getElementById(focusSection)?.scrollIntoView({ behavior: "smooth" });
-  }, [focusSection]);
+    if (!focusSection || !listsLoaded || scrolledTo.current === focusSection) return;
+    scrolledTo.current = focusSection;
+    const timer = setTimeout(() => document.getElementById(focusSection)?.scrollIntoView(), 300);
+    return () => clearTimeout(timer);
+  }, [focusSection, listsLoaded]);
 
   const certificationsSection = (
     <CareersSection
