@@ -37,7 +37,7 @@ const SECTION_GROUPS = [
     tour: "dash-career",
     links: [
       { key: "jobs", title: "Jobs", text: "Graduate and junior roles picked for you", icon: Briefcase, to: careerSectionUrl("jobs") },
-      { key: "internships", title: "Internships", text: "Open now and programs opening soon", icon: Building2, to: careerSectionUrl("internships") },
+      { key: "internships", title: "Internships", text: "Open internships and annual programs", icon: Building2, to: careerSectionUrl("internships") },
       { key: "networking", title: "Networking", text: "Career fairs, meetups and industry events", icon: Handshake, to: careerSectionUrl("networking") },
       { key: "certifications", title: "Certifications", text: "Credentials that strengthen applications", icon: Award, to: careerSectionUrl("certifications") },
       { key: "outlook", title: "Career outlook", text: "Roles and pay your degree leads to", icon: Route, to: careerSectionUrl("career-outlook") },
