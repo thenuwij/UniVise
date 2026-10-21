@@ -21,7 +21,6 @@ const SECTION_GROUPS = [
   {
     id: "program",
     title: "My Program",
-    text: "Your degree, courses and the communities around it.",
     tour: "dash-steps",
     links: [
       { key: "overview", title: "Overview", text: "Understand your degree and requirements", icon: BookOpen, to: roadmapStepUrl("overview") },
@@ -33,7 +32,6 @@ const SECTION_GROUPS = [
   {
     id: "career",
     title: "My Career",
-    text: "Live jobs, internships and events for your degree, plus where it can take you.",
     tour: "dash-career",
     links: [
       { key: "jobs", title: "Jobs", text: "Graduate and junior roles picked for you", icon: Briefcase, to: careerSectionUrl("jobs") },
@@ -152,7 +150,6 @@ export default function ProgramCard({ facts }) {
           >
             <div className="dashboard-group-heading">
               <h2 id={`dashboard-${group.id}-title`}>{group.title}</h2>
-              <p className="dashboard-muted">{group.text}</p>
             </div>
             <nav aria-label={`${group.title} sections`}>
               <ul className="dashboard-link-list">

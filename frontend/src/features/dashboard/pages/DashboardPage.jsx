@@ -81,12 +81,9 @@ export default function DashboardPage() {
               {greeting}
               {name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}
             </h1>
-            <p className="dashboard-muted">
-              Pick up your plan, or find something new.
-            </p>
           </div>
           <div className="dashboard-welcome-actions">
-            <Link to="/chat" className="dashboard-button">
+            <Link to="/chat" className="dashboard-button dashboard-ask-eunice">
               <Sparkles aria-hidden="true" />
               Ask Eunice
             </Link>
