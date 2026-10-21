@@ -8,17 +8,7 @@ export function postedAgo(postedAt, now = Date.now()) {
   return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 }
 
-const INTERNSHIP_TITLE = /\b(intern|internship|vacation|vacationer|cadet|cadetship|graduate program)\b/i;
 const COMPANY_FILLER = new Set(["pty", "ltd", "limited", "australia", "australian", "group", "inc", "the", "and", "co", "company", "corporation", "corp", "holdings", "services", "plc", "llp", "nsw", "of"]);
-
-export function splitAds(ads) {
-  const seen = new Set();
-  const unique = ads.filter((ad) => !seen.has(ad.ad_id) && seen.add(ad.ad_id));
-  return {
-    jobs: unique.filter((ad) => !INTERNSHIP_TITLE.test(ad.title || "")),
-    internships: unique.filter((ad) => INTERNSHIP_TITLE.test(ad.title || "")),
-  };
-}
 
 function companyKey(name) {
   return (name || "").toLowerCase().match(/[a-z0-9]+/g)?.filter((w) => !COMPANY_FILLER.has(w)).join(" ") || "";

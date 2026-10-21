@@ -1,12 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Briefcase, Building2, Route, Users } from "lucide-react";
-import { useJobAds } from "@/features/roadmap/hooks/useHiringNow";
-import { splitAds } from "@/features/roadmap/utils/hiringNow";
+import { useCareersFeed } from "../hooks/useCareersFeed";
+import { mergeListings } from "../utils/careersListings";
+import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
-import CareersSection from "./CareersSection";
+import CareersSection, { SubLabel } from "./CareersSection";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
 import "../careers.css";
+
+const SOURCE_LABELS = { adzuna: "Adzuna", ai_jobs: "Top picks", ai_internships: "Top picks", ai_networking: "Web search" };
 
 const hasPart = (data, key) => !!data?.[key] && Object.keys(data[key]).length > 0;
 
@@ -36,21 +39,34 @@ function SectionNav({ sections }) {
   );
 }
 
-export default function CareersContent({ data, sectionsStatus, onRetry, personal, focusSection }) {
+export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal, focusSection }) {
   const entryRoles = data?.career_pathways?.entry_level?.roles;
-  const ads = useJobAds(entryRoles);
-  const split = useMemo(() => (ads ? splitAds(ads) : null), [ads]);
   const careersState = aiStatus(data, "career_pathways", sectionsStatus);
   const internshipsState = aiStatus(data, "industry_experience", sectionsStatus);
   const careersReady = careersState === "done";
-  const jobs = careersReady ? split?.jobs ?? null : null;
-  const openAds = careersReady ? split?.internships ?? null : [];
+  const { sources, loadFailed, refresh } = useCareersFeed(careersReady && personal ? roadmapId : null);
+
+  const feed = (key) => sources?.[key];
+  const items = (key, kind) => (feed(key)?.items || []).filter((item) => !kind || item.kind === kind);
+  const ready = (...keys) => !!sources && keys.every((key) => feed(key)?.status !== "running" || items(key).length > 0);
+
+  const jobs = sources ? mergeListings(items("ai_jobs"), items("adzuna", "job")) : null;
+  const openAds = sources ? mergeListings(items("ai_internships"), items("adzuna", "internship")) : null;
+  const events = items("ai_networking").filter((item) => item.kind !== "calendar");
+  const calendars = items("ai_networking").filter((item) => item.kind === "calendar");
+
+  const sourceStatus = (key) => {
+    const state = feed(key);
+    if (!state || state.status === "never") return null;
+    return { label: SOURCE_LABELS[key], status: state.status, refreshedAt: state.refreshed_at, onRetry: () => refresh(key) };
+  };
+  const statuses = (...keys) => keys.map(sourceStatus).filter(Boolean);
   const programCount = data?.industry_experience?.internship_programs?.length || 0;
 
   const sections = [
     { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
     { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String((openAds?.length || 0) + programCount) : null },
-    { id: "networking", title: "Networking", icon: Users, meta: "Soon" },
+    { id: "networking", title: "Networking", icon: Users, meta: sources ? String(events.length) : null },
     { id: "career-paths", title: "Career paths", icon: Route, meta: null },
   ];
 
@@ -58,6 +74,31 @@ export default function CareersContent({ data, sectionsStatus, onRetry, personal
     if (!focusSection) return;
     document.getElementById(focusSection)?.scrollIntoView({ behavior: "smooth" });
   }, [focusSection]);
+
+  const careerPaths = (
+    <CareersSection
+      id="career-paths"
+      icon={Route}
+      title="Career paths"
+      description="Where your degree can take you, from first job to senior roles."
+      status={careersReady ? null : careersState}
+      loadingText="Mapping entry-level, mid-career and senior roles for your field."
+      onRetry={onRetry}
+    >
+      {careersReady && <CareerPathsSection careerPathways={data.career_pathways} personal={personal} jobs={jobs} />}
+    </CareersSection>
+  );
+
+  if (!personal) {
+    return (
+      <div className="careers-page px-5 md:px-10 pt-6 pb-16 space-y-6">
+        <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
+          Jobs, internships and networking events show for your own program. Make this your program to see them.
+        </p>
+        {careerPaths}
+      </div>
+    );
+  }
 
   return (
     <div className="careers-page px-5 md:px-10 pt-6 pb-16 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
@@ -67,28 +108,41 @@ export default function CareersContent({ data, sectionsStatus, onRetry, personal
       </aside>
 
       <div className="space-y-6">
+        {loadFailed && (
+          <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+            Today's jobs, internships and events couldn't load. Refresh the page to try again.
+          </p>
+        )}
+
         <CareersSection
           id="jobs"
           icon={Briefcase}
           title="Jobs hiring now"
-          description="Graduate and junior roles for your degree's entry-level careers."
+          description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
           status={careersReady ? null : careersState}
-          loadingText="Checking for new graduate jobs for your degree's roles."
+          sources={statuses("adzuna", "ai_jobs")}
+          loadingText="Finding the best graduate jobs for your degree. The first time takes about a minute."
           onRetry={onRetry}
         >
-          {careersState !== "failed" && <JobsSection jobs={jobs} roles={entryRoles} />}
+          {careersState !== "failed" && <JobsSection jobs={ready("adzuna", "ai_jobs") ? jobs : null} roles={entryRoles} />}
         </CareersSection>
 
         <CareersSection
           id="internships"
           icon={Building2}
           title="Internships"
-          description="Ads open now, programs that open each year, and placements in your degree."
+          description="Internships open now, programs that open each year, and placements in your degree."
           status={internshipsState === "done" ? null : internshipsState}
-          loadingText="Finding internship programs and placements for your degree."
+          sources={statuses("adzuna", "ai_internships")}
+          loadingText="Finding internships for your degree. The first time takes about a minute."
           onRetry={onRetry}
         >
-          {internshipsState === "done" && <InternshipsSection industryExperience={data.industry_experience} openAds={openAds} />}
+          {internshipsState === "done" && (
+            <InternshipsSection
+              industryExperience={data.industry_experience}
+              openAds={ready("adzuna", "ai_internships") ? openAds : null}
+            />
+          )}
         </CareersSection>
 
         <CareersSection
@@ -96,24 +150,36 @@ export default function CareersContent({ data, sectionsStatus, onRetry, personal
           icon={Users}
           title="Networking"
           description="Career fairs, industry nights and society events where you can meet people in your field."
+          sources={statuses("ai_networking")}
+          loadingText="Looking for upcoming events in Sydney for your field. This takes up to a minute."
         >
-          <div className="rounded-xl border border-dashed border-line px-5 py-6 text-center">
-            <p className="text-[15px] font-medium text-ink-strong">Coming soon</p>
-            <p className="mt-1 text-sm text-ink-muted">Upcoming events for your degree will show here.</p>
-          </div>
+          {!ready("ai_networking") ? (
+            <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
+          ) : (
+            <div className="space-y-8">
+              <div>
+                <SubLabel>Upcoming events</SubLabel>
+                <div className="mt-3">
+                  {events.length > 0 ? (
+                    <EventRows events={events} />
+                  ) : (
+                    <p className="text-sm text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
+                  )}
+                </div>
+              </div>
+              {calendars.length > 0 && (
+                <div>
+                  <SubLabel>Event calendars to keep an eye on</SubLabel>
+                  <div className="mt-3">
+                    <CalendarLinks calendars={calendars} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CareersSection>
 
-        <CareersSection
-          id="career-paths"
-          icon={Route}
-          title="Career paths"
-          description="Where your degree can take you, from first job to senior roles."
-          status={careersReady ? null : careersState}
-          loadingText="Mapping entry-level, mid-career and senior roles for your field."
-          onRetry={onRetry}
-        >
-          {careersReady && <CareerPathsSection careerPathways={data.career_pathways} personal={personal} jobs={jobs} />}
-        </CareersSection>
+        {careerPaths}
       </div>
     </div>
   );

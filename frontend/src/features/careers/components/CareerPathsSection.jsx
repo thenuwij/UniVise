@@ -227,7 +227,7 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
     if (match?.id) navigate(`/course/${match.id}`);
   };
 
-  const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.search_words === role.ad_search).length : 0);
+  const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.role === role.ad_search).length : 0);
 
   return (
     <div className="space-y-8">

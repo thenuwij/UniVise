@@ -10,7 +10,7 @@ export default function JobsSection({ jobs, roles }) {
   const [showAll, setShowAll] = useState(false);
 
   const roleChips = useMemo(
-    () => (roles || []).filter((r) => r.ad_search && jobs?.some((ad) => ad.search_words === r.ad_search)),
+    () => (roles || []).filter((r) => r.ad_search && jobs?.some((ad) => ad.role === r.ad_search)),
     [roles, jobs]
   );
 
@@ -27,13 +27,13 @@ export default function JobsSection({ jobs, roles }) {
   if (!jobs.length) {
     return (
       <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 px-5 py-6 text-center">
-        <p className="text-[15px] font-medium text-ink-strong">No graduate job ads right now</p>
-        <p className="mt-1 text-sm text-ink-muted">New ads for your degree's entry roles will show here.</p>
+        <p className="text-[15px] font-medium text-ink-strong">No graduate job ads found today</p>
+        <p className="mt-1 text-sm text-ink-muted">We check again each day for your degree's entry roles.</p>
       </div>
     );
   }
 
-  const filtered = role ? jobs.filter((ad) => ad.search_words === role) : jobs;
+  const filtered = role ? jobs.filter((ad) => ad.role === role) : jobs;
   const shown = showAll ? filtered : filtered.slice(0, SHOWN_JOBS);
 
   return (
@@ -57,7 +57,7 @@ export default function JobsSection({ jobs, roles }) {
             ))}
           </div>
         ) : <span />}
-        <AdzunaCredit />
+        {jobs.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}
       </div>
       <AdRows ads={shown} />
       {filtered.length > SHOWN_JOBS && (

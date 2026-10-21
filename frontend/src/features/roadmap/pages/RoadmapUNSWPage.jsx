@@ -536,6 +536,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         steps={steps}
         content={isCareers ? (
           <CareersContent
+            roadmapId={preloadedRoadmapId}
             data={data}
             sectionsStatus={sectionsStatus}
             onRetry={retrySections}

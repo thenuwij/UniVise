@@ -61,7 +61,7 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
   const programs = useMemo(() => {
     const list = (industryExperience?.internship_programs || []).filter(
-      (program) => !(openAds || []).some((ad) => sameCompany(ad.company, program.company))
+      (program) => !(openAds || []).some((ad) => sameCompany(ad.organisation, program.company))
     );
     return list
       .map((program) => ({ program, months: monthsUntilOpen(program.application_period) }))
@@ -79,7 +79,7 @@ export default function InternshipsSection({ industryExperience, openAds }) {
   return (
     <div className="space-y-8">
       <div>
-        <SubLabel action={openAds?.length > 0 && <AdzunaCredit />}>Open now</SubLabel>
+        <SubLabel action={openAds?.some((ad) => ad.source_site === "Adzuna") && <AdzunaCredit />}>Open now</SubLabel>
         <div className="mt-3">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
