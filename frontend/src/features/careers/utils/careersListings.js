@@ -1,4 +1,6 @@
-const listingKey = (item) => `${(item.title || "").trim().toLowerCase()}|${(item.organisation || "").trim().toLowerCase()}`;
+import { companyKey } from "@/features/roadmap/utils/hiringNow";
+
+const listingKey = (item) => `${(item.title || "").trim().toLowerCase()}|${companyKey(item.organisation)}`;
 
 export function mergeListings(...groups) {
   const seen = new Set();

@@ -9,6 +9,19 @@ function SourceBadge({ site }) {
   );
 }
 
+function SourceTag({ ad }) {
+  const topPick = (ad.id || "").startsWith("ai_");
+  return (
+    <span
+      className={`mr-2 inline-block px-1.5 py-px rounded text-[11px] font-semibold align-[1px] ${
+        topPick ? "text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50" : "text-ink-muted bg-slate-100 dark:bg-slate-800"
+      }`}
+    >
+      {topPick ? `Top pick · ${ad.source_site || "Web"}` : ad.source_site || "Adzuna"}
+    </span>
+  );
+}
+
 export default function AdRows({ ads }) {
   return (
     <ul className="divide-y divide-line border-y border-line">
@@ -22,7 +35,10 @@ export default function AdRows({ ads }) {
           >
             <span className="min-w-0">
               <span className="block text-[15px] font-medium text-ink-strong group-hover:text-link">{ad.title}</span>
-              <span className="block mt-0.5 text-[13px] text-ink-muted">{[ad.organisation, ad.location].filter(Boolean).join(" · ")}</span>
+              <span className="block mt-0.5 text-[13px] text-ink-muted">
+                <SourceTag ad={ad} />
+                {[ad.organisation, ad.location].filter(Boolean).join(" · ")}
+              </span>
               {ad.summary && <span className="block mt-1 text-[13px] text-ink line-clamp-1">{ad.summary}</span>}
             </span>
             <span className="flex flex-shrink-0 items-center gap-2.5 text-[13px] text-ink-muted">
@@ -30,7 +46,6 @@ export default function AdRows({ ads }) {
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold text-emerald-800 bg-emerald-100 dark:text-emerald-200 dark:bg-emerald-900/50">New</span>
               )}
               <span className="hidden sm:inline">{ad.posted_at ? postedAgo(ad.posted_at) : ad.date_label}</span>
-              <span className="hidden md:inline"><SourceBadge site={ad.source_site} /></span>
               <ExternalLink className="h-4 w-4 group-hover:text-link" />
             </span>
           </a>

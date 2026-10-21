@@ -9,6 +9,7 @@ import AdRows, { AdzunaCredit } from "./AdRows";
 import { SubLabel } from "./CareersSection";
 
 const SHOWN_PROGRAMS = 4;
+const SHOWN_OPEN = 5;
 
 const RESOURCES = [
   { name: "UNSWConnect", desc: "Internships, part-time jobs and graduate roles", url: "https://unswconnect.unsw.edu.au" },
@@ -58,6 +59,7 @@ function ProgramRow({ program }) {
 
 export default function InternshipsSection({ industryExperience, openAds }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
+  const [showAllOpen, setShowAllOpen] = useState(false);
 
   const programs = useMemo(() => {
     const list = (industryExperience?.internship_programs || []).filter(
@@ -84,7 +86,14 @@ export default function InternshipsSection({ industryExperience, openAds }) {
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : openAds.length > 0 ? (
-            <AdRows ads={openAds} />
+            <>
+              <AdRows ads={showAllOpen ? openAds : openAds.slice(0, SHOWN_OPEN)} />
+              {openAds.length > SHOWN_OPEN && (
+                <ExpandToggle wide open={showAllOpen} onClick={() => setShowAllOpen(!showAllOpen)}>
+                  {showAllOpen ? "Show fewer" : `Show all ${openAds.length} internships`}
+                </ExpandToggle>
+              )}
+            </>
           ) : (
             <p className="text-sm text-ink-muted">No internship ads open right now. The programs below show when they usually open.</p>
           )}

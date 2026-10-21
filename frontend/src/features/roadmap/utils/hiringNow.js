@@ -10,7 +10,7 @@ export function postedAgo(postedAt, now = Date.now()) {
 
 const COMPANY_FILLER = new Set(["pty", "ltd", "limited", "australia", "australian", "group", "inc", "the", "and", "co", "company", "corporation", "corp", "holdings", "services", "plc", "llp", "nsw", "of"]);
 
-function companyKey(name) {
+export function companyKey(name) {
   return (name || "").toLowerCase().match(/[a-z0-9]+/g)?.filter((w) => !COMPANY_FILLER.has(w)).join(" ") || "";
 }
 
