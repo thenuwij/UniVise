@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRecent, monthsUntilOpen, updatedLabel } from "./careersDates";
+import { cleanDateLabel, isRecent, monthsUntilOpen, savedAdExpired, updatedLabel } from "./careersDates";
 
 describe("updatedLabel", () => {
   const now = Date.parse("2026-10-21T02:00:00Z");
@@ -35,5 +35,31 @@ describe("isRecent", () => {
     expect(isRecent("2026-10-20T00:00:00Z", now)).toBe(true);
     expect(isRecent("2026-10-17T00:00:00Z", now)).toBe(false);
     expect(isRecent(null, now)).toBe(false);
+  });
+});
+
+describe("savedAdExpired", () => {
+  const now = Date.parse("2026-10-23T00:00:00Z");
+
+  it("expires an ad four weeks after it was listed", () => {
+    expect(savedAdExpired({ posted_at: "2026-09-24T00:00:00Z" }, "2026-10-20T00:00:00Z", now)).toBe(true);
+    expect(savedAdExpired({ posted_at: "2026-09-26T00:00:00Z" }, "2026-09-26T00:00:00Z", now)).toBe(false);
+  });
+
+  it("counts from the save date when the listing date is unknown", () => {
+    expect(savedAdExpired({ posted_at: null }, "2026-09-20T00:00:00Z", now)).toBe(true);
+    expect(savedAdExpired({ posted_at: null }, "2026-10-10T00:00:00Z", now)).toBe(false);
+  });
+
+  it("never expires without any date", () => {
+    expect(savedAdExpired({}, null, now)).toBe(false);
+  });
+});
+
+describe("cleanDateLabel", () => {
+  it("drops the short form SEEK adds in brackets", () => {
+    expect(cleanDateLabel("Listed four hours ago (4h ago)")).toBe("Listed four hours ago");
+    expect(cleanDateLabel("Listed two days ago")).toBe("Listed two days ago");
+    expect(cleanDateLabel(null)).toBe("");
   });
 });

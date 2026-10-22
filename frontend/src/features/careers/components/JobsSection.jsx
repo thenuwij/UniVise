@@ -5,7 +5,7 @@ import AdRows from "./AdRows";
 
 const SHOWN_JOBS = 5;
 
-export default function JobsSection({ jobs, roles }) {
+export default function JobsSection({ jobs, roles, savedIds, onToggleSave }) {
   const [role, setRole] = useState(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -56,7 +56,7 @@ export default function JobsSection({ jobs, roles }) {
           ))}
         </div>
       )}
-      <AdRows ads={shown} />
+      <AdRows ads={shown} savedIds={savedIds} onToggleSave={onToggleSave} />
       {filtered.length > SHOWN_JOBS && (
         <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
           {showAll ? "Show fewer" : `Show all ${filtered.length} jobs`}

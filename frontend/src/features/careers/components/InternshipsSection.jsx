@@ -47,7 +47,7 @@ function ProgramRow({ program }) {
   );
 }
 
-export default function InternshipsSection({ industryExperience, openAds }) {
+export default function InternshipsSection({ industryExperience, openAds, savedIds, onToggleSave }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [showAllOpen, setShowAllOpen] = useState(false);
 
@@ -77,7 +77,7 @@ export default function InternshipsSection({ industryExperience, openAds }) {
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : openAds.length > 0 ? (
             <>
-              <AdRows ads={showAllOpen ? openAds : openAds.slice(0, SHOWN_OPEN)} />
+              <AdRows ads={showAllOpen ? openAds : openAds.slice(0, SHOWN_OPEN)} savedIds={savedIds} onToggleSave={onToggleSave} />
               {openAds.length > SHOWN_OPEN && (
                 <ExpandToggle quiet open={showAllOpen} onClick={() => setShowAllOpen(!showAllOpen)}>
                   {showAllOpen ? "Show fewer" : `Show all ${openAds.length} internships`}

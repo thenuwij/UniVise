@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
+import { useSavedAds } from "../hooks/useSavedAds";
 import { mergeListings } from "../utils/careersListings";
 import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
@@ -86,7 +87,10 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   const careersState = aiStatus(data, "career_pathways", sectionsStatus);
   const internshipsState = aiStatus(data, "industry_experience", sectionsStatus);
   const careersReady = careersState === "done";
-  const { sources, loadFailed, refresh } = useCareersFeed(careersReady && personal ? roadmapId : null);
+  const { sources, loadFailed, retryLoad, refresh } = useCareersFeed(careersReady && personal ? roadmapId : null);
+
+  const { savedIds, toggleSave } = useSavedAds();
+  const feedLoading = !sources && !loadFailed && careersState !== "failed";
 
   const feed = (key) => sources?.[key];
   const items = (key, kind) => (feed(key)?.items || []).filter((item) => !kind || item.kind === kind);
@@ -171,7 +175,10 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       <div>
         {loadFailed && (
           <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-            Today's jobs, internships and events couldn't load. Refresh the page to try again.
+            Today's jobs, internships and events couldn't load.{" "}
+            <button type="button" onClick={retryLoad} className="font-semibold underline hover:no-underline">
+              Try again
+            </button>
           </p>
         )}
 
@@ -179,19 +186,19 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           id="jobs"
           title="Jobs hiring now"
           description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
-          status={careersReady ? null : careersState}
+          status={careersReady ? (feedLoading ? "loading" : null) : careersState}
           sources={statuses("adzuna", "ai_jobs")}
           loadingText="Finding the best graduate jobs for your degree. The first time takes about a minute."
           onRetry={onRetry}
         >
-          {careersState !== "failed" && <JobsSection jobs={ready("adzuna", "ai_jobs") ? jobs : null} roles={entryRoles} />}
+          {careersState !== "failed" && <JobsSection jobs={ready("adzuna", "ai_jobs") ? jobs : null} roles={entryRoles} savedIds={savedIds} onToggleSave={toggleSave} />}
         </CareersSection>
 
         <CareersSection
           id="internships"
           title="Internships"
           description="Internships open now, programs that open each year, and placements in your degree."
-          status={internshipsState === "done" ? null : internshipsState}
+          status={internshipsState === "done" ? (feedLoading ? "loading" : null) : internshipsState}
           sources={statuses("adzuna", "ai_internships")}
           loadingText="Finding internships for your degree. The first time takes about a minute."
           onRetry={onRetry}
@@ -200,6 +207,8 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
             <InternshipsSection
               industryExperience={data.industry_experience}
               openAds={ready("adzuna", "ai_internships") ? openAds : null}
+              savedIds={savedIds}
+              onToggleSave={toggleSave}
             />
           )}
         </CareersSection>
@@ -208,6 +217,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           id="networking"
           title="Networking"
           description="Career fairs, industry nights and society events where you can meet people in your field."
+          status={feedLoading ? "loading" : null}
           sources={statuses("ai_networking")}
           loadingText="Looking for upcoming events in Sydney for your field. This takes up to a minute."
         >
