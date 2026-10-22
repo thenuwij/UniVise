@@ -266,7 +266,7 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
     return (
       <>
         {header}
-        <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-12 space-y-4">
+        <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-12 space-y-4">
           <SkeletonCard lines={4} />
           <SkeletonCard lines={6} />
           <SkeletonCard lines={4} />
@@ -310,7 +310,7 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
     return (
       <>
         {header}
-        <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-12">
+        <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-12">
           <div className="rounded-2xl border border-red-200 bg-red-50/70 dark:border-red-700 dark:bg-red-900/40 p-4 text-sm text-red-700 dark:text-red-300">
             {error}
           </div>

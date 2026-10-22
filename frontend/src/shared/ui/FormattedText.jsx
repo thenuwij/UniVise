@@ -57,7 +57,7 @@ export default function FormattedText({ text, collapsedHeight = "14rem", classNa
       </div>
       {(clamped || expanded) && (
         <div className="mt-3">
-          <ExpandToggle open={expanded} onClick={() => setExpanded(!expanded)}>
+          <ExpandToggle plain open={expanded} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Show less" : "Read more"}
           </ExpandToggle>
         </div>

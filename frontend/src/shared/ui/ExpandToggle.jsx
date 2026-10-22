@@ -1,7 +1,17 @@
 import ExpandIcon from "./ExpandIcon";
 import { ChevronDown } from "lucide-react";
 
-export default function ExpandToggle({ open, onClick, children, wide = false, large = false, quiet = false, as: Tag = "button" }) {
+export default function ExpandToggle({ open, onClick, children, wide = false, large = false, quiet = false, plain = false, as: Tag = "button" }) {
+  if (plain) {
+    return (
+      <Tag
+        {...(Tag === "button" ? { type: "button", onClick, "aria-expanded": open } : {})}
+        className="mt-2 inline-flex items-center text-sm font-semibold text-link underline-offset-4 hover:underline"
+      >
+        {children}
+      </Tag>
+    );
+  }
   if (quiet) {
     return (
       <Tag

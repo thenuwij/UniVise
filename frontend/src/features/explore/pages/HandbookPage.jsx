@@ -198,7 +198,7 @@ export default function HandbookPage() {
         </div>
       </PageHeader>
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
+      <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-8">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button

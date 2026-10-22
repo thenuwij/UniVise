@@ -19,7 +19,7 @@ export default function DetailLoading({ failed, what }) {
         title={failed ? `This ${what} couldn't be loaded` : null}
         subtitle={failed ? "Check your connection and try again, or go back to the Handbook." : null}
       />
-      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
+      <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8">
         {failed ? (
           <button onClick={() => window.location.reload()} className="button-primary px-5 py-2.5 rounded-xl text-sm font-bold">
             Try again

@@ -424,7 +424,7 @@ export default function ComparePage() {
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
       <PageHeader eyebrow="Compare programs" title="Compare programs" subtitle="See how your courses would count in another UNSW program." />
 
-      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
+      <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
           {loading ? (
             <div className={`${card} h-40 animate-pulse`} />
