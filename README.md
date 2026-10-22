@@ -47,7 +47,7 @@ Jobs, internship ads and networking events are shown for your own program. When 
 
 ### CourseMesh
 
-Open CourseMesh inside My Program to explore your degree as a prerequisite map. It uses your completed courses and chosen electives, with courses coloured **Completed**, **Can take next**, **Not yet**, or **Not needed**.
+Inside My Program, CourseMesh lets you explore your degree as a prerequisite map. It uses your completed courses and chosen electives, with courses coloured **Completed**, **Can take next**, **Not yet**, or **Not needed**.
 
 - Click a course to see what it needs and what it unlocks. Double-click to expand its connections.
 - Add courses, arrange the map by course level, fit it to the screen, freeze its movement, and undo or reset view changes.
@@ -105,4 +105,4 @@ UniVise/
 
 ## Licence
 
-This project was developed as Honours research at UNSW Sydney and is currently in production under research. It is not licensed for reuse or redistribution.
+This project was developed as Honours research at UNSW Sydney. It is live and still under active research. It is not licensed for reuse or redistribution.
