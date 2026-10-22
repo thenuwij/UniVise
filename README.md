@@ -12,46 +12,73 @@ UniVise is an AI-powered academic and career planning platform for UNSW students
 
 ## Key Features
 
-### Roadmap
+### Home
 
-A personal guide to your degree, tailored to the UNSW program and major (or stream) you choose. Change your program or major and the whole roadmap changes with it: the requirements, the careers, the internships and the societies all come from that specific degree.
+Home brings together two main areas: **My Program** for your degree and **My Career** for opportunities after and during study. The program panel shows your degree, selected specialisations and completed units of credit (UOC), with an edit menu for changing your program or specialisation. Compare programs is available below the two panels.
 
-It is split into five steps:
+### My Program
 
-| Step | What you get |
+Your degree guide opens on **Requirements**. A persistent section menu on desktop, and a section bar on mobile, lets you move between four sections:
+
+| Section | What you get |
 |---|---|
-| **Overview** | What your program covers, entry criteria, requirements and progression rules, WAM and honours calculation, awards and further study |
-| **Courses** | Every UNSW Handbook requirement group for your program, with progress in units of credit (UOC). Tick the courses you have completed and add any other UNSW course |
-| **Careers** | Entry, mid-career and senior roles your degree leads to, with official salaries and employment rates, plus live "Hiring now" job ads |
-| **Internships** | Ads open right now, programs that open each year and when, required placements, UNSW career resources |
-| **Societies** | Student societies and professional bodies matched to your field, leadership opportunities, and the full Arc club directory |
+| **Requirements** | Program and specialisation requirements, UOC needed to graduate, entry and progression rules, WAM and honours information, awards and further study |
+| **Courses** | A continuous checklist of core courses, discipline electives, free electives and general education, grouped by the requirements of your degree and specialisation |
+| **CourseMesh** | An interactive prerequisite map showing how your courses connect and what you can take next |
+| **Societies** | Student societies and professional bodies related to your field, plus links to Hello Rubric and the Arc club directory |
+
+In **Courses**, tick completed courses, add courses to elective groups and track progress against each group's requirements. The first incomplete group opens automatically; expand individual groups or the whole checklist. Optional minors can be selected where the program offers them, and level-specific UOC rules appear alongside the relevant course group. Until a specialisation is selected, the checklist heading uses the degree name.
+
+Change your program or specialisation to view its requirements and course lists. You can also explore other programs before making one your own.
+
+### My Career
+
+My Career opens on **Jobs**, with the same section navigation as My Program. It brings together opportunities and career information for your degree:
+
+| Section | What you get |
+|---|---|
+| **Jobs** | Graduate and junior job ads, with top picks from SEEK or Adzuna and the latest Adzuna listings; filter by career role and save ads to your shortlist |
+| **Internships** | Ads open now, annual internship programs and their application periods where available, plus placements built into your degree |
+| **Networking** | Upcoming career fairs, industry nights and other events in Sydney or online, with links to organisations' event calendars |
+| **Certifications** | Relevant industry certifications, their providers and how long they take |
+| **Career outlook** | Entry-level, mid-career and senior roles, salary information with source labels, QILT graduate full-time employment and starting salary figures where available, and UNSW career resources |
+
+Jobs, internship ads and networking events are shown for your own program. When exploring another degree, you can view its certifications and career outlook. Loading feedback, source refresh controls and retry actions help you return to the feed when a search fails.
 
 ### CourseMesh
 
-Your courses drawn as an interactive prerequisite map, built from the courses you tick in your Roadmap. Each course is coloured **Completed**, **Can take next**, **Not yet**, or **Not needed**, so you can see at a glance what is open to you and what is holding you back.
+Open CourseMesh inside My Program to explore your degree as a prerequisite map. It uses your completed courses and chosen electives, with courses coloured **Completed**, **Can take next**, **Not yet**, or **Not needed**.
 
-- Click a course to see what it needs and what it unlocks. Double-click to go one level deeper.
-- Add the electives you plan to take, arrange courses by year level, and undo or reset at any time.
+- Click a course to see what it needs and what it unlocks. Double-click to expand its connections.
+- Add courses, arrange the map by course level, fit it to the screen, freeze its movement, and undo or reset view changes.
 - **Suggested next** recommends courses that fit your career goals, each with a short reason.
-- A guided tour teaches the controls on your first visit.
+- A guided tour introduces the controls on your first visit and can be reopened from the help button.
 
 ### Compare programs
 
-Thinking of switching degrees? See how the courses you have already completed would count in another program or specialisation.
+Thinking of switching degrees? Compare how your completed courses could count towards another program or specialisation.
 
-- **Summary:** courses that count, UOC carried over, extra study needed, and estimated finish.
-- **Breakdown:** which courses count, which fill free electives, which would not count, and what is left to do.
-- **Advisor:** reasons to switch, reasons to stay, and suggested next steps.
+- **Summary:** courses that count, UOC carried over, extra study needed and an estimated finish.
+- **Breakdown:** courses that meet listed requirements, courses that could fill free electives, courses that would not count and requirements still to complete.
+- **Advisor:** reasons to switch, reasons to stay and suggested next steps.
+
+### My shortlist
+
+Save job and internship ads, career paths, annual internship programs and student societies in one place. Filter saved items by type, add personal notes and remove anything you no longer need. Saved ads older than four weeks are flagged as probably closed, with links back to current opportunities and an option to remove expired ads.
+
+### Handbook
+
+Search UNSW degrees, specialisations and courses by name or code. Open their detail pages to explore program structures, course information and prerequisite rules, or choose a degree to explore in My Program and My Career.
 
 ### Ask Eunice
 
-An AI academic and career adviser, available from a button on every page. Eunice knows your program, the courses you have completed, what you can take next, and your shortlisted careers, and can look up any UNSW course or program to answer specifically. Your chats are saved.
+An AI academic and career adviser available through the floating chat button, the Explore menu or the full chat page. Eunice uses your program, specialisations, completed courses, degree progress, available next courses and shortlisted careers to answer in context. It can look up UNSW courses, programs and specialisations, check prerequisites and link to the Handbook sources it uses. Conversations are saved so you can return to them.
 
 ---
 
 ## Built With
 
-React, Vite, FastAPI, PostgreSQL (Supabase), Anthropic Claude, deployed on AWS. Live at [uni-vise.com](https://uni-vise.com).
+React 19, Vite, Tailwind CSS, FastAPI and PostgreSQL (Supabase), with OpenAI and Anthropic Claude for AI features. The frontend is served through Amazon S3 and CloudFront, and the backend runs on AWS Lambda. Live at [uni-vise.com](https://uni-vise.com).
 
 ---
 
