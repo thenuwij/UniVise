@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, ExternalLink, Signpost, TrendingUp, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { UserAuth } from "@/app/AuthContext";
@@ -187,7 +187,6 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
       {levels.length > 0 && (
         <div>
           <SubLabel
-            icon={Signpost}
             hint="Open a role for pay, next steps and how your degree gets you there"
             action={
               <div className="flex gap-1.5" role="group" aria-label="Career stage">

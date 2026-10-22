@@ -1,4 +1,4 @@
-import { ExternalLink, Library } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { SubLabel } from "./CareersSection";
 
 const RESOURCES = [
@@ -9,7 +9,7 @@ const RESOURCES = [
 export default function CareerResources() {
   return (
     <div>
-      <SubLabel icon={Library} hint="Job boards run by UNSW Careers">UNSW career resources</SubLabel>
+      <SubLabel hint="Job boards run by UNSW Careers">UNSW career resources</SubLabel>
       <div className="mt-4 grid sm:grid-cols-2 gap-3">
         {RESOURCES.map(({ name, desc, url }) => (
           <a

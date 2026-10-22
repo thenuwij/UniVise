@@ -17,7 +17,6 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import CareersContent from "@/features/careers/components/CareersContent";
-import { HeaderStats } from "@/features/careers/components/GraduateStats";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
@@ -351,7 +350,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const fetchedDegree = useDegreeData(header.degree_code);
   const roadmapReady = !!data;
   const isCareers = view === "careers";
-  const [careersFocus] = useState(() => searchParams.get("section") || (searchParams.get("step") === "2" ? "internships" : null));
   useEffect(() => {
     if (isCareers || !roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
     const timer = setTimeout(() => setShowSectionGuide(true), 500);
@@ -512,7 +510,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       slim={isCareers}
       wide={isCareers}
     >
-      {isCareers && <HeaderStats outlook={data?.career_pathways?.outlook} />}
       {!isCareers && (
         <p className="mt-2 text-[15px] text-band-soft">
           {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
@@ -546,7 +543,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             sectionsStatus={sectionsStatus}
             onRetry={retrySections}
             personal={isOwnProgram}
-            focusSection={careersFocus}
           />
         ) : null}
         activeIndex={activeIndex}

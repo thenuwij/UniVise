@@ -1,26 +1,9 @@
-import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronRight, ExternalLink } from "lucide-react";
 import { postedAgo } from "@/features/roadmap/utils/hiringNow";
-import { isRecent } from "../utils/careersDates";
+import { cleanDateLabel, isRecent } from "../utils/careersDates";
 
-function SourceBadge({ site }) {
-  if (!site) return null;
-  return (
-    <span className="px-2 py-0.5 rounded-md text-[13px] font-medium text-ink-muted bg-slate-100 dark:bg-slate-800">{site}</span>
-  );
-}
-
-function SourceTag({ ad }) {
-  const topPick = (ad.id || "").startsWith("ai_");
-  return (
-    <span
-      className={`mr-2 inline-block px-1.5 py-px rounded text-xs font-semibold align-[1px] ${
-        topPick ? "text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50" : "text-ink-muted bg-slate-100 dark:bg-slate-800"
-      }`}
-    >
-      {topPick ? `Top pick · ${ad.source_site || "Web"}` : ad.source_site || "Adzuna"}
-    </span>
-  );
-}
+const sourceLabel = (ad) =>
+  (ad.id || "").startsWith("ai_") ? `Top pick from ${ad.source_site || "the web"}` : ad.source_site || "Adzuna";
 
 function SaveAdButton({ ad, saved, onToggle }) {
   const Icon = saved ? BookmarkCheck : Bookmark;
@@ -55,9 +38,8 @@ export default function AdRows({ ads, savedIds, onToggleSave }) {
           >
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{ad.title}</span>
-              <span className="block mt-0.5 text-sm text-ink">
-                <SourceTag ad={ad} />
-                {[ad.organisation, ad.location].filter(Boolean).join(" · ")}
+              <span className="block mt-0.5 text-sm text-ink-muted">
+                {[ad.organisation, ad.location, sourceLabel(ad)].filter(Boolean).join(" · ")}
               </span>
               {ad.summary && <span className="block mt-1 text-sm text-ink line-clamp-1">{ad.summary}</span>}
             </span>
@@ -65,8 +47,7 @@ export default function AdRows({ ads, savedIds, onToggleSave }) {
               {isRecent(ad.posted_at) && (
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold text-emerald-800 bg-emerald-100 dark:text-emerald-200 dark:bg-emerald-900/50">New</span>
               )}
-              <span className="hidden sm:inline">{ad.posted_at ? postedAgo(ad.posted_at) : ad.date_label}</span>
-              <ExternalLink className="h-4 w-4 group-hover:text-link" />
+              <span className="hidden sm:inline">{ad.posted_at ? postedAgo(ad.posted_at) : cleanDateLabel(ad.date_label)}</span>
             </span>
           </a>
           {onToggleSave && <SaveAdButton ad={ad} saved={!!savedIds?.has(ad.id)} onToggle={onToggleSave} />}
@@ -90,12 +71,13 @@ export function EventRows({ events }) {
             <span className="text-sm font-semibold text-link">{event.date_label}</span>
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{event.title}</span>
-              <span className="block mt-0.5 text-[13px] text-ink-muted">{[event.organisation, event.location].filter(Boolean).join(" · ")}</span>
-              {event.summary && <span className="block mt-1 text-sm text-ink line-clamp-1">{event.summary}</span>}
+              <span className="block mt-0.5 truncate text-sm text-ink-muted">
+                {[event.organisation, event.location, event.summary].filter(Boolean).join(" · ")}
+              </span>
             </span>
-            <span className="flex items-center gap-2.5 text-[13px] text-ink-muted">
-              {event.category && <SourceBadge site={event.category} />}
-              <ExternalLink className="h-4 w-4 group-hover:text-link" />
+            <span className="flex items-center gap-1.5 text-sm text-ink-muted">
+              {event.category}
+              <ChevronRight className="h-4 w-4" />
             </span>
           </a>
         </li>
