@@ -1,20 +1,17 @@
-// src/pages/MindMeshGraphPage.jsx
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
-import GraphControls from "../components/GraphControls";
-import { nodeCanvasObject, nodePointerAreaPaint } from "../components/NodeRenderer";
+import GraphControls from "./GraphControls";
+import { nodeCanvasObject, nodePointerAreaPaint } from "./NodeRenderer";
 import useMindMeshData from "../hooks/useMindMeshData";
 import { colorFor } from "../utils/index";
-import MindMeshGraph from "../components/MindMeshGraph";
-import MindMeshInfoPanel from "../components/MindMeshInfoPanel";
-import StatusLegend from "../components/StatusLegend";
-import PicksPanel from "../components/PicksPanel";
-import CourseMeshTour from "../components/CourseMeshTour";
-import ElectivesPanel from "../components/ElectivesPanel";
+import MindMeshGraph from "./MindMeshGraph";
+import MindMeshInfoPanel from "./MindMeshInfoPanel";
+import StatusLegend from "./StatusLegend";
+import PicksPanel from "./PicksPanel";
+import CourseMeshTour from "./CourseMeshTour";
+import ElectivesPanel from "./ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
 import { hasSeenGuide } from "../utils/onboarding";
@@ -23,15 +20,12 @@ import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
 import { ArrowRight, Plus, X } from "lucide-react";
-import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
 
-export default function MindMeshGraphPage() {
+export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
   const { session } = UserAuth();
-  const [searchParams] = useSearchParams();
 
   const [frozen, setFrozen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
   const [showHint, setShowHint] = useState(() => hasSeenGuide());
@@ -40,7 +34,7 @@ export default function MindMeshGraphPage() {
   const transformRef = useRef(null);
   const focusedRef = useRef(null);
   const lastAddedRef = useRef(null);
-  const [pendingFocus, setPendingFocus] = useState(() => searchParams.get("focus"));
+  const [pendingFocus, setPendingFocus] = useState(focus);
   const lastCenterRef = useRef(0);
 
   const graphRef = useRef(null);
@@ -51,10 +45,9 @@ export default function MindMeshGraphPage() {
   const lastClickRef = useRef({ id: null, time: 0 });
 
   const { program: enrolled, loading: enrolledLoading } = useEnrolledProgram();
-  const programCode = searchParams.get("program") || enrolled?.degree_code || null;
   const userId = session?.user?.id;
   const {
-    graph, setGraph, programMeta, loading, thin, mine, reload,
+    graph, setGraph, loading, thin, mine, reload,
     completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges,
   } = useMindMeshData({ programCode, userId });
   const noProgram = !programCode && !enrolledLoading;
@@ -369,49 +362,36 @@ export default function MindMeshGraphPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen md:h-[100dvh] md:overflow-hidden app-page text-slate-900 dark:text-slate-100 transition-colors duration-300">
-
-      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
-
-      <section className="relative overflow-hidden bg-gradient-to-r from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-        <div aria-hidden className="absolute -top-24 -right-16 h-64 w-64 rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
-        <div className="relative max-w-[1600px] mx-auto px-5 md:px-8 py-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-band-soft">CourseMesh</p>
-            <h1 className="truncate text-lg md:text-xl font-extrabold text-band-ink">
-              {programMeta?.program_name || programCode || "How your courses connect"}
-            </h1>
-          </div>
+    <div className="flex flex-col rounded-2xl border border-line bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+      {isOwnProgram && (
+        <div className="px-4 md:px-5 py-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-line">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            {isOwnProgram && graph?.nodes?.length > 0 &&
+            {graph?.nodes?.length > 0 &&
               [["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
-                <span key={key} className="inline-flex items-center gap-2 text-sm text-band-soft">
-                  <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/40" style={{ backgroundColor: STATUS[key].color }} />
-                  <span className="font-bold text-band-ink">{counts[key]}</span> {text}
+                <span key={key} className="inline-flex items-center gap-2 text-sm text-ink-muted">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS[key].color }} />
+                  <span className="font-bold text-ink-strong">{counts[key]}</span> {text}
                 </span>
               ))}
-            {isOwnProgram && (
-              <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
-                <Link
-                  to={roadmapStepUrl("structure")}
-                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white shadow-md hover:bg-blue-50 hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
-                >
-                  Tick courses in your roadmap
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-                <button
-                  onClick={() => setShowElectives(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-700 bg-white/90 shadow-md hover:bg-white hover:-translate-y-0.5 dark:bg-slate-100 dark:text-blue-900 transition-all"
-                >
-                  <Plus className="h-4 w-4" strokeWidth={2.5} />
-                  Add courses
-                </button>
-              </div>
-            )}
+          </div>
+          <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={onOpenCourses}
+              className="button-secondary group inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+            >
+              Tick courses in Courses
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={() => setShowElectives(true)}
+              className="button-primary inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              Add courses
+            </button>
           </div>
         </div>
-      </section>
+      )}
 
       {showElectives && (
         <ElectivesPanel
@@ -451,8 +431,8 @@ export default function MindMeshGraphPage() {
       />
 
       {/* Graph Canvas */}
-      <div className="flex-1 min-h-0 flex justify-center px-3 pt-2 pb-3 relative">
-        <div ref={containerRef} data-tour="graph" className="w-full max-w-[1600px] h-[70vh] md:h-full relative overflow-hidden rounded-2xl border-2 border-blue-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg shadow-blue-900/5">
+      <div className="relative">
+        <div ref={containerRef} data-tour="graph" className="w-full h-[70vh] min-h-[480px] relative overflow-hidden bg-white dark:bg-slate-900">
 
           {(noProgram || noCourses || needsSpecialisation) && (
             <div className="absolute inset-x-0 top-16 z-10 flex justify-center px-4">

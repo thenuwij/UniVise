@@ -1,11 +1,33 @@
-export const ROADMAP_STEPS = [
-  { key: "overview", title: "Overview" },
-  { key: "structure", title: "Courses" },
-  { key: "careers", title: "Careers" },
-  { key: "internships", title: "Internships" },
-  { key: "societies", title: "Societies" },
-];
+export const ROADMAP_VIEWS = {
+  degree: {
+    path: "/roadmap/unsw",
+    steps: [
+      { key: "overview", title: "Overview" },
+      { key: "structure", title: "Courses" },
+      { key: "coursemesh", title: "CourseMesh" },
+      { key: "societies", title: "Societies" },
+    ],
+  },
+  careers: {
+    path: "/careers",
+    steps: [
+      { key: "careers", title: "Careers" },
+      { key: "internships", title: "Internships" },
+    ],
+  },
+};
 
-export const stepNumber = (key) => ROADMAP_STEPS.findIndex((s) => s.key === key) + 1;
+const viewOfStep = (key) =>
+  Object.keys(ROADMAP_VIEWS).find((view) => ROADMAP_VIEWS[view].steps.some((s) => s.key === key)) || "degree";
 
-export const roadmapStepUrl = (key) => `/roadmap-entryload?step=${stepNumber(key)}`;
+export const roadmapViewPath = (view) => (ROADMAP_VIEWS[view] || ROADMAP_VIEWS.degree).path;
+
+export const stepNumber = (key) => ROADMAP_VIEWS[viewOfStep(key)].steps.findIndex((s) => s.key === key) + 1;
+
+export const roadmapViewUrl = (view) => (view === "careers" ? "/roadmap-entryload?view=careers" : "/roadmap-entryload");
+
+export const roadmapStepUrl = (key) => {
+  const view = viewOfStep(key);
+  const viewQuery = view === "careers" ? "view=careers&" : "";
+  return `/roadmap-entryload?${viewQuery}step=${stepNumber(key)}`;
+};

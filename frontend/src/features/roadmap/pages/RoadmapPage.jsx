@@ -12,7 +12,7 @@ import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import SpecialisationPicker from "../components/SpecialisationPicker";
 import { fetchSavedChoices, saveChoices } from "../utils/programCourses";
-import { stepNumber } from "../utils/roadmapSteps";
+import { roadmapViewUrl, stepNumber } from "../utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 
@@ -30,6 +30,7 @@ function RoadmapPage() {
   const [saving, setSaving] = useState(false);
   const selectedCode = selectedDegreeObject?.degree_code || null;
   const isChange = !!presetCode && presetCode === enrolledProgram?.degree_code;
+  const view = !isChange && searchParams.get("view") === "careers" ? "careers" : "degree";
 
   useEffect(() => {
     if (!presetCode) return;
@@ -72,7 +73,7 @@ function RoadmapPage() {
       console.error("Error saving specialisation:", err);
     }
     navigate("/roadmap-loading", {
-      state: { type: "unsw", degree: { ...selectedDegreeObject, degree_id: selectedDegreeObject.id }, returnToStep: isChange ? stepNumber("structure") : null },
+      state: { type: "unsw", degree: { ...selectedDegreeObject, degree_id: selectedDegreeObject.id }, returnToStep: isChange ? stepNumber("structure") : null, view },
       replace: true,
     });
   };
@@ -84,14 +85,16 @@ function RoadmapPage() {
 
       <PageHeader
         back={{
-          label: enrolledProgram ? "Back to roadmap" : "Back to dashboard",
-          onClick: () => navigate(enrolledProgram ? "/roadmap-entryload" : "/dashboard"),
+          label: enrolledProgram ? (view === "careers" ? "Back to careers" : "Back to roadmap") : "Back to dashboard",
+          onClick: () => navigate(enrolledProgram ? roadmapViewUrl(view) : "/dashboard"),
         }}
         eyebrow={isChange ? "Your degree" : "Explore"}
         title={isChange ? "Change your specialisation" : "Explore a different degree"}
         subtitle={
           isChange
             ? "Pick your major or stream, then generate your roadmap again."
+            : view === "careers"
+            ? "Pick a UNSW program and its major or stream to see its careers and internships."
             : "Pick a UNSW program and its major or stream, then generate its roadmap."
         }
       />
@@ -127,7 +130,7 @@ function RoadmapPage() {
                 disabled={saving}
                 className="button-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold"
               >
-                Generate roadmap
+                {view === "careers" ? "Show careers" : "Generate roadmap"}
                 <HiArrowRight className="w-5 h-5" />
               </button>
               {!enrolledLoading && selectedDegreeObject.program_name && selectedCode !== enrolledProgram?.degree_code && (
@@ -137,6 +140,7 @@ function RoadmapPage() {
                   label="Set as my program"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
                   onBeforeChange={() => saveChoices(userId, choices)}
+                  view={view}
                 />
               )}
             </div>

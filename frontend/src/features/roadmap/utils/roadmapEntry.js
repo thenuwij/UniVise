@@ -1,6 +1,7 @@
 import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { fetchSpecialisationIds } from "./programCourses";
+import { roadmapViewPath } from "./roadmapSteps";
 
 const SECTIONS = ["industry_societies", "industry_experience", "career_pathways"];
 const ROADMAP_PROMPT_VERSION = 8;
@@ -24,7 +25,7 @@ async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
   return (rows || []).find((r) => isCurrent(r.payload) && sameIds(r.payload?.specialisation_ids || [], specialisationIds)) || null;
 }
 
-export async function openOwnRoadmap({ userId, accessToken, navigate, step, isActive = () => true }) {
+export async function openOwnRoadmap({ userId, accessToken, navigate, step, view, focus, isActive = () => true }) {
   const { data: programs, error: programError } = await supabase
     .from("user_enrolled_program")
     .select("degree_code")
@@ -34,7 +35,7 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, isAc
 
   const degreeCode = programs?.[0]?.degree_code;
   if (!degreeCode) {
-    navigate("/roadmap", { replace: true });
+    navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap", { replace: true });
     return;
   }
 
@@ -66,7 +67,8 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, isAc
 
   if (roadmap) {
     const stepQuery = step ? `&step=${step}` : "";
-    navigate(`/roadmap/unsw?id=${roadmap.id}${stepQuery}`, { replace: true });
+    const focusQuery = focus ? `&focus=${encodeURIComponent(focus)}` : "";
+    navigate(`${roadmapViewPath(view)}?id=${roadmap.id}${stepQuery}${focusQuery}`, { replace: true });
     return;
   }
 
@@ -79,6 +81,6 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, isAc
 
   navigate("/roadmap-loading", {
     replace: true,
-    state: { type: "unsw", degree: { ...degree, degree_id: degree.id }, returnToStep: step || null },
+    state: { type: "unsw", degree: { ...degree, degree_id: degree.id }, returnToStep: step || null, view },
   });
 }

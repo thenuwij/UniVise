@@ -1,7 +1,8 @@
 import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { Bookmark, BookOpen, Compass, LayoutDashboard, LogOut, Map, MessageCircle, Network, Repeat, X } from "lucide-react";
+import { Bookmark, BookOpen, Briefcase, Compass, LayoutDashboard, LogOut, Map, MessageCircle, Repeat, X } from "lucide-react";
 import { isNavigationActive } from "./navigation";
+import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -12,7 +13,7 @@ const GROUPS = [
     items: [
       { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { path: "/roadmap-entryload", label: "Roadmap", icon: Map },
-      { path: "/coursemesh", label: "CourseMesh", icon: Network },
+      { path: roadmapViewUrl("careers"), label: "Careers", icon: Briefcase },
     ],
   },
   {
@@ -76,6 +77,9 @@ export function MenuBar({ isOpen, handleClose }) {
   const isActive = (path) => {
     if (path === "/roadmap-entryload") {
       return isNavigationActive("roadmap", location.pathname);
+    }
+    if (path === roadmapViewUrl("careers")) {
+      return isNavigationActive("careers", location.pathname);
     }
     if (path === "/handbook") {
       return ["/handbook", "/degrees/", "/course/", "/specialisation/"].some((p) => location.pathname.startsWith(p));

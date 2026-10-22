@@ -8,8 +8,8 @@ export function isNavigationActive(section, pathname) {
         pathname === "/roadmap-loading" ||
         pathname.startsWith("/roadmap/")
       );
-    case "coursemesh":
-      return pathname === "/coursemesh";
+    case "careers":
+      return pathname === "/careers";
     case "explore":
       return (
         pathname === "/roadmap" ||

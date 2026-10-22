@@ -1,0 +1,4 @@
+.careers-page :is(h2, h3, h4, h5) {
+  font-family: var(--font-sans);
+  letter-spacing: -0.005em;
+}
