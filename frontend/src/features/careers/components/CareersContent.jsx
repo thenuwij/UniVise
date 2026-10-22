@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
+import { useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { ArrowRight, Award, Briefcase, Building2, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { useSavedAds } from "../hooks/useSavedAds";
 import { mergeListings } from "../utils/careersListings";
 import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
+import SectionNavigation from "@/shared/ui/SectionNavigation";
 import CareersSection, { SubLabel } from "./CareersSection";
 import CertificationsList from "./CertificationsList";
+import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
 import "../careers.css";
@@ -22,67 +25,28 @@ const aiStatus = (data, key, sectionsStatus) => {
   return sectionsStatus === "loading" ? "loading" : "failed";
 };
 
-function useActiveSection(ids) {
-  const [active, setActive] = useState(ids[0]);
-  const key = ids.join("|");
+const SECTION_IDS = ["jobs", "internships", "networking", "certifications", "career-outlook"];
 
-  useEffect(() => {
-    const onScroll = () => {
-      let current = key.split("|")[0];
-      for (const id of key.split("|")) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= 140) current = id;
-      }
-      setActive(current);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [key]);
-
-  return active;
-}
-
-function SectionNav({ sections }) {
-  const active = useActiveSection(sections.map((s) => s.id));
-
+function NextUp({ section, text, onOpen }) {
+  if (!section) return null;
   return (
-    <nav aria-label="Careers sections">
-      <ul className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {sections.map(({ id, title, icon: Icon, meta }) => {
-          const current = id === active;
-          return (
-            <li key={id}>
-              <a
-                href={`#${id}`}
-                aria-current={current ? "location" : undefined}
-                className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                  current
-                    ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/25"
-                    : "border-blue-200 bg-white text-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:border-blue-900 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-blue-950"
-                }`}
-              >
-                <Icon className={`h-4 w-4 ${current ? "text-white" : "text-blue-600 dark:text-blue-300"}`} />
-                <span>{title}</span>
-                {meta && (
-                  <span
-                    className={`rounded-full px-2 py-px text-xs font-bold ${
-                      current ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
-                  >
-                    {meta}
-                  </span>
-                )}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 dark:border-blue-900 dark:bg-blue-950/40">
+      <p className="text-[15px] text-blue-900 dark:text-blue-100">
+        <span className="font-semibold">Next up:</span> {text}
+      </p>
+      <button
+        type="button"
+        onClick={() => onOpen(section.id)}
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
+      >
+        Go to {section.title}
+        <ArrowRight className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
-export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal, focusSection }) {
+export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal }) {
   const entryRoles = data?.career_pathways?.entry_level?.roles;
   const careersState = aiStatus(data, "career_pathways", sectionsStatus);
   const internshipsState = aiStatus(data, "industry_experience", sectionsStatus);
@@ -111,27 +75,39 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   const programCount = data?.industry_experience?.internship_programs?.length || 0;
   const certifications = data?.career_pathways?.certifications || [];
 
-  const sections = [
-    { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
-    { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String((openAds?.length || 0) + programCount) : null },
-    { id: "networking", title: "Networking", icon: Users, meta: sources ? String(events.length) : null },
-    { id: "certifications", title: "Certifications", icon: Award, meta: careersReady ? String(certifications.length) : null },
-    { id: "career-outlook", title: "Career outlook", icon: Route, meta: null },
-  ];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requested = searchParams.get("section") || (searchParams.get("step") === "2" ? "internships" : null);
+  const section = SECTION_IDS.includes(requested) ? requested : "jobs";
+  const openSection = useCallback(
+    (id) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("step", "1");
+        if (id) next.set("section", id);
+        else next.delete("section");
+        return next;
+      });
+      window.scrollTo({ top: 0 });
+    },
+    [setSearchParams]
+  );
 
-  const scrolledTo = useRef(null);
-  const listsLoaded = !personal || !!sources;
-  useEffect(() => {
-    if (!focusSection || !listsLoaded || scrolledTo.current === focusSection) return;
-    scrolledTo.current = focusSection;
-    const timer = setTimeout(() => document.getElementById(focusSection)?.scrollIntoView(), 300);
-    return () => clearTimeout(timer);
-  }, [focusSection, listsLoaded]);
+  const internshipCount = (openAds?.length || 0) + programCount;
+  const sections = [
+    { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null, nextText: "internship ads and annual programs for your degree" },
+    { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String(internshipCount) : null, nextText: "career fairs and industry events in Sydney" },
+    { id: "networking", title: "Networking", mobileTitle: "Network", icon: Users, meta: sources ? String(events.length) : null, nextText: "certifications that strengthen your applications" },
+    { id: "certifications", title: "Certifications", mobileTitle: "Certs", icon: Award, meta: careersReady ? String(certifications.length) : null, nextText: "the roles and salaries your degree leads to" },
+    { id: "career-outlook", title: "Career outlook", navTitle: "Outlook", icon: Route },
+  ];
+  const activeIndex = SECTION_IDS.indexOf(section);
+  const nextSection = sections[activeIndex + 1];
 
   const certificationsSection = (
     <CareersSection
       id="certifications"
       title="Certifications"
+      count={careersReady ? certifications.length : null}
       description="Industry certifications that strengthen your applications, with how long each takes."
       status={careersReady ? null : careersState}
       loadingText="Finding certifications for your field."
@@ -150,13 +126,18 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       loadingText="Mapping entry-level, mid-career and senior roles for your field."
       onRetry={onRetry}
     >
-      {careersReady && <CareerPathsSection careerPathways={data.career_pathways} personal={personal} jobs={jobs} />}
+      {careersReady && (
+        <>
+          <GraduateStats outlook={data.career_pathways.outlook} />
+          <CareerPathsSection careerPathways={data.career_pathways} personal={personal} jobs={jobs} />
+        </>
+      )}
     </CareersSection>
   );
 
   if (!personal) {
     return (
-      <div className="careers-page px-5 md:px-10 pb-16">
+      <div className="careers-page mx-auto max-w-[1680px] px-5 md:px-10 pb-16">
         <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-ink-muted">
           Jobs, internships and networking events show for your own program. Make this your program to see them.
         </p>
@@ -166,89 +147,111 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     );
   }
 
-  return (
-    <div className="careers-page px-5 md:px-10 pb-16">
-      <div className="sticky top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-3 bg-page/95 backdrop-blur border-b border-line">
-        <SectionNav sections={sections} />
-      </div>
+  const banner = loadFailed && (
+    <p className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+      Today's jobs, internships and events couldn't load.{" "}
+      <button type="button" onClick={retryLoad} className="font-semibold underline hover:no-underline">
+        Try again
+      </button>
+    </p>
+  );
 
-      <div>
-        {loadFailed && (
-          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-            Today's jobs, internships and events couldn't load.{" "}
-            <button type="button" onClick={retryLoad} className="font-semibold underline hover:no-underline">
-              Try again
-            </button>
-          </p>
+  const sectionContent = {
+    jobs: (
+      <CareersSection
+        id="jobs"
+        title="Jobs hiring now"
+        count={jobs?.length}
+        description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
+        status={careersReady ? (feedLoading ? "loading" : null) : careersState}
+        sources={statuses("adzuna", "ai_jobs")}
+        loadingText="Finding the best graduate jobs for your degree. The first time takes about a minute."
+        onRetry={onRetry}
+      >
+        {careersState !== "failed" && (
+          <JobsSection
+            jobs={ready("adzuna", "ai_jobs") ? jobs : null}
+            roles={entryRoles}
+            savedIds={savedIds}
+            onToggleSave={toggleSave}
+          />
         )}
-
-        <CareersSection
-          id="jobs"
-          title="Jobs hiring now"
-          description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
-          status={careersReady ? (feedLoading ? "loading" : null) : careersState}
-          sources={statuses("adzuna", "ai_jobs")}
-          loadingText="Finding the best graduate jobs for your degree. The first time takes about a minute."
-          onRetry={onRetry}
-        >
-          {careersState !== "failed" && <JobsSection jobs={ready("adzuna", "ai_jobs") ? jobs : null} roles={entryRoles} savedIds={savedIds} onToggleSave={toggleSave} />}
-        </CareersSection>
-
-        <CareersSection
-          id="internships"
-          title="Internships"
-          description="Internships open now, programs that open each year, and placements in your degree."
-          status={internshipsState === "done" ? (feedLoading ? "loading" : null) : internshipsState}
-          sources={statuses("adzuna", "ai_internships")}
-          loadingText="Finding internships for your degree. The first time takes about a minute."
-          onRetry={onRetry}
-        >
-          {internshipsState === "done" && (
-            <InternshipsSection
-              industryExperience={data.industry_experience}
-              openAds={ready("adzuna", "ai_internships") ? openAds : null}
-              savedIds={savedIds}
-              onToggleSave={toggleSave}
-            />
-          )}
-        </CareersSection>
-
-        <CareersSection
-          id="networking"
-          title="Networking"
-          description="Career fairs, industry nights and society events where you can meet people in your field."
-          status={feedLoading ? "loading" : null}
-          sources={statuses("ai_networking")}
-          loadingText="Looking for upcoming events in Sydney for your field. This takes up to a minute."
-        >
-          {!ready("ai_networking") ? (
-            <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
-          ) : (
-            <div className="space-y-12">
+      </CareersSection>
+    ),
+    internships: (
+      <CareersSection
+        id="internships"
+        title="Internships"
+        count={internshipsState === "done" ? internshipCount : null}
+        description="Internships open now, programs that open each year, and placements in your degree."
+        status={internshipsState === "done" ? (feedLoading ? "loading" : null) : internshipsState}
+        sources={statuses("adzuna", "ai_internships")}
+        loadingText="Finding internships for your degree. The first time takes about a minute."
+        onRetry={onRetry}
+      >
+        {internshipsState === "done" && (
+          <InternshipsSection
+            industryExperience={data.industry_experience}
+            openAds={ready("adzuna", "ai_internships") ? openAds : null}
+            savedIds={savedIds}
+            onToggleSave={toggleSave}
+          />
+        )}
+      </CareersSection>
+    ),
+    networking: (
+      <CareersSection
+        id="networking"
+        title="Networking"
+        count={sources ? events.length : null}
+        description="Career fairs, industry nights and society events where you can meet people in your field."
+        status={feedLoading ? "loading" : null}
+        sources={statuses("ai_networking")}
+        loadingText="Looking for upcoming events in Sydney for your field. This takes up to a minute."
+      >
+        {!ready("ai_networking") ? (
+          <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
+        ) : (
+          <div className="space-y-12">
+            <div>
+              <SubLabel hint="The next 8 weeks, in Sydney and online">Upcoming events</SubLabel>
+              <div className="mt-4">
+                {events.length > 0 ? (
+                  <EventRows events={events} />
+                ) : (
+                  <p className="text-[15px] text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
+                )}
+              </div>
+            </div>
+            {calendars.length > 0 && (
               <div>
-                <SubLabel icon={CalendarDays} hint="The next 8 weeks, in Sydney and online">Upcoming events</SubLabel>
+                <SubLabel hint="Organisations that run events in your field">Event calendars to keep an eye on</SubLabel>
                 <div className="mt-4">
-                  {events.length > 0 ? (
-                    <EventRows events={events} />
-                  ) : (
-                    <p className="text-[15px] text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
-                  )}
+                  <CalendarLinks calendars={calendars} />
                 </div>
               </div>
-              {calendars.length > 0 && (
-                <div>
-                  <SubLabel icon={CalendarRange} hint="Organisations that run events in your field">Event calendars to keep an eye on</SubLabel>
-                  <div className="mt-4">
-                    <CalendarLinks calendars={calendars} />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CareersSection>
+            )}
+          </div>
+        )}
+      </CareersSection>
+    ),
+    certifications: certificationsSection,
+    "career-outlook": careerPaths,
+  };
 
-        {certificationsSection}
-        {careerPaths}
+  return (
+    <div className="careers-page mx-auto grid max-w-[1680px] items-start gap-6 px-5 pb-16 md:px-10 lg:grid-cols-[208px_minmax(0,1fr)] lg:gap-8 lg:pt-8">
+      <SectionNavigation
+        sections={sections.map((item) => ({ ...item, key: item.id }))}
+        activeIndex={activeIndex}
+        onChange={(index) => openSection(sections[index].id)}
+        label="Career sections"
+        heading="IN MY CAREER"
+      />
+      <div className="min-w-0 [&>.careers-section]:pt-0">
+        {banner}
+        {sectionContent[section]}
+        <NextUp section={nextSection} text={sections[activeIndex].nextText} onOpen={openSection} />
       </div>
     </div>
   );

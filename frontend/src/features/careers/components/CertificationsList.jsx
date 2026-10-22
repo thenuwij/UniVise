@@ -1,15 +1,10 @@
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 
 const SHOWN_CERTS = 3;
 
-const importanceClass = (importance) =>
-  importance === "Required"
-    ? "bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-    : importance === "Highly Recommended"
-    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+const importanceLabel = (importance) => importance.charAt(0) + importance.slice(1).toLowerCase();
 
 export default function CertificationsList({ certifications }) {
   const [showAll, setShowAll] = useState(false);
@@ -36,9 +31,11 @@ export default function CertificationsList({ certifications }) {
               </span>
               <span className="flex flex-shrink-0 items-center gap-2.5">
                 {cert.importance && (
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${importanceClass(cert.importance)}`}>{cert.importance}</span>
+                  <span className={`text-sm ${cert.importance === "Required" ? "font-bold text-ink-strong" : "text-ink-muted"}`}>
+                    {importanceLabel(cert.importance)}
+                  </span>
                 )}
-                {cert.url && <ExternalLink className="h-4 w-4 text-ink-muted group-hover:text-link" />}
+                {cert.url && <ChevronRight className="h-4 w-4 text-ink-muted" />}
               </span>
             </a>
           </li>

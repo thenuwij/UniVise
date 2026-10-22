@@ -53,26 +53,19 @@ function SectionStatus({ status, updatedAt, onRetry, label: name }) {
   );
 }
 
-export function SubLabel({ icon: Icon, hint, children, action }) {
+export function SubLabel({ hint, children, action }) {
   return (
-    <div className="careers-subheading flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3">
-      <div className="flex items-center gap-3">
-        {Icon && (
-          <span className="careers-subheading-icon inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg shadow-sm">
-            <Icon className="h-5 w-5" />
-          </span>
-        )}
-        <div>
-          <h3 className="text-[19px] font-semibold leading-7 text-ink-strong">{children}</h3>
-          {hint && <p className="text-sm text-ink-muted">{hint}</p>}
-        </div>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h3 className="text-[20px] font-semibold leading-7 text-ink-strong">{children}</h3>
+        {hint && <p className="text-sm text-ink-muted">{hint}</p>}
       </div>
       {action}
     </div>
   );
 }
 
-export default function CareersSection({ id, title, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
+export default function CareersSection({ id, title, count, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
   const loading = status === "loading" || sources.some((s) => s.status === "running");
   const pct = useTimedProgress(loading);
 
@@ -80,12 +73,15 @@ export default function CareersSection({ id, title, description, status, updated
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="careers-section scroll-mt-20 border-t border-line py-10 first:border-t-0 first:pt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12"
+      className="careers-section scroll-mt-20 py-10"
     >
-      <div className="mb-6 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
-        <h2 id={`${id}-title`} className="text-[28px] font-semibold leading-tight tracking-tight text-ink-strong">{title}</h2>
+      <div className="mb-6">
+        <h2 id={`${id}-title`} className="text-[32px] font-semibold leading-tight tracking-tight text-ink-strong">
+          {title}
+          {count != null && <> <span className="ml-2 text-xl font-medium text-ink-muted">({count})</span></>}
+        </h2>
         {description && <p className="mt-1.5 text-[15px] leading-relaxed text-ink-muted">{description}</p>}
-        <div className="mt-3 flex flex-col items-start gap-1">
+        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">
           <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
           {sources.map((s) => (
             <SectionStatus key={s.label} label={s.label} status={s.status} updatedAt={s.refreshedAt} onRetry={s.onRetry} />

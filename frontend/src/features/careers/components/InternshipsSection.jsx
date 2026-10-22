@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowRight, CalendarClock, GraduationCap, Megaphone } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { sameCompany } from "@/features/roadmap/utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
@@ -71,7 +71,7 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
   return (
     <div className="space-y-12">
       <div>
-        <SubLabel icon={Megaphone} hint="Live ads you can apply for today">Open now</SubLabel>
+        <SubLabel hint="Live ads you can apply for today">Open now</SubLabel>
         <div className="mt-4">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
@@ -92,7 +92,7 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
 
       {programs.length > 0 && (
         <div>
-          <SubLabel icon={CalendarClock} hint="Programs that open at set times each year, soonest first">Annual programs</SubLabel>
+          <SubLabel hint="Programs that open at set times each year, soonest first">Annual programs</SubLabel>
           <ul className="mt-3 divide-y divide-line border-b border-line">
             {shownPrograms.map((program) => (
               <ProgramRow key={`${program.company}-${program.program_name}`} program={program} />
@@ -108,7 +108,7 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
 
       {hasPlacements && (
         <div>
-          <SubLabel icon={GraduationCap} hint="Work experience built into your degree">Placements in your degree</SubLabel>
+          <SubLabel hint="Work experience built into your degree">Placements in your degree</SubLabel>
           <div
             className={`mt-4 rounded-xl p-5 ${
               placements?.required
