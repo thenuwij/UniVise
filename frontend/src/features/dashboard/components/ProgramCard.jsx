@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, BookOpen, BriefcaseBusiness } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import AtAGlance from "./AtAGlance";
 import DegreeEditMenu from "./DegreeEditMenu";
@@ -41,7 +41,6 @@ export default function ProgramCard({ facts }) {
     <>
       <div className="dashboard-portals">
         <section className="dashboard-portal dashboard-portal-program" data-tour="dash-degree" aria-labelledby="dashboard-program-title">
-          <p className="dashboard-portal-eyebrow"><BookOpen aria-hidden="true" />Your degree</p>
           <h2 id="dashboard-program-title">My Program</h2>
           <p className="dashboard-portal-description">Bring your degree into focus.</p>
           <p className="dashboard-portal-sections">Requirements · Courses · CourseMesh · Societies</p>
@@ -59,7 +58,6 @@ export default function ProgramCard({ facts }) {
         </section>
 
         <section className="dashboard-portal dashboard-portal-career" data-tour="dash-career" aria-labelledby="dashboard-career-title">
-          <p className="dashboard-portal-eyebrow"><BriefcaseBusiness aria-hidden="true" />Your future</p>
           <h2 id="dashboard-career-title">My Career</h2>
           <p className="dashboard-portal-description">Turn your degree into your next opportunity.</p>
           <p className="dashboard-portal-sections">Jobs · Internships · Networking · Certifications · Career outlook</p>
