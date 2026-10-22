@@ -229,7 +229,7 @@ const PersonalityResultPage = () => {
             onClick={() => navigate("/dashboard")}
             className="btn-cta-pulse inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
           >
-            Continue to Dashboard
+            Continue to Home
             <HiArrowRight className="h-6 w-6" />
           </button>
         </div>

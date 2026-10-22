@@ -85,7 +85,7 @@ function RoadmapPage() {
 
       <PageHeader
         back={{
-          label: enrolledProgram ? (view === "careers" ? "Back to My Career" : "Back to My Program") : "Back to dashboard",
+          label: enrolledProgram ? (view === "careers" ? "Back to My Career" : "Back to My Program") : "Back to Home",
           onClick: () => navigate(enrolledProgram ? roadmapViewUrl(view) : "/dashboard"),
         }}
         eyebrow={isChange ? "Your degree" : "Explore"}

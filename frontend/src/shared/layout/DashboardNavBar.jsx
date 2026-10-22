@@ -11,6 +11,7 @@ import {
   Compass,
   LogOut,
   Menu,
+  MessageCircle,
   Moon,
   Repeat,
   Sun,
@@ -71,14 +72,14 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
         <Link
           to="/dashboard"
           className="app-nav-brand"
-          aria-label="UniVise dashboard"
+          aria-label="UniVise home"
         >
           <img src={logo} alt="" />
           <span>UniVise</span>
         </Link>
         <nav className="app-nav-links" aria-label="Main navigation">
           {[
-            ["dashboard", "Dashboard", "/dashboard"],
+            ["dashboard", "Home", "/dashboard"],
             ["roadmap", "My Program", "/roadmap-entryload"],
             ["careers", "My Career", roadmapViewUrl("careers")],
           ].map(([key, label, path]) => (
@@ -121,6 +122,9 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
                 Compare programs
               </DropdownItem>
             )}
+            <DropdownItem icon={MessageCircle} onClick={() => navigate("/chat")}>
+              Ask Eunice
+            </DropdownItem>
           </Dropdown>
         </nav>
         <div className="app-nav-actions">
