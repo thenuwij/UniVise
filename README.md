@@ -22,7 +22,7 @@ Your degree guide opens on **Requirements**. A persistent section menu on deskto
 
 | Section | What you get |
 |---|---|
-| **Requirements** | Program and specialisation requirements, UOC needed to graduate, entry and progression rules, WAM and honours information, awards and further study |
+| **Requirements** | An overview of the program, its requirements and your specialisation, and the UOC needed to graduate. For programs with an honours pathway, it also covers entry rules, WAM and honours classes, and awards |
 | **Courses** | A continuous checklist of core courses, discipline electives, free electives and general education, grouped by the requirements of your degree and specialisation |
 | **CourseMesh** | An interactive prerequisite map showing how your courses connect and what you can take next |
 | **Societies** | Student societies and professional bodies related to your field, plus links to Hello Rubric and the Arc club directory |
