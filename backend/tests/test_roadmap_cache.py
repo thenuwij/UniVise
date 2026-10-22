@@ -115,3 +115,21 @@ def test_frontend_roadmap_version_matches_the_prompt_version():
 
     source = (Path(__file__).resolve().parents[2] / "frontend/src/features/roadmap/utils/roadmapEntry.js").read_text()
     assert int(re.search(r"ROADMAP_PROMPT_VERSION = (\d+);", source).group(1)) == PROMPT_VERSION
+
+
+SAVED_KEY = {"degree_code": "3707", "specialisation_ids": ["b", "a"], "prompt_version": 8}
+
+
+def test_saved_roadmap_matches_same_specialisations_in_any_order():
+    assert cache.same_combination({"specialisation_ids": ["a", "b"], "cache_key": {"prompt_version": 8}}, SAVED_KEY)
+
+
+def test_saved_roadmap_with_other_specialisations_or_version_is_left_alone():
+    assert not cache.same_combination({"specialisation_ids": ["a"], "cache_key": {"prompt_version": 8}}, SAVED_KEY)
+    assert not cache.same_combination({"specialisation_ids": ["a", "b"], "cache_key": {"prompt_version": 7}}, SAVED_KEY)
+    assert not cache.same_combination({"specialisation_ids": [], "cache_key": None}, SAVED_KEY)
+
+
+def test_base_program_matches_saved_roadmap_without_specialisations():
+    base = {"degree_code": "3778", "specialisation_ids": [], "prompt_version": 8}
+    assert cache.same_combination({"specialisation_ids": None, "cache_key": {"prompt_version": 8}}, base)

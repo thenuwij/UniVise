@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ExternalLink, Signpost, TrendingUp, CheckCircle2 } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { SourceLink } from "@/features/roadmap/components/SourceTags";
+import CareerResources from "./CareerResources";
 import { SubLabel } from "./CareersSection";
 import { chipClass } from "../utils/careersStyles";
 
@@ -38,8 +39,6 @@ const LEVELS = [
   { id: "senior", label: "Senior", key: "senior" },
 ];
 
-const SHOWN_CERTS = 3;
-
 const matchesInterests = (title, interestAreas) =>
   interestAreas.some((area) => INTEREST_PATTERNS[area]?.test(title || ""));
 
@@ -70,37 +69,6 @@ function useInterestAreas(enabled) {
   }, [enabled, userId]);
 
   return interestAreas;
-}
-
-function Outlook({ outlook }) {
-  const source = outlook[0];
-  return (
-    <div>
-      <SubLabel>Graduate outlook</SubLabel>
-      <div className="mt-3 space-y-3">
-        {outlook.map((area) => (
-          <div key={area.study_area}>
-            {outlook.length > 1 && <p className="mb-2 text-sm font-medium text-ink">{area.study_area}</p>}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                ["In full-time work after graduating", area.full_time_employment_rate != null ? `${area.full_time_employment_rate}%` : null],
-                ["Median starting salary", area.median_salary != null ? `$${area.median_salary.toLocaleString()}` : null],
-              ].filter(([, value]) => value).map(([label, value]) => (
-                <div key={label} className="rounded-xl bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
-                  <p className="text-[13px] text-ink-muted">{label}</p>
-                  <p className="mt-1 text-2xl font-semibold text-ink-strong">{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="mt-2 text-xs text-ink-muted">
-        All Australian graduates in {outlook.length > 1 ? "each study area" : source.study_area}.{" "}
-        <SourceLink href={source.source_url}>QILT Graduate Outcomes Survey {source.survey_year}</SourceLink>
-      </p>
-    </div>
-  );
 }
 
 function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCount, onOpenCourse }) {
@@ -207,13 +175,9 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
   const interestAreas = useInterestAreas(personal);
   const [level, setLevel] = useState("entry");
   const [openRoles, setOpenRoles] = useState(() => new Set());
-  const [showAllCerts, setShowAllCerts] = useState(false);
 
-  const outlook = careerPathways?.outlook || [];
-  const certifications = careerPathways?.certifications || [];
   const levels = LEVELS.filter((l) => careerPathways?.[l.key]?.roles?.length);
   const roles = careerPathways?.[LEVELS.find((l) => l.id === level)?.key]?.roles || [];
-  const shownCerts = showAllCerts ? certifications : certifications.slice(0, SHOWN_CERTS);
 
   const toggleRole = (key) => setOpenRoles((prev) => {
     const next = new Set(prev);
@@ -227,15 +191,15 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
     if (match?.id) navigate(`/course/${match.id}`);
   };
 
-  const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.search_words === role.ad_search).length : 0);
+  const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.role === role.ad_search).length : 0);
 
   return (
-    <div className="space-y-8">
-      {outlook.length > 0 && <Outlook outlook={outlook} />}
-
+    <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
       {levels.length > 0 && (
         <div>
           <SubLabel
+            icon={Signpost}
+            hint="Open a role for pay, next steps and how your degree gets you there"
             action={
               <div className="flex gap-1.5" role="group" aria-label="Career stage">
                 {levels.map((l) => (
@@ -246,9 +210,9 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
               </div>
             }
           >
-            Roles
+            Roles by career stage
           </SubLabel>
-          <ul className="mt-2 divide-y divide-line border-y border-line">
+          <ul className="mt-4 divide-y divide-line border-y border-line">
             {roles.map((role) => (
               <RoleRow
                 key={`${level}-${role.title}`}
@@ -266,43 +230,7 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
         </div>
       )}
 
-      {certifications.length > 0 && (
-        <div>
-          <SubLabel>Certifications</SubLabel>
-          <ul className="mt-2 divide-y divide-line border-y border-line">
-            {shownCerts.map((cert) => (
-              <li key={cert.name} className="flex items-start justify-between gap-4 px-2 py-3">
-                <div className="min-w-0">
-                  <p className="text-[15px] font-medium text-ink-strong">{cert.name}</p>
-                  <p className="mt-0.5 text-[13px] text-ink-muted">{[cert.provider, cert.timeline].filter(Boolean).join(" · ")}</p>
-                  {cert.notes && <p className="mt-1 text-[13px] text-ink-muted">{cert.notes}</p>}
-                  {cert.url && (
-                    <a href={cert.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-link hover:underline">
-                      Learn more <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-                {cert.importance && (
-                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-md text-xs font-semibold ${
-                    cert.importance === "Required"
-                      ? "bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-                      : cert.importance === "Highly Recommended"
-                      ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                  }`}>
-                    {cert.importance}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {certifications.length > SHOWN_CERTS && (
-            <ExpandToggle wide open={showAllCerts} onClick={() => setShowAllCerts(!showAllCerts)}>
-              {showAllCerts ? "Show fewer" : `Show ${certifications.length - SHOWN_CERTS} more certifications`}
-            </ExpandToggle>
-          )}
-        </div>
-      )}
+      <CareerResources />
     </div>
   );
 }

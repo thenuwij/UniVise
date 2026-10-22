@@ -23,6 +23,8 @@ _SECRETS = {
     "SUPABASE_SERVICE_ROLE_KEY": "univise/staging/supabase-service-role-key",
     "OPENAI_API_KEY": "univise/staging/openai-api-key",
     "ANTHROPIC_API_KEY": "univise/staging/anthropic-api-key",
+    "ADZUNA_APP_ID": "univise/staging/adzuna-app-id",
+    "ADZUNA_APP_KEY": "univise/staging/adzuna-app-key",
 }
 
 

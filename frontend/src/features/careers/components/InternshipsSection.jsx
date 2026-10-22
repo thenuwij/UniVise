@@ -1,19 +1,15 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, CalendarClock, ExternalLink, GraduationCap, Megaphone } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SaveButton from "@/shared/ui/SaveButton";
 import { SourceLink } from "@/features/roadmap/components/SourceTags";
 import { sameCompany } from "@/features/roadmap/utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
-import AdRows, { AdzunaCredit } from "./AdRows";
+import AdRows from "./AdRows";
 import { SubLabel } from "./CareersSection";
 
 const SHOWN_PROGRAMS = 4;
-
-const RESOURCES = [
-  { name: "UNSWConnect", desc: "Internships, part-time jobs and graduate roles", url: "https://unswconnect.unsw.edu.au" },
-  { name: "UNSW Prosple", desc: "Graduate programs and early career opportunities", url: "https://unsw.prosple.com" },
-];
+const SHOWN_OPEN = 5;
 
 function ProgramRow({ program }) {
   const details = [program.paid && "Paid", program.duration, program.timing].filter(Boolean).join(" · ");
@@ -58,10 +54,11 @@ function ProgramRow({ program }) {
 
 export default function InternshipsSection({ industryExperience, openAds }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
+  const [showAllOpen, setShowAllOpen] = useState(false);
 
   const programs = useMemo(() => {
     const list = (industryExperience?.internship_programs || []).filter(
-      (program) => !(openAds || []).some((ad) => sameCompany(ad.company, program.company))
+      (program) => !(openAds || []).some((ad) => sameCompany(ad.organisation, program.company))
     );
     return list
       .map((program) => ({ program, months: monthsUntilOpen(program.application_period) }))
@@ -77,14 +74,21 @@ export default function InternshipsSection({ industryExperience, openAds }) {
   const shownPrograms = showAllPrograms ? programs : programs.slice(0, SHOWN_PROGRAMS);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
       <div>
-        <SubLabel action={openAds?.length > 0 && <AdzunaCredit />}>Open now</SubLabel>
-        <div className="mt-3">
+        <SubLabel icon={Megaphone} hint="Live ads you can apply for today">Open now</SubLabel>
+        <div className="mt-4">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : openAds.length > 0 ? (
-            <AdRows ads={openAds} />
+            <>
+              <AdRows ads={showAllOpen ? openAds : openAds.slice(0, SHOWN_OPEN)} />
+              {openAds.length > SHOWN_OPEN && (
+                <ExpandToggle wide open={showAllOpen} onClick={() => setShowAllOpen(!showAllOpen)}>
+                  {showAllOpen ? "Show fewer" : `Show all ${openAds.length} internships`}
+                </ExpandToggle>
+              )}
+            </>
           ) : (
             <p className="text-sm text-ink-muted">No internship ads open right now. The programs below show when they usually open.</p>
           )}
@@ -93,8 +97,8 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
       {programs.length > 0 && (
         <div>
-          <SubLabel>Opening soon</SubLabel>
-          <ul className="mt-1 divide-y divide-line border-b border-line">
+          <SubLabel icon={CalendarClock} hint="Programs that open at set times each year, soonest first">Opening soon</SubLabel>
+          <ul className="mt-3 divide-y divide-line border-b border-line">
             {shownPrograms.map((program) => (
               <ProgramRow key={`${program.company}-${program.program_name}`} program={program} />
             ))}
@@ -109,9 +113,9 @@ export default function InternshipsSection({ industryExperience, openAds }) {
 
       {hasPlacements && (
         <div>
-          <SubLabel>Placements in your degree</SubLabel>
+          <SubLabel icon={GraduationCap} hint="Work experience built into your degree">Placements in your degree</SubLabel>
           <div
-            className={`mt-3 rounded-xl p-5 ${
+            className={`mt-4 rounded-xl p-5 ${
               placements?.required
                 ? "border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
                 : "bg-slate-50 dark:bg-slate-800/50"
@@ -138,27 +142,6 @@ export default function InternshipsSection({ industryExperience, openAds }) {
           </div>
         </div>
       )}
-
-      <div>
-        <SubLabel>UNSW career resources</SubLabel>
-        <div className="mt-3 grid sm:grid-cols-2 gap-3">
-          {RESOURCES.map(({ name, desc, url }) => (
-            <a
-              key={name}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 hover:border-blue-300 hover:bg-surface-tint transition-colors"
-            >
-              <span>
-                <span className="block text-[15px] font-medium text-ink-strong group-hover:text-link">{name}</span>
-                <span className="block text-[13px] text-ink-muted">{desc}</span>
-              </span>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 text-ink-muted group-hover:text-link" />
-            </a>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

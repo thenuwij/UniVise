@@ -77,3 +77,34 @@ def write_cached_roadmap(key: Dict[str, Any] | None, payload: Dict[str, Any]) ->
         ).execute()
     except Exception as e:
         logger.warning(f"[roadmap_cache] write failed: {e}")
+
+
+def same_combination(row: Dict[str, Any], key: Dict[str, Any]) -> bool:
+    return sorted(row.get("specialisation_ids") or []) == sorted(key.get("specialisation_ids") or []) and (
+        (row.get("cache_key") or {}).get("prompt_version") == key.get("prompt_version")
+    )
+
+
+def matching_saved_roadmaps(key: Dict[str, Any] | None) -> list:
+    if not key:
+        return []
+    try:
+        rows = (
+            supabase.from_("unsw_roadmap")
+            .select("id, payload->specialisation_ids, payload->cache_key")
+            .eq("degree_code", key["degree_code"])
+            .execute()
+            .data
+            or []
+        )
+    except Exception as e:
+        logger.warning(f"[roadmap_cache] saved roadmap lookup failed: {e}")
+        return []
+    return [row["id"] for row in rows if same_combination(row, key)]
+
+
+def update_saved_roadmaps(key: Dict[str, Any] | None, payload: Dict[str, Any]) -> int:
+    ids = matching_saved_roadmaps(key)
+    for roadmap_id in ids:
+        supabase.from_("unsw_roadmap").update({"payload": payload}).eq("id", roadmap_id).execute()
+    return len(ids)

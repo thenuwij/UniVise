@@ -104,6 +104,7 @@ async def ask_gpt_web_search(
     max_tokens: int = 3000,
     system_prompt: str = _GPT_SYSTEM,
     model: str = _GPT_MODEL,
+    timeout: float | None = None,
 ) -> tuple[SchemaT, List[str]]:
     """Structured GPT call that may search the web, limited to allowed_domains when given.
 
@@ -116,8 +117,9 @@ async def ask_gpt_web_search(
     }
     if allowed_domains:
         tool["filters"] = {"allowed_domains": allowed_domains}
+    client = _openai_async_client.with_options(timeout=timeout, max_retries=0) if timeout else _openai_async_client
     try:
-        response = await _openai_async_client.responses.parse(
+        response = await client.responses.parse(
             model=model,
             input=[
                 {"role": "system", "content": system_prompt},

@@ -8,9 +8,12 @@ Run from the backend folder:
     python -m scripts.roadmap_cache_fill apply --limit 5
     python -m scripts.roadmap_cache_fill apply --refresh-days 30 --prune
 
-`plan` only reads: it lists missing and stale roadmaps, and the rows --prune
-would delete. `apply` generates the missing roadmaps (and the stale ones when
---refresh-days is given) and saves each one only when every section succeeded.
+`plan` only reads: it lists missing and stale roadmaps, how many students'
+saved roadmaps each would update, and the rows --prune would delete. `apply`
+generates the missing roadmaps (and the stale ones when --refresh-days is
+given) and saves each one only when every section succeeded. Each saved cache
+row is also copied into every student's saved roadmap for the same program,
+specialisations and prompt version, so students see the refreshed content.
 With --prune it also deletes rows from older prompt versions and rows nobody
 used for 90 days, keeping every row a current target still needs.
 """
@@ -23,7 +26,13 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 from app.core.database import supabase
-from app.services.roadmap.cache import PROMPT_VERSION, roadmap_cache_key, write_cached_roadmap
+from app.services.roadmap.cache import (
+    PROMPT_VERSION,
+    matching_saved_roadmaps,
+    roadmap_cache_key,
+    update_saved_roadmaps,
+    write_cached_roadmap,
+)
 from app.services.roadmap.industry import generate_industry_sections
 from app.services.roadmap.unsw import ai_generate_unsw_payload, gather_unsw_context
 
@@ -116,7 +125,7 @@ async def generate(ctx, key):
     payload.update(sections)
     payload["industry_failed"] = []
     write_cached_roadmap(key, payload)
-    return []
+    return update_saved_roadmaps(key, payload)
 
 
 async def generate_all(work, concurrency):
@@ -128,15 +137,15 @@ async def generate_all(work, concurrency):
         async with gate:
             started = time.time()
             try:
-                failed = await generate(ctx, key)
+                result = await generate(ctx, key)
             except Exception as e:
-                failed = [f"error: {e}"]
+                result = [f"error: {e}"]
             took = time.time() - started
-            if failed:
+            if isinstance(result, list):
                 failures += 1
-                print(f"FAILED  {label(key)}  {took:.0f}s  {', '.join(failed)}", flush=True)
+                print(f"FAILED  {label(key)}  {took:.0f}s  {', '.join(result)}", flush=True)
             else:
-                print(f"saved   {label(key)}  {took:.0f}s", flush=True)
+                print(f"saved   {label(key)}  {took:.0f}s  updated {result} saved roadmap{'s' if result != 1 else ''}", flush=True)
 
     await asyncio.gather(*[one(ctx, key) for ctx, key in work])
     return failures
@@ -160,7 +169,8 @@ async def run(args):
     print(f"rows --prune would delete: {len(prunable)}")
     if args.command == "plan":
         for _, key in work:
-            print(f"  would generate {label(key)}")
+            saved = len(matching_saved_roadmaps(key))
+            print(f"  would generate {label(key)} and update {saved} saved roadmap{'s' if saved != 1 else ''}")
         return 0
 
     failures = await generate_all(work, args.concurrency)

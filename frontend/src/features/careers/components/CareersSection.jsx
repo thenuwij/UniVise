@@ -20,12 +20,13 @@ function useTimedProgress(active) {
   return pct;
 }
 
-function SectionStatus({ status, updatedAt, onRetry }) {
-  if (status === "loading") {
+function SectionStatus({ status, updatedAt, onRetry, label: name }) {
+  const prefix = name ? `${name} · ` : "";
+  if (status === "loading" || status === "running") {
     return (
       <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-link">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Updating
+        {prefix}Updating
       </span>
     );
   }
@@ -33,7 +34,7 @@ function SectionStatus({ status, updatedAt, onRetry }) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-red-700 dark:text-red-300">
         <AlertCircle className="h-3.5 w-3.5" />
-        Couldn't update
+        {prefix}Couldn't update
         {onRetry && (
           <button type="button" onClick={onRetry} className="underline hover:no-underline">
             Try again
@@ -47,43 +48,52 @@ function SectionStatus({ status, updatedAt, onRetry }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700 dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" />
-      {label}
+      {prefix}{label}
     </span>
   );
 }
 
-export function SubLabel({ children, action }) {
+export function SubLabel({ icon: Icon, hint, children, action }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h3 className="border-l-[3px] border-brand-blue pl-2.5 text-[15px] font-semibold leading-5 text-ink-strong">{children}</h3>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-link dark:bg-blue-900/40">
+            <Icon className="h-[18px] w-[18px]" />
+          </span>
+        )}
+        <div>
+          <h3 className="text-[17px] font-semibold leading-6 text-ink-strong">{children}</h3>
+          {hint && <p className="text-[13px] text-ink-muted">{hint}</p>}
+        </div>
+      </div>
       {action}
     </div>
   );
 }
 
-export default function CareersSection({ id, icon: Icon, title, description, status, updatedAt, loadingText, onRetry, children }) {
-  const pct = useTimedProgress(status === "loading");
+export default function CareersSection({ id, title, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
+  const loading = status === "loading" || sources.some((s) => s.status === "running");
+  const pct = useTimedProgress(loading);
 
   return (
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-20 overflow-hidden rounded-2xl border border-line bg-surface"
+      className="scroll-mt-20 border-t border-line py-10 first:border-t-0 first:pt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-tint px-5 py-4 md:px-7">
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface text-link border border-line">
-            <Icon className="h-[18px] w-[18px]" />
-          </span>
-          <div>
-            <h2 id={`${id}-title`} className="text-xl font-semibold text-ink-strong">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}
-          </div>
+      <div className="mb-6 lg:mb-0 lg:sticky lg:top-20 lg:self-start">
+        <h2 id={`${id}-title`} className="text-2xl font-semibold text-ink-strong">{title}</h2>
+        {description && <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>}
+        <div className="mt-3 flex flex-col items-start gap-1">
+          <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
+          {sources.map((s) => (
+            <SectionStatus key={s.label} label={s.label} status={s.status} updatedAt={s.refreshedAt} onRetry={s.onRetry} />
+          ))}
         </div>
-        <SectionStatus status={status} updatedAt={updatedAt} onRetry={onRetry} />
       </div>
-      <div className="px-5 py-6 md:px-7">
-        {status === "loading" && (
+      <div className="min-w-0">
+        {loading && (
           <div className="mb-6" role="status">
             <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div className="h-full rounded-full bg-brand-blue transition-all duration-500" style={{ width: `${pct}%` }} />
