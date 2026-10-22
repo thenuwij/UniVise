@@ -13,6 +13,10 @@ permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
 env:
   AWS_REGION: ap-southeast-2
   S3_BUCKET: univise-frontend-staging-280793168491
@@ -72,8 +76,11 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
-      - name: Sync build output to S3
-        run: aws s3 sync frontend/dist/ s3://${{ env.S3_BUCKET }} --delete
+      - name: Upload new assets to S3
+        run: aws s3 sync frontend/dist/ s3://${{ env.S3_BUCKET }} --exclude "index.html"
+
+      - name: Upload index.html to S3
+        run: aws s3 cp frontend/dist/index.html s3://${{ env.S3_BUCKET }}/index.html --cache-control "no-cache"
 
       - name: Invalidate CloudFront cache
         run: aws cloudfront create-invalidation --distribution-id "${{ secrets.CLOUDFRONT_STAGING_DISTRIBUTION_ID }}" --paths "/*"
