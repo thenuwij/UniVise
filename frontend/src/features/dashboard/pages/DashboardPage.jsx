@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { HelpCircle, Sparkles } from "lucide-react";
+import { HelpCircle, Moon, Sun, Sunset } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
@@ -11,22 +10,32 @@ import ProgramCard from "../components/ProgramCard";
 import { useDashboardFacts } from "../hooks/useDashboardFacts";
 import "../dashboard.css";
 
+const DAY_LINES = [
+  "Take it easy. Your plan will be here when you're ready.",
+  "New week. Let's map out what's next.",
+  "A steady start. Pick one thing to move forward.",
+  "Halfway there. A good day to check your plan.",
+  "Almost the weekend. Anything worth ticking off?",
+  "Nearly the weekend. One small step on your degree?",
+  "Weekend mode. A quick look ahead never hurts.",
+];
+
 const GUIDE_KEY = "univise-dashboard-guide-seen";
 const GUIDE_STEPS = [
   {
     targets: ['[data-tour="dash-degree"]'],
-    title: "Your degree",
-    text: "Open My Program here to tick off courses and see your specialisation whenever you're ready.",
-  },
-  {
-    targets: ['[data-tour="dash-steps"]'],
     title: "My Program",
-    text: "Overview, Courses, CourseMesh and Societies cover your degree. Open any of them directly.",
+    text: "See your degree and recorded progress here. Open My Program to start with Requirements, then use its section menu for Courses, CourseMesh and Societies.",
   },
   {
     targets: ['[data-tour="dash-career"]'],
     title: "My Career",
-    text: "Jobs, internships and events picked for your degree, plus certifications and where your degree leads.",
+    text: "Open My Career to see Jobs first. Its section menu also leads to Internships, Networking, Certifications and Career outlook.",
+  },
+  {
+    targets: ['[data-tour="dash-edit"]'],
+    title: "Manage your degree",
+    text: "Use this menu to change your program or, when available, your specialisation.",
   },
   {
     targets: ['[data-tour="dash-compare"]'],
@@ -51,14 +60,17 @@ export default function DashboardPage() {
     metadata?.full_name?.split(" ")[0] ||
     metadata?.name?.split(" ")[0];
   const name = firstName?.trim();
+  const now = new Date();
   const today = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     day: "numeric",
     month: "long",
-  }).format(new Date());
-  const hour = new Date().getHours();
+  }).format(now);
+  const hour = now.getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const TimeIcon = hour < 12 ? Sun : hour < 18 ? Sunset : Moon;
+  const dayLine = DAY_LINES[now.getDay()];
   return (
     <div className="min-h-screen app-page dashboard-page">
       <DashboardNavBar
@@ -76,23 +88,23 @@ export default function DashboardPage() {
       <main className="dashboard-main">
         <div className="dashboard-welcome">
           <div>
-            <p className="dashboard-date">{today}</p>
+            <p className="dashboard-date">
+              <TimeIcon aria-hidden="true" />
+              {today}
+            </p>
             <h1>
               {greeting}
               {name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}
             </h1>
+            <p className="dashboard-day-line">{dayLine}</p>
           </div>
           <div className="dashboard-welcome-actions">
-            <Link to="/chat" className="dashboard-button dashboard-ask-eunice">
-              <Sparkles aria-hidden="true" />
-              Ask Eunice
-            </Link>
             {facts?.program && (
               <button
                 type="button"
                 className="dashboard-help"
                 onClick={() => setShowGuide(true)}
-                aria-label="How the dashboard works"
+                aria-label="How Home works"
               >
                 <HelpCircle aria-hidden="true" />
               </button>

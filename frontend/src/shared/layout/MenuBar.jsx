@@ -1,6 +1,6 @@
 import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { Bookmark, BookOpen, Briefcase, Compass, LayoutDashboard, LogOut, Map, MessageCircle, Repeat, X } from "lucide-react";
+import { Bookmark, BookOpen, Briefcase, Compass, House, LogOut, Map, MessageCircle, Repeat, X } from "lucide-react";
 import { isNavigationActive } from "./navigation";
 import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ const GROUPS = [
   {
     label: "Your plan",
     items: [
-      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/dashboard", label: "Home", icon: House },
       { path: "/roadmap-entryload", label: "My Program", icon: Map },
       { path: roadmapViewUrl("careers"), label: "My Career", icon: Briefcase },
     ],

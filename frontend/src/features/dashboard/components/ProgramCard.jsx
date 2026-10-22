@@ -1,195 +1,80 @@
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Award,
-  BookOpen,
-  Briefcase,
-  Building2,
-  Compass,
-  GitCompare,
-  GraduationCap,
-  Handshake,
-  Layers,
-  Network,
-  Route,
-  Users,
-} from "lucide-react";
-import { careerSectionUrl, roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { ArrowRight, ArrowUpRight, BookOpen, BriefcaseBusiness } from "lucide-react";
+import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import AtAGlance from "./AtAGlance";
-
-const SECTION_GROUPS = [
-  {
-    id: "program",
-    title: "My Program",
-    tour: "dash-steps",
-    links: [
-      { key: "overview", title: "Overview", text: "Understand your degree and requirements", icon: BookOpen, to: roadmapStepUrl("overview") },
-      { key: "structure", title: "Courses", text: "Plan courses and track completion", icon: Layers, to: roadmapStepUrl("structure") },
-      { key: "coursemesh", title: "CourseMesh", text: "See what your courses unlock next", icon: Network, to: roadmapStepUrl("coursemesh") },
-      { key: "societies", title: "Societies", text: "Find clubs and student communities", icon: Users, to: roadmapStepUrl("societies") },
-    ],
-  },
-  {
-    id: "career",
-    title: "My Career",
-    tour: "dash-career",
-    links: [
-      { key: "jobs", title: "Jobs", text: "Graduate and junior roles picked for you", icon: Briefcase, to: careerSectionUrl("jobs") },
-      { key: "internships", title: "Internships", text: "Open internships and annual programs", icon: Building2, to: careerSectionUrl("internships") },
-      { key: "networking", title: "Networking", text: "Career fairs, meetups and industry events", icon: Handshake, to: careerSectionUrl("networking") },
-      { key: "certifications", title: "Certifications", text: "Credentials that strengthen applications", icon: Award, to: careerSectionUrl("certifications") },
-      { key: "outlook", title: "Career outlook", text: "Roles and pay your degree leads to", icon: Route, to: careerSectionUrl("career-outlook") },
-    ],
-  },
-];
+import DegreeEditMenu from "./DegreeEditMenu";
 
 export default function ProgramCard({ facts }) {
-  if (!facts)
+  if (!facts) {
     return (
-      <div
-        className="dashboard-degree dashboard-skeleton animate-pulse"
-        role="status"
-      >
-        <span className="sr-only">Loading your degree</span>
+      <div className="dashboard-portals" role="status">
+        <span className="sr-only">Loading your home page</span>
+        {[0, 1].map((index) => <div key={index} className="dashboard-portal dashboard-skeleton animate-pulse" aria-hidden="true" />)}
       </div>
     );
+  }
   if (!facts.program) {
     return (
-      <section
-        className="dashboard-degree"
-        aria-labelledby="dashboard-no-program"
-      >
-        <div className="dashboard-degree-heading">
-          <span className="dashboard-program-mark">
-            <Compass aria-hidden="true" />
-          </span>
-          <div className="dashboard-degree-copy">
-            <p className="dashboard-eyebrow">Your next step</p>
-            <h2 id="dashboard-no-program">Explore any UNSW program</h2>
-            <p className="dashboard-muted">
-              Your program isn't in our list yet. You can still explore degree
-              requirements, courses and careers.
-            </p>
-          </div>
-        </div>
+      <section className="dashboard-empty" aria-labelledby="dashboard-no-program">
+        <p className="dashboard-eyebrow">Your next step</p>
+        <h2 id="dashboard-no-program">Explore any UNSW program</h2>
+        <p className="dashboard-muted">
+          Your program isn't in our list yet. You can still explore degree requirements, courses and careers.
+        </p>
         <div className="dashboard-fallback-actions">
-          <Link
-            to="/roadmap"
-            className="dashboard-button dashboard-button-primary"
-          >
-            Explore a program
-          </Link>
-          <Link to="/handbook" className="dashboard-button">
-            Search the Handbook
-          </Link>
+          <Link to="/roadmap" className="dashboard-action">Explore a program <ArrowRight aria-hidden="true" /></Link>
+          <Link to="/handbook" className="dashboard-text-link">Search the Handbook <ArrowUpRight aria-hidden="true" /></Link>
         </div>
       </section>
     );
   }
+
   const { program, minimumUoc, specNames = [] } = facts;
+  const canChangeSpecialisation = !facts.failed && facts.hasSpecOptions;
   const details = [
-    "UNSW",
-    `Program ${program.degree_code}`,
+    specNames.length ? specNames.join(" · ") : canChangeSpecialisation ? "No specialisation selected" : null,
+    `UNSW ${program.degree_code}`,
     minimumUoc ? `${minimumUoc} UOC` : null,
   ].filter(Boolean);
+
   return (
     <>
-      <section
-        className="dashboard-degree"
-        data-tour="dash-degree"
-        aria-labelledby="dashboard-degree-title"
-      >
-        <div className="dashboard-degree-heading">
-          <span className="dashboard-program-mark">
-            <GraduationCap aria-hidden="true" />
-          </span>
-          <div className="dashboard-degree-copy">
-            <p className="dashboard-eyebrow">Your degree</p>
-            <div className="dashboard-degree-name-row">
-              <h2 id="dashboard-degree-title">{program.program_name}</h2>
-              <div className="dashboard-degree-links">
-                <Link to="/roadmap">Change program</Link>
-              </div>
-            </div>
-            <p className="dashboard-muted">{details.join(" · ")}</p>
-            {(specNames.length > 0 || (!facts.failed && facts.hasSpecOptions)) && (
-              <div className="dashboard-degree-name-row">
-                <p className="dashboard-muted">
-                  {specNames.length > 0
-                    ? specNames.join(" · ")
-                    : "No specialisation selected"}
-                </p>
-                {!facts.failed && facts.hasSpecOptions && (
-                  <div className="dashboard-degree-links">
-                    <Link to={`/roadmap?program=${program.degree_code}`}>
-                      Change specialisation
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
+      <div className="dashboard-portals">
+        <section className="dashboard-portal dashboard-portal-program" data-tour="dash-degree" aria-labelledby="dashboard-program-title">
+          <p className="dashboard-portal-eyebrow"><BookOpen aria-hidden="true" />Your degree</p>
+          <h2 id="dashboard-program-title">My Program</h2>
+          <p className="dashboard-portal-description">Bring your degree into focus.</p>
+          <p className="dashboard-portal-sections">Requirements · Courses · CourseMesh · Societies</p>
+          <div className="dashboard-portal-context">
+            <h3>{program.program_name}</h3>
+            <p className="dashboard-program-details">{details.join(" · ")}</p>
+            <AtAGlance facts={facts} />
           </div>
-          <Link
-            to="/roadmap-entryload"
-            className="dashboard-button dashboard-button-primary dashboard-open-roadmap"
-            data-tour="dash-open"
-          >
-            Open My Program
-            <ArrowRight aria-hidden="true" />
+          <Link to={roadmapViewUrl("degree")} className="dashboard-action dashboard-portal-open" data-tour="dash-open">
+            Open My Program <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
-        <AtAGlance facts={facts} />
-      </section>
-      <div className="dashboard-groups">
-        {SECTION_GROUPS.map((group) => (
-          <section
-            key={group.id}
-            className="dashboard-group"
-            aria-labelledby={`dashboard-${group.id}-title`}
-            data-tour={group.tour}
-          >
-            <div className="dashboard-group-heading">
-              <h2 id={`dashboard-${group.id}-title`}>{group.title}</h2>
-            </div>
-            <nav aria-label={`${group.title} sections`}>
-              <ul className="dashboard-link-list">
-                {group.links.map(({ key, title, text, icon: Icon, to }) => (
-                  <li key={key}>
-                    <Link to={to} className="dashboard-link-row">
-                      <span className="dashboard-section-icon">
-                        <Icon aria-hidden="true" />
-                      </span>
-                      <span className="dashboard-link-copy">
-                        <span className="dashboard-link-title">{title}</span>
-                        <span className="dashboard-link-text">{text}</span>
-                      </span>
-                      <ArrowRight className="dashboard-link-arrow" aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </section>
-        ))}
+          <div className="dashboard-portal-edit" data-tour="dash-edit">
+            <DegreeEditMenu degreeCode={program.degree_code} canChangeSpecialisation={canChangeSpecialisation} />
+          </div>
+        </section>
+
+        <section className="dashboard-portal dashboard-portal-career" data-tour="dash-career" aria-labelledby="dashboard-career-title">
+          <p className="dashboard-portal-eyebrow"><BriefcaseBusiness aria-hidden="true" />Your future</p>
+          <h2 id="dashboard-career-title">My Career</h2>
+          <p className="dashboard-portal-description">Turn your degree into your next opportunity.</p>
+          <p className="dashboard-portal-sections">Jobs · Internships · Networking · Certifications · Career outlook</p>
+          <div className="dashboard-portal-context dashboard-career-context">
+            <p>A clearer direction. A world of possibilities.</p>
+          </div>
+          <Link to={roadmapViewUrl("careers")} className="dashboard-action dashboard-portal-open">
+            Open My Career <ArrowRight aria-hidden="true" />
+          </Link>
+        </section>
       </div>
-      <section
-        className="dashboard-compare"
-        aria-labelledby="dashboard-compare-title"
-        data-tour="dash-compare"
-      >
-        <span className="dashboard-compare-icon">
-          <GitCompare aria-hidden="true" />
-        </span>
-        <div>
-          <h2 id="dashboard-compare-title">Considering a different program?</h2>
-          <p className="dashboard-muted">
-            See how another degree compares with yours.
-          </p>
-        </div>
-        <Link to="/compare" className="dashboard-button">
-          Compare programs
-        </Link>
-      </section>
+      <div className="dashboard-compare" data-tour="dash-compare">
+        <p>Considering a different direction?</p>
+        <Link to="/compare" className="dashboard-text-link dashboard-compare-link">Compare programs <ArrowUpRight aria-hidden="true" /></Link>
+      </div>
     </>
   );
 }

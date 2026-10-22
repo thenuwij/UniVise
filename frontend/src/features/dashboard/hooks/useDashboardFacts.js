@@ -36,6 +36,7 @@ async function loadFacts(program, userId) {
     specNames: Object.values(choices).filter(Boolean).map((s) => s.major_name),
     hasSpecOptions: options.length > 0,
     canTakeNext: codes.filter((c) => courseStatus(c, completed, groups) === "available").length,
+    nextCodes: codes.filter((c) => courseStatus(c, completed, groups) === "available").slice(0, 2),
   };
 }
 
