@@ -47,11 +47,9 @@ const seekSearchUrl = (title) =>
 
 const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
 
-const earningsMonth = (period) => period?.match(/Earnings ([A-Za-z]+ \d{4})/)?.[1];
-
 const specialisationPath = (spec) => `/specialisation/${spec.type === "Honours" ? "honours" : "major"}/${spec.id}`;
 
-const linkChip = "inline-flex items-center px-2.5 py-1 rounded-md text-[13px] font-medium text-link bg-surface border border-line hover:border-blue-300 transition-colors";
+const linkChip = "inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium text-link bg-surface border border-line hover:border-blue-300 transition-colors";
 
 function useInterestAreas(enabled) {
   const { session } = UserAuth();
@@ -79,11 +77,11 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
     <li className="py-1">
       <div className="flex items-start gap-3 rounded-lg px-2 py-3 hover:bg-surface-tint transition-colors">
         <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 flex-1 items-start gap-3 text-left">
-          <ChevronDown className={`mt-1 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown className={`mt-1.5 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
           <span className="min-w-0">
-            <span className="block text-[15px] font-medium text-ink-strong">{role.title}</span>
+            <span className="block text-[15px] font-semibold text-ink-strong">{role.title}</span>
             {(matches || role.in_demand_nsw || jobCount > 0) && (
-              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
+              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-medium">
                 {matches && (
                   <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Matches your interests
@@ -102,7 +100,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
         {role.salary_range && (
           <span className="hidden sm:block flex-shrink-0 text-right">
             <span className="block text-[15px] font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</span>
-            <span className="block text-xs text-ink-muted">
+            <span className="block text-[13px] text-ink-muted">
               {role.salary_source?.url ? <SourceLink href={role.salary_source.url}>{role.salary_source.name}</SourceLink> : "AI-suggested"}
             </span>
           </span>
@@ -111,23 +109,14 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
       </div>
 
       {open && (
-        <div className="ml-9 mr-2 mb-3 space-y-4 text-sm text-ink leading-relaxed">
+        <div className="ml-9 mr-2 mb-4 space-y-4 text-sm leading-relaxed text-ink">
           {role.salary_range && (
             <p className="sm:hidden font-semibold text-ink-strong">{cleanSalary(role.salary_range)}</p>
           )}
           {role.description && <p>{role.description}</p>}
-          {role.typical_pay?.weekly && (
-            <p className="text-ink-muted">
-              {role.occupation_title || "This occupation"} earn a typical{" "}
-              <span className="font-semibold text-ink-strong">${role.typical_pay.weekly.toLocaleString()} a week</span> full-time, across all experience levels.{" "}
-              <SourceLink href={role.typical_pay.source_url}>
-                Jobs and Skills Australia{earningsMonth(role.typical_pay.period) ? `, ${earningsMonth(role.typical_pay.period)}` : ""}
-              </SourceLink>
-            </p>
-          )}
           {personal && (role.degree_path || role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4">
-              <p className="text-[13px] font-semibold text-ink-strong">How your degree gets you there</p>
+            <div className="rounded-xl border border-orange-200 bg-gradient-to-br from-amber-50 via-orange-50 to-white p-4 dark:border-orange-900/60 dark:from-amber-950/40 dark:via-orange-950/20 dark:to-transparent">
+              <p className="text-sm font-semibold text-orange-900 dark:text-orange-200">How your degree gets you there</p>
               {role.degree_path && <p className="mt-1">{role.degree_path}</p>}
               {(role.degree_courses?.length > 0 || role.specialisations?.length > 0) && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -145,7 +134,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
             <div className="grid md:grid-cols-2 gap-4">
               {role.next_steps?.length > 0 && (
                 <div>
-                  <p className="text-[13px] font-semibold text-ink-strong">Next steps</p>
+                  <p className="text-sm font-semibold text-ink-strong">Next steps</p>
                   <ol className="mt-1 list-decimal pl-5 space-y-1">
                     {role.next_steps.slice(0, 3).map((step) => <li key={step}>{step}</li>)}
                   </ol>
@@ -153,7 +142,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
               )}
               {role.requirements && (
                 <div>
-                  <p className="text-[13px] font-semibold text-ink-strong">Requirements</p>
+                  <p className="text-sm font-semibold text-ink-strong">Requirements</p>
                   <ul className="mt-1 list-disc pl-5 space-y-1">
                     {role.requirements.split(";").map((req) => req.trim()).filter(Boolean).map((req) => <li key={req}>{req}</li>)}
                   </ul>
@@ -161,7 +150,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
               )}
             </div>
           )}
-          <a href={seekSearchUrl(role.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-link hover:underline">
+          <a href={seekSearchUrl(role.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-link hover:underline">
             See current ads on SEEK <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
@@ -194,7 +183,7 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
   const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.role === role.ad_search).length : 0);
 
   return (
-    <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
+    <div className="space-y-12">
       {levels.length > 0 && (
         <div>
           <SubLabel
@@ -218,7 +207,7 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
                 key={`${level}-${role.title}`}
                 role={role}
                 level={level}
-                open={openRoles.has(`${level}-${role.title}`)}
+                open={openRoles.has(`${level}-${role.title}`) !== !personal}
                 onToggle={() => toggleRole(`${level}-${role.title}`)}
                 personal={personal}
                 interestAreas={interestAreas}

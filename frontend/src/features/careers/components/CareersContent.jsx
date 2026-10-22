@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Award, Briefcase, Building2, CalendarDays, CalendarRange, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { mergeListings } from "../utils/careersListings";
@@ -6,7 +6,6 @@ import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
 import CareersSection, { SubLabel } from "./CareersSection";
 import CertificationsList from "./CertificationsList";
-import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
 import "../careers.css";
@@ -20,22 +19,61 @@ const aiStatus = (data, key, sectionsStatus) => {
   return sectionsStatus === "loading" ? "loading" : "failed";
 };
 
+function useActiveSection(ids) {
+  const [active, setActive] = useState(ids[0]);
+  const key = ids.join("|");
+
+  useEffect(() => {
+    const onScroll = () => {
+      let current = key.split("|")[0];
+      for (const id of key.split("|")) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 140) current = id;
+      }
+      setActive(current);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [key]);
+
+  return active;
+}
+
 function SectionNav({ sections }) {
+  const active = useActiveSection(sections.map((s) => s.id));
+
   return (
     <nav aria-label="Careers sections">
-      <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {sections.map(({ id, title, icon: Icon, meta }) => (
-          <li key={id}>
-            <a
-              href={`#${id}`}
-              className="flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium text-ink border border-line bg-surface hover:border-blue-300 hover:text-link transition-colors"
-            >
-              <Icon className="h-4 w-4 text-ink-muted" />
-              <span>{title}</span>
-              {meta && <span className="text-xs font-normal text-ink-muted">{meta}</span>}
-            </a>
-          </li>
-        ))}
+      <ul className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {sections.map(({ id, title, icon: Icon, meta }) => {
+          const current = id === active;
+          return (
+            <li key={id}>
+              <a
+                href={`#${id}`}
+                aria-current={current ? "location" : undefined}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  current
+                    ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/25"
+                    : "border-blue-200 bg-white text-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:border-blue-900 dark:bg-slate-900 dark:text-blue-200 dark:hover:bg-blue-950"
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${current ? "text-white" : "text-blue-600 dark:text-blue-300"}`} />
+                <span>{title}</span>
+                {meta && (
+                  <span
+                    className={`rounded-full px-2 py-px text-xs font-bold ${
+                      current ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    }`}
+                  >
+                    {meta}
+                  </span>
+                )}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
@@ -74,10 +112,14 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     { id: "career-outlook", title: "Career outlook", icon: Route, meta: null },
   ];
 
+  const scrolledTo = useRef(null);
+  const listsLoaded = !personal || !!sources;
   useEffect(() => {
-    if (!focusSection) return;
-    document.getElementById(focusSection)?.scrollIntoView({ behavior: "smooth" });
-  }, [focusSection]);
+    if (!focusSection || !listsLoaded || scrolledTo.current === focusSection) return;
+    scrolledTo.current = focusSection;
+    const timer = setTimeout(() => document.getElementById(focusSection)?.scrollIntoView(), 300);
+    return () => clearTimeout(timer);
+  }, [focusSection, listsLoaded]);
 
   const certificationsSection = (
     <CareersSection
@@ -108,8 +150,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   if (!personal) {
     return (
       <div className="careers-page px-5 md:px-10 pb-16">
-        <GraduateStats outlook={data?.career_pathways?.outlook} />
-        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
+        <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-[15px] text-ink-muted">
           Jobs, internships and networking events show for your own program. Make this your program to see them.
         </p>
         {certificationsSection}
@@ -123,11 +164,10 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       <div className="sticky top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-3 bg-page/95 backdrop-blur border-b border-line">
         <SectionNav sections={sections} />
       </div>
-      <GraduateStats outlook={data?.career_pathways?.outlook} />
 
       <div>
         {loadFailed && (
-          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
             Today's jobs, internships and events couldn't load. Refresh the page to try again.
           </p>
         )}
@@ -171,14 +211,14 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
           {!ready("ai_networking") ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
           ) : (
-            <div className="space-y-10 [&>*+*]:border-t [&>*+*]:border-line [&>*+*]:pt-10">
+            <div className="space-y-12">
               <div>
                 <SubLabel icon={CalendarDays} hint="The next 8 weeks, in Sydney and online">Upcoming events</SubLabel>
                 <div className="mt-4">
                   {events.length > 0 ? (
                     <EventRows events={events} />
                   ) : (
-                    <p className="text-sm text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
+                    <p className="text-[15px] text-ink-muted">No upcoming events found today. We look again each day for events in your field.</p>
                   )}
                 </div>
               </div>

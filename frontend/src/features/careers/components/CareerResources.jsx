@@ -20,7 +20,7 @@ export default function CareerResources() {
             className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 hover:border-blue-300 hover:bg-surface-tint transition-colors"
           >
             <span>
-              <span className="block text-[15px] font-medium text-ink-strong group-hover:text-link">{name}</span>
+              <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{name}</span>
               <span className="block text-[13px] text-ink-muted">{desc}</span>
             </span>
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-ink-muted group-hover:text-link" />

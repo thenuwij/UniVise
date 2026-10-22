@@ -11,7 +11,7 @@ function BackButton({ back, className = "" }) {
   );
 }
 
-function TitleBlock({ eyebrow, title, subtitle, compact, back, wide }) {
+function TitleBlock({ eyebrow, title, subtitle, compact, back, wide, slim }) {
   return (
     <>
       {(eyebrow || back) && (
@@ -26,7 +26,7 @@ function TitleBlock({ eyebrow, title, subtitle, compact, back, wide }) {
         </div>
       )}
       {title ? (
-        <h1 className={`mt-2 font-extrabold text-band-ink ${compact ? "text-2xl md:text-3xl" : "text-4xl md:text-[42px] md:leading-[1.1]"}`}>
+        <h1 className={`${slim ? "mt-1 text-xl md:text-2xl" : compact ? "mt-2 text-2xl md:text-3xl" : "mt-2 text-4xl md:text-[42px] md:leading-[1.1]"} font-extrabold text-band-ink`}>
           {title}
         </h1>
       ) : (
@@ -37,8 +37,8 @@ function TitleBlock({ eyebrow, title, subtitle, compact, back, wide }) {
   );
 }
 
-export default function PageHeader({ eyebrow, title, subtitle, back, actions, aside, help, children, compact = false, actionsAtBottom = false, wide = false }) {
-  const padding = compact ? "pt-4 pb-5" : "pt-5 pb-7";
+export default function PageHeader({ eyebrow, title, subtitle, back, actions, aside, help, children, compact = false, actionsAtBottom = false, wide = false, slim = false }) {
+  const padding = slim ? "py-3" : compact ? "pt-4 pb-5" : "pt-5 pb-7";
   const side = actions || aside;
 
   return (
@@ -51,7 +51,7 @@ export default function PageHeader({ eyebrow, title, subtitle, back, actions, as
         {help && <div className={`absolute right-5 md:right-10 ${compact ? "top-3" : "top-4"}`}>{help}</div>}
         <div className={`flex flex-col md:flex-row md:justify-between gap-4 md:gap-8 ${actions ? (actionsAtBottom ? "md:items-end" : "md:items-start") : "md:items-center"}`}>
           <div className="min-w-0">
-            <TitleBlock eyebrow={eyebrow} title={title} subtitle={subtitle} compact={compact} back={back} wide={wide} />
+            <TitleBlock eyebrow={eyebrow} title={title} subtitle={subtitle} compact={compact} back={back} wide={wide} slim={slim} />
           </div>
           {side && (
             <div className="flex-shrink-0 flex flex-col items-start md:items-end gap-3">

@@ -15,7 +15,7 @@ export default function CertificationsList({ certifications }) {
   const [showAll, setShowAll] = useState(false);
 
   if (!certifications.length) {
-    return <p className="text-sm text-ink-muted">No certifications suggested for this degree yet.</p>;
+    return <p className="text-[15px] text-ink-muted">No certifications suggested for this degree yet.</p>;
   }
 
   const shown = showAll ? certifications : certifications.slice(0, SHOWN_CERTS);
@@ -24,27 +24,28 @@ export default function CertificationsList({ certifications }) {
     <div>
       <ul className="divide-y divide-line border-y border-line">
         {shown.map((cert) => (
-          <li key={cert.name} className="flex items-start justify-between gap-4 px-2 py-3">
-            <div className="min-w-0">
-              <p className="text-[15px] font-medium text-ink-strong">{cert.name}</p>
-              <p className="mt-0.5 text-[13px] text-ink-muted">{[cert.provider, cert.timeline].filter(Boolean).join(" · ")}</p>
-              {cert.notes && <p className="mt-1 text-[13px] text-ink-muted">{cert.notes}</p>}
-              {cert.url && (
-                <a href={cert.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-link hover:underline">
-                  Learn more <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
-            </div>
-            {cert.importance && (
-              <span className={`flex-shrink-0 px-2 py-0.5 rounded-md text-xs font-semibold ${importanceClass(cert.importance)}`}>
-                {cert.importance}
+          <li key={cert.name}>
+            <a
+              {...(cert.url ? { href: cert.url, target: "_blank", rel: "noopener noreferrer" } : {})}
+              className="group flex items-start justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
+            >
+              <span className="min-w-0">
+                <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{cert.name}</span>
+                <span className="block mt-0.5 text-[13px] text-ink-muted">{[cert.provider, cert.timeline].filter(Boolean).join(" · ")}</span>
+                {cert.notes && <span className="block mt-1 text-[13px] text-ink-muted">{cert.notes}</span>}
               </span>
-            )}
+              <span className="flex flex-shrink-0 items-center gap-2.5">
+                {cert.importance && (
+                  <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${importanceClass(cert.importance)}`}>{cert.importance}</span>
+                )}
+                {cert.url && <ExternalLink className="h-4 w-4 text-ink-muted group-hover:text-link" />}
+              </span>
+            </a>
           </li>
         ))}
       </ul>
       {certifications.length > SHOWN_CERTS && (
-        <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>
+        <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
           {showAll ? "Show fewer" : `Show ${certifications.length - SHOWN_CERTS} more certifications`}
         </ExpandToggle>
       )}

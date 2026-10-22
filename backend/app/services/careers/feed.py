@@ -33,13 +33,17 @@ def load_roadmap(roadmap_id: str, user_id: str) -> Dict[str, Any] | None:
     return rows[0] if rows else None
 
 
-def degree_label(roadmap: Dict[str, Any]) -> str:
-    program_name = roadmap.get("program_name") or "a UNSW degree"
+def specialisation_names(roadmap: Dict[str, Any]) -> List[str]:
     ids = (roadmap.get("payload") or {}).get("specialisation_ids") or []
     if not ids:
-        return program_name
+        return []
     rows = supabase.table("unsw_specialisations").select("major_name").in_("id", ids).execute().data or []
-    names = [row["major_name"] for row in rows if row.get("major_name")]
+    return [row["major_name"] for row in rows if row.get("major_name")]
+
+
+def degree_label(roadmap: Dict[str, Any], names: List[str] | None = None) -> str:
+    program_name = roadmap.get("program_name") or "a UNSW degree"
+    names = specialisation_names(roadmap) if names is None else names
     return f"{program_name} - {', '.join(names)}" if names else program_name
 
 

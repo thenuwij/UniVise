@@ -440,13 +440,13 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
                 <p className="text-[15px] font-medium text-ink-strong">
                   {noProgram
                     ? "We don't know your program yet, so there is nothing to show here."
-                    : "Most of this program's courses sit inside its majors or streams. Choose yours in your roadmap to see them here."}
+                    : "Most of this program's courses sit inside its majors or streams. Choose yours in My Program to see them here."}
                 </p>
                 <Link
                   to={noProgram ? "/roadmap-entryload" : `/roadmap?program=${programCode}`}
                   className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-xl text-[15px] font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-600/25 hover:-translate-y-0.5 hover:shadow-lg transition-all"
                 >
-                  {noProgram ? "Open Roadmap" : "Choose your major or stream"}
+                  {noProgram ? "Open My Program" : "Choose your major or stream"}
                 </Link>
               </div>
             </div>

@@ -26,6 +26,8 @@ export const stepNumber = (key) => ROADMAP_VIEWS[viewOfStep(key)].steps.findInde
 
 export const roadmapViewUrl = (view) => (view === "careers" ? "/roadmap-entryload?view=careers" : "/roadmap-entryload");
 
+export const careerSectionUrl = (section) => `/roadmap-entryload?view=careers&section=${section}`;
+
 export const roadmapStepUrl = (key) => {
   const view = viewOfStep(key);
   const viewQuery = view === "careers" ? "view=careers&" : "";

@@ -18,6 +18,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import CareersContent from "@/features/careers/components/CareersContent";
+import { HeaderStats } from "@/features/careers/components/GraduateStats";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
@@ -39,8 +40,8 @@ const sectionGuideSteps = (view) => ROADMAP_VIEWS[view].steps.map(({ key, title 
   text: SECTION_GUIDE_TEXT[key],
 }));
 const VIEW_COPY = {
-  degree: { own: "Your degree", exploring: "Exploring", back: "Back to my roadmap" },
-  careers: { own: "Careers for your degree", exploring: "Exploring careers", back: "Back to my careers" },
+  degree: { own: "My Program", exploring: "Exploring a program", back: "Back to My Program" },
+  careers: { own: "My Career", exploring: "Exploring careers", back: "Back to My Career" },
 };
 
 const INDUSTRY_KEYS = ["industry_societies", "industry_experience", "career_pathways"];
@@ -347,7 +348,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const fetchedDegree = useDegreeData(header.degree_code);
   const roadmapReady = !!data;
   const isCareers = view === "careers";
-  const [careersFocus] = useState(() => (searchParams.get("step") === "2" ? "internships" : null));
+  const [careersFocus] = useState(() => searchParams.get("section") || (searchParams.get("step") === "2" ? "internships" : null));
   useEffect(() => {
     if (isCareers || !roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
     const timer = setTimeout(() => setShowSectionGuide(true), 500);
@@ -498,11 +499,20 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
         </>
       }
       eyebrow={isOwnProgram ? copy.own : copy.exploring}
-      title={headerProgramName}
+      title={
+        isCareers && specNames.length > 0 ? (
+          <>
+            {headerProgramName}
+            <span className="ml-2 align-middle text-base font-semibold text-band-soft md:text-lg">· {specNames.join(" · ")}</span>
+          </>
+        ) : headerProgramName
+      }
       subtitle={!isCareers && specNames.length > 0 ? specNames.join(" · ") : null}
       compact
+      slim={isCareers}
       wide={isCareers}
     >
+      {isCareers && <HeaderStats outlook={data?.career_pathways?.outlook} />}
       {!isCareers && (
         <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
           {headerFacts.map(([label, value]) => (

@@ -109,10 +109,13 @@ def test_list_pages_are_not_single_events():
 
 def test_top_pick_pages_use_seek_for_each_role_and_the_field():
     roles = [{"ad_search": "ict support"}, {"ad_search": "network engineer"}, {"ad_search": "electronics engineer"}]
-    degree = "Bachelor of Engineering (Honours) - Computer Engineering"
+    degree = "Computer Engineering"
     assert field_slug(degree) == "computer-engineering"
     assert field_slug("Bachelor of Science (Computer Science) / Bachelor of Arts") == "computer-science"
-    assert field_slug("Bachelor of Computer Science - Computer Science (Artificial Intelligence)") == "computer-science"
+    assert field_slug("Computer Science (Artificial Intelligence)") == "computer-science"
+    assert field_slug("Bachelor of Medical Studies - BMed Doctor of Medicine - MD") == "medical-studies"
+    assert field_slug("Bachelor of Social Work (Honours) - BSW (Hons)") == "social-work"
+    assert field_slug("Bachelor of Engineering (Honours)") == "engineering"
     assert listing_pages("ai_jobs", degree, roles) == [
         "https://www.seek.com.au/graduate-ict-support-jobs/in-All-Sydney-NSW",
         "https://www.seek.com.au/graduate-network-engineer-jobs/in-All-Sydney-NSW",

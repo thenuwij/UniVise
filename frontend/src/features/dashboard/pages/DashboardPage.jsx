@@ -16,12 +16,17 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="dash-degree"]'],
     title: "Your degree",
-    text: "Open your personal roadmap here. Add completed courses or view specialisations whenever you're ready.",
+    text: "Open My Program here to tick off courses and see your specialisation whenever you're ready.",
   },
   {
     targets: ['[data-tour="dash-steps"]'],
-    title: "Choose a section",
-    text: "Overview, Courses, Careers, Internships and Societies are all clickable. You can open any section directly.",
+    title: "My Program",
+    text: "Overview, Courses, CourseMesh and Societies cover your degree. Open any of them directly.",
+  },
+  {
+    targets: ['[data-tour="dash-career"]'],
+    title: "My Career",
+    text: "Jobs, internships and events picked for your degree, plus certifications and where your degree leads.",
   },
   {
     targets: ['[data-tour="dash-compare"]'],
@@ -31,7 +36,7 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="app-navigation"]'],
     title: "Find your way around",
-    text: "The top navigation and mobile Menu lead to Roadmap, Careers and Explore. Account has your profile, appearance settings and sign out.",
+    text: "The top navigation and mobile Menu lead to My Program, My Career and Explore. Account has your profile, appearance settings and sign out.",
   },
 ];
 
@@ -76,12 +81,9 @@ export default function DashboardPage() {
               {greeting}
               {name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}
             </h1>
-            <p className="dashboard-muted">
-              Pick up your plan, or find something new.
-            </p>
           </div>
           <div className="dashboard-welcome-actions">
-            <Link to="/chat" className="dashboard-button">
+            <Link to="/chat" className="dashboard-button dashboard-ask-eunice">
               <Sparkles aria-hidden="true" />
               Ask Eunice
             </Link>

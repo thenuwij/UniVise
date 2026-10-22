@@ -14,7 +14,7 @@ export default function AtAGlance({ facts }) {
       <div className="dashboard-progress">
         {facts.failed ? (
           <p className="dashboard-muted" role="status">
-            Progress couldn't be loaded. You can still open your roadmap.
+            Progress couldn't be loaded. You can still open My Program.
           </p>
         ) : hasCompletedCourses ? (
           <>

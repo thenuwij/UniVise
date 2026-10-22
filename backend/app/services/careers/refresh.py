@@ -10,6 +10,7 @@ from app.services.careers.feed import (
     adzuna_refreshes_today,
     claim_refresh,
     degree_label,
+    specialisation_names,
     degree_key,
     mark_failed,
     mark_running,
@@ -39,9 +40,11 @@ def feed_response(roadmap: Dict[str, Any]) -> Dict[str, Any]:
 
 async def fetch_listings(source: str, roadmap: Dict[str, Any], today, previous: list) -> list:
     roles = entry_roles(roadmap)
-    program_name = await asyncio.to_thread(degree_label, roadmap)
+    names = await asyncio.to_thread(specialisation_names, roadmap)
+    program_name = degree_label(roadmap, names)
     if source in MANUAL_SOURCES:
-        return await fetch_top_picks(source, program_name, roles, today)
+        field_name = names[0] if names else roadmap.get("program_name") or ""
+        return await fetch_top_picks(source, program_name, field_name, roles, today)
     if source == "adzuna":
         refreshes = await asyncio.to_thread(adzuna_refreshes_today, today)
         return await keep_relevant(await fetch_adzuna_listings(roles, refreshes), program_name, roles)
