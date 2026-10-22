@@ -19,7 +19,7 @@ import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram"
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
 
 export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
@@ -377,14 +377,13 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
           <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
             <button
               onClick={onOpenCourses}
-              className="button-secondary group inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+              className="px-2 py-2 text-sm font-semibold text-link underline-offset-4 hover:underline"
             >
               Tick courses in Courses
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={() => setShowElectives(true)}
-              className="button-primary inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
               Add courses

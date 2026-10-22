@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bookmark, Compass, HelpCircle } from "lucide-react";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
-import { bandButton } from "@/shared/ui/cardStyles";
+
 import { formatDuration } from "@/shared/lib/format";
 import CapstoneHonours from "../components/CapstoneHonours";
 import DegreeRequirements from "../components/DegreeRequirements";
@@ -26,10 +25,12 @@ import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 
+const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold text-band-ink underline-offset-4 hover:underline";
+
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
-  overview: "Understand your degree requirements here. You can jump straight to any section using this bar—there's no need to finish them in order.",
+  overview: "Start with what you need to graduate. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
   structure: "See your courses and mark the ones you've completed. The Courses help button explains how to manage them.",
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
@@ -56,9 +57,8 @@ const hasSection = (payload, key) => {
 // Helper functions
 const extractStepIndexFromUrl = (searchParams) => {
   const stepParam = new URLSearchParams(searchParams).get("step");
-  if (!stepParam) return 0;
-  const idx = Math.max(0, parseInt(stepParam, 10) - 1);
-  return Number.isFinite(idx) ? idx : 0;
+  const step = Number(stepParam);
+  return Number.isInteger(step) && step >= 1 && step <= ROADMAP_VIEWS.degree.steps.length ? step - 1 : 0;
 };
 
 const useDegreeData = (degreeCode) => {
@@ -242,7 +242,7 @@ function SectionError({ onRetry }) {
 }
 
 const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => extractStepIndexFromUrl(searchParams));
 
   // Handle URL-based step navigation on mount
   useEffect(() => {
@@ -254,7 +254,9 @@ const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
   useEffect(() => {
     if (!hasData || !preloadedRoadmapId) return;
 
-    const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}`;
+    const section = new URLSearchParams(window.location.search).get("section");
+    const sectionQuery = section ? `&section=${encodeURIComponent(section)}` : "";
+    const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}${sectionQuery}`;
     window.history.replaceState(null, '', newUrl);
   }, [activeIndex, hasData, preloadedRoadmapId]);
 
@@ -291,6 +293,7 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
         activeIndex={activeIndex} 
         onChange={onIndexChange} 
         header={header}
+        sectionNavigation
       />
     );
   }
@@ -478,22 +481,19 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             <button
               type="button"
               onClick={() => setShowSectionGuide(true)}
-              className={bandButton}
+              className={bandLink}
               aria-label="Show roadmap section tour"
             >
-              <HelpCircle className="h-4 w-4" />
               Section tour
             </button>
           )}
           {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
             <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} view={view} />
           )}
-          <Link to="/saved" className={bandButton}>
-            <Bookmark className="h-4 w-4" />
+          <Link to="/saved" className={bandLink}>
             My shortlist
           </Link>
-          <button onClick={() => navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap")} className={bandButton}>
-            <Compass className="h-4 w-4" />
+          <button onClick={() => navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap")} className={bandLink}>
             Explore a different degree
           </button>
         </>
@@ -514,14 +514,9 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     >
       {isCareers && <HeaderStats outlook={data?.career_pathways?.outlook} />}
       {!isCareers && (
-        <dl className="mt-3 flex flex-wrap gap-x-10 gap-y-2">
-          {headerFacts.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-[13px] text-band-soft">{label}</dt>
-              <dd className="text-base font-semibold text-band-ink">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        <p className="mt-2 text-[15px] text-band-soft">
+          {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
+        </p>
       )}
     </PageHeader>
   );

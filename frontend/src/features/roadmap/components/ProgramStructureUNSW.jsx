@@ -1,7 +1,6 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ArrowRight, Check, CircleCheck, HelpCircle, Info, Layers, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronRight, CircleCheck, Info, Layers, Plus, Sparkles } from "lucide-react";
 import { hasContent } from "@/shared/lib/format";
-import ExpandIcon from "@/shared/ui/ExpandIcon";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -65,7 +64,7 @@ function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
 function ProgressStrip({ ticked, total, uoc, minimum, onOpen, disabled }) {
   const pct = minimum ? Math.min(100, Math.round((uoc / minimum) * 100)) : total ? Math.round((ticked / total) * 100) : 0;
   return (
-    <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+    <div className="rounded-2xl bg-surface shadow-sm px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-3">
           {minimum ? (
@@ -88,11 +87,10 @@ function ProgressStrip({ ticked, total, uoc, minimum, onOpen, disabled }) {
         onClick={onOpen}
         disabled={disabled}
         data-tour="coursemesh-strip"
-        className="group flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 shadow-sm hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[15px] font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Layers className="h-4 w-4" />
-        See what's next in CourseMesh
-        <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        What's next in CourseMesh
+        <ChevronRight className="h-4 w-4" />
       </button>
     </div>
   );
@@ -174,11 +172,13 @@ function GroupHeader({ group, action }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-link">
-          {label}
-          {group.uoc ? ` · ${group.uoc} UOC` : ""}
-        </p>
-        <h3 className="mt-1 text-xl font-bold text-ink-strong">{group.name || "Your program"}</h3>
+        <h3 className="text-[22px] font-bold text-ink-strong">
+          {group.name || "Your program"}
+          <span className="ml-2 text-base font-medium text-ink-muted">
+            {label.toLowerCase()}
+            {group.uoc ? ` · ${group.uoc} UOC` : ""}
+          </span>
+        </h3>
       </div>
       {action}
     </div>
@@ -206,7 +206,7 @@ function MinorSelect({ options, value, saving, onChange }) {
 
 function MinorCard({ uoc, options, value, saving, onChange }) {
   return (
-    <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-2xl bg-surface shadow-sm px-5 py-4 flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
         <p className="text-base font-semibold text-ink-strong">Add an optional minor{uoc ? ` (${uoc} UOC)` : ""}</p>
         <p className="mt-0.5 text-sm text-ink-muted">
@@ -221,7 +221,7 @@ function MinorCard({ uoc, options, value, saving, onChange }) {
 function RuleLine({ section, rows }) {
   const check = rows ? ruleCheck(section, rows) : null;
   return (
-    <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-3 flex items-start gap-3">
+    <div className="rounded-2xl bg-surface shadow-sm px-5 py-3 flex items-start gap-3">
       {check?.met ? (
         <CircleCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
       ) : (
@@ -243,7 +243,7 @@ function RuleLine({ section, rows }) {
 
 function UnlistedLine({ section }) {
   return (
-    <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 px-5 py-3 flex items-start gap-3">
+    <div className="rounded-2xl bg-surface shadow-sm px-5 py-3 flex items-start gap-3">
       <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
       <div className="min-w-0">
         <p className="text-[15px] font-semibold text-ink-strong">
@@ -272,7 +272,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="group w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
+        className="group w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
       >
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
@@ -282,39 +282,39 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
           {progress ? (
             <SectionProgress progress={progress} />
           ) : (
-            <span className="px-3 py-1 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800">
+            <span className="text-sm text-ink-muted">
               {section.open ? `${section.uoc} UOC of your choice` : `${count} ${count === 1 ? "course" : "courses"} · ${total} UOC`}
             </span>
           )}
-          <ExpandIcon open={isOpen} />
+          <ChevronDown aria-hidden="true" className={`h-5 w-5 text-ink-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </div>
       </button>
 
       <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
-        <div className="px-6 pb-6 pt-1 border-t border-slate-100 dark:border-slate-800">
-          <div className="grid sm:grid-cols-2 gap-3 mt-4">
+        <div className="px-3 pb-4 border-t border-line">
+          <div className="divide-y divide-line">
             {section.courses?.map((c, i) => (
               <div
                 key={c.code || i}
                 onClick={() => onCourseClick?.(c)}
-                className={`group flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer ${notNeeded?.has(c.code) ? "opacity-60 " : ""}bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md transition-all`}
+                className={`group flex items-center justify-between px-3 py-3 cursor-pointer ${notNeeded?.has(c.code) ? "opacity-60 " : ""}hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors`}
               >
                 {onToggleDone && (
                   <DoneCheck done={!!completed?.[c.code]?.is_completed} code={c.code} tour={isOpen} onClick={() => onToggleDone(c, section.title)} />
                 )}
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-[15px] font-bold text-blue-700 dark:text-blue-300">
-                    {c.code}
+                  <span className="text-[15px] line-clamp-1">
+                    <span className="font-semibold text-link">{c.code}</span>
+                    <span className="ml-2 text-ink">{c.name}</span>
                     {notNeeded?.has(c.code) && <span className="ml-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Not needed</span>}
                   </span>
-                  <span className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1">{c.name}</span>
                   {c.list && <span className="text-xs text-ink-muted">{c.list}</span>}
                   {c.extra && section.elective && (!patterns.length || canCheckRules(patterns)) && !matchesRule(c.code, patterns) && (
                     <span className="mt-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Not on the Handbook list. Check with your school.</span>
                   )}
                 </div>
                 {c.uoc != null && c.uoc !== "" && (
-                  <span className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                  <span className="ml-3 flex-shrink-0 text-sm text-ink-muted">
                     {c.uoc} UOC
                   </span>
                 )}
@@ -325,7 +325,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
             ))}
           </div>
           {(section.open || section.elective) && count === 0 && (
-            <p className="mt-4 text-sm text-ink-muted">
+            <p className="mt-4 px-3 text-sm text-ink-muted">
               {section.open && !onAdd
                 ? `${section.note || "Any approved UNSW course"}.`
                 : section.open
@@ -337,7 +337,7 @@ function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, pr
             <button
               type="button"
               onClick={onAdd}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors"
+              className="mt-3 ml-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
             >
               <Plus className="h-4 w-4" strokeWidth={3} />
               Add a course to {section.title}
@@ -688,7 +688,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
         subtitle={trackCompletion ? null : "The courses in this program."}
         action={
           courseSections.length > 0 ? (
-            <ExpandToggle open={allOpen} onClick={() => setAllOpen(!allOpen)}>
+            <ExpandToggle plain open={allOpen} onClick={() => setAllOpen(!allOpen)}>
               {allOpen ? "Collapse all" : "Expand all"}
             </ExpandToggle>
           ) : null
@@ -700,9 +700,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             <button
               type="button"
               onClick={() => openGuide()}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-blue-800 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-200 hover:border-blue-400 dark:hover:bg-blue-900 transition-colors"
+              className="text-[15px] font-semibold text-link underline-offset-4 hover:underline"
             >
-              <HelpCircle className="h-4 w-4" strokeWidth={2.5} />
               How it works
             </button>
           )}
