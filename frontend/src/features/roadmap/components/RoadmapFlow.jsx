@@ -76,7 +76,7 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, hea
             </motion.div>
           </AnimatePresence>
 
-          {activeIndex >= 0 && (prev || next) && (
+          {activeIndex >= 0 && (prev || next) && !(sectionNavigation && steps[activeIndex]?.key === "structure") && (
             <div className="mt-10 pt-6 border-t border-line flex items-center justify-between gap-4">
               {prev ? (
                 <button
