@@ -3,7 +3,10 @@ from datetime import date, datetime, timedelta, timezone
 from app.services.careers.adzuna import listing, role_searches
 from app.services.careers.event_checks import event_date, is_list_page, merge_events
 from app.services.careers.feed import degree_key, source_state
-from app.services.careers.top_picks import field_slug, listing_pages, parse_cards, parse_picks
+import asyncio
+
+from app.services.careers import top_picks
+from app.services.careers.top_picks import backup_cards, field_slug, listing_pages, parse_cards, parse_picks
 from app.services.careers.web_search import keep_listing, page_key
 
 TODAY = date(2026, 10, 21)
@@ -133,3 +136,32 @@ def test_top_pick_pages_use_seek_for_each_role_and_the_field():
     assert [c["url"] for c in cards] == ["https://www.seek.com.au/job/95249181?type=standard", "https://www.seek.com.au/job/95111111"]
     assert cards[1]["date_label"] == "" and cards[0]["source_site"] == "SEEK"
     assert parse_picks("Picks: [1, 0, 1, 7]", 2) == [1, 0]
+
+
+def test_backup_cards_add_adzuna_listings_without_duplicates():
+    cards = [{"title": "Graduate Engineer", "organisation": "Arup", "location": "Sydney", "date_label": "", "url": "https://www.seek.com.au/job/1", "source_site": "SEEK"}]
+    backup = [
+        {"title": "graduate engineer", "organisation": "ARUP", "url": "https://adzuna.com.au/1"},
+        {"title": "Site Engineer", "organisation": "Lendlease", "location": "Sydney", "url": "https://adzuna.com.au/2", "source_site": "Adzuna"},
+        {"title": "No link", "organisation": "X"},
+    ]
+    merged = backup_cards(cards, backup)
+    assert [c["title"] for c in merged] == ["Graduate Engineer", "Site Engineer"]
+    assert merged[1]["source_site"] == "Adzuna"
+
+
+def test_top_picks_fall_back_to_adzuna_when_job_sites_block(monkeypatch):
+    async def blocked(prompt, page_count, model):
+        return "All pages failed to load."
+
+    async def judge(prompt, model):
+        return "[0]"
+
+    monkeypatch.setattr(top_picks, "read_web_pages", blocked)
+    monkeypatch.setattr(top_picks, "ask_claude_text", judge)
+    roles = [{"title": "Civil Engineer", "ad_search": "civil engineer"}]
+    backup = [{"title": "Graduate Civil Engineer", "organisation": "Aurecon", "location": "Sydney", "url": "https://adzuna.com.au/9"}]
+    picks = asyncio.run(top_picks.fetch_top_picks("ai_jobs", "Civil Engineering", "Civil Engineering", roles, date(2026, 10, 22), backup))
+    assert [p["title"] for p in picks] == ["Graduate Civil Engineer"]
+    assert picks[0]["source_site"] == "Adzuna" and picks[0]["kind"] == "job"
+

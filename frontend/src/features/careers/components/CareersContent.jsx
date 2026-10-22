@@ -12,7 +12,9 @@ import "../careers.css";
 
 const SOURCE_LABELS = { adzuna: "Adzuna", ai_jobs: "Top picks", ai_internships: "Top picks", ai_networking: "Web search" };
 
-const hasPart = (data, key) => !!data?.[key] && Object.keys(data[key]).length > 0;
+const TOP_PICKS = ["ai_jobs", "ai_internships"];
+
+const hasPart =(data, key) => !!data?.[key] && Object.keys(data[key]).length > 0;
 
 const aiStatus = (data, key, sectionsStatus) => {
   if (hasPart(data, key) && !data?.industry_failed?.includes(key)) return "done";
@@ -98,6 +100,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
   const sourceStatus = (key) => {
     const state = feed(key);
     if (!state || state.status === "never") return null;
+    if (TOP_PICKS.includes(key) && state.status === "failed") return null;
     return { label: SOURCE_LABELS[key], status: state.status, refreshedAt: state.refreshed_at, onRetry: () => refresh(key) };
   };
   const statuses = (...keys) => keys.map(sourceStatus).filter(Boolean);

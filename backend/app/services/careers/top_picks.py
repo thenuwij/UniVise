@@ -14,6 +14,7 @@ JUDGE_MODEL = "claude-opus-5-5"
 PAGES_PER_LIST = 3
 CARDS_PER_PAGE = 15
 MAX_PICKS = 12
+MIN_CARDS = 15
 SEEK = "https://www.seek.com.au"
 
 KIND_TEXT = {
@@ -61,6 +62,7 @@ def reader_prompt(pages: List[str]) -> str:
     listed = "\n".join(f"{i}. {url}" for i, url in enumerate(pages, start=1))
     return (
         f"Open each of these job site pages with web_fetch, one fetch per page:\n{listed}\n\n"
+        "If a page fails to load, try it once more.\n"
         f"From each page, copy up to {CARDS_PER_PAGE} job listing cards. Copy, do not judge or filter.\n"
         'Write one line per card, fields separated by " | ", in this order:\n'
         f"page number (1-{len(pages)}) | title | organisation | location | date (posting or closing info as shown, or -) | "
@@ -116,13 +118,34 @@ def parse_picks(text: str, count: int) -> List[int]:
     return list(dict.fromkeys(i for i in picks if isinstance(i, int) and 0 <= i < count))
 
 
-async def fetch_top_picks(source: str, degree: str, field_name: str, roles: List[Dict[str, Any]], today: date) -> List[Dict[str, Any]]:
+def backup_cards(cards: List[Dict[str, Any]], backup: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen = {(c["title"].lower(), c["organisation"].lower()) for c in cards}
+    extra = []
+    for item in backup or []:
+        key = ((item.get("title") or "").lower(), (item.get("organisation") or "").lower())
+        if not key[0] or not item.get("url") or key in seen:
+            continue
+        seen.add(key)
+        extra.append({
+            "title": item["title"],
+            "organisation": item.get("organisation") or "",
+            "location": item.get("location") or "",
+            "date_label": item.get("date_label") or "",
+            "url": item["url"],
+            "source_site": item.get("source_site") or "Adzuna",
+        })
+    return cards + extra
+
+
+async def fetch_top_picks(
+    source: str, degree: str, field_name: str, roles: List[Dict[str, Any]], today: date, backup: List[Dict[str, Any]] | None = None
+) -> List[Dict[str, Any]]:
     pages = listing_pages(source, field_name, roles)
-    if not pages:
-        return []
-    cards = parse_cards(await read_web_pages(reader_prompt(pages), len(pages), READER_MODEL), pages)
+    cards = parse_cards(await read_web_pages(reader_prompt(pages), len(pages) * 2, READER_MODEL), pages) if pages else []
+    if len(cards) < MIN_CARDS:
+        cards = backup_cards(cards, backup)
     if not cards:
-        raise ValueError("No listings could be read from the job site pages")
+        raise ValueError("No listings could be read from the job site pages or Adzuna")
     picks = parse_picks(await ask_claude_text(judge_prompt(source, degree, roles, cards, today), JUDGE_MODEL), len(cards))
     logger.info(f"[careers_feed] {source}: picked {len(picks)} of {len(cards)} listings from {len(pages)} pages")
     return [
