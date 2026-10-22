@@ -107,7 +107,7 @@ function DegreeDetailPage() {
         }
       />
 
-      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8">
+      <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8">
         {/* Two-column layout */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
 

@@ -341,7 +341,7 @@ function ProfilePage() {
 
       <PageHeader eyebrow="Account" title="My account" subtitle="Your details, your studies and your data." />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 pt-8 pb-16 space-y-5">
+      <div className="max-w-[1680px] mx-auto px-5 md:px-10 pt-8 pb-16 space-y-5">
         <section className={`${card} p-6 flex flex-col sm:flex-row sm:items-center gap-5`}>
           <Avatar key={avatarUrl} url={avatarUrl} name={fullName} />
           <div className="min-w-0">

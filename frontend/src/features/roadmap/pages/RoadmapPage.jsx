@@ -99,7 +99,7 @@ function RoadmapPage() {
         }
       />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 py-8 space-y-6">
+      <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-8 space-y-6">
         {selectedDegreeObject && (
           <section className={`${card} p-5 md:p-6`}>
             <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-ink-muted">Selected degree</p>
