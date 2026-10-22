@@ -12,10 +12,12 @@ import {
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
+import { savedAdExpired } from "@/features/careers/utils/careersDates";
 import CareerPathCard from "./CareerPathCard";
 import CommunityCard from "./CommunityCard";
 import CourseCard from "./CourseCard";
 import InternshipCard from "./InternshipCard";
+import JobAdCard from "./JobAdCard";
 import SpecialisationCard from "./SpecialisationCard";
 
 const MAX_CHARS = 600;
@@ -37,6 +39,7 @@ export default function SavedItemCard({ item, onRemove }) {
 
   const isDegree = item.item_type === "degree";
   const snapshot = item.item_data || {};
+  const expired = item.item_type === "job_ad" && savedAdExpired(snapshot, item.saved_at);
   const hasNotes = notes.trim().length > 0;
   const charsLeft = MAX_CHARS - notes.length;
 
@@ -134,6 +137,7 @@ export default function SavedItemCard({ item, onRemove }) {
         return <HiUsers className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
       case "internship":
       case "career_path":
+      case "job_ad":
         return <HiBriefcase className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
       default:
         return <HiAcademicCap className="w-5 h-5 text-slate-500" />;
@@ -147,7 +151,9 @@ export default function SavedItemCard({ item, onRemove }) {
 
   const typeLabel = item.item_type === "society"
     ? "Community"
-    : item.item_type.charAt(0).toUpperCase() + item.item_type.slice(1).replace('_', ' ');
+    : item.item_type === "job_ad"
+      ? snapshot.kind === "internship" ? "Internship ad" : "Job ad"
+      : item.item_type.charAt(0).toUpperCase() + item.item_type.slice(1).replace('_', ' ');
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col">
@@ -163,6 +169,11 @@ export default function SavedItemCard({ item, onRemove }) {
               {isDegree ? degreeData?.program_name || "Loading..." : item.item_name}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {expired && (
+                <span className="mr-1.5 inline-block rounded px-1.5 py-px text-[11px] font-semibold text-amber-900 bg-amber-100 dark:text-amber-200 dark:bg-amber-900/50">
+                  Expired
+                </span>
+              )}
               {typeLabel}
               <span className="mx-1.5">·</span>
               Saved {formatDate(item.saved_at)}
@@ -207,6 +218,7 @@ export default function SavedItemCard({ item, onRemove }) {
         {item.item_type === "course" && <div className="mt-3"><CourseCard data={snapshot} /></div>}
         {item.item_type === "internship" && <div className="mt-3"><InternshipCard data={snapshot} /></div>}
         {item.item_type === "career_path" && <div className="mt-3"><CareerPathCard data={snapshot} /></div>}
+        {item.item_type === "job_ad" && <div className="mt-3"><JobAdCard data={snapshot} expired={expired} /></div>}
         {item.item_type === "society" && <div className="mt-3"><CommunityCard data={snapshot} /></div>}
 
         {/* Note preview — shown when notes exist and panel is closed */}

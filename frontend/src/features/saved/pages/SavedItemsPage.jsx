@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   HiBookmark,
   HiBriefcase,
+  HiClipboardList,
   HiOfficeBuilding,
   HiUsers,
   HiViewGrid,
@@ -15,9 +16,10 @@ import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { savedAdExpired } from "@/features/careers/utils/careersDates";
 
-const SHORTLIST_TYPES = ["career_path", "internship", "society"];
-const TYPE_OF = { careers: "career_path", internships: "internship", societies: "society" };
+const SHORTLIST_TYPES = ["job_ad", "career_path", "internship", "society"];
+const TYPE_OF = { jobs: "job_ad", careers: "career_path", internships: "internship", societies: "society" };
 
 function SavedItemsPage() {
   const navigate = useNavigate();
@@ -42,12 +44,14 @@ function SavedItemsPage() {
     fetchItems();
   }, [session]);
 
+  const jobItems         = savedItems.filter((i) => i.item_type === "job_ad");
   const careerItems      = savedItems.filter((i) => i.item_type === "career_path");
   const internshipItems  = savedItems.filter((i) => i.item_type === "internship");
   const societyItems     = savedItems.filter((i) => i.item_type === "society");
 
   const tabs = [
     { id: "all", label: "All", icon: <HiViewGrid className="w-4 h-4" />, items: savedItems },
+    { id: "jobs", label: "Jobs", icon: <HiClipboardList className="w-4 h-4" />, items: jobItems },
     { id: "careers", label: "Careers", icon: <HiBriefcase className="w-4 h-4" />, items: careerItems },
     { id: "internships", label: "Internships", icon: <HiOfficeBuilding className="w-4 h-4" />, items: internshipItems },
     { id: "societies", label: "Societies", icon: <HiUsers className="w-4 h-4" />, items: societyItems },
@@ -63,6 +67,14 @@ function SavedItemsPage() {
     if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
+  const expiredJobs = jobItems.filter((i) => savedAdExpired(i.item_data, i.saved_at));
+
+  const removeExpired = async () => {
+    const ids = expiredJobs.map((item) => item.id);
+    const { error } = await supabase.from("user_saved_items").delete().in("id", ids);
+    if (!error) setSavedItems((prev) => prev.filter((item) => !ids.includes(item.id)));
+  };
+
   const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
 
   return (
@@ -76,7 +88,7 @@ function SavedItemsPage() {
         subtitle={`${savedItems.length} item${savedItems.length !== 1 ? "s" : ""} saved${withNotes > 0 ? ` · ${withNotes} with notes` : ""}`}
       />
 
-      <main className="max-w-[1440px] mx-auto px-5 md:px-10 py-8 space-y-6">
+      <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8 space-y-6">
         {savedItems.length > 0 && (
           <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter your shortlist">
             {tabs.map((tab) => {
@@ -101,6 +113,21 @@ function SavedItemsPage() {
               );
             })}
           </nav>
+        )}
+
+        {!loading && expiredJobs.length > 0 && (active.id === "all" || active.id === "jobs") && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+            <p className="text-[15px] text-amber-900 dark:text-amber-200">
+              {expiredJobs.length === 1 ? "1 saved job has" : `${expiredJobs.length} saved jobs have`} probably closed.
+            </p>
+            <button
+              type="button"
+              onClick={removeExpired}
+              className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 dark:hover:bg-amber-900"
+            >
+              Remove expired
+            </button>
+          </div>
         )}
 
         {loading ? (
@@ -136,7 +163,7 @@ function EmptyState({ onAction }) {
       </div>
       <h3 className="text-lg font-bold text-ink-strong">Nothing saved yet</h3>
       <p className="mt-2 text-[15px] text-ink-muted max-w-md mx-auto">
-        Use the save button on careers, internships and societies in My Program and My Career. They'll collect here so you can compare them and add notes.
+        Use the save button on jobs, careers, internships and societies in My Program and My Career. They'll collect here so you can compare them and add notes.
       </p>
       <button type="button" onClick={onAction} className="button-primary mt-6 px-5 py-2.5 rounded-xl text-sm font-bold">
         Open the Careers step

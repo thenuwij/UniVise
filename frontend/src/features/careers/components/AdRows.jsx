@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
 import { postedAgo } from "@/features/roadmap/utils/hiringNow";
 import { isRecent } from "../utils/careersDates";
 
@@ -22,16 +22,36 @@ function SourceTag({ ad }) {
   );
 }
 
-export default function AdRows({ ads }) {
+function SaveAdButton({ ad, saved, onToggle }) {
+  const Icon = saved ? BookmarkCheck : Bookmark;
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(ad)}
+      aria-pressed={saved}
+      aria-label={saved ? `Remove ${ad.title} from your shortlist` : `Save ${ad.title} to your shortlist`}
+      title={saved ? "Saved to your shortlist" : "Save to your shortlist"}
+      className={`inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-colors ${
+        saved
+          ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-500"
+          : "border-line bg-surface text-ink-muted hover:border-blue-400 hover:text-link"
+      }`}
+    >
+      <Icon className="h-[18px] w-[18px]" />
+    </button>
+  );
+}
+
+export default function AdRows({ ads, savedIds, onToggleSave }) {
   return (
     <ul className="divide-y divide-line border-y border-line">
       {ads.map((ad) => (
-        <li key={ad.id}>
+        <li key={ad.id} className="flex items-center gap-2">
           <a
             href={ad.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
+            className="group flex min-w-0 flex-1 items-center justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
           >
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{ad.title}</span>
@@ -49,6 +69,7 @@ export default function AdRows({ ads }) {
               <ExternalLink className="h-4 w-4 group-hover:text-link" />
             </span>
           </a>
+          {onToggleSave && <SaveAdButton ad={ad} saved={!!savedIds?.has(ad.id)} onToggle={onToggleSave} />}
         </li>
       ))}
     </ul>

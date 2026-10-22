@@ -23,3 +23,13 @@ export function monthsUntilOpen(period, now = new Date()) {
 
 export const isRecent = (postedAt, now = Date.now(), days = 2) =>
   !!postedAt && now - new Date(postedAt).getTime() <= days * 86400000;
+
+const SAVED_AD_DAYS = 28;
+
+export function savedAdExpired(ad, savedAt, now = Date.now()) {
+  const from = ad?.posted_at || savedAt;
+  if (!from) return false;
+  return now - new Date(from).getTime() > SAVED_AD_DAYS * 86400000;
+}
+
+export const cleanDateLabel = (label) => (label || "").replace(/\s*\([^)]*\)\s*$/, "");
