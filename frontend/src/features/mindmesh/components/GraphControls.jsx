@@ -4,9 +4,9 @@ import { HelpCircle, LayoutGrid, Maximize2, Pause, Play, RotateCcw, Undo2 } from
 import AutoLayoutControls from "./AutoLayoutControls";
 
 const TOOL =
-  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors";
+  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors";
 const TOOL_ON =
-  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-blue-600 border border-blue-600 shadow-sm hover:bg-blue-700 transition-colors";
+  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 transition-colors";
 
 export default forwardRef(function GraphControls({
   graphHistory,
@@ -29,9 +29,7 @@ export default forwardRef(function GraphControls({
   }));
 
   return (
-    <div className="border-b border-slate-200 dark:border-slate-700
-                    bg-white/95 dark:bg-slate-900/95
-                    shadow-sm backdrop-blur-sm">
+    <div className="border-b border-line bg-surface">
       <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
         <p className="text-sm text-ink-muted">Click a course to see what it needs and what it unlocks.</p>
         <div data-tour="view-tools" className="flex flex-wrap items-center justify-end gap-2">
@@ -75,7 +73,7 @@ export default forwardRef(function GraphControls({
             onClick={onHelp}
             aria-label="How CourseMesh works"
             title="How CourseMesh works"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-full text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 shadow-sm hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-slate-700 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             <HelpCircle className="h-5 w-5" />
           </button>

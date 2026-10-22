@@ -1,10 +1,8 @@
-import { Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
-import ExpandIcon from "@/shared/ui/ExpandIcon";
+import { ChevronDown, Clock, ExternalLink, Heart, Info, Star } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { hasContent } from "@/shared/lib/format";
 import { card, clickable } from "@/shared/ui/cardStyles";
 import { describeBody } from "../utils/professionalBodies";
 
@@ -26,7 +24,6 @@ export default function SocietiesCommunity({ societies }) {
     [Info, "How to find them", gettingStarted.how_to_find],
   ].filter(([, , value]) => value);
   const bodies = profDev.professional_bodies || (profDev.student_chapters || []).map((name) => ({ name, url: null }));
-  const hasProfDev = bodies.length > 0 || profDev.leadership_note || profDev.skills_gained?.length > 0;
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
@@ -41,7 +38,7 @@ export default function SocietiesCommunity({ societies }) {
               return (
                 <div key={idx} className={`${card} overflow-hidden`}>
                   <div
-                    className="group flex items-center justify-between gap-4 px-6 py-5 cursor-pointer hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors"
+                    className="group flex items-center justify-between gap-4 px-6 py-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                     onClick={() => toggleSociety(idx)}
                   >
                     <div className="min-w-0">
@@ -59,26 +56,26 @@ export default function SocietiesCommunity({ societies }) {
                         onClick={() => toggleSociety(idx)}
                         aria-expanded={open}
                         aria-label={open ? "Hide details" : "Show details"}
-                        className="rounded-full"
+                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
-                        <ExpandIcon open={open} />
+                        <ChevronDown aria-hidden="true" className={`h-5 w-5 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
                       </button>
                     </div>
                   </div>
                   {open && (
                     <div className="px-6 pb-6 pt-1 grid md:grid-cols-2 gap-3">
                       {society.membership_benefits && (
-                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
-                          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Benefits</p>
+                        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4">
+                          <p className="text-sm font-semibold text-ink-strong">Benefits</p>
                           <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{society.membership_benefits}</p>
                         </div>
                       )}
                       {society.key_activities?.length > 0 && (
-                        <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
-                          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Activities</p>
+                        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4">
+                          <p className="text-sm font-semibold text-ink-strong">Activities</p>
                           <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
                             {society.key_activities.map((activity, i) => (
-                              <li key={i} className="flex gap-2"><span className="text-blue-500">•</span>{activity}</li>
+                              <li key={i} className="flex gap-2"><span className="text-ink-muted">•</span>{activity}</li>
                             ))}
                           </ul>
                         </div>
@@ -90,7 +87,7 @@ export default function SocietiesCommunity({ societies }) {
             })}
           </div>
           {facultySpecific.length > 3 && (
-            <ExpandToggle wide open={showAll} onClick={() => setShowAll(!showAll)}>
+            <ExpandToggle plain open={showAll} onClick={() => setShowAll(!showAll)}>
               {showAll ? "Show fewer" : `Show ${facultySpecific.length - 3} more societies`}
             </ExpandToggle>
           )}
@@ -118,7 +115,7 @@ export default function SocietiesCommunity({ societies }) {
         </section>
       )}
 
-      {hasProfDev && (
+      {bodies.length > 0 && (
         <section>
           <SectionHeading>
             Professional societies
@@ -162,26 +159,6 @@ export default function SocietiesCommunity({ societies }) {
                 })}
               </div>
             )}
-            {(hasContent(profDev.leadership_note) || profDev.skills_gained?.length > 0) && (
-              <div className="grid md:grid-cols-2 gap-4">
-                {hasContent(profDev.leadership_note) && (
-                  <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Leadership opportunities</p>
-                    <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed">{profDev.leadership_note}</p>
-                  </div>
-                )}
-                {profDev.skills_gained?.length > 0 && (
-                  <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Skills you'll develop</p>
-                    <ul className="mt-1.5 space-y-1 text-[15px] text-slate-700 dark:text-slate-300">
-                      {profDev.skills_gained.map((skill, i) => (
-                        <li key={i} className="flex gap-2"><span className="text-blue-500">•</span>{skill}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </section>
       )}
@@ -209,7 +186,7 @@ export default function SocietiesCommunity({ societies }) {
               href="https://campus.hellorubric.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
             >
               <Star className="h-5 w-5 flex-shrink-0" />
               <span className="text-base font-semibold">Hello Rubric</span>
@@ -220,7 +197,7 @@ export default function SocietiesCommunity({ societies }) {
               href="https://www.arc.unsw.edu.au/clubs/find-a-club"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-800 dark:text-blue-50 bg-gradient-to-r from-blue-100 to-sky-200 dark:from-blue-800 dark:to-sky-700 border border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/15 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-all"
+              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
             >
               <Heart className="h-5 w-5 flex-shrink-0" />
               <span className="text-base font-semibold">Arc UNSW directory</span>
