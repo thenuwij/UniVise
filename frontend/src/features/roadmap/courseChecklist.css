@@ -1,0 +1,73 @@
+.course-checklist { color: var(--color-ink); }
+.course-checklist button:focus-visible,
+.course-checklist select:focus-visible { outline: 3px solid var(--color-link); outline-offset: 3px; }
+.course-checklist-progress { padding: 0 0 4px; }
+.course-checklist-progress-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 15px; }
+.course-checklist-progress-heading strong { font-size: 22px; color: var(--color-ink-strong); }
+.course-checklist-progress-track { height: 6px; overflow: hidden; border-radius: 99px; background: var(--color-line); margin-top: 12px; }
+.course-checklist-progress-track > span { display: block; height: 100%; border-radius: inherit; background: #0aab7b; transition: width .2s ease; }
+.course-checklist-hint { margin-top: 10px; font-size: 13px; color: var(--color-ink-muted); }
+.course-checklist-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; font-size: 14px; font-weight: 600; color: var(--color-link); text-align: left; }
+.course-checklist-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.course-checklist-link:disabled { opacity: .5; cursor: default; }
+.course-checklist-group-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.course-checklist-group-heading h3 { font-size: 21px; line-height: 1.35; font-weight: 650; letter-spacing: -.025em; color: var(--color-ink-strong); }
+.course-checklist-group-heading p { font-size: 13px; color: var(--color-ink-muted); margin-top: 4px; }
+.course-checklist-manage { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.course-checklist-minor-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; padding: 0 0 12px; border-bottom: 1px solid var(--color-line); }
+.course-checklist-minor-controls label { flex: 1; max-width: 380px; min-width: 0; }
+.course-checklist-minor-controls select { width: 100%; min-height: 42px; padding: 8px 30px 8px 12px; background: var(--color-surface); color: var(--color-ink-strong); border: 1px solid var(--color-line); border-radius: 8px; }
+.course-checklist-sheet { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; }
+.course-checklist-sheet > section + section { border-top: 1px solid var(--color-line); }
+.course-checklist-divider { padding: 20px 22px; background: color-mix(in srgb, var(--color-page) 65%, var(--color-surface)); }
+.course-checklist-divider h3 { font-size: 16px; letter-spacing: -.01em; }
+.course-checklist-part + .course-checklist-part { border-top: 1px solid var(--color-line); }
+.course-checklist-part-heading { padding: 16px 22px 8px; font-size: 14px; font-weight: 600; color: var(--color-ink-strong); }
+.course-checklist-part-heading span { color: var(--color-ink-muted); font-size: 12px; font-weight: 400; }
+.course-checklist-section-toggle { width: 100%; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 18px 22px; min-height: 76px; text-align: left; }
+.course-checklist-section-toggle:hover { background: color-mix(in srgb, var(--color-link) 4%, var(--color-surface)); }
+.course-checklist-section-title { display: block; font-size: 16px; font-weight: 600; color: var(--color-ink-strong); }
+.course-checklist-section-meta { display: block; font-size: 12px; color: var(--color-ink-muted); margin-top: 4px; }
+.course-checklist-section-count { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--color-ink-muted); }
+.course-checklist-section-count.is-complete { color: #087f5b; }
+.dark .course-checklist-section-count.is-complete { color: #6ee7b7; }
+.course-checklist-section-body { padding: 0 22px 12px 42px; }
+.course-checklist-course-row { display: flex; align-items: center; gap: 10px; min-height: 57px; border-top: 1px solid var(--color-line); }
+.course-checklist-course-row.is-not-needed .course-checklist-course-copy { opacity: .6; }
+.course-checklist-completion { display: grid; place-items: center; width: 44px; min-height: 44px; flex-shrink: 0; border-radius: 8px; }
+.course-checklist-completion:hover { background: var(--color-surface-tint); }
+.course-checklist-completion > span { display: grid; place-items: center; width: 21px; height: 21px; border: 1.5px solid #92a5be; border-radius: 5px; color: transparent; }
+.course-checklist-completion > span.is-complete { border-color: #099b70; background: #099b70; color: #fff; }
+.course-checklist-course-copy { flex: 1; min-width: 0; padding: 6px 0; }
+.course-checklist-course-details { display: flex; align-items: baseline; gap: 12px; width: 100%; min-height: 44px; padding: 10px 0; text-align: left; font-size: 14px; line-height: 1.5; }
+.course-checklist-course-details:hover .course-checklist-course-name { text-decoration: underline; text-underline-offset: 3px; }
+.course-checklist-course-code { color: var(--color-link); font-weight: 600; flex-shrink: 0; min-width: 80px; }
+.course-checklist-course-name { overflow-wrap: anywhere; }
+.course-checklist-course-uoc { flex-shrink: 0; color: var(--color-ink-muted); font-size: 12px; }
+.course-checklist-add-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; min-width: 65px; padding: 6px; font-size: 12px; font-weight: 600; color: var(--color-link); border-radius: 8px; }
+.course-checklist-add-toggle:hover { background: var(--color-surface-tint); }
+.course-checklist-add-toggle.is-added { color: var(--color-ink-muted); }
+.course-checklist-add-course { margin: 8px 0 0 10px; }
+.course-checklist-note, .course-checklist-notice { display: flex; gap: 10px; padding: 14px 22px; font-size: 13px; line-height: 1.6; color: var(--color-ink-muted); }
+.course-checklist-section-body > .course-checklist-note { border-top: 1px solid var(--color-line); padding-left: 10px; }
+.course-checklist-notice { padding: 0; }
+.course-checklist-empty { padding: 12px 10px; font-size: 14px; color: var(--color-ink-muted); }
+@media (max-width: 640px) {
+  .course-checklist-group-heading h3 { font-size: 19px; }
+  .course-checklist-manage { gap: 18px; }
+  .course-checklist-section-toggle { grid-template-columns: 14px minmax(0, 1fr); padding: 16px 14px; gap: 6px 10px; }
+  .course-checklist-section-count { grid-column: 2; font-size: 12px; }
+  .course-checklist-section-body { padding: 0 12px 10px; }
+  .course-checklist-course-row { gap: 6px; flex-wrap: wrap; padding: 4px 0; }
+  .course-checklist-completion { width: 36px; }
+  .course-checklist-course-details { flex-direction: column; gap: 1px; font-size: 13px; }
+  .course-checklist-course-uoc { font-size: 11px; }
+  .course-checklist-add-toggle { min-width: 54px; margin-left: auto; }
+  .course-checklist-divider { padding: 18px 14px; }
+  .course-checklist-part-heading { padding-left: 14px; padding-right: 14px; }
+  .course-checklist-minor-controls > span { width: 100%; }
+  .course-checklist-minor-controls label { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .course-checklist-progress-track > span { transition: none; }
+}

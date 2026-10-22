@@ -1,6 +1,5 @@
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ArrowRight, Check, ChevronDown, ChevronRight, CircleCheck, Info, Layers, Plus, Sparkles } from "lucide-react";
-import { hasContent } from "@/shared/lib/format";
+import { ArrowRight, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -9,14 +8,12 @@ import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, fetchSpecialisationOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
-import { ADDED_SECTION, canCheckRules, matchesRule, sectionRules, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, ruleCheck, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
+import { ADDED_SECTION, sectionRules, showsOnCourses, tidySections, notNeededCodes, openRequirementParts, orderSections, progressOf, requiredCount, sectionProgress, splitCourses, withAddedCourses } from "../utils/myCourses";
 import ElectivesPanel from "@/features/mindmesh/components/ElectivesPanel";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { card } from "@/shared/ui/cardStyles";
-
-function sumUoC(list = []) {
-  return list.reduce((s, c) => s + (Number(c?.uoc) || 0), 0);
-}
+import { ChooseSpecialisationNotice, CourseSection, GroupHeader, MinorControls, ProgressStrip, RuleLine, UnlistedLine } from "./CourseChecklistParts";
+import { courseChecklistHeading, placeCourseRules } from "../utils/courseChecklist";
+import "../courseChecklist.css";
 
 const GUIDE_KEY = "univise-courses-guide-seen";
 
@@ -34,320 +31,6 @@ const GUIDE_STEPS = [
 ];
 
 const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
-
-function ChooseSpecialisationCard({ handbookUrl, onChoose }) {
-  return (
-    <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-        Most of this program's courses sit inside its majors or streams. Choose yours to see its courses here and in CourseMesh.
-      </p>
-      {onChoose && (
-        <button
-          onClick={onChoose}
-          className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-        >
-          Choose your major or stream
-        </button>
-      )}
-      <a
-        href={handbookUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block mt-3 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
-      >
-        View the full structure in the official UNSW Handbook
-      </a>
-    </div>
-  );
-}
-
-function ProgressStrip({ ticked, total, uoc, minimum, onOpen, disabled }) {
-  const pct = minimum ? Math.min(100, Math.round((uoc / minimum) * 100)) : total ? Math.round((ticked / total) * 100) : 0;
-  return (
-    <div className="rounded-2xl bg-surface shadow-sm px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline justify-between gap-3">
-          {minimum ? (
-            <p className="text-[15px] text-ink">
-              <span className="text-xl font-bold text-ink-strong">{uoc}</span> of {minimum} UOC completed
-            </p>
-          ) : (
-            <p className="text-[15px] text-ink">
-              <span className="text-xl font-bold text-ink-strong">{ticked}</span> of {total} courses ticked
-              <span className="text-ink-muted"> · {uoc} UOC</span>
-            </p>
-          )}
-          <p className="hidden sm:block text-sm text-ink-muted">Tick the box on each course you've done</p>
-        </div>
-        <div className="mt-2 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-      <button
-        onClick={onOpen}
-        disabled={disabled}
-        data-tour="coursemesh-strip"
-        className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[15px] font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        What's next in CourseMesh
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
-
-// Expandable Section Card with courses 
-function DoneCheck({ done, code, onClick, tour }) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      role="checkbox"
-      aria-checked={done}
-      aria-label={`${code} done`}
-      data-tour={tour ? "course-tick" : undefined}
-      className="-m-1.5 mr-1.5 p-1.5 flex-shrink-0 rounded-lg"
-    >
-      <span
-        className={`flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors ${
-          done
-            ? "bg-green-500 border-green-500 text-white"
-            : "bg-white dark:bg-slate-900 border-slate-400 dark:border-slate-500 text-transparent hover:border-green-500"
-        }`}
-      >
-        <Check className="h-4 w-4" strokeWidth={3.5} />
-      </span>
-    </button>
-  );
-}
-
-function AddToggle({ added, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      aria-pressed={added}
-      className={`ml-2 flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border-2 transition-all ${
-        added
-          ? "bg-blue-600 border-blue-600 text-white"
-          : "border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:border-blue-500"
-      }`}
-    >
-      {added ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <Plus className="h-3.5 w-3.5" strokeWidth={3} />}
-      {added ? "Added" : "Add"}
-    </button>
-  );
-}
-
-function SectionProgress({ progress }) {
-  const { done, total, unit } = progress;
-  if (total > 0 && done >= total) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900/40">
-        <Check className="h-4 w-4" strokeWidth={3} />
-        All done
-      </span>
-    );
-  }
-  return (
-    <span className="flex w-32 flex-col items-end gap-1.5">
-      <span className={`text-sm font-semibold ${total ? "text-ink-strong" : "text-ink-muted"}`}>
-        {unit ? `${done} of ${total} ${unit}` : total ? `${done} of ${total} done` : "None picked yet"}
-      </span>
-      <span className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-        <span className="block h-full rounded-full bg-green-500" style={{ width: `${total ? Math.min(100, (done / total) * 100) : 0}%` }} />
-      </span>
-    </span>
-  );
-}
-
-function GroupHeader({ group, action }) {
-  const label = group.type === "Program" ? "Program requirements" : group.type === "Honours" ? "Honours specialisation" : group.type;
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="min-w-0">
-        <h3 className="text-[22px] font-bold text-ink-strong">
-          {group.name || "Your program"}
-          <span className="ml-2 text-base font-medium text-ink-muted">
-            {label.toLowerCase()}
-            {group.uoc ? ` · ${group.uoc} UOC` : ""}
-          </span>
-        </h3>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-function MinorSelect({ options, value, saving, onChange }) {
-  return (
-    <label className="inline-flex items-center gap-2">
-      <span className="sr-only">Choose a minor</span>
-      <select
-        value={value || ""}
-        disabled={saving}
-        onChange={(e) => onChange(e.target.value)}
-        className="px-3 py-2 rounded-xl border-2 border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-900 text-sm font-semibold text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
-      >
-        <option value="">No minor</option>
-        {options.map((m) => (
-          <option key={m.id} value={m.id}>{m.major_name}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function MinorCard({ uoc, options, value, saving, onChange }) {
-  return (
-    <div className="rounded-2xl bg-surface shadow-sm px-5 py-4 flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-base font-semibold text-ink-strong">Add an optional minor{uoc ? ` (${uoc} UOC)` : ""}</p>
-        <p className="mt-0.5 text-sm text-ink-muted">
-          {options.length ? "Pick one and its courses appear here as their own group." : "No minors are listed for your program in the Handbook."}
-        </p>
-      </div>
-      {options.length > 0 && <MinorSelect options={options} value={value} saving={saving} onChange={onChange} />}
-    </div>
-  );
-}
-
-function RuleLine({ section, rows }) {
-  const check = rows ? ruleCheck(section, rows) : null;
-  return (
-    <div className="rounded-2xl bg-surface shadow-sm px-5 py-3 flex items-start gap-3">
-      {check?.met ? (
-        <CircleCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
-      ) : (
-        <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-      )}
-      <div className="min-w-0">
-        <p className="text-[15px] font-semibold text-ink-strong">{section.title}</p>
-        {check ? (
-          <p className="text-sm text-ink-muted">
-            {check.have} of {check.need} UOC at level {check.level} or above{check.met ? ", rule met" : ""}
-          </p>
-        ) : (
-          hasContent(section.description) && <p className="text-sm text-ink-muted line-clamp-3">{section.description}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function UnlistedLine({ section }) {
-  return (
-    <div className="rounded-2xl bg-surface shadow-sm px-5 py-3 flex items-start gap-3">
-      <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-      <div className="min-w-0">
-        <p className="text-[15px] font-semibold text-ink-strong">
-          {section.title}
-          <span className="font-normal text-ink-muted"> · {section.uoc} UOC</span>
-        </p>
-        <p className="text-sm text-ink-muted">The course list for this isn't in UniVise yet. Check the Handbook for the courses that count.</p>
-      </div>
-    </div>
-  );
-}
-
-function CourseSection({ section, isOpen, onToggle, onCourseClick, completed, progress, onToggleDone, options, added, notNeeded, onToggleAdded, onAdd }) {
-  const total = section.uoc ?? sumUoC(section.courses);
-  const count = section.courses?.length || 0;
-  const listedCount = section.courses?.filter((c) => !c.extra).length || 0;
-  const patterns = section.elective ? sectionRules(section) : [];
-  const meta = section.open
-    ? `${count} added · needs ${section.uoc} UOC`
-    : section.elective && Number(section.uoc) > 0
-    ? `${listedCount} listed${count > listedCount ? ` · ${count - listedCount} added` : ""} · needs ${section.uoc} UOC`
-    : `${count} ${count === 1 ? "course" : "courses"} · ${total} UOC`;
-
-  return (
-    <div className={`${card} overflow-hidden`}>
-      <button
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        className="group w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-      >
-        <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{section.title}</h3>
-          {progress && <p className="mt-0.5 text-sm text-ink-muted">{meta}</p>}
-        </div>
-        <div className="flex items-center gap-4 flex-shrink-0">
-          {progress ? (
-            <SectionProgress progress={progress} />
-          ) : (
-            <span className="text-sm text-ink-muted">
-              {section.open ? `${section.uoc} UOC of your choice` : `${count} ${count === 1 ? "course" : "courses"} · ${total} UOC`}
-            </span>
-          )}
-          <ChevronDown aria-hidden="true" className={`h-5 w-5 text-ink-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
-        </div>
-      </button>
-
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
-        <div className="px-3 pb-4 border-t border-line">
-          <div className="divide-y divide-line">
-            {section.courses?.map((c, i) => (
-              <div
-                key={c.code || i}
-                onClick={() => onCourseClick?.(c)}
-                className={`group flex items-center justify-between px-3 py-3 cursor-pointer ${notNeeded?.has(c.code) ? "opacity-60 " : ""}hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors`}
-              >
-                {onToggleDone && (
-                  <DoneCheck done={!!completed?.[c.code]?.is_completed} code={c.code} tour={isOpen} onClick={() => onToggleDone(c, section.title)} />
-                )}
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-[15px] line-clamp-1">
-                    <span className="font-semibold text-link">{c.code}</span>
-                    <span className="ml-2 text-ink">{c.name}</span>
-                    {notNeeded?.has(c.code) && <span className="ml-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Not needed</span>}
-                  </span>
-                  {c.list && <span className="text-xs text-ink-muted">{c.list}</span>}
-                  {c.extra && section.elective && (!patterns.length || canCheckRules(patterns)) && !matchesRule(c.code, patterns) && (
-                    <span className="mt-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Not on the Handbook list. Check with your school.</span>
-                  )}
-                </div>
-                {c.uoc != null && c.uoc !== "" && (
-                  <span className="ml-3 flex-shrink-0 text-sm text-ink-muted">
-                    {c.uoc} UOC
-                  </span>
-                )}
-                {onToggleAdded && options?.has(c.code) && (section.open || !completed?.[c.code]?.is_completed) && (
-                  <AddToggle added={added.has(c.code)} onClick={() => onToggleAdded(c)} />
-                )}
-              </div>
-            ))}
-          </div>
-          {(section.open || section.elective) && count === 0 && (
-            <p className="mt-4 px-3 text-sm text-ink-muted">
-              {section.open && !onAdd
-                ? `${section.note || "Any approved UNSW course"}.`
-                : section.open
-                ? `No courses here yet. Add the courses you've taken or plan to take for ${section.title}.`
-                : "The Handbook data doesn't list courses for this. Add the courses you take and check the rule with your school."}
-            </p>
-          )}
-          {onAdd && (
-            <button
-              type="button"
-              onClick={onAdd}
-              className="mt-3 ml-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
-            >
-              <Plus className="h-4 w-4" strokeWidth={3} />
-              Add a course to {section.title}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Main 
 export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
@@ -384,6 +67,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [ticksLoaded, setTicksLoaded] = useState(false);
   const [firstOpen, setFirstOpen] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showMinorControls, setShowMinorControls] = useState(null);
   const [addTarget, setAddTarget] = useState(null);
   const added = useMemo(() => new Set(addedRows.map((r) => r.code)), [addedRows]);
 
@@ -635,7 +319,9 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   );
   const hasMinorGroup = groups.some((g) => g.type === "Minor");
   const optionalMinorUoc = openParts.find((p) => p.optional)?.uoc || null;
-  const showMinorCard = trackCompletion && !hasMinorGroup && (minorOptions.length > 0 || optionalMinorUoc);
+  const canChooseMinor = trackCompletion && (hasMinorGroup || minorOptions.length > 0 || optionalMinorUoc);
+  const minorControlsOpen = showMinorControls ?? (hasMinorGroup || Boolean(minorId));
+  const heading = courseChecklistHeading(specs, programName, minimumUoc);
 
   const doneOutsideLists = useMemo(
     () =>
@@ -662,7 +348,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     }
   };
 
-  const toggleSection = (key) => setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleSection = (key, initiallyOpen) => setOpenMap((prev) => ({ ...prev, [key]: !(prev[key] ?? initiallyOpen) }));
 
   const allOpen = shownSections.length > 0 && shownSections.every((s, i) => openMap[`${s.title}-${i}`] ?? i === firstOpen);
 
@@ -682,7 +368,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
 
   return (
-    <div className="space-y-6">
+    <div className="course-checklist space-y-6">
 
       <SectionHeading
         subtitle={trackCompletion ? null : "The courses in this program."}
@@ -763,80 +449,71 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
           </div>
         ) : (
           <>
-            {thin && hasMajors && (
-              <ChooseSpecialisationCard
-                handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`}
-                onChoose={onChangeSpecialisation}
-              />
+            <GroupHeader
+              group={heading}
+              action={
+                <div className="course-checklist-manage">
+                  {hasMajors && onChangeSpecialisation && (
+                    <button type="button" onClick={onChangeSpecialisation} className="course-checklist-link">
+                      {specs?.some((spec) => spec.type !== "Minor") ? "Change" : "Choose a specialisation"}
+                    </button>
+                  )}
+                  {canChooseMinor && (
+                    <button type="button" className="course-checklist-link" aria-expanded={minorControlsOpen} aria-controls="course-checklist-minor-controls" onClick={() => setShowMinorControls(!minorControlsOpen)}>
+                      <Plus aria-hidden="true" className="h-4 w-4" />Optional minor
+                    </button>
+                  )}
+                </div>
+              }
+            />
+            {canChooseMinor && minorControlsOpen && (
+              <MinorControls uoc={optionalMinorUoc} options={minorOptions} value={minorId} saving={savingMinor} onChange={chooseMinor} />
             )}
-            {groups.map((g, gi) => (
-              <div key={g.key} className={`space-y-3 ${gi ? "pt-6" : ""}`}>
-                {g.key === "program" && showMinorCard && (
-                  <MinorCard uoc={optionalMinorUoc} options={minorOptions} value={minorId} saving={savingMinor} onChange={chooseMinor} />
-                )}
-                <GroupHeader
-                  group={g}
-                  action={
-                    g.type === "Minor" ? (
-                      <MinorSelect options={minorOptions} value={minorId} saving={savingMinor} onChange={chooseMinor} />
-                    ) : g.type !== "Program" && onChangeSpecialisation ? (
-                      <button onClick={onChangeSpecialisation} className="text-sm font-semibold text-link hover:underline">
-                        Change
-                      </button>
-                    ) : null
-                  }
-                />
-                {g.sections.map((sec) => {
-                  const i = shownSections.indexOf(sec);
-                  const key = `${sec.title}-${i}`;
+            {thin && hasMajors && <ChooseSpecialisationNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />}
+            {groups.length > 0 && (
+              <div className="course-checklist-sheet">
+                {groups.map((group, groupIndex) => {
+                  const notes = placeCourseRules(group.rules, group.sections);
+                  const headingShownAbove = groupIndex === 0 && group.name === heading.name && group.type === heading.type;
                   return (
-                    <div key={key} className="space-y-3">
-                      {sec.heading && (
-                        <p className="pt-2 text-[15px] font-semibold text-ink-strong">
-                          {sec.heading.title}
-                          <span className="font-normal text-ink-muted"> · {sec.heading.uoc} UOC, made up of the parts below</span>
-                        </p>
-                      )}
-                      <CourseSection
-                        section={sec}
-                        isOpen={openMap[key] ?? i === firstOpen}
-                        onToggle={() => toggleSection(key)}
-                        onCourseClick={handleCourseClick}
-                        completed={completed}
-                        progress={sectionProgresses?.[i]}
-                        onToggleDone={trackCompletion ? toggleDone : null}
-                        options={options}
-                        added={added}
-                        notNeeded={notNeeded}
-                        onToggleAdded={trackCompletion ? (c) => (c.extra ? toggleInSection(c, sec.place) : toggleAdded(c)) : null}
-                        onAdd={trackCompletion && (sec.open || sec.elective) ? () => setAddTarget(sec.place) : null}
-                      />
-                    </div>
+                    <section key={group.key}>
+                      {!headingShownAbove && <GroupHeader group={group} divider />}
+                      {group.sections.map((section) => {
+                        const index = shownSections.indexOf(section);
+                        const key = `${section.title}-${index}`;
+                        return (
+                          <div key={key} className="course-checklist-part">
+                            {section.heading && <p className="course-checklist-part-heading">{section.heading.title}<span> · {section.heading.uoc} UOC, made up of the parts below</span></p>}
+                            <CourseSection
+                              section={section}
+                              isOpen={openMap[key] ?? index === firstOpen}
+                              onToggle={() => toggleSection(key, index === firstOpen)}
+                              onCourseClick={handleCourseClick}
+                              completed={completed}
+                              progress={sectionProgresses?.[index]}
+                              onToggleDone={trackCompletion ? toggleDone : null}
+                              options={options}
+                              added={added}
+                              notNeeded={notNeeded}
+                              onToggleAdded={trackCompletion ? (course) => (course.extra ? toggleInSection(course, section.place) : toggleAdded(course)) : null}
+                              onAdd={trackCompletion && (section.open || section.elective) ? () => setAddTarget(section.place) : null}
+                              rules={notes.bySection.get(section)}
+                              ruleRows={trackCompletion ? Object.values(completed) : null}
+                            />
+                          </div>
+                        );
+                      })}
+                      {group.unlisted.map((section) => <UnlistedLine key={section.title} section={section} />)}
+                      {notes.remaining.map((rule) => <RuleLine key={rule.title} section={rule} rows={trackCompletion ? Object.values(completed) : null} />)}
+                    </section>
                   );
                 })}
-                {g.unlisted.map((sec) => <UnlistedLine key={sec.title} section={sec} />)}
-                {g.rules.map((rule) => <RuleLine key={rule.title} section={rule} rows={trackCompletion ? Object.values(completed) : null} />)}
               </div>
-            ))}
+            )}
           </>
         )}
       </div>
 
-      {trackCompletion && !loading && courseSections.length > 0 && (
-        <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <p className="text-[15px] text-ink">
-            <span className="font-semibold text-ink-strong">Finished ticking?</span> See what your courses unlock next.
-          </p>
-          <button
-            onClick={handleVisualise}
-            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[15px] font-bold text-blue-900 dark:text-blue-100 bg-blue-200 dark:bg-blue-900/70 border-2 border-blue-400 dark:border-blue-600 shadow-sm hover:bg-blue-300 hover:border-blue-500 dark:hover:bg-blue-900 transition-colors"
-          >
-            <Layers className="h-4 w-4" />
-            Open CourseMesh
-            <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
