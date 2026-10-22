@@ -20,7 +20,7 @@ from app.services.careers.feed import (
     sydney_today,
 )
 from app.services.careers.relevance import keep_relevant
-from app.services.careers.top_picks import fetch_top_picks
+from app.services.careers.top_picks import KINDS, fetch_top_picks
 from app.services.careers.web_search import fetch_web_events
 
 logger = logging.getLogger(__name__)
@@ -38,13 +38,26 @@ def feed_response(roadmap: Dict[str, Any]) -> Dict[str, Any]:
     return {"degree_key": key, "sources": [source_state(source, rows.get(source), today) for source in SOURCES]}
 
 
+async def adzuna_backup(roadmap: Dict[str, Any], roles: list, today) -> list:
+    saved = ((await asyncio.to_thread(read_feed, degree_key(roadmap))).get("adzuna") or {}).get("items") or []
+    if saved:
+        return saved
+    try:
+        return await fetch_adzuna_listings(roles, await asyncio.to_thread(adzuna_refreshes_today, today))
+    except Exception:
+        logger.warning("[careers_feed] Adzuna backup for top picks unavailable")
+        return []
+
+
 async def fetch_listings(source: str, roadmap: Dict[str, Any], today, previous: list) -> list:
     roles = entry_roles(roadmap)
     names = await asyncio.to_thread(specialisation_names, roadmap)
     program_name = degree_label(roadmap, names)
     if source in MANUAL_SOURCES:
         field_name = names[0] if names else roadmap.get("program_name") or ""
-        return await fetch_top_picks(source, program_name, field_name, roles, today)
+        backup = await adzuna_backup(roadmap, roles, today)
+        kind = KINDS[source]
+        return await fetch_top_picks(source, program_name, field_name, roles, today, [i for i in backup if i.get("kind") == kind])
     if source == "adzuna":
         refreshes = await asyncio.to_thread(adzuna_refreshes_today, today)
         return await keep_relevant(await fetch_adzuna_listings(roles, refreshes), program_name, roles)
