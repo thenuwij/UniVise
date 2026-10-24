@@ -26,9 +26,12 @@ function SocietyRow({ society, link }) {
     <li className="py-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-lg font-semibold text-ink-strong leading-snug">{society.name}</p>
-        <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          {society.kind === "faculty" ? "Your faculty" : "Across UNSW"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            {society.kind === "faculty" ? "Your faculty" : "Across UNSW"}
+          </span>
+          <SaveButton itemType="society" itemId={society.name} itemName={society.name} itemData={society.saveData} className="p-1! rounded-lg! border! shadow-none!" />
+        </div>
       </div>
       {society.why && <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{society.why}</p>}
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
@@ -37,7 +40,6 @@ function SocietyRow({ society, link }) {
             {link.isWebsite ? "Official website" : "Page on Rubric"} <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         )}
-        <SaveButton itemType="society" itemId={society.name} itemName={society.name} itemData={society.saveData} />
       </div>
     </li>
   );
