@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
-import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
@@ -87,7 +86,6 @@ function PickRow({ pick, onOpenCourseMesh }) {
 export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh }) {
   const { loading, picks, available, careers, completedCount, failed, retry } = useCoursePicks(isOwnProgram);
   const [career, setCareer] = useState(null);
-  const [showAll, setShowAll] = useState(false);
 
   if (!isOwnProgram) {
     return (
@@ -137,8 +135,6 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   }
 
   const shown = career ? picks.filter((p) => p.careers?.includes(career)) : picks;
-  const pickCodes = new Set(picks.map((p) => p.code));
-  const others = available.filter((c) => !pickCodes.has(c.code));
 
   return (
     <div>
@@ -166,30 +162,6 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         </ul>
       ) : (
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
-      )}
-      {others.length > 0 && (
-        <div className="mt-2 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
-            {showAll ? "Hide the other courses" : `Show the other ${others.length} course${others.length === 1 ? "" : "s"} you can take`}
-          </ExpandToggle>
-          {showAll && (
-            <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
-              {others.map((course) => (
-                <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <span className="text-[15px] text-ink-strong">{course.code} · {course.name}</span>
-                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-                    <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
-                      See in CourseMesh
-                    </button>
-                    <a href={`${HANDBOOK_COURSE_URL}/${course.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
-                      Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
       )}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-800/50">
         <p className="text-[15px] text-ink-muted">Missing a course you've finished? These suggestions follow your ticks.</p>
