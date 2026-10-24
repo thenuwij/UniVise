@@ -37,16 +37,21 @@ function Hero({ greeting, today, dayLine, facts, onHelp }) {
   );
 }
 
-function Tile({ label, value, hint, muted }) {
+function Tile({ label, value, hint, muted, to, linkText }) {
   return (
-    <div className="rounded-[18px] bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+    <div className="flex flex-col rounded-[18px] bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <p className="text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
       {value === undefined ? (
         <Shimmer className="mt-2 h-9 w-16" />
-      ) : (
+      ) : value !== null && (
         <p className={`${display} mt-1 text-[34px] font-extrabold ${muted ? "text-slate-400" : "text-ink-strong"}`}>{value}</p>
       )}
       <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{hint}</p>
+      {to && (
+        <Link to={to} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
+          {linkText} <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      )}
     </div>
   );
 }
@@ -55,11 +60,11 @@ function Tiles({ facts, picks }) {
   const ticked = facts.doneCount || 0;
   return (
     <section className="grid grid-cols-2 gap-3 lg:gap-4" aria-label="At a glance" data-tour="dash-glance">
-      <Tile label="Courses completed" value={ticked} hint={ticked ? "Ticked in My courses" : "Tick them in My courses"} />
+      <Tile label="Courses completed" value={ticked} hint={ticked ? "Ticked in My courses" : "Tick them in My courses"} to={roadmapStepUrl("structure")} linkText="Update my courses" />
       {ticked ? (
-        <Tile label="You can take next" value={picks ? picks.available : undefined} hint={picks?.core ? `${picks.core} of them core` : "Ready when you are"} />
+        <Tile label="Course map" value={picks ? picks.available : undefined} hint="Courses open to you on CourseMesh" to={roadmapStepUrl("coursemesh")} linkText="Open CourseMesh" />
       ) : (
-        <Tile label="You can take next" value="–" muted hint="Shows after you tick courses" />
+        <Tile label="Your program" value={null} hint="See your courses, the course map and societies to join." to={roadmapViewUrl("degree")} linkText="Check out My Program" />
       )}
     </section>
   );
