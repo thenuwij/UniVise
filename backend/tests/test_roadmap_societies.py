@@ -78,8 +78,9 @@ def test_society_list_only_includes_degree_related_categories(monkeypatch):
     from app.services.roadmap import unsw_queries
 
     rows = [
-        {"name": "Commerce Society", "arc_category": "Faculty & Constituent", "short_name": "CommSoc"},
-        {"name": "Climbing Club", "arc_category": "Sport & Recreation", "short_name": None},
+        {"name": "Commerce Society", "arc_category": "Faculty & Constituent", "short_name": "CommSoc", "website_url": None, "rubric_url": "https://campus.hellorubric.com/?s=1"},
+        {"name": "Graphics Society", "arc_category": "Faculty & Constituent", "short_name": None, "website_url": None, "rubric_url": None},
+        {"name": "Climbing Club", "arc_category": "Sport & Recreation", "short_name": None, "website_url": None, "rubric_url": None},
     ]
 
     class Query:
@@ -91,6 +92,11 @@ def test_society_list_only_includes_degree_related_categories(monkeypatch):
 
         def in_(self, column, values):
             self.rows = [r for r in self.rows if r[column] in values]
+            return self
+
+        def or_(self, condition):
+            assert condition == "website_url.not.is.null,rubric_url.not.is.null"
+            self.rows = [r for r in self.rows if r["website_url"] or r["rubric_url"]]
             return self
 
         def order(self, *args):

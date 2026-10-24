@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight, Award, Briefcase, Building2, Route, Users } from "lucide-react";
+import { Award, Briefcase, Building2, Route, Users } from "lucide-react";
 import { useCareersFeed } from "../hooks/useCareersFeed";
 import { useSavedAds } from "../hooks/useSavedAds";
 import { mergeListings } from "../utils/careersListings";
@@ -27,25 +27,6 @@ const aiStatus = (data, key, sectionsStatus) => {
 };
 
 const SECTION_IDS = ["jobs", "internships", "networking", "certifications", "career-outlook"];
-
-function NextUp({ section, text, onOpen }) {
-  if (!section) return null;
-  return (
-    <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 dark:border-blue-900 dark:bg-blue-950/40">
-      <p className="text-[15px] text-blue-900 dark:text-blue-100">
-        <span className="font-semibold">Next up:</span> {text}
-      </p>
-      <button
-        type="button"
-        onClick={() => onOpen(section.id)}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
-      >
-        Go to {section.title}
-        <ArrowRight className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
 
 export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal }) {
   const entryRoles = data?.career_pathways?.entry_level?.roles;
@@ -95,14 +76,13 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
 
   const internshipCount = (openAds?.length || 0) + programCount;
   const sections = [
-    { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null, nextText: "internship ads and annual programs for your degree" },
-    { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String(internshipCount) : null, nextText: "career fairs and industry events in Sydney" },
-    { id: "networking", title: "Networking", mobileTitle: "Network", icon: Users, meta: sources ? String(events.length) : null, nextText: "certifications that strengthen your applications" },
-    { id: "certifications", title: "Certifications", mobileTitle: "Certs", icon: Award, meta: careersReady ? String(certifications.length) : null, nextText: "the roles and salaries your degree leads to" },
+    { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
+    { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String(internshipCount) : null },
+    { id: "networking", title: "Networking", mobileTitle: "Network", icon: Users, meta: sources ? String(events.length) : null },
+    { id: "certifications", title: "Certifications", mobileTitle: "Certs", icon: Award, meta: careersReady ? String(certifications.length) : null },
     { id: "career-outlook", title: "Career outlook", navTitle: "Outlook", icon: Route },
   ];
   const activeIndex = SECTION_IDS.indexOf(section);
-  const nextSection = sections[activeIndex + 1];
 
   const certificationsSection = (
     <CareersSection
@@ -196,6 +176,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
             openAds={ready("adzuna", "ai_internships") ? openAds : null}
             savedIds={savedIds}
             onToggleSave={toggleSave}
+            personal={personal}
           />
         )}
       </CareersSection>
@@ -253,7 +234,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
       <div className="min-w-0 [&>.careers-section]:pt-0">
         {banner}
         {sectionContent[section]}
-        <NextUp section={nextSection} text={sections[activeIndex].nextText} onOpen={openSection} />
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
-import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, ArrowRight, CircleCheck, Megaphone } from "lucide-react";
+import { UserAuth } from "@/app/AuthContext";
+import { supabase } from "@/shared/lib/supabase";
+import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { sameCompany } from "@/features/roadmap/utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
@@ -47,7 +50,50 @@ function ProgramRow({ program }) {
   );
 }
 
-export default function InternshipsSection({ industryExperience, openAds, savedIds, onToggleSave }) {
+function usePlacementCompletion(code, enabled) {
+  const { session } = UserAuth();
+  const userId = session?.user?.id;
+  const [row, setRow] = useState(undefined);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || !code || !userId) return;
+    let active = true;
+    supabase
+      .from("user_completed_courses")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("course_code", code)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (active) setRow(error ? undefined : data || null);
+      });
+    return () => { active = false; };
+  }, [code, enabled, userId]);
+
+  const toggle = async () => {
+    if (!userId || row === undefined) return;
+    setSaving(true);
+    try {
+      const { data: course } = await supabase.from("unsw_courses").select("code, title, uoc").eq("code", code).maybeSingle();
+      const saved = await setCourseCompleted({
+        userId,
+        course: { code, name: course?.title || code, uoc: course?.uoc },
+        existing: row,
+        isCompleted: true,
+      });
+      setRow(saved);
+    } catch (err) {
+      console.error("Placement update failed:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return { ready: enabled && !!code && row !== undefined, done: !!row?.is_completed, saving, toggle };
+}
+
+export default function InternshipsSection({ industryExperience, openAds, savedIds, onToggleSave, personal }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [showAllOpen, setShowAllOpen] = useState(false);
 
@@ -67,11 +113,56 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
   const listedCourses = [...placementCodes, ...wilCodes.filter((code) => !placementCodes.includes(code))];
   const hasPlacements = placements?.required || listedCourses.length > 0;
   const shownPrograms = showAllPrograms ? programs : programs.slice(0, SHOWN_PROGRAMS);
+  const placement = usePlacementCompletion(placements?.required ? placementCodes[0] : null, !!personal);
 
   return (
     <div className="space-y-12">
+      {hasPlacements && (
+        <div>
+          <div
+            className={`rounded-xl p-5 ${
+              placements?.required
+                ? placement.done
+                  ? "border border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/30"
+                  : "border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
+                : "bg-slate-50 dark:bg-slate-800/50"
+            }`}
+          >
+            {placements?.required && (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className={`flex items-center gap-2 text-base font-semibold ${placement.done ? "text-green-900 dark:text-green-200" : "text-amber-900 dark:text-amber-200"}`}>
+                  {placement.done ? <CircleCheck className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                  {placement.done ? "Required placement completed" : "Required placement"}
+                </p>
+                {placement.ready && !placement.done && (
+                  <button
+                    type="button"
+                    onClick={placement.toggle}
+                    disabled={placement.saving}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:opacity-60 dark:bg-amber-500 dark:text-amber-950"
+                  >
+                    Mark {placementCodes[0]} as completed
+                  </button>
+                )}
+              </div>
+            )}
+            {placements?.required && placements.details && (
+              <p className="mt-2 text-[15px] text-ink leading-relaxed">{placements.details}</p>
+            )}
+            {listedCourses.length > 0 && (
+              <div className={`flex flex-wrap gap-1.5 ${placements?.required ? "mt-3" : ""}`}>
+                {listedCourses.map((code) => (
+                  <span key={code} className="px-2.5 py-1 rounded-md text-[13px] font-semibold text-ink-strong bg-surface border border-line">
+                    {code}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div>
-        <SubLabel hint="Live ads you can apply for today">Open now</SubLabel>
+        <SubLabel icon={Megaphone} hint="Live ads you can apply for today">Open now</SubLabel>
         <div className="mt-4">
           {openAds === null ? (
             <div className="h-14 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" aria-hidden />
@@ -106,37 +197,6 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
         </div>
       )}
 
-      {hasPlacements && (
-        <div>
-          <SubLabel hint="Work experience built into your degree">Placements in your degree</SubLabel>
-          <div
-            className={`mt-4 rounded-xl p-5 ${
-              placements?.required
-                ? "border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
-                : "bg-slate-50 dark:bg-slate-800/50"
-            }`}
-          >
-            {placements?.required && (
-              <p className="flex items-center gap-2 text-base font-semibold text-amber-900 dark:text-amber-200">
-                <AlertTriangle className="h-4 w-4" />
-                Required placement
-              </p>
-            )}
-            {placements?.required && placements.details && (
-              <p className="mt-2 text-[15px] text-ink leading-relaxed">{placements.details}</p>
-            )}
-            {listedCourses.length > 0 && (
-              <div className={`flex flex-wrap gap-1.5 ${placements?.required ? "mt-3" : ""}`}>
-                {listedCourses.map((code) => (
-                  <span key={code} className="px-2.5 py-1 rounded-md text-[13px] font-semibold text-ink-strong bg-surface border border-line">
-                    {code}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

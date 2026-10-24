@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, Network } from "lucide-react";
+import { CircleCheck, ExternalLink, Network } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
@@ -7,16 +7,18 @@ import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/courses/2026";
 
 const USEFULNESS = {
-  high: { label: "Highly useful", className: "bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200" },
+  high: { label: "Highly useful", className: "bg-slate-900 text-white dark:bg-white dark:text-slate-900" },
   medium: { label: "Useful", className: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
-  general: { label: "Degree requirement", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
+  general: { label: "Less career-relevant", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
 };
 
+const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
+
 const pill = (active) =>
-  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
     active
-      ? "bg-blue-600 text-white dark:bg-blue-500"
-      : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
+      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
 function Message({ title, children, action }) {
@@ -32,11 +34,13 @@ function Message({ title, children, action }) {
 function ChipRow({ label, items, className }) {
   if (!items?.length) return null;
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-sm font-semibold text-ink-strong">{label}</span>
-      {items.map((item) => (
-        <span key={item} className={`rounded-full px-3 py-1 text-sm font-medium ${className}`}>{item}</span>
-      ))}
+    <div>
+      <p className="mb-2 text-xs font-semibold text-ink-muted">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <span key={item} className={`rounded-full px-3 py-1 text-sm font-medium ${className}`}>{item}</span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -44,26 +48,47 @@ function ChipRow({ label, items, className }) {
 function PickRow({ pick, onOpenCourseMesh }) {
   const usefulness = USEFULNESS[pick.usefulness] || USEFULNESS.general;
   return (
-    <li className="py-5">
+    <li className="rounded-2xl bg-gradient-to-br from-white to-blue-50/70 p-5 ring-1 ring-slate-200 dark:from-slate-900 dark:to-blue-950/40 dark:ring-slate-800">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-lg font-semibold text-ink-strong leading-snug">
           {pick.code} · {pick.name}
         </p>
-        <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${usefulness.className}`}>{usefulness.label}</span>
+        <div className="flex flex-wrap gap-2">
+          {pick.core && <span className={`${badge} bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
+          <span className={`${badge} ${usefulness.className}`}>{usefulness.label}</span>
+        </div>
       </div>
-      <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{pick.reason}</p>
-      <ChipRow label="Skills you'll build" items={pick.skills} className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100" />
-      <ChipRow label="Helps you become" items={pick.careers} className="bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200" />
-      <p className="mt-3 text-sm text-ink-muted">
-        Prerequisites met{pick.unlocks?.length ? ` · Unlocks ${pick.unlocks.map((u) => u.code).join(", ")}` : ""}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-        <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 text-link hover:underline">
-          <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
-        </button>
-        <a href={`${HANDBOOK_COURSE_URL}/${pick.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
-          Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-        </a>
+      <p className="mt-1.5 text-[15px] text-ink-muted">{pick.reason}</p>
+      <div className="mt-4 flex flex-wrap gap-x-12 gap-y-4">
+        <ChipRow label="Skills you'll build" items={pick.skills} className="bg-white text-slate-800 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-700" />
+        <ChipRow label="Helps you become" items={pick.careers} className="bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-900" />
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+        <p className="inline-flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
+          <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden="true" />
+          Prerequisites met
+          {pick.unlocks?.length > 0 && (
+            <>
+              <span aria-hidden="true">·</span> Unlocks
+              {pick.unlocks.map((u, i) => (
+                <span key={u.code}>
+                  <a href={`${HANDBOOK_COURSE_URL}/${u.code}`} target="_blank" rel="noopener noreferrer" title={u.name} className="inline-flex items-center gap-0.5 font-semibold text-link hover:underline">
+                    {u.code} <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                  {i < pick.unlocks.length - 1 ? "," : ""}
+                </span>
+              ))}
+            </>
+          )}
+        </p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+          <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 text-link hover:underline">
+            <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
+          </button>
+          <a href={`${HANDBOOK_COURSE_URL}/${pick.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+            Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
       </div>
     </li>
   );
@@ -77,7 +102,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   if (!isOwnProgram) {
     return (
       <Message title="Make this your program first">
-        Take next suggests courses from your own program, based on the courses you've ticked.
+        Next courses suggests courses from your own program, based on the courses you've ticked.
       </Message>
     );
   }
@@ -109,7 +134,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   if (!completedCount) {
     return (
       <Message title="Tick the courses you've done" action={updateCourses}>
-        Take next works out what you can take next from your completed courses, then shows how each one fits your careers.
+        Next courses works out what you can take from your completed courses, then shows how each one fits your careers.
       </Message>
     );
   }
@@ -128,20 +153,23 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   return (
     <div>
       <SectionHeading subtitle={`You can take ${available.length} course${available.length === 1 ? "" : "s"} next. These fit your careers best.`}>
-        Take next
+        What to take next
       </SectionHeading>
       {careers.length > 0 && (
-        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Filter by career">
-          <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
-          {careers.map((name) => (
-            <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
-              {name}
-            </button>
-          ))}
+        <div className="mt-5">
+          <p className="mb-2 text-sm font-semibold text-ink-strong">Show courses for</p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
+            <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
+            {careers.map((name) => (
+              <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {shown.length > 0 ? (
-        <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="mt-5 space-y-4">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
@@ -151,7 +179,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
       )}
       {others.length > 0 && (
         <div className="mt-2 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <ExpandToggle plain open={showAll} onClick={() => setShowAll(!showAll)}>
+          <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
             {showAll ? "Hide the other courses" : `Show the other ${others.length} course${others.length === 1 ? "" : "s"} you can take`}
           </ExpandToggle>
           {showAll && (
@@ -159,9 +187,14 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
               {others.map((course) => (
                 <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <span className="text-[15px] text-ink-strong">{course.code} · {course.name}</span>
-                  <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-sm font-semibold text-link hover:underline">
-                    See in CourseMesh
-                  </button>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                    <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
+                      See in CourseMesh
+                    </button>
+                    <a href={`${HANDBOOK_COURSE_URL}/${course.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+                      Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    </a>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -170,7 +203,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
       )}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-800/50">
         <p className="text-[15px] text-ink-muted">Missing a course you've finished? These suggestions follow your ticks.</p>
-        <button type="button" onClick={onOpenCourses} className="text-sm font-semibold text-link hover:underline">Update my courses</button>
+        {updateCourses}
       </div>
     </div>
   );

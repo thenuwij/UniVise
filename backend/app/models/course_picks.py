@@ -27,6 +27,7 @@ class CoursePickOut(BaseModel):
     skills: list[str] = []
     careers: list[str] = []
     usefulness: str = "general"
+    core: bool = False
     unlocks: list[CourseRef] = []
 
 

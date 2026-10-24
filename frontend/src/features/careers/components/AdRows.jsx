@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, ChevronRight, ExternalLink } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarDays, ChevronRight, ExternalLink } from "lucide-react";
 import { postedAgo } from "@/features/roadmap/utils/hiringNow";
 import { cleanDateLabel, isRecent } from "../utils/careersDates";
 
@@ -103,13 +103,18 @@ export function CalendarLinks({ calendars }) {
           href={calendar.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 hover:border-blue-300 hover:bg-surface-tint transition-colors"
+          className="group flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-blue-200 hover:bg-blue-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-blue-800 dark:hover:bg-blue-950/40 transition-colors"
         >
-          <span className="min-w-0">
-            <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{calendar.organisation || calendar.title}</span>
-            <span className="block text-[13px] text-ink-muted">Events calendar · {siteName(calendar.url)}</span>
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white dark:bg-blue-500">
+              <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{calendar.organisation || calendar.title}</span>
+              <span className="block text-[13px] text-ink-muted">Events calendar · {siteName(calendar.url)}</span>
+            </span>
           </span>
-          <ExternalLink className="h-4 w-4 flex-shrink-0 text-ink-muted group-hover:text-link" />
+          <ExternalLink className="h-4 w-4 flex-shrink-0 text-blue-700 dark:text-blue-300" aria-hidden="true" />
         </a>
       ))}
     </div>
