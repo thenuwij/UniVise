@@ -95,22 +95,9 @@
   border-color: color-mix(in srgb, var(--color-link) 35%, var(--color-line));
   box-shadow: 0 18px 38px #234b8315;
 }
-.dashboard-portal-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding-right: 38px;
-  color: var(--color-ink-muted);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.015em;
-}
-.dashboard-portal-eyebrow svg {
-  color: var(--color-link);
-}
 .dashboard-portal h2 {
   margin: 0 0 10px;
+  padding-right: 44px;
   font-size: clamp(30px, 2.5vw, 34px);
   font-weight: 650;
   letter-spacing: -0.04em;
@@ -266,8 +253,6 @@
   border-color: #7ba5ff;
   box-shadow: 0 18px 38px #173f852c;
 }
-.dashboard-portal-career .dashboard-portal-eyebrow,
-.dashboard-portal-career .dashboard-portal-eyebrow svg,
 .dashboard-portal-career .dashboard-portal-description,
 .dashboard-career-context p {
   color: var(--color-band-soft);
@@ -375,9 +360,6 @@
   .dashboard-portal-description {
     margin-bottom: 14px;
     font-size: 17px;
-  }
-  .dashboard-portal-eyebrow {
-    margin-bottom: 18px;
   }
   .dashboard-portal-edit {
     top: 15px;
