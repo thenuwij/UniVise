@@ -383,6 +383,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   }, [setActiveIndex, stepIndex]);
 
   useEffect(() => {
+    if (activeIndex !== stepIndex("coursemesh")) setMeshFocus(null);
+  }, [activeIndex, stepIndex]);
+
+  useEffect(() => {
     if (degree) { 
       updateHeader(degree);
     }
