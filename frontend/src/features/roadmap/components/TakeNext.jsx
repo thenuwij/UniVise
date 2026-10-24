@@ -166,9 +166,14 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
               {others.map((course) => (
                 <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <span className="text-[15px] text-ink-strong">{course.code} · {course.name}</span>
-                  <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-sm font-semibold text-link hover:underline">
-                    See in CourseMesh
-                  </button>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                    <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
+                      See in CourseMesh
+                    </button>
+                    <a href={`${HANDBOOK_COURSE_URL}/${course.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+                      Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    </a>
+                  </div>
                 </li>
               ))}
             </ul>
