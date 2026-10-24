@@ -30,7 +30,6 @@ const aiStatus = (data, key, sectionsStatus) => {
 const SECTION_IDS = ["jobs", "internships", "networking", "certifications", "career-outlook"];
 
 export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal }) {
-  const entryRoles = data?.career_pathways?.entry_level?.roles;
   const careersState = aiStatus(data, "career_pathways", sectionsStatus);
   const internshipsState = aiStatus(data, "industry_experience", sectionsStatus);
   const careersReady = careersState === "done";
@@ -153,7 +152,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
         {careersState !== "failed" && (
           <JobsSection
             jobs={ready("adzuna", "ai_jobs") ? jobs : null}
-            roles={entryRoles}
             savedIds={savedIds}
             onToggleSave={toggleSave}
           />

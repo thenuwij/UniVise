@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import AdRows from "./AdRows";
 import { SubLabel } from "./CareersSection";
-
-const OTHER = "Other roles for your degree";
+import { groupJobs } from "../utils/jobFamilies";
 
 const pill = (active) =>
   `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
@@ -11,20 +10,10 @@ const pill = (active) =>
       : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
-export default function JobsSection({ jobs, roles, savedIds, onToggleSave }) {
+export default function JobsSection({ jobs, savedIds, onToggleSave }) {
   const [role, setRole] = useState(null);
 
-  const groups = useMemo(() => {
-    const titles = new Map((roles || []).filter((r) => r.ad_search).map((r) => [r.ad_search, r.title]));
-    const byTitle = new Map();
-    for (const ad of jobs || []) {
-      const title = titles.get(ad.role) || OTHER;
-      byTitle.set(title, [...(byTitle.get(title) || []), ad]);
-    }
-    return [...byTitle.entries()]
-      .map(([title, ads]) => ({ title, ads }))
-      .sort((a, b) => (a.title === OTHER) - (b.title === OTHER) || b.ads.length - a.ads.length);
-  }, [jobs, roles]);
+  const groups = useMemo(() => groupJobs(jobs), [jobs]);
 
   if (jobs === null) {
     return (
@@ -52,9 +41,9 @@ export default function JobsSection({ jobs, roles, savedIds, onToggleSave }) {
       {groups.length > 1 && (
         <>
           <p className="mb-2 text-sm font-semibold text-ink-strong">Show jobs for</p>
-          <div className="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter jobs by role">
+          <div className="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter jobs by type">
             <button type="button" aria-pressed={!role} onClick={() => setRole(null)} className={pill(!role)}>
-              All roles
+              All jobs
             </button>
             {groups.map((g) => (
               <button key={g.title} type="button" aria-pressed={role === g.title} onClick={() => setRole(g.title)} className={pill(role === g.title)}>
