@@ -135,6 +135,8 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   }
 
   const shown = career ? picks.filter((p) => p.careers?.includes(career)) : picks;
+  const pickCodes = new Set(picks.map((p) => p.code));
+  const others = available.filter((c) => !pickCodes.has(c.code));
 
   return (
     <div>
@@ -162,6 +164,29 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         </ul>
       ) : (
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
+      )}
+      {others.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-ink-strong">Other courses you can take</h3>
+          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
+            {others.map((course) => (
+              <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <span className="text-[15px] text-ink-strong">
+                  {course.code} · {course.name}
+                  {course.core && <span className={`${badge} ml-2 bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
+                </span>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                  <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
+                    See in CourseMesh
+                  </button>
+                  <a href={`${HANDBOOK_COURSE_URL}/${course.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+                    Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-800/50">
         <p className="text-[15px] text-ink-muted">Missing a course you've finished? These suggestions follow your ticks.</p>
