@@ -33,6 +33,7 @@ async function loadFacts(program, userId) {
     minimumUoc: degree?.minimum_uoc ?? null,
     uocDone: done.reduce((sum, r) => sum + (r.uoc || 0), 0),
     doneCount: done.length,
+    completedCodes: [...completed],
     specNames: Object.values(choices).filter(Boolean).map((s) => s.major_name),
     hasSpecOptions: options.length > 0,
     canTakeNext: codes.filter((c) => courseStatus(c, completed, groups) === "available").length,

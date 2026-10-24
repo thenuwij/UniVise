@@ -20,6 +20,10 @@ class CourseRef(BaseModel):
     name: str
 
 
+class AvailableCourse(CourseRef):
+    core: bool = False
+
+
 class CoursePickOut(BaseModel):
     code: str
     name: str
@@ -34,7 +38,7 @@ class CoursePickOut(BaseModel):
 class CoursePicksResponse(BaseModel):
     program_code: str | None = None
     picks: list[CoursePickOut] = []
-    available: list[CourseRef] = []
+    available: list[AvailableCourse] = []
     careers: list[str] = []
     completed_count: int = 0
     failed: bool = False

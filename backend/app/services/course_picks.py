@@ -246,6 +246,7 @@ def load_inputs(user_id: str) -> dict | None:
             .data
             or []
         )
+    core = core_codes([(None, program_sections), *spec_sections])
     survey = supabase.from_("student_uni_data").select("interest_areas").eq("user_id", user_id).limit(1).execute().data or []
     saved = (
         supabase.from_("user_saved_items")
@@ -271,10 +272,10 @@ def load_inputs(user_id: str) -> dict | None:
         "saved_careers": saved_careers,
         "completed": sorted(completed),
         "candidates": candidates,
-        "available": [{"code": c["code"], "name": c["name"]} for c in available],
+        "available": [{"code": c["code"], "name": c["name"], "core": c["code"] in core} for c in available],
         "outcomes": course_outcomes([c["code"] for c in candidates]),
         "unlocks": unlocked_by(unlock_edges, names, completed),
-        "core": sorted(core_codes([(None, program_sections), *spec_sections])),
+        "core": sorted(core),
         "requirement_lists": fill_course_uoc([(None, program_sections), *spec_sections]),
         "minimum_uoc": program[0].get("minimum_uoc") if program else None,
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),

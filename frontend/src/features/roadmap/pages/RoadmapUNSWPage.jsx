@@ -488,9 +488,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
           {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
             <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} view={view} />
           )}
-          <Link to="/saved" className={bandLink}>
-            My shortlist
-          </Link>
           <button onClick={() => navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap")} className={bandLink}>
             Explore a different degree
           </button>
