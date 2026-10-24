@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CircleCheck, ExternalLink, Network } from "lucide-react";
+import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
@@ -46,11 +46,20 @@ function PickRow({ pick, onOpenCourseMesh }) {
       </div>
       <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{pick.reason}</p>
       {(pick.skills?.length > 0 || pick.careers?.length > 0) && (
-        <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-          {pick.skills?.length > 0 && <>Builds <span className="text-ink-strong">{pick.skills.join(", ")}</span></>}
-          {pick.skills?.length > 0 && pick.careers?.length > 0 && <span aria-hidden="true"> · </span>}
-          {pick.careers?.length > 0 && <>For <span className="font-semibold text-blue-700 dark:text-blue-300">{pick.careers.join(", ")}</span></>}
-        </p>
+        <dl className="mt-3 space-y-1.5 text-sm">
+          {pick.skills?.length > 0 && (
+            <div className="flex gap-2">
+              <dt className="flex w-20 flex-shrink-0 items-center gap-1.5 text-ink-muted"><Wrench className="h-4 w-4" aria-hidden="true" /> Skills</dt>
+              <dd className="text-ink-strong">{pick.skills.join(" · ")}</dd>
+            </div>
+          )}
+          {pick.careers?.length > 0 && (
+            <div className="flex gap-2">
+              <dt className="flex w-20 flex-shrink-0 items-center gap-1.5 text-ink-muted"><BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> Careers</dt>
+              <dd className="text-ink-strong">{pick.careers.join(" · ")}</dd>
+            </div>
+          )}
+        </dl>
       )}
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <span className="inline-flex items-center gap-1.5 text-ink-muted">
