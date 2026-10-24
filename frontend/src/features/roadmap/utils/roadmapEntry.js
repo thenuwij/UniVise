@@ -13,7 +13,7 @@ const isCurrent = (payload) => payload?.cache_key?.prompt_version === ROADMAP_PR
 const isComplete = (payload) => SECTIONS.every((k) => payload?.[k]) || (payload?.industry_failed?.length ?? 0) > 0;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
+export async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
   const { data: rows, error } = await supabase
     .from("unsw_roadmap")
     .select("id, created_at, payload")

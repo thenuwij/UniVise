@@ -23,14 +23,19 @@ const DAY_LINES = [
 const GUIDE_KEY = "univise-dashboard-guide-seen";
 const GUIDE_STEPS = [
   {
-    targets: ['[data-tour="dash-degree"]'],
+    targets: ['[data-tour="dash-next"]'],
+    title: "Your next step",
+    text: "One thing worth doing now, picked from your ticked courses and your careers.",
+  },
+  {
+    targets: ['[data-tour="dash-program"]'],
     title: "My Program",
-    text: "See your degree and recorded progress here. Open My Program to start with Requirements, then use its section menu for Courses, CourseMesh and Societies.",
+    text: "Your courses, what to take next, CourseMesh and societies to join.",
   },
   {
     targets: ['[data-tour="dash-career"]'],
     title: "My Career",
-    text: "Open My Career to see Jobs first. Its section menu also leads to Internships, Networking, Certifications and Career outlook.",
+    text: "Jobs, internships, events, certifications and where your degree leads.",
   },
   {
     targets: ['[data-tour="dash-edit"]'],
