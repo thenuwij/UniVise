@@ -176,6 +176,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
             openAds={ready("adzuna", "ai_internships") ? openAds : null}
             savedIds={savedIds}
             onToggleSave={toggleSave}
+            personal={personal}
           />
         )}
       </CareersSection>
