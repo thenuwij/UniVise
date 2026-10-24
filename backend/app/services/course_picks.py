@@ -293,6 +293,7 @@ async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
         "picks": [],
         "available": inputs.get("available") or [],
         "careers": inputs.get("careers") or [],
+        "completed_count": len(inputs.get("completed") or []),
         "failed": False,
     }
     if not inputs["candidates"]:

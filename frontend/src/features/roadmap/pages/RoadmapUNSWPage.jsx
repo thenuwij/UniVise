@@ -13,6 +13,7 @@ import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
 import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
+import TakeNext from "../components/TakeNext";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import CareersContent from "@/features/careers/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
@@ -28,6 +29,7 @@ const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
   structure: "Tick the courses you've completed to see your prerequisite map and what to take next. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
+  next: "See the courses you can take now, the skills each one builds and the careers it helps.",
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
 };
@@ -417,6 +419,16 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
           />
         );
       },
+      next: () => (
+        <TakeNext
+          isOwnProgram={isOwnProgram}
+          onOpenCourses={() => {
+            setActiveIndex(stepIndex("structure"));
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          onOpenCourseMesh={openCourseMesh}
+        />
+      ),
       coursemesh: () => (
         <CourseMesh
           programCode={degreeCodeValue}

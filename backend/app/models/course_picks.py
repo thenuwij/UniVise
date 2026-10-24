@@ -35,4 +35,5 @@ class CoursePicksResponse(BaseModel):
     picks: list[CoursePickOut] = []
     available: list[CourseRef] = []
     careers: list[str] = []
+    completed_count: int = 0
     failed: bool = False
