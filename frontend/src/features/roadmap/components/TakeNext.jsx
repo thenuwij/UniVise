@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
+import { SubLabel } from "@/features/careers/components/CareersSection";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/courses/2026";
@@ -156,8 +157,11 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
           </div>
         </div>
       )}
+      <div className="mt-8">
+        <SubLabel hint={career ? `Picks that help you become a ${career}` : "Ranked by how well they fit your careers"}>Top picks for you</SubLabel>
+      </div>
       {shown.length > 0 ? (
-        <ul className="mt-3 divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="mt-1 divide-y divide-slate-200 dark:divide-slate-800">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
@@ -166,8 +170,8 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
       )}
       {others.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-ink-strong">Other courses you can take</h3>
+        <div className="mt-10">
+          <SubLabel hint="Also open to you now, with prerequisites met">Other courses you can take</SubLabel>
           <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
             {others.map((course) => (
               <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
