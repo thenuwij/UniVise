@@ -182,7 +182,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
       )}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-800/50">
         <p className="text-[15px] text-ink-muted">Missing a course you've finished? These suggestions follow your ticks.</p>
-        <button type="button" onClick={onOpenCourses} className="text-sm font-semibold text-link hover:underline">Update my courses</button>
+        {updateCourses}
       </div>
     </div>
   );
