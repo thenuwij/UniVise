@@ -34,7 +34,7 @@ function Message({ title, children, action }) {
 function PickRow({ pick, onOpenCourseMesh }) {
   const usefulness = USEFULNESS[pick.usefulness] || USEFULNESS.general;
   return (
-    <li className="py-5">
+    <li className="py-7">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-lg font-semibold leading-snug text-ink-strong">
           {pick.code} · {pick.name}
@@ -44,15 +44,15 @@ function PickRow({ pick, onOpenCourseMesh }) {
           <span className={`${badge} ${usefulness.className}`}>{usefulness.label}</span>
         </div>
       </div>
-      <p className="mt-1 text-[15px] text-slate-700 dark:text-slate-300">{pick.reason}</p>
+      <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{pick.reason}</p>
       {(pick.skills?.length > 0 || pick.careers?.length > 0) && (
-        <p className="mt-2 text-sm text-ink-muted">
+        <p className="mt-3 text-sm leading-relaxed text-ink-muted">
           {pick.skills?.length > 0 && <>Builds <span className="text-ink-strong">{pick.skills.join(", ")}</span></>}
           {pick.skills?.length > 0 && pick.careers?.length > 0 && <span aria-hidden="true"> · </span>}
           {pick.careers?.length > 0 && <>For <span className="font-semibold text-blue-700 dark:text-blue-300">{pick.careers.join(", ")}</span></>}
         </p>
       )}
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <span className="inline-flex items-center gap-1.5 text-ink-muted">
           <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden="true" />
           Prerequisites met
