@@ -7,7 +7,7 @@ import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/courses/2026";
 
 const USEFULNESS = {
-  high: { label: "Highly useful", className: "bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200" },
+  high: { label: "Highly useful", className: "bg-slate-900 text-white dark:bg-white dark:text-slate-900" },
   medium: { label: "Useful", className: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
   general: { label: "Degree requirement", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
 };
