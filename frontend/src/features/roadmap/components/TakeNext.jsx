@@ -29,12 +29,20 @@ function Message({ title, children, action }) {
   );
 }
 
+function ChipRow({ label, items, className }) {
+  if (!items?.length) return null;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <span className="mr-1 text-sm font-semibold text-ink-strong">{label}</span>
+      {items.map((item) => (
+        <span key={item} className={`rounded-full px-3 py-1 text-sm font-medium ${className}`}>{item}</span>
+      ))}
+    </div>
+  );
+}
+
 function PickRow({ pick, onOpenCourseMesh }) {
   const usefulness = USEFULNESS[pick.usefulness] || USEFULNESS.general;
-  const facts = [
-    pick.skills?.length ? `Skills: ${pick.skills.join(", ")}` : null,
-    pick.careers?.length ? `Careers: ${pick.careers.join(", ")}` : null,
-  ].filter(Boolean);
   return (
     <li className="py-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -44,10 +52,9 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${usefulness.className}`}>{usefulness.label}</span>
       </div>
       <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{pick.reason}</p>
-      {facts.map((fact) => (
-        <p key={fact} className="mt-1 text-sm text-ink-muted">{fact}</p>
-      ))}
-      <p className="mt-1 text-sm text-ink-muted">
+      <ChipRow label="Skills you'll build" items={pick.skills} className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100" />
+      <ChipRow label="Helps you become" items={pick.careers} className="bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200" />
+      <p className="mt-3 text-sm text-ink-muted">
         Prerequisites met{pick.unlocks?.length ? ` · Unlocks ${pick.unlocks.map((u) => u.code).join(", ")}` : ""}
       </p>
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
