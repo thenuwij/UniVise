@@ -64,9 +64,22 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <ChipRow label="Helps you become" items={pick.careers} className="bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-900" />
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
-        <p className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
+        <p className="inline-flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
           <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-          Prerequisites met{pick.unlocks?.length ? ` · Unlocks ${pick.unlocks.map((u) => u.code).join(", ")}` : ""}
+          Prerequisites met
+          {pick.unlocks?.length > 0 && (
+            <>
+              <span aria-hidden="true">·</span> Unlocks
+              {pick.unlocks.map((u, i) => (
+                <span key={u.code}>
+                  <a href={`${HANDBOOK_COURSE_URL}/${u.code}`} target="_blank" rel="noopener noreferrer" title={u.name} className="inline-flex items-center gap-0.5 font-semibold text-link hover:underline">
+                    {u.code} <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                  {i < pick.unlocks.length - 1 ? "," : ""}
+                </span>
+              ))}
+            </>
+          )}
         </p>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
           <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 text-link hover:underline">
