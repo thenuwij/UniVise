@@ -6,11 +6,6 @@ import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
 const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/courses/2026";
 
-const USEFULNESS = {
-  high: { label: "Highly useful", className: "bg-slate-900 text-white dark:bg-white dark:text-slate-900" },
-  medium: { label: "Useful", className: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
-  general: { label: "Less career-relevant", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
-};
 
 const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
 
@@ -32,7 +27,6 @@ function Message({ title, children, action }) {
 }
 
 function PickRow({ pick, onOpenCourseMesh }) {
-  const usefulness = USEFULNESS[pick.usefulness] || USEFULNESS.general;
   return (
     <li className="py-7">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -41,7 +35,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
         </p>
         <div className="flex flex-wrap gap-2">
           {pick.core && <span className={`${badge} bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
-          <span className={`${badge} ${usefulness.className}`}>{usefulness.label}</span>
+          {pick.usefulness === "high" && <span className={`${badge} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Highly useful</span>}
         </div>
       </div>
       <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{pick.reason}</p>
