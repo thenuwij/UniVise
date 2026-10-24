@@ -54,6 +54,7 @@ function usePlacementCompletion(code, enabled) {
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const [row, setRow] = useState(undefined);
+  const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -66,7 +67,9 @@ function usePlacementCompletion(code, enabled) {
       .eq("course_code", code)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (active) setRow(error ? undefined : data || null);
+        if (!active) return;
+        setRow(error ? undefined : data || null);
+        setChecked(true);
       });
     return () => { active = false; };
   }, [code, enabled, userId]);
@@ -90,7 +93,8 @@ function usePlacementCompletion(code, enabled) {
     }
   };
 
-  return { ready: enabled && !!code && row !== undefined, done: !!row?.is_completed, saving, toggle };
+  const waiting = enabled && !!code && !!userId && !checked;
+  return { waiting, ready: enabled && !!code && row !== undefined, done: !!row?.is_completed, saving, toggle };
 }
 
 export default function InternshipsSection({ industryExperience, openAds, savedIds, onToggleSave, personal }) {
@@ -117,7 +121,7 @@ export default function InternshipsSection({ industryExperience, openAds, savedI
 
   return (
     <div className="space-y-12">
-      {hasPlacements && (
+      {hasPlacements && !placement.waiting && (
         <div>
           <div
             className={`rounded-xl p-5 ${
