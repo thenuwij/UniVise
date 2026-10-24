@@ -3,6 +3,7 @@ export const ROADMAP_VIEWS = {
     path: "/roadmap/unsw",
     steps: [
       { key: "structure", title: "My courses" },
+      { key: "next", title: "Take next" },
       { key: "coursemesh", title: "CourseMesh" },
       { key: "societies", title: "Societies" },
     ],

@@ -1,20 +1,27 @@
 import hashlib
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
 from app.models.course_picks import CoursePicks
 from app.services.requirements import to_uoc
+from app.services.roadmap.cache import PROMPT_VERSION as ROADMAP_PROMPT_VERSION
 from app.services.roadmap.industry import replace_unlisted_codes
 from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = 1
+PROMPT_VERSION = 3
+CODE_IN_TEXT = re.compile(r"\b[A-Z]{4}\d{4}\b|\bCLO\d+\b")
 MAX_PICKS = 5
 MAX_CANDIDATES = 60
+MAX_OUTCOMES = 6
+MAX_UNLOCKS = 4
+MAX_CAREERS = 5
+LEVEL_PREFIX = re.compile(r"^(graduate|junior|entry[- ]level)\s+", re.I)
 
 
 def prereq_groups(edges: list) -> dict:
@@ -61,10 +68,33 @@ def _level(code: str) -> int:
 def available_courses(courses: list, completed: set, groups: dict, preferred: set) -> list:
     open_courses = [c for c in courses if is_available(c["code"], completed, groups)]
     open_courses.sort(key=lambda c: (c["code"] not in preferred, _level(c["code"]), c["code"]))
-    return open_courses[:MAX_CANDIDATES]
+    return open_courses
 
 
-def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list, list]:
+def unlocked_by(edges: list, names: dict, completed: set) -> dict:
+    unlocks: dict = {}
+    for e in edges or []:
+        to = e.get("to_key")
+        if e.get("edge_type") != "prereq" or to not in names or to in completed:
+            continue
+        found = unlocks.setdefault(e["from_key"], [])
+        if all(u["code"] != to for u in found):
+            found.append({"code": to, "name": names[to]})
+    return {code: found[:MAX_UNLOCKS] for code, found in unlocks.items()}
+
+
+def course_outcomes(codes: list) -> dict:
+    if not codes:
+        return {}
+    rows = supabase.from_("unsw_courses").select("code, learning_outcomes").in_("code", codes).execute().data or []
+    return {
+        r["code"]: [o["description"] for o in r["learning_outcomes"][:MAX_OUTCOMES] if isinstance(o, dict) and o.get("description")]
+        for r in rows
+        if isinstance(r.get("learning_outcomes"), list)
+    }
+
+
+def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list, list, list]:
     rows = (
         supabase.from_("user_specialisation_selections")
         .select("major_id, minor_id, honours_id")
@@ -76,7 +106,7 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
     )
     ids = [r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)]
     if not ids:
-        return [], [], []
+        return [], [], [], []
     specs = supabase.from_("unsw_specialisations").select("id, major_name, sections").in_("id", ids).execute().data or []
     codes = []
     for spec in specs:
@@ -86,7 +116,37 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
                 if COURSE_CODE.match(code) and code not in codes:
                     codes.append(code)
     section_lists = [(spec.get("major_name") or spec.get("id"), parse_sections_json(spec.get("sections"))) for spec in specs]
-    return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists
+    return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists, sorted(set(ids))
+
+
+def career_roles(payload: dict | None) -> list:
+    pathways = (payload or {}).get("career_pathways") or {}
+    roles = []
+    for level in ("mid_career", "entry_level"):
+        for role in (pathways.get(level) or {}).get("roles") or []:
+            title = LEVEL_PREFIX.sub("", (role.get("title") or "").strip()) if isinstance(role, dict) else ""
+            if title and title.lower() not in {r.lower() for r in roles}:
+                roles.append(title)
+    return roles
+
+
+def _roadmap_careers(user_id: str, degree_code: str, spec_ids: list) -> list:
+    rows = (
+        supabase.from_("unsw_roadmap")
+        .select("payload")
+        .eq("user_id", user_id)
+        .eq("degree_code", degree_code)
+        .order("created_at", desc=True)
+        .limit(5)
+        .execute()
+        .data
+        or []
+    )
+    for row in rows:
+        payload = row.get("payload") or {}
+        if (payload.get("cache_key") or {}).get("prompt_version") == ROADMAP_PROMPT_VERSION and sorted(payload.get("specialisation_ids") or []) == spec_ids:
+            return career_roles(payload)
+    return []
 
 
 def _missing_uoc(course) -> bool:
@@ -123,7 +183,7 @@ def load_inputs(user_id: str) -> dict | None:
     degree_code = enrolled[0]["degree_code"]
     program_name = enrolled[0].get("program_name") or degree_code
 
-    spec_names, spec_codes, spec_sections = _specialisations(user_id, degree_code, program_name)
+    spec_names, spec_codes, spec_sections, spec_ids = _specialisations(user_id, degree_code, program_name)
     completed_rows = [
         r
         for r in supabase.from_("user_completed_courses").select("course_code, uoc, is_completed").eq("user_id", user_id).execute().data or []
@@ -152,8 +212,21 @@ def load_inputs(user_id: str) -> dict | None:
             .data
             or []
         )
+    available = available_courses(courses, completed, prereq_groups(edges), set(spec_codes))
+    candidates = available[:MAX_CANDIDATES]
+    names = {c["code"]: c["name"] for c in courses}
+    unlock_edges = []
+    if candidates:
+        unlock_edges = (
+            supabase.from_("mindmesh_edges_global")
+            .select("from_key, to_key, edge_type")
+            .eq("edge_type", "prereq")
+            .in_("from_key", [c["code"] for c in candidates])
+            .execute()
+            .data
+            or []
+        )
     survey = supabase.from_("student_uni_data").select("interest_areas").eq("user_id", user_id).limit(1).execute().data or []
-    recs = supabase.from_("career_recommendations").select("career_title").eq("user_id", user_id).execute().data or []
     saved = (
         supabase.from_("user_saved_items")
         .select("item_name")
@@ -165,8 +238,9 @@ def load_inputs(user_id: str) -> dict | None:
     )
     interests = (survey[0].get("interest_areas") if survey else None) or []
     saved_careers = [s["item_name"] for s in saved if s.get("item_name")]
-    careers = [r["career_title"] for r in recs if r.get("career_title")]
-    careers += [name for name in saved_careers if name not in careers]
+    careers = list(saved_careers)
+    careers += [name for name in _roadmap_careers(user_id, degree_code, spec_ids) if name.lower() not in {c.lower() for c in careers}]
+    careers = careers[:MAX_CAREERS]
 
     return {
         "degree_code": degree_code,
@@ -176,7 +250,10 @@ def load_inputs(user_id: str) -> dict | None:
         "careers": careers,
         "saved_careers": saved_careers,
         "completed": sorted(completed),
-        "candidates": available_courses(courses, completed, prereq_groups(edges), set(spec_codes)),
+        "candidates": candidates,
+        "available": [{"code": c["code"], "name": c["name"]} for c in available],
+        "outcomes": course_outcomes([c["code"] for c in candidates]),
+        "unlocks": unlocked_by(unlock_edges, names, completed),
         "requirement_lists": fill_course_uoc([(None, program_sections), *spec_sections]),
         "minimum_uoc": program[0].get("minimum_uoc") if program else None,
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
@@ -211,8 +288,15 @@ def write_cache(user_id: str, hash_value: str, picks: list) -> None:
         logger.warning(f"[course_picks] cache write failed: {e}")
 
 
+def _listing(course: dict, outcomes: dict) -> str:
+    line = f"- {course['code']}: {course['name']} ({course['section']})"
+    learned = outcomes.get(course["code"])
+    return line + "".join(f"\n    * {o}" for o in learned) if learned else line
+
+
 def build_prompt(inputs: dict) -> str:
-    listing = "\n".join(f"- {c['code']}: {c['name']} ({c['section']})" for c in inputs["candidates"])
+    outcomes = inputs.get("outcomes") or {}
+    listing = "\n".join(_listing(c, outcomes) for c in inputs["candidates"])
     return f"""Pick up to {MAX_PICKS} courses this UNSW student should consider taking next.
 
 Student:
@@ -221,20 +305,30 @@ Student:
 - Interests: {', '.join(inputs['interests']) or 'not given'}
 - Careers they are considering: {', '.join(inputs['careers']) or 'not given'}
 
-Courses in their program they can take next (their prerequisites are done):
+Courses in their program they can take next (their prerequisites are done), with the course's published learning outcomes where known:
 {listing}
 
 Rules:
 - Only pick course codes from the list above.
 - Order the picks best first.
 - Give each pick one plain sentence of at most 20 words saying why it suits this student, tied to their careers, interests or specialisation.
+- Give each pick 2 or 3 skills it builds, each at most 4 plain words a first-year student would understand, such as "Training machine learning models". Base them only on that course's learning outcomes; if none are listed, use the course name. Never copy an outcome or name outcome codes.
+- For careers, list only names from "Careers they are considering" that the course clearly helps, written exactly as given. Leave it empty if none fit.
+- Set usefulness to "high" if the course is central to one of their careers, "medium" if it helps, or "general" if it is mainly a degree requirement.
 - Do not use em dashes, en dashes or double hyphens."""
 
 
 async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
     if not inputs:
         return {"program_code": None, "picks": [], "failed": False}
-    result = {"program_code": inputs["degree_code"], "picks": [], "failed": False}
+    result = {
+        "program_code": inputs["degree_code"],
+        "picks": [],
+        "available": inputs.get("available") or [],
+        "careers": inputs.get("careers") or [],
+        "completed_count": len(inputs.get("completed") or []),
+        "failed": False,
+    }
     if not inputs["candidates"]:
         return result
 
@@ -245,7 +339,7 @@ async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
         return result
 
     try:
-        generated = await ask_gpt_structured(build_prompt(inputs), CoursePicks, max_tokens=800, model="gpt-5.4-mini")
+        generated = await ask_gpt_structured(build_prompt(inputs), CoursePicks, max_tokens=1500, model="gpt-5.4-mini")
     except Exception as e:
         logger.error(f"[course_picks] generation failed: {e}")
         result["failed"] = True
@@ -253,11 +347,21 @@ async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
 
     names = {c["code"]: c["name"] for c in inputs["candidates"]}
     allowed = set(names) | set(inputs["completed"])
+    careers = {c.lower(): c for c in inputs["careers"]}
+    unlocks = inputs.get("unlocks") or {}
     picks = []
     for pick in generated.picks:
         code = pick.code.strip().upper()
         if code in names and all(p["code"] != code for p in picks):
-            picks.append({"code": code, "name": names[code], "reason": replace_unlisted_codes(pick.reason.strip(), allowed)})
+            picks.append({
+                "code": code,
+                "name": names[code],
+                "reason": replace_unlisted_codes(pick.reason.strip(), allowed),
+                "skills": [s.strip() for s in pick.skills if s.strip() and not CODE_IN_TEXT.search(s)],
+                "careers": list(dict.fromkeys(careers[c.strip().lower()] for c in pick.careers if c.strip().lower() in careers)),
+                "usefulness": pick.usefulness,
+                "unlocks": unlocks.get(code, []),
+            })
     picks = picks[:MAX_PICKS]
 
     write_cache(user_id, hash_value, picks)

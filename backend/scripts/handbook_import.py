@@ -317,6 +317,12 @@ def course_school(content: dict) -> str | None:
     return school
 
 
+def learning_outcomes(content: dict) -> list[dict] | None:
+    items = [o for o in content.get("unit_learning_outcomes") or [] if isinstance(o, dict) and (o.get("description") or "").strip()]
+    items.sort(key=lambda o: to_int(o.get("order")) or 0)
+    return [{"code": o.get("code"), "description": o["description"].strip()} for o in items] or None
+
+
 def course_row(content: dict) -> dict:
     rules = [html_to_text(rule.get("description")) for rule in content.get("enrolment_rules") or [] if isinstance(rule, dict)]
     terms = ((content.get("offering_detail") or {}).get("offering_terms") or "").split(",")
@@ -331,6 +337,7 @@ def course_row(content: dict) -> dict:
         "field_of_education": org_name(content.get("asced_detailed")),
         "conditions_for_enrolment": "\n".join(r for r in rules if r) or None,
         "offering_terms": [t.strip() for t in terms if t.strip()] or None,
+        "learning_outcomes": learning_outcomes(content),
     }
 
 

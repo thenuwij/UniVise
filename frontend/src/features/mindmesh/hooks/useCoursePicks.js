@@ -7,7 +7,7 @@ export const MYPLAN_URL = "https://myplan.unsw.edu.au/app/home";
 export function useCoursePicks(enabled = true) {
   const { session } = UserAuth();
   const token = session?.access_token;
-  const [state, setState] = useState({ loading: enabled, picks: [], failed: false, programCode: null });
+  const [state, setState] = useState({ loading: enabled, picks: [], available: [], careers: [], completedCount: 0, failed: false, programCode: null });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -16,11 +16,21 @@ export function useCoursePicks(enabled = true) {
     setState((s) => ({ ...s, loading: true, failed: false }));
     apiJson("/course-picks", { token })
       .then((data) => {
-        if (active) setState({ loading: false, picks: data.picks || [], failed: !!data.failed, programCode: data.program_code });
+        if (active) {
+          setState({
+            loading: false,
+            picks: data.picks || [],
+            available: data.available || [],
+            careers: data.careers || [],
+            completedCount: data.completed_count || 0,
+            failed: !!data.failed,
+            programCode: data.program_code,
+          });
+        }
       })
       .catch((err) => {
         console.error("Course picks failed:", err);
-        if (active) setState({ loading: false, picks: [], failed: true, programCode: null });
+        if (active) setState({ loading: false, picks: [], available: [], careers: [], completedCount: 0, failed: true, programCode: null });
       });
     return () => { active = false; };
   }, [enabled, token, attempt]);
