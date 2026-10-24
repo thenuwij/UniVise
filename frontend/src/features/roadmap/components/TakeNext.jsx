@@ -40,7 +40,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
       </div>
       <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{pick.reason}</p>
       {(pick.skills?.length > 0 || pick.careers?.length > 0) && (
-        <dl className="mt-3 space-y-1.5 text-sm">
+        <dl className="mt-4 space-y-2 rounded-xl bg-gradient-to-br from-white to-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-800/60 dark:ring-slate-800">
           {pick.skills?.length > 0 && (
             <div className="flex gap-2">
               <dt className="flex w-20 flex-shrink-0 items-center gap-1.5 text-ink-muted"><Wrench className="h-4 w-4" aria-hidden="true" /> Skills</dt>
