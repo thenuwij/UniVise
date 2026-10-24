@@ -2,7 +2,7 @@ import { Briefcase, Map, Network } from "lucide-react";
 import { Header } from "@/shared/layout/Header";
 
 const FEATURES = [
-  { icon: Map, title: "Your roadmap", text: "Your degree, courses and specialisation in five clear steps." },
+  { icon: Map, title: "My Program", text: "Your requirements, courses and specialisation in one place." },
   { icon: Network, title: "CourseMesh", text: "See which courses unlock next and plan your terms." },
   { icon: Briefcase, title: "Careers", text: "Real graduate outcomes, live job ads and internships." },
 ];
