@@ -132,20 +132,25 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
 
   useEffect(() => {
     if (!pendingFocus) return;
+    let glide = null;
     const timer = setInterval(() => {
-      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.x));
-      if (!node) return;
+      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.fx));
+      if (!node || isAutoLayoutInProgress.current) return;
       clearInterval(timer);
       setPendingFocus(null);
       setShowHint(false);
-      setFocusedNode(node);
-      graphRef.current?.centerAt(node.x, node.y, 600);
-      graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 600);
+      graphRef.current?.zoomToFit(500, 80);
+      glide = setTimeout(() => {
+        setFocusedNode(node);
+        graphRef.current?.centerAt(node.x, node.y, 700);
+        graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 700);
+      }, 900);
     }, 300);
     const stop = setTimeout(() => clearInterval(timer), 10000);
     return () => {
       clearInterval(timer);
       clearTimeout(stop);
+      clearTimeout(glide);
     };
   }, [pendingFocus, graph]);
 

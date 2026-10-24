@@ -125,7 +125,7 @@ export default forwardRef(function AutoLayoutControls({
 
     setGraph({ nodes, links: validLinks });
     setFrozen?.(true);
-    requestAnimationFrame(() => graphRef.current?.zoomToFit(600, 80));
+    setTimeout(() => graphRef.current?.zoomToFit(600, 80), 80);
   }, [graph, canvasSize, graphRef, setGraph, setFrozen]);
 
   useImperativeHandle(ref, () => ({
