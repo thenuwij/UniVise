@@ -37,6 +37,8 @@ INPUTS = {
         {"code": "COMP3411", "name": "Artificial Intelligence", "section": "Major"},
         {"code": "COMP1531", "name": "Software Engineering Fundamentals", "section": "Core"},
     ],
+    "outcomes": {"COMP3411": ["Explain fundamental AI methods and techniques.", "Employ AI programming and practices."]},
+    "unlocks": {"COMP3411": [{"code": "COMP9444", "name": "Neural Networks and Deep Learning"}]},
 }
 
 
@@ -73,10 +75,16 @@ def test_keeps_only_listed_courses(monkeypatch):
     writes = fake_cache(monkeypatch)
 
     async def reply(prompt, schema, **kwargs):
-        assert "- COMP3411: Artificial Intelligence (Major)" in prompt
+        assert "- COMP3411: Artificial Intelligence (Major)\n    * Explain fundamental AI methods and techniques." in prompt
         return CoursePicks(picks=[
             CoursePick(code="FAKE9999", reason="Made up."),
-            CoursePick(code="comp3411", reason="Builds on COMP2521 and leads to COMP9444 for ML roles."),
+            CoursePick(
+                code="comp3411",
+                reason="Builds on COMP2521 and leads to COMP9444 for ML roles.",
+                skills=["Core AI methods", "CLO4 programming", "Building AI programs"],
+                careers=["machine learning engineer", "Astronaut"],
+                usefulness="high",
+            ),
             CoursePick(code="COMP3411", reason="Duplicate."),
         ])
 
@@ -88,6 +96,10 @@ def test_keeps_only_listed_courses(monkeypatch):
         "code": "COMP3411",
         "name": "Artificial Intelligence",
         "reason": "Builds on COMP2521 and leads to (course not listed) for ML roles.",
+        "skills": ["Core AI methods", "Building AI programs"],
+        "careers": ["Machine Learning Engineer"],
+        "usefulness": "high",
+        "unlocks": [{"code": "COMP9444", "name": "Neural Networks and Deep Learning"}],
     }]
     assert len(writes) == 1
 
@@ -164,3 +176,18 @@ def test_alternatives_are_skipped_once_one_course_of_the_group_is_done():
     assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], set()) == set()
     assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], {"MATH1131"}) == {"MATH1141"}
     assert course_picks.not_needed_codes([("3778", program), ("COMPA1", major)], {"MATH1131", "MATH1241"}) == {"MATH1141", "MATH1231"}
+
+
+def test_unlocks_list_program_courses_not_yet_done():
+    names = {"COMP3411": "Artificial Intelligence", "COMP9444": "Neural Networks and Deep Learning", "COMP2521": "Data Structures"}
+    edges = [
+        edge("COMP3411", "COMP9444"),
+        edge("COMP3411", "COMP9444", group="other"),
+        edge("COMP3411", "COMP2521"),
+        edge("COMP3411", "MATH9999"),
+        edge("COMP3411", "COMP9444", kind="coreq"),
+    ]
+
+    assert course_picks.unlocked_by(edges, names, {"COMP2521"}) == {
+        "COMP3411": [{"code": "COMP9444", "name": "Neural Networks and Deep Learning"}],
+    }
