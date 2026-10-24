@@ -3,8 +3,7 @@ import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { useState } from "react";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { card, clickable } from "@/shared/ui/cardStyles";
-import { describeBody } from "../utils/professionalBodies";
+import { card } from "@/shared/ui/cardStyles";
 
 export default function SocietiesCommunity({ societies }) {
   const [showAll, setShowAll] = useState(false);
@@ -13,7 +12,6 @@ export default function SocietiesCommunity({ societies }) {
 
   const facultySpecific = societies?.faculty_specific || [];
   const crossFaculty = societies?.cross_faculty || [];
-  const profDev = societies?.professional_development || {};
   const gettingStarted = societies?.getting_started || {};
 
   if (!facultySpecific.length && !crossFaculty.length) return null;
@@ -23,7 +21,6 @@ export default function SocietiesCommunity({ societies }) {
     [Clock, "When to join", gettingStarted.join_timing],
     [Info, "How to find them", gettingStarted.how_to_find],
   ].filter(([, , value]) => value);
-  const bodies = profDev.professional_bodies || (profDev.student_chapters || []).map((name) => ({ name, url: null }));
 
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-800 [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
@@ -111,54 +108,6 @@ export default function SocietiesCommunity({ societies }) {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-      )}
-
-      {bodies.length > 0 && (
-        <section>
-          <SectionHeading>
-            Professional societies
-          </SectionHeading>
-          <div className="mt-6 space-y-5">
-            {bodies.length > 0 && (
-              <div className={`grid gap-4 ${bodies.length === 1 ? "" : bodies.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
-                {bodies.map((body) => {
-                  const { short, about } = describeBody(body.name);
-                  const inner = (
-                    <>
-                      <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 min-w-[3rem] h-12 px-2 rounded-xl inline-flex items-center justify-center text-sm font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 ring-1 ring-blue-200 dark:ring-blue-800">
-                          {short}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-lg font-bold text-ink-strong leading-snug break-words">{body.name}</p>
-                          {about && <p className="mt-1 text-[15px] text-ink-muted leading-relaxed">{about}</p>}
-                        </div>
-                      </div>
-                      {body.url && (
-                        <span className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-link">
-                          Visit website <ExternalLink className="h-4 w-4" />
-                        </span>
-                      )}
-                    </>
-                  );
-                  return body.url ? (
-                    <a
-                      key={body.name}
-                      href={body.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${card} ${clickable} flex flex-col p-5`}
-                    >
-                      {inner}
-                    </a>
-                  ) : (
-                    <div key={body.name} className="rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 flex flex-col p-5">{inner}</div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </section>
       )}

@@ -12,6 +12,7 @@ import CertificationsList from "./CertificationsList";
 import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
 import JobsSection from "./JobsSection";
+import ProfessionalBodies from "./ProfessionalBodies";
 import "../careers.css";
 
 const SOURCE_LABELS = { adzuna: "Adzuna", ai_jobs: "Top picks", ai_internships: "Top picks", ai_networking: "Web search" };
@@ -231,6 +232,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
                 </div>
               </div>
             )}
+            <ProfessionalBodies societies={data?.industry_societies} />
           </div>
         )}
       </CareersSection>
