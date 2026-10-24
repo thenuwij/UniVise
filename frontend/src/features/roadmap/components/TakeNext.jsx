@@ -166,7 +166,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
       )}
       {others.length > 0 && (
         <div className="mt-2 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <ExpandToggle plain open={showAll} onClick={() => setShowAll(!showAll)}>
+          <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
             {showAll ? "Hide the other courses" : `Show the other ${others.length} course${others.length === 1 ? "" : "s"} you can take`}
           </ExpandToggle>
           {showAll && (

@@ -89,7 +89,7 @@ export default function SocietiesCommunity({ societies }) {
         ))}
       </ul>
       {filtered.length > SHOWN && (
-        <ExpandToggle plain open={showAll} onClick={() => setShowAll(!showAll)}>
+        <ExpandToggle quiet open={showAll} onClick={() => setShowAll(!showAll)}>
           {showAll ? "Show fewer" : `Show ${filtered.length - SHOWN} more societies`}
         </ExpandToggle>
       )}
