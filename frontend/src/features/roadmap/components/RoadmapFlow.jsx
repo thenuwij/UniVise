@@ -76,7 +76,7 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, hea
             </motion.div>
           </AnimatePresence>
 
-          {activeIndex >= 0 && (prev || next) && !(sectionNavigation && steps[activeIndex]?.key === "structure") && (
+          {!sectionNavigation && activeIndex >= 0 && (prev || next) && (
             <div className="mt-10 pt-6 border-t border-line flex items-center justify-between gap-4">
               {prev ? (
                 <button
@@ -91,7 +91,7 @@ export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, hea
                   onClick={() => goTo(activeIndex + 1)}
                   className="group inline-flex items-center gap-1.5 text-base font-semibold text-link hover:underline underline-offset-4"
                 >
-                  {sectionNavigation && next.key === "structure" ? "View your courses" : `Next: ${next.title}`}
+                  Next: {next.title}
                   <ChevronRight className="h-5 w-5 text-ink-muted" />
                 </button>
               )}
