@@ -5,7 +5,7 @@ import { useDashboardPreview } from "../hooks/useDashboardPreview";
 import DegreeEditMenu from "./DegreeEditMenu";
 
 const display = "font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui] tracking-tight";
-const card = "rounded-[20px] bg-white p-6 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800";
+const card = "min-w-0";
 const tag = "rounded-[7px] px-2.5 py-0.5 text-xs font-semibold";
 const iconTile = "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[10px]";
 
@@ -13,7 +13,23 @@ function Shimmer({ className = "h-5" }) {
   return <div className={`${className} rounded bg-slate-100 dark:bg-slate-800 animate-pulse`} aria-hidden="true" />;
 }
 
-function Hero({ greeting, today, dayLine, facts, onHelp }) {
+function HeroStat({ value, label, to, linkText }) {
+  return (
+    <div>
+      {value === undefined ? (
+        <div className="h-10 w-14 rounded bg-white/20 animate-pulse" aria-hidden="true" />
+      ) : (
+        <p className={`${display} text-[34px] font-extrabold leading-none`}>{value}</p>
+      )}
+      <p className="mt-2 text-sm text-blue-100">
+        {label} · <Link to={to} className="font-semibold text-white underline-offset-4 hover:underline">{linkText} ›</Link>
+      </p>
+    </div>
+  );
+}
+
+function Hero({ greeting, today, dayLine, facts, picks, onHelp }) {
+  const ticked = facts.doneCount || 0;
   const { program, specNames = [] } = facts;
   const degree = [program.program_name, ...specNames].join(" · ");
   return (
@@ -33,38 +49,17 @@ function Hero({ greeting, today, dayLine, facts, onHelp }) {
           </button>
         </div>
       </div>
-    </section>
-  );
-}
-
-function Tile({ label, value, hint, muted, to, linkText }) {
-  return (
-    <div className="flex flex-col rounded-[18px] bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-      <p className="text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
-      {value === undefined ? (
-        <Shimmer className="mt-2 h-9 w-16" />
-      ) : value !== null && (
-        <p className={`${display} mt-1 text-[34px] font-extrabold ${muted ? "text-slate-400" : "text-ink-strong"}`}>{value}</p>
-      )}
-      <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{hint}</p>
-      {to && (
-        <Link to={to} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
-          {linkText} <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function Tiles({ facts, picks }) {
-  const ticked = facts.doneCount || 0;
-  return (
-    <section className="grid grid-cols-2 gap-3 lg:gap-4" aria-label="At a glance" data-tour="dash-glance">
-      <Tile label="Courses completed" value={ticked} hint={ticked ? "Ticked in My courses" : "Tick them in My courses"} to={roadmapStepUrl("structure")} linkText="Update my courses" />
-      {ticked ? (
-        <Tile label="Course map" value={picks ? picks.available : undefined} hint="Courses open to you on CourseMesh" to={roadmapStepUrl("coursemesh")} linkText="Open CourseMesh" />
-      ) : (
-        <Tile label="Your program" value={null} hint="See your courses, the course map and societies to join." to={roadmapViewUrl("degree")} linkText="Check out My Program" />
+      {!facts.failed && (
+        <div className="mt-7 flex flex-wrap gap-x-14 gap-y-5 border-t border-white/20 pt-6" data-tour="dash-glance">
+          <HeroStat value={ticked} label="courses completed" to={roadmapStepUrl("structure")} linkText="Update" />
+          {ticked ? (
+            <HeroStat value={picks ? picks.available : undefined} label="courses open to you" to={roadmapStepUrl("coursemesh")} linkText="CourseMesh" />
+          ) : (
+            <p className="self-end text-sm text-blue-100">
+              New here? <Link to={roadmapViewUrl("degree")} className="font-semibold text-white underline-offset-4 hover:underline">Check out My Program ›</Link>
+            </p>
+          )}
+        </div>
       )}
     </section>
   );
@@ -73,7 +68,7 @@ function Tiles({ facts, picks }) {
 function SectionHead({ id, title, to, linkText }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 id={id} className={`${display} text-xl font-bold text-ink-strong`}>{title}</h2>
+      <h2 id={id} className={`${display} text-[22px] font-bold text-ink-strong`}>{title}</h2>
       {to && <Link to={to} className="text-sm font-semibold text-link hover:underline">{linkText}</Link>}
     </div>
   );
@@ -178,25 +173,22 @@ function Societies({ roadmap }) {
   return (
     <section className={card} aria-labelledby="home-societies">
       <SectionHead id="home-societies" title="Societies for you to join" to={roadmapStepUrl("societies")} linkText={list.length ? `All ${list.length} ›` : "Open ›"} />
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {!roadmap && [0, 1, 2, 3].map((i) => <Shimmer key={i} className="h-[70px] rounded-[14px]" />)}
-        {list.slice(0, 4).map((society) => {
+      <div className="mt-5 flex flex-wrap gap-x-8 gap-y-5">
+        {!roadmap && [0, 1, 2, 3].map((i) => <Shimmer key={i} className="h-14 w-14 rounded-full" />)}
+        {list.slice(0, 6).map((society) => {
           const words = society.name.replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean);
           const initials = (words.length > 1 ? words.map((w) => w[0]).join("") : words[0] || society.name).slice(0, 2).toUpperCase();
           const inner = (
             <>
-              <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-[13px] font-bold text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200" aria-hidden="true">{initials}</span>
-              <span className="min-w-0">
-                <span className="block truncate font-semibold text-ink-strong">{society.name}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{society.faculty ? "Your faculty" : "Across UNSW"}</span>
-              </span>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-800 transition-colors group-hover:bg-indigo-200 dark:bg-indigo-950 dark:text-indigo-200" aria-hidden="true">{initials}</span>
+              <span className="w-24 truncate text-center text-sm font-semibold text-ink-strong group-hover:text-link">{society.name}</span>
             </>
           );
-          const cls = "flex items-center gap-3 rounded-[14px] p-3.5 ring-1 ring-slate-200 hover:bg-blue-50 hover:ring-blue-300 dark:ring-slate-800 dark:hover:bg-slate-800";
+          const cls = "group flex flex-col items-center gap-2";
           return society.link ? (
-            <a key={society.name} href={society.link.url} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
+            <a key={society.name} href={society.link.url} target="_blank" rel="noopener noreferrer" className={cls} title={society.name}>{inner}</a>
           ) : (
-            <Link key={society.name} to={roadmapStepUrl("societies")} className={cls}>{inner}</Link>
+            <Link key={society.name} to={roadmapStepUrl("societies")} className={cls} title={society.name}>{inner}</Link>
           );
         })}
       </div>
@@ -208,16 +200,15 @@ export default function DashboardHome({ facts, greeting, today, dayLine, onHelp 
   const { picks, roadmap, career, cert } = useDashboardPreview(facts);
 
   return (
-    <div className="space-y-6">
-      <Hero greeting={greeting} today={today} dayLine={dayLine} facts={facts} onHelp={onHelp} />
+    <div className="space-y-12">
+      <Hero greeting={greeting} today={today} dayLine={dayLine} facts={facts} picks={picks} onHelp={onHelp} />
       {facts.failed ? (
         <p className="rounded-2xl bg-white px-5 py-4 text-[15px] text-slate-600 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-800" role="status">
           Your details couldn't be loaded. You can still open <Link to={roadmapViewUrl("degree")} className="font-semibold text-link hover:underline">My Program</Link> or <Link to={roadmapViewUrl("careers")} className="font-semibold text-link hover:underline">My Career</Link>.
         </p>
       ) : (
         <>
-          <Tiles facts={facts} picks={picks} />
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <NextCourses facts={facts} picks={picks} />
             <CareerWeek roadmap={roadmap} career={career} cert={cert} />
           </div>
