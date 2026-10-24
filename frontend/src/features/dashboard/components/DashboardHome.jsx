@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Award, BriefcaseBusiness, CalendarDays, Check, CircleAlert, HelpCircle, ListChecks } from "lucide-react";
+import { Award, BriefcaseBusiness, Building2, CalendarDays, Check, ChevronRight, CircleAlert, HelpCircle, ListChecks } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useDashboardPreview } from "../hooks/useDashboardPreview";
 import DegreeEditMenu from "./DegreeEditMenu";
@@ -51,19 +51,16 @@ function Tile({ label, value, hint, muted }) {
   );
 }
 
-function Tiles({ facts, picks, career }) {
+function Tiles({ facts, picks }) {
   const ticked = facts.doneCount || 0;
-  const ready = career && !career.failed && !career.missing;
   return (
-    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label="At a glance" data-tour="dash-glance">
-      <Tile label="Courses ticked" value={ticked} hint={ticked ? "In My courses" : "Tick them in My courses"} />
+    <section className="grid grid-cols-2 gap-3 lg:gap-4" aria-label="At a glance" data-tour="dash-glance">
+      <Tile label="Courses completed" value={ticked} hint={ticked ? "Ticked in My courses" : "Tick them in My courses"} />
       {ticked ? (
         <Tile label="You can take next" value={picks ? picks.available : undefined} hint={picks?.core ? `${picks.core} of them core` : "Ready when you are"} />
       ) : (
         <Tile label="You can take next" value="–" muted hint="Shows after you tick courses" />
       )}
-      <Tile label="Jobs open now" value={career ? (ready ? career.jobs : "–") : undefined} muted={!ready} hint="From SEEK and Adzuna" />
-      <Tile label="Events coming up" value={career ? (ready ? career.events : "–") : undefined} muted={!ready} hint="Next 8 weeks, Sydney" />
     </section>
   );
 }
@@ -120,7 +117,7 @@ function NextCourses({ facts, picks }) {
   );
 }
 
-function CareerRow({ to, icon: Icon, tone = "blue", title, detail, detailClass }) {
+function CareerRow({ to, icon: Icon, tone = "blue", label, value, valueClass }) {
   const tones = {
     blue: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
     green: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300",
@@ -130,10 +127,9 @@ function CareerRow({ to, icon: Icon, tone = "blue", title, detail, detailClass }
     <li className="border-t border-slate-200 dark:border-slate-800">
       <Link to={to} className="group flex items-center gap-3.5 py-3">
         <span className={`${iconTile} ${tones[tone]}`} aria-hidden="true"><Icon className="h-5 w-5" /></span>
-        <span className="min-w-0">
-          <span className="block truncate font-semibold text-ink-strong group-hover:text-link">{title}</span>
-          {detail && <span className={`mt-0.5 block truncate text-[13px] ${detailClass || "text-slate-500 dark:text-slate-400"}`}>{detail}</span>}
-        </span>
+        <span className="min-w-0 flex-1 font-semibold text-ink-strong group-hover:text-link">{label}</span>
+        <span className={`flex-shrink-0 text-[15px] font-bold ${valueClass || "text-ink-strong"}`}>{value}</span>
+        <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
       </Link>
     </li>
   );
@@ -146,24 +142,25 @@ function CareerWeek({ roadmap, career, cert }) {
       <SectionHead id="home-career" title="Your career this week" to={roadmapViewUrl("careers")} linkText="My Career ›" />
       <ul className="mt-4">
         {!career && [0, 1, 2].map((i) => <li key={i} className="border-t border-slate-200 py-4 dark:border-slate-800"><Shimmer /></li>)}
-        {ready && career.family && (
-          <CareerRow to={careerSectionUrl("jobs")} icon={BriefcaseBusiness} title={`${career.family.count} ${career.family.title.toLowerCase()} job${career.family.count === 1 ? "" : "s"}`} detail={career.family.companies.join(", ")} />
+        {ready && (
+          <>
+            <CareerRow to={careerSectionUrl("jobs")} icon={BriefcaseBusiness} label="Jobs hiring now" value={career.jobs} />
+            <CareerRow to={careerSectionUrl("internships")} icon={Building2} label="Internships open" value={career.internships} />
+            <CareerRow to={careerSectionUrl("networking")} icon={CalendarDays} label="Networking events coming up" value={career.events} />
+          </>
         )}
-        {ready && career.nextEvent && (
-          <CareerRow to={careerSectionUrl("networking")} icon={CalendarDays} title={career.nextEvent.title} detail={[career.nextEvent.date_label, career.nextEvent.location].filter(Boolean).join(" · ")} />
-        )}
-        {cert && (
-          <CareerRow to={careerSectionUrl("certifications")} icon={Award} title={`Start here: ${cert.name}`} detail={`Certification for ${cert.career}`} />
+        {cert !== undefined && cert?.count > 0 && (
+          <CareerRow to={careerSectionUrl("certifications")} icon={Award} label="Certifications for your careers" value={cert.count} />
         )}
         {roadmap?.placement && (
           roadmap.placement.done ? (
-            <CareerRow to={careerSectionUrl("internships")} icon={Check} tone="green" title={`Required placement ${roadmap.placement.code}`} detail="Completed" detailClass="text-green-700 dark:text-green-400" />
+            <CareerRow to={careerSectionUrl("internships")} icon={Check} tone="green" label={`Required placement ${roadmap.placement.code}`} value="Done" valueClass="text-green-700 dark:text-green-400" />
           ) : (
-            <CareerRow to={careerSectionUrl("internships")} icon={CircleAlert} tone="amber" title={`Required placement ${roadmap.placement.code}`} detail="Not done yet" detailClass="text-amber-700 dark:text-amber-400" />
+            <CareerRow to={careerSectionUrl("internships")} icon={CircleAlert} tone="amber" label={`Required placement ${roadmap.placement.code}`} value="To do" valueClass="text-amber-700 dark:text-amber-400" />
           )
         )}
         {career && !ready && (
-          <CareerRow to={roadmapViewUrl("careers")} icon={BriefcaseBusiness} title="See jobs, internships and events" detail="Picked for your degree, updated daily" />
+          <CareerRow to={roadmapViewUrl("careers")} icon={BriefcaseBusiness} label="See jobs, internships and events" value="" />
         )}
       </ul>
     </section>
@@ -214,7 +211,7 @@ export default function DashboardHome({ facts, greeting, today, dayLine, onHelp 
         </p>
       ) : (
         <>
-          <Tiles facts={facts} picks={picks} career={career} />
+          <Tiles facts={facts} picks={picks} />
           <div className="grid gap-5 lg:grid-cols-2">
             <NextCourses facts={facts} picks={picks} />
             <CareerWeek roadmap={roadmap} career={career} cert={cert} />

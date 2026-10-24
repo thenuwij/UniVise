@@ -4,7 +4,6 @@ import { apiJson } from "@/shared/lib/api";
 import { fetchMatchingRoadmap } from "@/features/roadmap/utils/roadmapEntry";
 import { fetchSpecialisationIds } from "@/features/roadmap/utils/programCourses";
 import { mergeListings } from "@/features/careers/utils/careersListings";
-import { groupJobs } from "@/features/careers/utils/jobFamilies";
 import { fetchSocietyLinks, findLink } from "@/features/roadmap/utils/societyLinks";
 
 function summariseFeed(feed) {
@@ -12,17 +11,10 @@ function summariseFeed(feed) {
   const items = (key, kind) => (sources[key]?.items || []).filter((item) => !kind || item.kind === kind);
   const jobs = mergeListings(items("ai_jobs"), items("adzuna", "job"));
   const events = items("ai_networking").filter((item) => item.kind !== "calendar");
-  const family = groupJobs(jobs)[0];
   return {
     jobs: jobs.length,
     internships: mergeListings(items("ai_internships"), items("adzuna", "internship")).length,
     events: events.length,
-    family: family && {
-      title: family.title,
-      count: family.ads.length,
-      companies: [...new Set(family.ads.map((ad) => ad.organisation).filter(Boolean))].slice(0, 3),
-    },
-    nextEvent: events[0] || null,
   };
 }
 
@@ -78,9 +70,8 @@ export function useDashboardPreview(facts) {
       }
       apiJson(`/careers/certifications?roadmap_id=${encodeURIComponent(found.id)}`, { token })
         .then((data) => {
-          const group = (data.groups || [])[0];
-          const start = group?.certifications?.find((c) => c.start_here) || group?.certifications?.[0];
-          if (active) setCert(start ? { ...start, career: group.career } : null);
+          const count = (data.groups || []).reduce((sum, g) => sum + g.certifications.length, 0);
+          if (active) setCert({ count });
         })
         .catch(() => active && setCert(null));
       const feed = await apiJson(`/careers/feed?roadmap_id=${encodeURIComponent(found.id)}`, { token });
