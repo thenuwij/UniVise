@@ -65,7 +65,19 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <span className="inline-flex items-center gap-1.5 text-ink-muted">
           <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden="true" />
           Prerequisites met
-          {pick.unlocks?.length > 0 && <> · Unlocks {pick.unlocks.map((u) => u.code).join(", ")}</>}
+          {pick.unlocks?.length > 0 && (
+            <>
+              {" "}· Unlocks{" "}
+              {pick.unlocks.map((u, i) => (
+                <span key={u.code}>
+                  <a href={`${HANDBOOK_COURSE_URL}/${u.code}`} target="_blank" rel="noopener noreferrer" title={`${u.name} in the UNSW Handbook`} className="underline decoration-slate-400 underline-offset-2 hover:text-ink-strong hover:decoration-slate-600">
+                    {u.code}
+                  </a>
+                  {i < pick.unlocks.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </>
+          )}
         </span>
         <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
           <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
