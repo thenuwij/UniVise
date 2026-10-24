@@ -191,3 +191,14 @@ def test_unlocks_list_program_courses_not_yet_done():
     assert course_picks.unlocked_by(edges, names, {"COMP2521"}) == {
         "COMP3411": [{"code": "COMP9444", "name": "Neural Networks and Deep Learning"}],
     }
+
+
+def test_career_roles_come_from_my_career_pathways():
+    payload = {"career_pathways": {
+        "entry_level": {"roles": [{"title": "Graduate Embedded Systems Engineer"}, {"title": "Junior Hardware Engineer"}]},
+        "mid_career": {"roles": [{"title": "Embedded Systems Engineer"}, {"title": "Hardware Design Engineer"}]},
+        "senior": {"roles": [{"title": "Engineering Manager"}]},
+    }}
+
+    assert course_picks.career_roles(payload) == ["Embedded Systems Engineer", "Hardware Design Engineer", "Hardware Engineer"]
+    assert course_picks.career_roles(None) == []

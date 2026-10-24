@@ -8,17 +8,20 @@ from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
 from app.models.course_picks import CoursePicks
 from app.services.requirements import to_uoc
+from app.services.roadmap.cache import PROMPT_VERSION as ROADMAP_PROMPT_VERSION
 from app.services.roadmap.industry import replace_unlisted_codes
 from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = 2
+PROMPT_VERSION = 3
 CODE_IN_TEXT = re.compile(r"\b[A-Z]{4}\d{4}\b|\bCLO\d+\b")
 MAX_PICKS = 5
 MAX_CANDIDATES = 60
 MAX_OUTCOMES = 6
 MAX_UNLOCKS = 4
+MAX_CAREERS = 5
+LEVEL_PREFIX = re.compile(r"^(graduate|junior|entry[- ]level)\s+", re.I)
 
 
 def prereq_groups(edges: list) -> dict:
@@ -91,7 +94,7 @@ def course_outcomes(codes: list) -> dict:
     }
 
 
-def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list, list]:
+def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple[list, list, list, list]:
     rows = (
         supabase.from_("user_specialisation_selections")
         .select("major_id, minor_id, honours_id")
@@ -103,7 +106,7 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
     )
     ids = [r[k] for r in rows for k in ("major_id", "minor_id", "honours_id") if r.get(k)]
     if not ids:
-        return [], [], []
+        return [], [], [], []
     specs = supabase.from_("unsw_specialisations").select("id, major_name, sections").in_("id", ids).execute().data or []
     codes = []
     for spec in specs:
@@ -113,7 +116,37 @@ def _specialisations(user_id: str, degree_code: str, program_name: str) -> tuple
                 if COURSE_CODE.match(code) and code not in codes:
                     codes.append(code)
     section_lists = [(spec.get("major_name") or spec.get("id"), parse_sections_json(spec.get("sections"))) for spec in specs]
-    return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists
+    return [s.get("major_name") for s in specs if s.get("major_name")], codes, section_lists, sorted(set(ids))
+
+
+def career_roles(payload: dict | None) -> list:
+    pathways = (payload or {}).get("career_pathways") or {}
+    roles = []
+    for level in ("mid_career", "entry_level"):
+        for role in (pathways.get(level) or {}).get("roles") or []:
+            title = LEVEL_PREFIX.sub("", (role.get("title") or "").strip()) if isinstance(role, dict) else ""
+            if title and title.lower() not in {r.lower() for r in roles}:
+                roles.append(title)
+    return roles
+
+
+def _roadmap_careers(user_id: str, degree_code: str, spec_ids: list) -> list:
+    rows = (
+        supabase.from_("unsw_roadmap")
+        .select("payload")
+        .eq("user_id", user_id)
+        .eq("degree_code", degree_code)
+        .order("created_at", desc=True)
+        .limit(5)
+        .execute()
+        .data
+        or []
+    )
+    for row in rows:
+        payload = row.get("payload") or {}
+        if (payload.get("cache_key") or {}).get("prompt_version") == ROADMAP_PROMPT_VERSION and sorted(payload.get("specialisation_ids") or []) == spec_ids:
+            return career_roles(payload)
+    return []
 
 
 def _missing_uoc(course) -> bool:
@@ -150,7 +183,7 @@ def load_inputs(user_id: str) -> dict | None:
     degree_code = enrolled[0]["degree_code"]
     program_name = enrolled[0].get("program_name") or degree_code
 
-    spec_names, spec_codes, spec_sections = _specialisations(user_id, degree_code, program_name)
+    spec_names, spec_codes, spec_sections, spec_ids = _specialisations(user_id, degree_code, program_name)
     completed_rows = [
         r
         for r in supabase.from_("user_completed_courses").select("course_code, uoc, is_completed").eq("user_id", user_id).execute().data or []
@@ -194,7 +227,6 @@ def load_inputs(user_id: str) -> dict | None:
             or []
         )
     survey = supabase.from_("student_uni_data").select("interest_areas").eq("user_id", user_id).limit(1).execute().data or []
-    recs = supabase.from_("career_recommendations").select("career_title").eq("user_id", user_id).execute().data or []
     saved = (
         supabase.from_("user_saved_items")
         .select("item_name")
@@ -206,8 +238,9 @@ def load_inputs(user_id: str) -> dict | None:
     )
     interests = (survey[0].get("interest_areas") if survey else None) or []
     saved_careers = [s["item_name"] for s in saved if s.get("item_name")]
-    careers = [r["career_title"] for r in recs if r.get("career_title")]
-    careers += [name for name in saved_careers if name not in careers]
+    careers = list(saved_careers)
+    careers += [name for name in _roadmap_careers(user_id, degree_code, spec_ids) if name.lower() not in {c.lower() for c in careers}]
+    careers = careers[:MAX_CAREERS]
 
     return {
         "degree_code": degree_code,
