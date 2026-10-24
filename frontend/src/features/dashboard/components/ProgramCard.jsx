@@ -71,10 +71,6 @@ export default function ProgramCard({ facts }) {
           </Link>
         </section>
       </div>
-      <div className="dashboard-compare" data-tour="dash-compare">
-        <p>Considering a different direction?</p>
-        <Link to="/compare" className="dashboard-text-link dashboard-compare-link">Compare programs <ArrowUpRight aria-hidden="true" /></Link>
-      </div>
     </>
   );
 }

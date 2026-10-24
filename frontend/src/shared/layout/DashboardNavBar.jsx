@@ -13,7 +13,6 @@ import {
   Menu,
   MessageCircle,
   Moon,
-  Repeat,
   Sun,
   User,
 } from "lucide-react";
@@ -117,11 +116,6 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
             <DropdownItem icon={Compass} onClick={() => navigate("/roadmap")}>
               Explore other programs
             </DropdownItem>
-            {metadata.student_type !== "high_school" && (
-              <DropdownItem icon={Repeat} onClick={() => navigate("/compare")}>
-                Compare programs
-              </DropdownItem>
-            )}
             <DropdownItem icon={MessageCircle} onClick={() => navigate("/chat")}>
               Ask Eunice
             </DropdownItem>

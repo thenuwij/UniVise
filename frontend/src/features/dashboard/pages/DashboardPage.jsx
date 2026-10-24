@@ -38,11 +38,6 @@ const GUIDE_STEPS = [
     text: "Use this menu to change your program or, when available, your specialisation.",
   },
   {
-    targets: ['[data-tour="dash-compare"]'],
-    title: "Compare your options",
-    text: "Compare programs shows how another UNSW degree compares with yours.",
-  },
-  {
     targets: ['[data-tour="app-navigation"]'],
     title: "Find your way around",
     text: "The top navigation and mobile Menu lead to My Program, My Career and Explore. Account has your profile, appearance settings and sign out.",

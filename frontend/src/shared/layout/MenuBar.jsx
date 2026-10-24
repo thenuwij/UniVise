@@ -1,6 +1,6 @@
 import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { Bookmark, BookOpen, Briefcase, Compass, House, LogOut, Map, MessageCircle, Repeat, X } from "lucide-react";
+import { Bookmark, BookOpen, Briefcase, Compass, House, LogOut, Map, MessageCircle, X } from "lucide-react";
 import { isNavigationActive } from "./navigation";
 import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,7 +21,6 @@ const GROUPS = [
     items: [
       { path: "/handbook", label: "Handbook", icon: BookOpen },
       { path: "/roadmap", label: "Explore other programs", icon: Compass },
-      { path: "/compare", label: "Compare programs", icon: Repeat, universityOnly: true },
     ],
   },
   {
@@ -51,7 +50,6 @@ const initialsOf = (name, email) =>
     .slice(0, 2) || (email || "?")[0].toUpperCase();
 
 export function MenuBar({ isOpen, handleClose }) {
-  const [userType, setUserType] = useState(null);
   const [displayName, setDisplayName] = useState("");
   const [displayEmail, setDisplayEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -64,7 +62,6 @@ export function MenuBar({ isOpen, handleClose }) {
     const loadUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      setUserType(user.user_metadata?.student_type || null);
       const firstName = user.user_metadata.first_name || user.user_metadata.full_name?.split(" ")[0] || "";
       const lastName = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || "";
       setDisplayName(`${firstName} ${lastName}`.trim());
@@ -134,7 +131,6 @@ export function MenuBar({ isOpen, handleClose }) {
               <p className="px-2 mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{group.label}</p>
               <ul className="space-y-0.5">
                 {group.items
-                  .filter((item) => !(item.universityOnly && userType === "high_school"))
                   .map(({ path, label, icon: Icon }) => {
                     const active = isActive(path);
                     return (
