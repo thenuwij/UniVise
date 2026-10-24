@@ -15,6 +15,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import TakeNext from "../components/TakeNext";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
+import { ExternalLink } from "lucide-react";
 import CareersContent from "@/features/careers/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
@@ -517,8 +518,8 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       {!isCareers && handbookUrlFor(activeDegree, shownDegreeCode) && (
         <p className="mt-1 text-[15px] text-band-soft">
           Full program rules, including capstone and honours, are in the{" "}
-          <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="font-semibold text-band-ink underline underline-offset-4">
-            UNSW Handbook
+          <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
+            UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         </p>
       )}
