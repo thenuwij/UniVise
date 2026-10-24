@@ -89,7 +89,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   if (!isOwnProgram) {
     return (
       <Message title="Make this your program first">
-        Take next suggests courses from your own program, based on the courses you've ticked.
+        Next courses suggests courses from your own program, based on the courses you've ticked.
       </Message>
     );
   }
@@ -121,7 +121,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   if (!completedCount) {
     return (
       <Message title="Tick the courses you've done" action={updateCourses}>
-        Take next works out what you can take next from your completed courses, then shows how each one fits your careers.
+        Next courses works out what you can take from your completed courses, then shows how each one fits your careers.
       </Message>
     );
   }
@@ -140,7 +140,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
   return (
     <div>
       <SectionHeading subtitle={`You can take ${available.length} course${available.length === 1 ? "" : "s"} next. These fit your careers best.`}>
-        Take next
+        What to take next
       </SectionHeading>
       {careers.length > 0 && (
         <div className="mt-5">
