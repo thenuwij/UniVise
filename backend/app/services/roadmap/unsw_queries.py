@@ -101,6 +101,7 @@ def fetch_society_rows() -> List[Dict[str, Any]]:
             supabase.table("unsw_societies")
             .select("name, arc_category, short_name")
             .in_("arc_category", SOCIETY_CATEGORIES)
+            .or_("website_url.not.is.null,rubric_url.not.is.null")
             .order("name")
             .execute()
             .data

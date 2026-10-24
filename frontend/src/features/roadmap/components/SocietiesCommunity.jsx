@@ -5,6 +5,7 @@ import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { fetchSocietyLinks, findLink } from "../utils/societyLinks";
 
+const ARC_CLUB_SEARCH = "https://www.arc.unsw.edu.au/clubs/find-a-club";
 const RUBRIC_DIRECTORY = "https://campus.hellorubric.com/search?type=societies&universityid=5";
 const SHOWN = 4;
 
@@ -35,11 +36,9 @@ function SocietyRow({ society, link }) {
       </div>
       {society.why && <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{society.why}</p>}
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
-        {link && (
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
-            {link.isWebsite ? "Official website" : "Page on Rubric"} <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        )}
+        <a href={link?.url || ARC_CLUB_SEARCH} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+          {link ? (link.isWebsite ? "Official website" : "Page on Rubric") : "Find on Arc"} <ExternalLink className="h-4 w-4" aria-hidden="true" />
+        </a>
       </div>
     </li>
   );
