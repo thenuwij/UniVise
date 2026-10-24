@@ -8,6 +8,7 @@ import { CalendarLinks, EventRows } from "./AdRows";
 import CareerPathsSection from "./CareerPathsSection";
 import SectionNavigation from "@/shared/ui/SectionNavigation";
 import CareersSection, { SubLabel } from "./CareersSection";
+import CareerCertifications from "./CareerCertifications";
 import CertificationsList from "./CertificationsList";
 import GraduateStats from "./GraduateStats";
 import InternshipsSection from "./InternshipsSection";
@@ -29,7 +30,6 @@ const aiStatus = (data, key, sectionsStatus) => {
 const SECTION_IDS = ["jobs", "internships", "networking", "certifications", "career-outlook"];
 
 export default function CareersContent({ roadmapId, data, sectionsStatus, onRetry, personal }) {
-  const entryRoles = data?.career_pathways?.entry_level?.roles;
   const careersState = aiStatus(data, "career_pathways", sectionsStatus);
   const internshipsState = aiStatus(data, "industry_experience", sectionsStatus);
   const careersReady = careersState === "done";
@@ -79,7 +79,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     { id: "jobs", title: "Jobs", icon: Briefcase, meta: jobs ? String(jobs.length) : null },
     { id: "internships", title: "Internships", icon: Building2, meta: internshipsState === "done" ? String(internshipCount) : null },
     { id: "networking", title: "Networking", mobileTitle: "Network", icon: Users, meta: sources ? String(events.length) : null },
-    { id: "certifications", title: "Certifications", mobileTitle: "Certs", icon: Award, meta: careersReady ? String(certifications.length) : null },
+    { id: "certifications", title: "Certifications", mobileTitle: "Certs", icon: Award, meta: careersReady && !personal ? String(certifications.length) : null },
     { id: "career-outlook", title: "Career outlook", navTitle: "Outlook", icon: Route },
   ];
   const activeIndex = SECTION_IDS.indexOf(section);
@@ -88,13 +88,13 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     <CareersSection
       id="certifications"
       title="Certifications"
-      count={careersReady ? certifications.length : null}
-      description="Industry certifications that strengthen your applications, with how long each takes."
+      count={careersReady && !personal ? certifications.length : null}
+      description={personal ? "Industry certifications employers value for each of your careers, with where to start." : "Industry certifications that strengthen your applications, with how long each takes."}
       status={careersReady ? null : careersState}
       loadingText="Finding certifications for your field."
       onRetry={onRetry}
     >
-      {careersReady && <CertificationsList certifications={certifications} />}
+      {careersReady && (personal ? <CareerCertifications roadmapId={roadmapId} /> : <CertificationsList certifications={certifications} />)}
     </CareersSection>
   );
 
@@ -152,7 +152,6 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
         {careersState !== "failed" && (
           <JobsSection
             jobs={ready("adzuna", "ai_jobs") ? jobs : null}
-            roles={entryRoles}
             savedIds={savedIds}
             onToggleSave={toggleSave}
           />

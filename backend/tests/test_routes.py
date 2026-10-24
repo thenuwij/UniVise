@@ -4,6 +4,7 @@ from app.main import app
 
 EXPECTED_ROUTES = {
     ("DELETE", "/user/me"),
+    ("GET", "/careers/certifications"),
     ("GET", "/careers/feed"),
     ("GET", "/course-picks"),
     ("GET", "/health"),
