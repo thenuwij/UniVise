@@ -102,3 +102,20 @@ def test_society_list_only_includes_degree_related_categories(monkeypatch):
     monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(table=lambda name: Query()))
 
     assert [r["name"] for r in unsw_queries.fetch_society_rows()] == ["Commerce Society"]
+
+
+def test_prompt_names_the_careers_the_degree_leads_to(monkeypatch):
+    prompts = []
+
+    async def reply(prompt, schema, **kwargs):
+        prompts.append(prompt)
+        return SocietiesSection.model_validate(SECTION)
+
+    monkeypatch.setattr(industry, "ask_claude_structured", reply)
+    context = {**CONTEXT, "career_occupations": [{"code": "221111", "title": "Accountant"}, {"code": "224711", "title": "Management Consultant"}]}
+
+    asyncio.run(industry.ai_generate_societies(context))
+    asyncio.run(industry.ai_generate_societies(CONTEXT))
+
+    assert "Careers this degree commonly leads to: Accountant, Management Consultant." in prompts[0]
+    assert "Careers this degree commonly leads to" not in prompts[1]

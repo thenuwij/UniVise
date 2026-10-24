@@ -87,6 +87,11 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
         if selected_honours:
             specialisation_context += f"- Honours: {selected_honours}\n"
 
+    career_titles = [o["title"] for o in context.get("career_occupations") or [] if o.get("title")][:12]
+    career_context = ""
+    if career_titles:
+        career_context = f"\nCareers this degree commonly leads to: {', '.join(career_titles)}.\n"
+
     # Fetch the verified Arc UNSW society allowlist from Supabase.
     # If fetch fails or returns empty, fall back to unconstrained generation
     # (existing behaviour) so roadmap generation never crashes.
@@ -124,6 +129,7 @@ async def ai_generate_societies(context: Dict[str, Any]) -> Dict[str, Any]:
 
 You are a UNSW student engagement advisor. Generate society recommendations for {program_name} students in the Faculty of {faculty}.
     {specialisation_context}
+    {career_context}
     {verified_societies_section}
 
     CRITICAL ACCURACY RULES:
@@ -131,6 +137,7 @@ You are a UNSW student engagement advisor. Generate society recommendations for 
     - NEVER invent a society. If you are not certain a society exists on Arc UNSW for this specific program and faculty, do not include it.
     - Society names must match their official Arc UNSW name exactly.
     - Select societies based solely on relevance to {program_name} and the Faculty of {faculty}. Do not default to societies from any particular discipline.
+    - When careers are listed above, prefer societies that build skills, projects or contacts for those careers, and name the career they help in "relevance" or "why_join".
 
     SOCIETY NAME FORMAT (STRICT, applies to every society in faculty_specific and cross_faculty):
     - If the society is commonly known by an acronym or short form, output the format: "Full Official Society Name (ShortForm)".
