@@ -7,8 +7,6 @@ import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
 
 import { formatDuration } from "@/shared/lib/format";
-import CapstoneHonours from "../components/CapstoneHonours";
-import DegreeRequirements from "../components/DegreeRequirements";
 import GeneratingMessage from "../components/GeneratingMessage";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
@@ -29,8 +27,7 @@ const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold t
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
-  overview: "Start with what you need to graduate. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
-  structure: "See your courses and mark the ones you've completed. The Courses help button explains how to manage them.",
+  structure: "Tick the courses you've completed to see your prerequisite map and what to take next. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
 };
@@ -403,16 +400,6 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
 
     const renderers = {
-      overview: () => (
-        <CapstoneHonours data={data} handbookUrl={handbookUrlFor(activeDegree, degreeCodeValue)} faculty={activeDegree?.faculty}>
-          {degreeCodeValue && (
-            <DegreeRequirements
-              degreeCode={degreeCodeValue}
-              onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
-            />
-          )}
-        </CapstoneHonours>
-      ),
       structure: () => {
         if (!degreeCodeValue) {
           return (
@@ -513,6 +500,14 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       {!isCareers && (
         <p className="mt-2 text-[15px] text-band-soft">
           {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
+        </p>
+      )}
+      {!isCareers && handbookUrlFor(activeDegree, shownDegreeCode) && (
+        <p className="mt-1 text-[15px] text-band-soft">
+          Full program rules, including capstone and honours, are in the{" "}
+          <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="font-semibold text-band-ink underline underline-offset-4">
+            UNSW Handbook
+          </a>
         </p>
       )}
     </PageHeader>

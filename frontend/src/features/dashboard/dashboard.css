@@ -275,32 +275,6 @@
 .dark .dashboard-portal-career {
   background: radial-gradient(ellipse at 110% -8%, #4779d969, transparent 65%), linear-gradient(135deg, #142b5b, #1c469b 75%, #275fc4);
 }
-.dashboard-compare {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  margin-top: 25px;
-  padding: 0 3px;
-}
-.dashboard-compare p {
-  color: var(--color-ink-muted);
-  font-size: 16px;
-  line-height: 1.6;
-}
-.dashboard-compare .dashboard-compare-link {
-  min-height: 48px;
-  padding: 12px 18px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--color-link) 12%, var(--color-surface));
-  font-size: 16px;
-  font-weight: 600;
-}
-.dashboard-main .dashboard-compare .dashboard-compare-link svg {
-  width: 19px;
-  height: 19px;
-}
 .dashboard-text-link {
   display: inline-flex;
   align-items: center;
@@ -393,11 +367,6 @@
   }
   .dashboard-portal-open::after {
     border-radius: 22px;
-  }
-  .dashboard-compare {
-    align-items: flex-start;
-    flex-direction: column;
-    margin-top: 22px;
   }
   .dashboard-empty {
     padding: 24px;

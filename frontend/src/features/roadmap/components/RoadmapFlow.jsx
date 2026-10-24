@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, Layers, Network, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, Network, Users } from "lucide-react";
 import SectionNavigation from "@/shared/ui/SectionNavigation";
 
 const CONTAINER = "max-w-[1680px] mx-auto px-5 md:px-10";
@@ -44,7 +44,7 @@ function StepBar({ steps, activeIndex, onChange }) {
   );
 }
 
-const SECTION_ICONS = { overview: BookOpen, structure: Layers, coursemesh: Network, societies: Users };
+const SECTION_ICONS = { structure: Layers, coursemesh: Network, societies: Users };
 
 
 export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, header = null, sectionNavigation = false }) {

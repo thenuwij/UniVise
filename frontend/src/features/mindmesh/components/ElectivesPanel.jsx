@@ -121,7 +121,7 @@ export default function ElectivesPanel({
             <p className="mt-1 text-sm text-ink-muted">
               {target
                 ? `Search any UNSW course to count it towards ${targetTitle}. Courses you've already done can be added too.`
-                : "Pick from your program's electives below, or search any UNSW course. Courses you add show in your Courses step and in CourseMesh."}
+                : "Pick from your program's electives below, or search any UNSW course. Courses you add show in My courses and in CourseMesh."}
             </p>
           )}
           <div className="relative mt-3">

@@ -2,8 +2,7 @@ export const ROADMAP_VIEWS = {
   degree: {
     path: "/roadmap/unsw",
     steps: [
-      { key: "overview", title: "Requirements" },
-      { key: "structure", title: "Courses" },
+      { key: "structure", title: "My courses" },
       { key: "coursemesh", title: "CourseMesh" },
       { key: "societies", title: "Societies" },
     ],
