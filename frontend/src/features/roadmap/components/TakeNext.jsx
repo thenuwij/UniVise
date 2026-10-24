@@ -9,8 +9,10 @@ const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/cour
 const USEFULNESS = {
   high: { label: "Highly useful", className: "bg-slate-900 text-white dark:bg-white dark:text-slate-900" },
   medium: { label: "Useful", className: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
-  general: { label: "Degree requirement", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
+  general: { label: "Less career-relevant", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
 };
+
+const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
 
 const pill = (active) =>
   `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
@@ -51,7 +53,10 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <p className="text-lg font-semibold text-ink-strong leading-snug">
           {pick.code} · {pick.name}
         </p>
-        <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${usefulness.className}`}>{usefulness.label}</span>
+        <div className="flex flex-wrap gap-2">
+          {pick.core && <span className={`${badge} bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
+          <span className={`${badge} ${usefulness.className}`}>{usefulness.label}</span>
+        </div>
       </div>
       <p className="mt-1.5 text-[15px] text-ink-muted">{pick.reason}</p>
       <div className="mt-4 flex flex-wrap gap-x-12 gap-y-4">

@@ -99,6 +99,7 @@ def test_keeps_only_listed_courses(monkeypatch):
         "skills": ["Core AI methods", "Building AI programs"],
         "careers": ["Machine Learning Engineer"],
         "usefulness": "high",
+        "core": False,
         "unlocks": [{"code": "COMP9444", "name": "Neural Networks and Deep Learning"}],
     }]
     assert len(writes) == 1
@@ -202,3 +203,20 @@ def test_career_roles_come_from_my_career_pathways():
 
     assert course_picks.career_roles(payload) == ["Embedded Systems Engineer", "Hardware Design Engineer", "Hardware Engineer"]
     assert course_picks.career_roles(None) == []
+
+
+def test_core_comes_from_core_sections_not_electives_or_choices():
+    program = [
+        {"title": "Level 4 Core Courses", "kind": "core", "courses": [{"code": "COMP4920"}, {"code": "ELEC4951", "choice": "g1"}]},
+        {"title": "Discipline Electives", "kind": "elective", "courses": [{"code": "ENGG2600"}, {"code": "COMP4920"}]},
+    ]
+    spec = [{"title": "Compulsory Professional Course", "courses": [{"code": "ENGG4999"}]}]
+
+    assert course_picks.core_codes([(None, program), ("Computer Engineering", spec)]) == {"COMP4920", "ENGG4999"}
+
+
+def test_prompt_marks_core_courses():
+    prompt = course_picks.build_prompt({**INPUTS, "core": ["COMP1531"]})
+
+    assert "COMP1531: Software Engineering Fundamentals (Core, core: required for their degree)" in prompt
+    assert "COMP3411: Artificial Intelligence (Major)\n" in prompt

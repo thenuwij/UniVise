@@ -14,7 +14,7 @@ from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_code
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = 3
+PROMPT_VERSION = 4
 CODE_IN_TEXT = re.compile(r"\b[A-Z]{4}\d{4}\b|\bCLO\d+\b")
 MAX_PICKS = 5
 MAX_CANDIDATES = 60
@@ -69,6 +69,26 @@ def available_courses(courses: list, completed: set, groups: dict, preferred: se
     open_courses = [c for c in courses if is_available(c["code"], completed, groups)]
     open_courses.sort(key=lambda c: (c["code"] not in preferred, _level(c["code"]), c["code"]))
     return open_courses
+
+
+def _is_core_section(section: dict) -> bool:
+    kind = section.get("kind")
+    if kind:
+        return kind == "core"
+    title = (section.get("title") or "").lower()
+    return "core" in title or "compulsory" in title
+
+
+def core_codes(section_lists: list) -> set:
+    codes = set()
+    for _, sections in section_lists:
+        for section in sections:
+            if not isinstance(section, dict) or not _is_core_section(section):
+                continue
+            for course in section.get("courses") or []:
+                if isinstance(course, dict) and course.get("code") and not course.get("choice"):
+                    codes.add(course["code"].strip().upper())
+    return codes
 
 
 def unlocked_by(edges: list, names: dict, completed: set) -> dict:
@@ -254,6 +274,7 @@ def load_inputs(user_id: str) -> dict | None:
         "available": [{"code": c["code"], "name": c["name"]} for c in available],
         "outcomes": course_outcomes([c["code"] for c in candidates]),
         "unlocks": unlocked_by(unlock_edges, names, completed),
+        "core": sorted(core_codes([(None, program_sections), *spec_sections])),
         "requirement_lists": fill_course_uoc([(None, program_sections), *spec_sections]),
         "minimum_uoc": program[0].get("minimum_uoc") if program else None,
         "completed_uoc": sum(to_uoc(r.get("uoc")) for r in completed_rows),
@@ -288,15 +309,16 @@ def write_cache(user_id: str, hash_value: str, picks: list) -> None:
         logger.warning(f"[course_picks] cache write failed: {e}")
 
 
-def _listing(course: dict, outcomes: dict) -> str:
-    line = f"- {course['code']}: {course['name']} ({course['section']})"
+def _listing(course: dict, outcomes: dict, core: set) -> str:
+    line = f"- {course['code']}: {course['name']} ({course['section']}{', core: required for their degree' if course['code'] in core else ''})"
     learned = outcomes.get(course["code"])
     return line + "".join(f"\n    * {o}" for o in learned) if learned else line
 
 
 def build_prompt(inputs: dict) -> str:
     outcomes = inputs.get("outcomes") or {}
-    listing = "\n".join(_listing(c, outcomes) for c in inputs["candidates"])
+    core = set(inputs.get("core") or [])
+    listing = "\n".join(_listing(c, outcomes, core) for c in inputs["candidates"])
     return f"""Pick up to {MAX_PICKS} courses this UNSW student should consider taking next.
 
 Student:
@@ -314,7 +336,8 @@ Rules:
 - Give each pick one plain sentence of at most 20 words saying why it suits this student, tied to their careers, interests or specialisation.
 - Give each pick 2 or 3 skills it builds, each at most 4 plain words a first-year student would understand, such as "Training machine learning models". Base them only on that course's learning outcomes; if none are listed, use the course name. Never copy an outcome or name outcome codes.
 - For careers, list only names from "Careers they are considering" that the course clearly helps, written exactly as given. Leave it empty if none fit.
-- Set usefulness to "high" if the course is central to one of their careers, "medium" if it helps, or "general" if it is mainly a degree requirement.
+- Set usefulness by career fit only: "high" if the course is central to one of their careers, "medium" if it helps, or "general" if it is not very relevant to their careers. Never judge whether a course is required; that is already marked.
+- Courses marked core are required, so include the ones that are open and say plainly that they are required before saying how they help.
 - Do not use em dashes, en dashes or double hyphens."""
 
 
@@ -348,6 +371,7 @@ async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
     names = {c["code"]: c["name"] for c in inputs["candidates"]}
     allowed = set(names) | set(inputs["completed"])
     careers = {c.lower(): c for c in inputs["careers"]}
+    core = set(inputs.get("core") or [])
     unlocks = inputs.get("unlocks") or {}
     picks = []
     for pick in generated.picks:
@@ -360,6 +384,7 @@ async def get_course_picks(user_id: str, inputs: dict | None) -> dict:
                 "skills": [s.strip() for s in pick.skills if s.strip() and not CODE_IN_TEXT.search(s)],
                 "careers": list(dict.fromkeys(careers[c.strip().lower()] for c in pick.careers if c.strip().lower() in careers)),
                 "usefulness": pick.usefulness,
+                "core": code in core,
                 "unlocks": unlocks.get(code, []),
             })
     picks = picks[:MAX_PICKS]
