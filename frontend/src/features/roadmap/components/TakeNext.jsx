@@ -15,10 +15,10 @@ const USEFULNESS = {
 const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
 
 const pill = (active) =>
-  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
     active
-      ? "bg-blue-600 text-white dark:bg-blue-500"
-      : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
+      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
 function Message({ title, children, action }) {
@@ -143,13 +143,16 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         Take next
       </SectionHeading>
       {careers.length > 0 && (
-        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Filter by career">
-          <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
-          {careers.map((name) => (
-            <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
-              {name}
-            </button>
-          ))}
+        <div className="mt-5">
+          <p className="mb-2 text-sm font-semibold text-ink-strong">Show courses for</p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
+            <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
+            {careers.map((name) => (
+              <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {shown.length > 0 ? (

@@ -15,10 +15,10 @@ const FILTERS = [
 ];
 
 const pill = (active) =>
-  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
     active
-      ? "bg-blue-600 text-white dark:bg-blue-500"
-      : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
+      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
 function SocietyRow({ society, link }) {
@@ -73,12 +73,15 @@ export default function SocietiesCommunity({ societies }) {
   return (
     <div>
       <SectionHeading subtitle="Matched to your degree and the careers it leads to.">Societies for you to join</SectionHeading>
-      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Filter societies">
-        {FILTERS.map(({ id, label }) => (
-          <button key={id} type="button" className={pill(filter === id)} aria-pressed={filter === id} onClick={() => { setFilter(id); setShowAll(false); }}>
-            {label}
-          </button>
-        ))}
+      <div className="mt-5">
+        <p className="mb-2 text-sm font-semibold text-ink-strong">Show societies</p>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter societies">
+          {FILTERS.map(({ id, label }) => (
+            <button key={id} type="button" className={pill(filter === id)} aria-pressed={filter === id} onClick={() => { setFilter(id); setShowAll(false); }}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
         {shown.map((society) => (
