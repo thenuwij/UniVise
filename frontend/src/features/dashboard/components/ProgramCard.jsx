@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import DashboardHome from "./DashboardHome";
 
 export default function ProgramCard({ facts }) {
   if (!facts) {
@@ -30,5 +29,5 @@ export default function ProgramCard({ facts }) {
     );
   }
 
-  return <DashboardHome facts={facts} />;
+  return null;
 }

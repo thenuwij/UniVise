@@ -1,187 +1,227 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, BriefcaseBusiness, ChevronRight, CircleCheck, TriangleAlert } from "lucide-react";
+import { Award, BriefcaseBusiness, CalendarDays, Check, CircleAlert, HelpCircle, ListChecks } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useDashboardPreview } from "../hooks/useDashboardPreview";
 import DegreeEditMenu from "./DegreeEditMenu";
 
-const tag = "rounded-md px-2 py-0.5 text-xs font-semibold";
-const USEFULNESS = { high: "Highly useful", medium: "Useful", general: "Less career-relevant" };
+const display = "font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui] tracking-tight";
+const card = "rounded-[20px] bg-white p-6 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800";
+const tag = "rounded-[7px] px-2.5 py-0.5 text-xs font-semibold";
+const iconTile = "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[10px]";
 
-function Skeleton({ lines = 2 }) {
+function Shimmer({ className = "h-5" }) {
+  return <div className={`${className} rounded bg-slate-100 dark:bg-slate-800 animate-pulse`} aria-hidden="true" />;
+}
+
+function Hero({ greeting, today, dayLine, facts, onHelp }) {
+  const { program, specNames = [] } = facts;
+  const degree = [program.program_name, ...specNames].join(" · ");
   return (
-    <div className="space-y-2" aria-hidden="true">
-      {Array.from({ length: lines }, (_, i) => <div key={i} className="h-5 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+    <section className="rounded-3xl bg-blue-800 px-6 py-8 text-white sm:px-10 sm:py-9" aria-labelledby="home-hello">
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="min-w-0">
+          <p className="text-sm text-blue-200" data-tour="dash-degree">{today} · {degree}</p>
+          <h1 id="home-hello" className={`${display} mt-2 text-[32px] font-extrabold leading-tight sm:text-[44px]`}>{greeting}</h1>
+          <p className="mt-2 text-base text-blue-100">{dayLine}</p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <div data-tour="dash-edit" className="home-hero-edit">
+            <DegreeEditMenu degreeCode={program.degree_code} canChangeSpecialisation={!facts.failed && facts.hasSpecOptions} />
+          </div>
+          <button type="button" onClick={onHelp} aria-label="How Home works" className="flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-white/35 hover:bg-white/10">
+            <HelpCircle className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Tile({ label, value, hint, muted }) {
+  return (
+    <div className="rounded-[18px] bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+      <p className="text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
+      {value === undefined ? (
+        <Shimmer className="mt-2 h-9 w-16" />
+      ) : (
+        <p className={`${display} mt-1 text-[34px] font-extrabold ${muted ? "text-slate-400" : "text-ink-strong"}`}>{value}</p>
+      )}
+      <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{hint}</p>
     </div>
   );
 }
 
-function nextStep(facts, picks) {
-  if (!facts.doneCount) {
-    return {
-      title: "Tick the courses you've done",
-      detail: "Next courses, CourseMesh and your suggestions all work from your ticks.",
-      action: "Update my courses",
-      to: roadmapStepUrl("structure"),
-    };
-  }
-  const top = picks?.picks?.[0];
-  if (top) {
-    const fit = [top.core && "Core course", USEFULNESS[top.usefulness]?.toLowerCase()].filter(Boolean).join(", ");
-    const career = top.careers?.[0];
-    return {
-      title: `Take ${top.code} ${top.name} next`,
-      detail: [fit && `${fit.charAt(0).toUpperCase()}${fit.slice(1)}${career ? ` for ${career}` : ""}.`, top.unlocks?.length && `Unlocks ${top.unlocks.length} course${top.unlocks.length === 1 ? "" : "s"}.`].filter(Boolean).join(" "),
-      action: "See next courses",
-      to: roadmapStepUrl("next"),
-    };
-  }
-  return {
-    title: "See where your degree can take you",
-    detail: "Jobs, internships and events picked for your degree, updated daily.",
-    action: "Open My Career",
-    to: roadmapViewUrl("careers"),
-  };
+function Tiles({ facts, picks, career }) {
+  const ticked = facts.doneCount || 0;
+  const ready = career && !career.failed && !career.missing;
+  return (
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label="At a glance" data-tour="dash-glance">
+      <Tile label="Courses ticked" value={ticked} hint={ticked ? "In My courses" : "Tick them in My courses"} />
+      {ticked ? (
+        <Tile label="You can take next" value={picks ? picks.available : undefined} hint={picks?.core ? `${picks.core} of them core` : "Ready when you are"} />
+      ) : (
+        <Tile label="You can take next" value="–" muted hint="Shows after you tick courses" />
+      )}
+      <Tile label="Jobs open now" value={career ? (ready ? career.jobs : "–") : undefined} muted={!ready} hint="From SEEK and Adzuna" />
+      <Tile label="Events coming up" value={career ? (ready ? career.events : "–") : undefined} muted={!ready} hint="Next 8 weeks, Sydney" />
+    </section>
+  );
 }
 
-function NextStep({ facts, picks }) {
-  const waiting = facts.doneCount > 0 && !picks;
-  const step = waiting ? null : nextStep(facts, picks);
+function SectionHead({ id, title, to, linkText }) {
   return (
-    <section className="mt-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/70 p-5 ring-1 ring-blue-200 dark:from-blue-950/60 dark:to-blue-900/30 dark:ring-blue-900 sm:p-6" data-tour="dash-next" aria-labelledby="dash-next-title">
-      <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">Your next step</p>
-      {waiting ? (
-        <div className="mt-3"><Skeleton /></div>
-      ) : (
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h2 id="dash-next-title" className="text-xl font-semibold leading-snug text-ink-strong">{step.title}</h2>
-            {step.detail && <p className="mt-1 text-[15px] text-ink-muted">{step.detail}</p>}
-          </div>
-          <Link to={step.to} className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-[15px] font-semibold text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
-            {step.action} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+    <div className="flex items-center justify-between gap-3">
+      <h2 id={id} className={`${display} text-xl font-bold text-ink-strong`}>{title}</h2>
+      {to && <Link to={to} className="text-sm font-semibold text-link hover:underline">{linkText}</Link>}
+    </div>
+  );
+}
+
+function NextCourses({ facts, picks }) {
+  if (!facts.doneCount) {
+    return (
+      <section className={card} aria-labelledby="home-next" data-tour="dash-program">
+        <SectionHead id="home-next" title="Next courses for you" />
+        <div className="mt-4 flex flex-col items-start gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+          <span className={`${iconTile} h-12 w-12 rounded-[14px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300`} aria-hidden="true"><ListChecks className="h-6 w-6" /></span>
+          <p className={`${display} text-lg font-bold text-ink-strong`}>Tick the courses you've done</p>
+          <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">We'll show the courses you can take next, the skills each one builds and the careers it helps.</p>
+          <Link to={roadmapStepUrl("structure")} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-[15px] font-semibold text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+            Update my courses →
           </Link>
         </div>
-      )}
+      </section>
+    );
+  }
+  return (
+    <section className={card} aria-labelledby="home-next" data-tour="dash-program">
+      <SectionHead id="home-next" title="Next courses for you" to={roadmapStepUrl("next")} linkText={picks ? `All ${picks.available} ›` : "Open ›"} />
+      <ul className="mt-4">
+        {!picks && [0, 1, 2].map((i) => <li key={i} className="border-t border-slate-200 py-4 dark:border-slate-800"><Shimmer /></li>)}
+        {picks?.picks.slice(0, 3).map((pick) => (
+          <li key={pick.code} className="border-t border-slate-200 dark:border-slate-800">
+            <Link to={roadmapStepUrl("next")} className="group flex flex-wrap items-center justify-between gap-3 py-3.5">
+              <span className="min-w-0">
+                <span className="block font-semibold text-ink-strong group-hover:text-link">{pick.code} · {pick.name}</span>
+                {pick.skills?.length > 0 && <span className="mt-0.5 block text-[13px] text-slate-500 dark:text-slate-400">{pick.skills.join(", ")}</span>}
+              </span>
+              <span className="flex gap-1.5">
+                {pick.core && <span className={`${tag} ring-1 ring-slate-900 text-slate-900 dark:ring-white dark:text-white`}>Core</span>}
+                {pick.usefulness === "high" && <span className={`${tag} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Highly useful</span>}
+              </span>
+            </Link>
+          </li>
+        ))}
+        {picks && !picks.picks.length && (
+          <li className="border-t border-slate-200 py-4 text-sm text-slate-500 dark:border-slate-800">No suggestions yet. Open Next courses to see what you can take.</li>
+        )}
+      </ul>
     </section>
   );
 }
 
-function PreviewCard({ icon: Icon, title, summary, to, tour, children }) {
+function CareerRow({ to, icon: Icon, tone = "blue", title, detail, detailClass }) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
+    green: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300",
+    amber: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
+  };
   return (
-    <section className="rounded-2xl bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 sm:p-6" data-tour={tour} aria-label={title}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-ink-strong">
-          <Icon className="h-5 w-5 text-ink-muted" aria-hidden="true" /> {title}
-        </h2>
-        <Link to={to} className="inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
-          Open <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      </div>
-      {summary && <p className="mt-1 text-sm text-ink-muted">{summary}</p>}
-      <ul className="mt-4 divide-y divide-slate-200 border-t border-slate-200 dark:divide-slate-800 dark:border-slate-800">{children}</ul>
-    </section>
-  );
-}
-
-function Row({ to, label, detail }) {
-  return (
-    <li>
-      <Link to={to} className="group flex items-center justify-between gap-3 py-3 text-[15px]">
-        <span className="min-w-0 flex-shrink truncate text-ink-strong group-hover:text-link">{label}</span>
-        <span className="flex min-w-0 items-center justify-end gap-2">
-          {detail}
-          <ChevronRight className="h-4 w-4 text-ink-muted" aria-hidden="true" />
+    <li className="border-t border-slate-200 dark:border-slate-800">
+      <Link to={to} className="group flex items-center gap-3.5 py-3">
+        <span className={`${iconTile} ${tones[tone]}`} aria-hidden="true"><Icon className="h-5 w-5" /></span>
+        <span className="min-w-0">
+          <span className="block truncate font-semibold text-ink-strong group-hover:text-link">{title}</span>
+          {detail && <span className={`mt-0.5 block truncate text-[13px] ${detailClass || "text-slate-500 dark:text-slate-400"}`}>{detail}</span>}
         </span>
       </Link>
     </li>
   );
 }
 
-function ProgramPreview({ facts, picks, roadmap }) {
-  const available = picks?.available ?? facts.canTakeNext;
-  const summary = facts.doneCount ? `${facts.doneCount} courses ticked · ${available} you can take next` : "No courses ticked yet";
-  return (
-    <PreviewCard icon={BookOpen} title="My Program" summary={summary} to={roadmapViewUrl("degree")} tour="dash-program">
-      {facts.doneCount > 0 && !picks && <li className="py-3"><Skeleton /></li>}
-      {(picks?.picks || []).slice(0, 2).map((pick) => (
-        <Row
-          key={pick.code}
-          to={roadmapStepUrl("next")}
-          label={`${pick.code} ${pick.name}`}
-          detail={
-            <>
-              {pick.core && <span className={`${tag} ring-1 ring-slate-900 text-slate-900 dark:ring-white dark:text-white`}>Core</span>}
-              {pick.usefulness === "high" && <span className={`${tag} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Highly useful</span>}
-            </>
-          }
-        />
-      ))}
-      {!facts.doneCount && <Row to={roadmapStepUrl("next")} label="Next courses" detail={<span className="text-sm text-ink-muted">Tick courses first</span>} />}
-      {roadmap?.societies?.length > 0 && (
-        <Row
-          to={roadmapStepUrl("societies")}
-          label="Societies to join"
-          detail={<span className="truncate text-sm text-ink-muted">{roadmap.societies.length} matched to your degree</span>}
-        />
-      )}
-    </PreviewCard>
-  );
-}
-
-function CareerPreview({ roadmap, career }) {
+function CareerWeek({ roadmap, career, cert }) {
   const ready = career && !career.failed && !career.missing;
-  const summary = ready ? `${career.jobs} jobs · ${career.internships} internships · ${career.events} events` : null;
   return (
-    <PreviewCard icon={BriefcaseBusiness} title="My Career" summary={summary} to={roadmapViewUrl("careers")} tour="dash-career">
-      {!career && <li className="py-3"><Skeleton /></li>}
-      {ready && career.families.map((f) => (
-        <Row key={f.title} to={careerSectionUrl("jobs")} label={f.title} detail={<span className="text-sm text-ink-muted">{f.count} job{f.count === 1 ? "" : "s"}</span>} />
-      ))}
-      {roadmap?.placement && (
-        <Row
-          to={careerSectionUrl("internships")}
-          label={`Required placement ${roadmap.placement.code}`}
-          detail={
-            roadmap.placement.done ? (
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-700 dark:text-green-400"><CircleCheck className="h-4 w-4" aria-hidden="true" /> Completed</span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400"><TriangleAlert className="h-4 w-4" aria-hidden="true" /> Not done</span>
-            )
-          }
-        />
-      )}
-      {career && !ready && <Row to={roadmapViewUrl("careers")} label="See jobs, internships and events for your degree" />}
-    </PreviewCard>
+    <section className={card} aria-labelledby="home-career" data-tour="dash-career">
+      <SectionHead id="home-career" title="Your career this week" to={roadmapViewUrl("careers")} linkText="My Career ›" />
+      <ul className="mt-4">
+        {!career && [0, 1, 2].map((i) => <li key={i} className="border-t border-slate-200 py-4 dark:border-slate-800"><Shimmer /></li>)}
+        {ready && career.family && (
+          <CareerRow to={careerSectionUrl("jobs")} icon={BriefcaseBusiness} title={`${career.family.count} ${career.family.title.toLowerCase()} job${career.family.count === 1 ? "" : "s"}`} detail={career.family.companies.join(", ")} />
+        )}
+        {ready && career.nextEvent && (
+          <CareerRow to={careerSectionUrl("networking")} icon={CalendarDays} title={career.nextEvent.title} detail={[career.nextEvent.date_label, career.nextEvent.location].filter(Boolean).join(" · ")} />
+        )}
+        {cert && (
+          <CareerRow to={careerSectionUrl("certifications")} icon={Award} title={`Start here: ${cert.name}`} detail={`Certification for ${cert.career}`} />
+        )}
+        {roadmap?.placement && (
+          roadmap.placement.done ? (
+            <CareerRow to={careerSectionUrl("internships")} icon={Check} tone="green" title={`Required placement ${roadmap.placement.code}`} detail="Completed" detailClass="text-green-700 dark:text-green-400" />
+          ) : (
+            <CareerRow to={careerSectionUrl("internships")} icon={CircleAlert} tone="amber" title={`Required placement ${roadmap.placement.code}`} detail="Not done yet" detailClass="text-amber-700 dark:text-amber-400" />
+          )
+        )}
+        {career && !ready && (
+          <CareerRow to={roadmapViewUrl("careers")} icon={BriefcaseBusiness} title="See jobs, internships and events" detail="Picked for your degree, updated daily" />
+        )}
+      </ul>
+    </section>
   );
 }
 
-export default function DashboardHome({ facts }) {
-  const { picks, roadmap, career } = useDashboardPreview(facts);
-  const { program, specNames = [] } = facts;
-  const canChangeSpecialisation = !facts.failed && facts.hasSpecOptions;
-  const degree = [program.program_name, ...specNames].join(" · ");
+function Societies({ roadmap }) {
+  const list = roadmap?.societies || [];
+  if (roadmap && !list.length) return null;
+  return (
+    <section className={card} aria-labelledby="home-societies">
+      <SectionHead id="home-societies" title="Societies for you to join" to={roadmapStepUrl("societies")} linkText={list.length ? `All ${list.length} ›` : "Open ›"} />
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {!roadmap && [0, 1, 2, 3].map((i) => <Shimmer key={i} className="h-[70px] rounded-[14px]" />)}
+        {list.slice(0, 4).map((society) => {
+          const words = society.name.replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean);
+          const initials = (words.length > 1 ? words.map((w) => w[0]).join("") : words[0] || society.name).slice(0, 2).toUpperCase();
+          const inner = (
+            <>
+              <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-[13px] font-bold text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200" aria-hidden="true">{initials}</span>
+              <span className="min-w-0">
+                <span className="block truncate font-semibold text-ink-strong">{society.name}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{society.faculty ? "Your faculty" : "Across UNSW"}</span>
+              </span>
+            </>
+          );
+          const cls = "flex items-center gap-3 rounded-[14px] p-3.5 ring-1 ring-slate-200 hover:bg-blue-50 hover:ring-blue-300 dark:ring-slate-800 dark:hover:bg-slate-800";
+          return society.link ? (
+            <a key={society.name} href={society.link.url} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
+          ) : (
+            <Link key={society.name} to={roadmapStepUrl("societies")} className={cls}>{inner}</Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export default function DashboardHome({ facts, greeting, today, dayLine, onHelp }) {
+  const { picks, roadmap, career, cert } = useDashboardPreview(facts);
 
   return (
-    <>
-      <div className="mt-2 flex flex-wrap items-center gap-2" data-tour="dash-degree">
-        <p className="text-[15px] text-ink-muted">{degree}</p>
-        <div data-tour="dash-edit">
-          <DegreeEditMenu degreeCode={program.degree_code} canChangeSpecialisation={canChangeSpecialisation} />
-        </div>
-      </div>
+    <div className="space-y-6">
+      <Hero greeting={greeting} today={today} dayLine={dayLine} facts={facts} onHelp={onHelp} />
       {facts.failed ? (
-        <p className="mt-6 rounded-2xl bg-slate-50 px-5 py-4 text-[15px] text-ink-muted dark:bg-slate-800/50" role="status">
+        <p className="rounded-2xl bg-white px-5 py-4 text-[15px] text-slate-600 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-800" role="status">
           Your details couldn't be loaded. You can still open <Link to={roadmapViewUrl("degree")} className="font-semibold text-link hover:underline">My Program</Link> or <Link to={roadmapViewUrl("careers")} className="font-semibold text-link hover:underline">My Career</Link>.
         </p>
       ) : (
         <>
-          <NextStep facts={facts} picks={picks} />
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <ProgramPreview facts={facts} picks={picks} roadmap={roadmap} />
-            <CareerPreview roadmap={roadmap} career={career} />
+          <Tiles facts={facts} picks={picks} career={career} />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <NextCourses facts={facts} picks={picks} />
+            <CareerWeek roadmap={roadmap} career={career} cert={cert} />
           </div>
+          <Societies roadmap={roadmap} />
         </>
       )}
-    </>
+    </div>
   );
 }
