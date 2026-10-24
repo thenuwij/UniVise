@@ -13,6 +13,8 @@
     "src/features/roadmap/components/IndustrySection.jsx",
     "src/features/roadmap/components/ProgramStructure.jsx",
     "src/features/roadmap/components/EntryRequirementsUnsw.jsx",
+    "src/features/roadmap/components/CapstoneHonours.jsx",
+    "src/features/roadmap/components/DegreeRequirements.jsx",
     "src/features/recommendations/pages/RecommendationPage.jsx"
   ]
 }
