@@ -1,10 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": [
-    ".flowbite-react/**",
-    "src/features/roadmap/components/EntryRequirementsUnsw.jsx",
-    "src/features/roadmap/components/CapstoneHonours.jsx",
-    "src/features/roadmap/components/DegreeRequirements.jsx",
-    "src/features/dashboard/components/AtAGlance.jsx"
+    ".flowbite-react/**"
   ]
 }
