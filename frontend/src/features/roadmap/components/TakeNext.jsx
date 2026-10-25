@@ -142,12 +142,14 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
       )}
       {others.length > 0 && (
-        <details className="group mt-4 border-y border-slate-200 dark:border-slate-800">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-[15px] font-semibold text-ink-strong hover:text-link">
-            {others.length} other course{others.length === 1 ? "" : "s"} you can take
-            <ChevronDown className="h-5 w-5 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+        <details className="group mt-6">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl bg-white px-5 py-4 text-base font-semibold text-link shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800">
+            <span>
+              <span className="group-open:hidden">Show</span><span className="hidden group-open:inline">Hide</span> {others.length} other course{others.length === 1 ? "" : "s"} you can take
+            </span>
+            <ChevronDown className="h-5 w-5 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
-          <ul className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
             {others.map((course) => (
               <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <span className="text-[15px] text-ink-strong">
@@ -167,10 +169,6 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
           </ul>
         </details>
       )}
-      <p className="mt-5 text-[15px] text-ink-muted">
-        Missing a course you've finished?{" "}
-        <button type="button" onClick={onOpenCourses} className="font-semibold text-link hover:underline">Update my courses</button>
-      </p>
     </div>
   );
 }
