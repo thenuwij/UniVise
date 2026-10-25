@@ -2,8 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": [
     ".flowbite-react/**",
-    "src/features/planner/pages/MyPlannerSchoolPage.jsx",
-    "src/features/roadmap/pages/RoadmapSchoolPage.jsx",
     "src/features/roadmap/components/GradientCard.jsx",
     "src/features/roadmap/components/InlineIcons.jsx",
     "src/features/roadmap/components/Pill.jsx",
