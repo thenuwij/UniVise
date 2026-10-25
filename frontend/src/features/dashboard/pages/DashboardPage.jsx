@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon, Sun, Sunset } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
+import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { RecommendationTable } from "@/features/recommendations/components/RecommendationTable";
 import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { UserAuth } from "@/app/AuthContext";
@@ -55,6 +56,11 @@ export default function DashboardPage() {
   const facts = useDashboardFacts();
   const [isOpen, setIsOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  useEffect(() => {
+    if (!facts?.program || hasSeenGuide(GUIDE_KEY)) return;
+    const timer = setTimeout(() => setShowGuide(true), 700);
+    return () => clearTimeout(timer);
+  }, [facts?.program]);
   const metadata = session?.user?.user_metadata;
   const firstName =
     metadata?.first_name ||
