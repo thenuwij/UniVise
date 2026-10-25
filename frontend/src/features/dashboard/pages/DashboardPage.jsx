@@ -24,29 +24,24 @@ const DAY_LINES = [
 
 const GUIDE_STEPS = [
   {
-    targets: ['[data-tour="dash-next"]'],
-    title: "Your next step",
-    text: "One thing worth doing now, picked from your ticked courses and your careers.",
+    targets: ['[data-tour="dash-edit"]'],
+    title: "Your degree",
+    text: "Change your program or specialisation here.",
   },
   {
     targets: ['[data-tour="dash-program"]'],
-    title: "My Program",
-    text: "Your courses, what to take next, CourseMesh and societies to join.",
+    title: "Next courses",
+    text: "Courses you can take next. Tick the ones you've done in My Program.",
   },
   {
     targets: ['[data-tour="dash-career"]'],
-    title: "My Career",
-    text: "Jobs, internships, events, certifications and where your degree leads.",
-  },
-  {
-    targets: ['[data-tour="dash-edit"]'],
-    title: "Manage your degree",
-    text: "Use this menu to change your program or, when available, your specialisation.",
+    title: "Your career this week",
+    text: "Jobs, internships and events for your degree.",
   },
   {
     targets: ['[data-tour="app-navigation"]'],
-    title: "Find your way around",
-    text: "The top navigation and mobile Menu lead to My Program, My Career and Ask Eunice. Account has your profile, appearance settings and sign out.",
+    title: "Getting around",
+    text: "Use the top bar or menu for My Program, My Career and Ask Eunice.",
   },
 ];
 
