@@ -28,8 +28,8 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
   const [frozen, setFrozen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
-  const [showHint, setShowHint] = useState(() => hasSeenGuide());
-  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide());
+  const [showHint, setShowHint] = useState(() => hasSeenGuide(session?.user?.id));
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide(session?.user?.id));
   const [expandCount, setExpandCount] = useState(0);
   const transformRef = useRef(null);
   const focusedRef = useRef(null);

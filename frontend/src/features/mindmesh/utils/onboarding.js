@@ -1,16 +1,18 @@
 const SEEN_KEY = "univise-coursemesh-guide-seen";
 
-export function hasSeenGuide() {
+const seenKey = (userId) => `${SEEN_KEY}-${userId || "guest"}`;
+
+export function hasSeenGuide(userId) {
   try {
-    return localStorage.getItem(SEEN_KEY) === "1";
+    return localStorage.getItem(seenKey(userId)) === "1";
   } catch {
     return true;
   }
 }
 
-export function markGuideSeen() {
+export function markGuideSeen(userId) {
   try {
-    localStorage.setItem(SEEN_KEY, "1");
+    localStorage.setItem(seenKey(userId), "1");
   } catch {
     return;
   }
