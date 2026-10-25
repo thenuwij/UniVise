@@ -38,7 +38,7 @@ export default function SupportedProgramGate({ children }) {
   if (state.userId === userId && state.status === "supported") return children;
   return (
     <div className="min-h-screen app-page">
-      <Header matchDashboard />
+      <Header />
       <main className="mx-auto max-w-xl px-6 py-16">
         {state.userId !== userId || state.status === "loading" ? (
           <p role="status" className="text-ink-muted">

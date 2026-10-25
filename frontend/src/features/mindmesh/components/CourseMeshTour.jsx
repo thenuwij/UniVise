@@ -1,17 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowBigDown, ArrowLeft, ArrowRight, Check, Hand, Mouse, MousePointer2, MousePointerClick, X } from "lucide-react";
+import { UserAuth } from "@/app/AuthContext";
 import { markGuideSeen } from "../utils/onboarding";
 
 const STEPS = [
-  { target: "node", title: "This is a course", text: "Each box is a course. Green means done, blue you can take next, grey not yet. Lines lead to the courses it unlocks." },
-  { target: "graph", inside: true, title: "Try it: zoom and move", text: "Zoom in or out, then drag an empty spot to move the map.", waitFor: "zoom-pan", demo: "both" },
-  { target: "node", title: "Try it: click a course", text: "Click this course, or any other box, to see what it needs.", waitFor: "course", demo: "click" },
-  { target: "course-card", title: "What a course needs", text: "Ticks show what you've already done. Press Mark as done when you finish a course." },
-  { target: "node", title: "Try it: double-click a course", text: "Double-click opens the courses it needs, one level deeper.", waitFor: "expand", demo: "dblclick" },
-  { target: "view-tools", title: "Find your way back", text: "Undo steps back and Reset view returns to the full map. Fit to screen brings every course into view, and Arrange by level lines them up from level 1 to 4." },
-  { target: "suggested", title: "Suggested next", text: "Courses that fit your goals. Open it any time." },
-  { target: "plan-actions", title: "Keep your plan up to date", text: "Tick finished courses in My Program, and add any course you plan to take." },
+  { target: "node", title: "This is a course", text: "Green is done, blue you can take next, grey not yet." },
+  { target: "node", title: "Try it: click a course", text: "Click any course to see what it needs.", waitFor: "course", demo: "click" },
+  { target: "course-card", title: "What it needs", text: "Ticks show what you've done. Press Mark as done when you finish it." },
+  { target: "view-tools", title: "Find your way back", text: "Undo, Reset view and Fit to screen bring the full map back." },
+  { target: "plan-actions", title: "Keep it up to date", text: "Tick finished courses and add courses you plan to take." },
 ];
 
 const CARD_W = 320;
@@ -64,6 +62,7 @@ function Demo({ kind, progress }) {
 }
 
 export default function CourseMeshTour({ open, onClose, focusedId, expandCount, getTransform, getNodeRect }) {
+  const { session } = UserAuth();
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState(null);
   const [cardH, setCardH] = useState(170);
@@ -76,7 +75,7 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
   live.current = { onClose, getTransform, getNodeRect, expandCount };
 
   const finish = () => {
-    markGuideSeen();
+    markGuideSeen(session?.user?.id);
     live.current.onClose();
   };
 
@@ -98,6 +97,7 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
     baseline.current = live.current.getTransform();
     expandBase.current = live.current.expandCount;
     let missing = 0;
+    let scrolled = false;
     let prev = null;
     let panned = 0;
     let zoomed = false;
@@ -115,6 +115,10 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
         return;
       }
       missing = 0;
+      if (!scrolled && (r.top < 0 || r.top + r.height > window.innerHeight)) {
+        scrolled = true;
+        window.scrollBy({ top: r.top + r.height / 2 - window.innerHeight / 2, behavior: "smooth" });
+      }
       setRect((prev) =>
         prev && prev.top === r.top && prev.left === r.left && prev.width === r.width && prev.height === r.height
           ? prev

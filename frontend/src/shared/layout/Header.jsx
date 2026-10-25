@@ -3,8 +3,9 @@ import { HiMoon, HiSun } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.svg";
 import IndependenceBanner from "@/shared/ui/IndependenceBanner";
+import "./navigation.css";
 
-export function Header({ matchDashboard = false }) {
+export function Header() {
   const [isDark, setIsDark] = useState(
     localStorage.getItem("color-theme") === "dark" ||
     document.documentElement.classList.contains("dark")
@@ -24,18 +25,16 @@ export function Header({ matchDashboard = false }) {
   };
 
   return (
-    <div className="mb-4" id="header">
-      <div className={`flex items-center justify-between px-6 h-16 ${matchDashboard ? "app-header-surface" : "backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800"}`}>
-        <Link to="/" className="flex items-center gap-1 hover:opacity-80 transition-opacity">
-          <img src={logo} alt="UniVise Logo" className="h-12 w-12" />
-          <span className="whitespace-nowrap text-4xl font-bold font-heading tracking-tight">
-            UniVise
-          </span>
+    <header id="header" className="app-navigation app-header-surface">
+      <div className="app-nav-inner">
+        <Link to="/" className="app-nav-brand" aria-label="UniVise home">
+          <img src={logo} alt="" />
+          <span>UniVise</span>
         </Link>
         <button
           onClick={toggleTheme}
           title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 transition-all duration-200"
+          className="ml-auto flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 transition-all duration-200"
         >
           {isDark
             ? <HiSun className="w-5 h-5 text-amber-500" />
@@ -44,6 +43,6 @@ export function Header({ matchDashboard = false }) {
         </button>
       </div>
       <IndependenceBanner />
-    </div>
+    </header>
   );
 }

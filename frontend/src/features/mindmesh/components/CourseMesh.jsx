@@ -28,8 +28,8 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
   const [frozen, setFrozen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
-  const [showHint, setShowHint] = useState(() => hasSeenGuide());
-  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide());
+  const [showHint, setShowHint] = useState(() => hasSeenGuide(session?.user?.id));
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide(session?.user?.id));
   const [expandCount, setExpandCount] = useState(0);
   const transformRef = useRef(null);
   const focusedRef = useRef(null);
@@ -384,7 +384,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
               onClick={onOpenCourses}
               className="px-2 py-2 text-sm font-semibold text-link underline-offset-4 hover:underline"
             >
-              Tick courses in Courses
+              Tick courses in My courses
             </button>
             <button
               onClick={() => setShowElectives(true)}

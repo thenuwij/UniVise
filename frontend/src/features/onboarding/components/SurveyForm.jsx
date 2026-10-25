@@ -169,7 +169,6 @@ const INTEREST_AREAS = [
 ];
 const OTHER_MAX = 60;
 const STILL_EXPLORING = "I'm still exploring";
-const STILL_FIGURING = "Still figuring it out";
 
 
 function ProgramPicker({ value, onSelect }) {
@@ -285,7 +284,7 @@ function SurveyForm() {
   const navigate = useNavigate();
   const [step, setStep] = useState(() => {
     const draft = readDraft(draftKey);
-    return isSupportedProgram(draft.formData?.program) && !draft.formData?.program_not_listed ? Math.max(2, Math.min(7, draft.step || 2)) : 2;
+    return isSupportedProgram(draft.formData?.program) && !draft.formData?.program_not_listed ? Math.max(2, Math.min(5, draft.step || 2)) : 2;
   });
   const [userType, setUserType] = useState("university");
   const [formData, setFormData] = useState(() => {
@@ -435,8 +434,6 @@ function SurveyForm() {
           degree_field: program.program_name,
           interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
           interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
-          priorities: formData.priorities || [],
-          work_style: formData.work_style || [],
           hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
           hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
         }]);
@@ -446,14 +443,14 @@ function SurveyForm() {
         clearDraft(draftKey);
         const { data: refreshed } = await supabase.auth.refreshSession();
         generateRecommendations(refreshed?.session?.access_token).catch(console.error);
-        navigate("/dashboard", { replace: true });
+        navigate("/setup", { replace: true });
       }
     } catch {
       setMessage("We couldn't finish saving your setup. Please try again.");
     } finally { setLoading(false); }
   };
 
-  const totalSteps = userType === "high_school" ? 8 : 7;
+  const totalSteps = userType === "high_school" ? 8 : 5;
 
   return (
     <div className={`w-full ${step === 4 ? "max-w-4xl" : "max-w-xl"}`}>
@@ -773,70 +770,6 @@ function SurveyForm() {
       )}
 
       {userType === "university" && step === 5 && (
-        <div>
-          <StepHeading>What matters most to you in your future career?</StepHeading>
-          <StepSubtitle>Pick up to 3 — helps us weigh recommendations toward what you actually want.</StepSubtitle>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              "High salary",
-              "Making an impact / helping others",
-              "Work-life balance",
-              "Intellectual challenge",
-              "Creative freedom",
-              "Career prestige",
-              "Job security & stability",
-              "Autonomy & flexibility",
-              "Fast career growth",
-            ].map(o => {
-              const isSelected = formData.priorities?.includes(o);
-              const atLimit = (formData.priorities?.length || 0) >= 3;
-              return (
-                <MultiOptionButton
-                  key={o} label={o}
-                  selected={isSelected}
-                  onClick={() => {
-                    if (isSelected) {
-                      handleChange("priorities", formData.priorities.filter(x => x !== o));
-                    } else if (!atLimit) {
-                      handleChange("priorities", [...(formData.priorities || []), o]);
-                    }
-                  }}
-                />
-              );
-            })}
-          </div>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-            {formData.priorities?.length || 0} / 3 selected
-          </p>
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.priorities?.length} />
-        </div>
-      )}
-
-      {userType === "university" && step === 6 && (
-        <div>
-          <StepHeading>How do you like to work?</StepHeading>
-          <StepSubtitle>Select all that apply — most people enjoy a mix.</StepSubtitle>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              "Hands-on building & making things",
-              "Research & deep analysis",
-              "Client-facing & communication",
-              "Creative & artistic work",
-              "Leadership & coordination",
-            ].map(o => (
-              <MultiOptionButton
-                key={o} label={o}
-                selected={formData.work_style?.includes(o)}
-                onClick={() => handleChange("work_style", toggleWithout(formData.work_style, o, STILL_FIGURING))}
-              />
-            ))}
-          </div>
-          <NoneYetOption label={STILL_FIGURING} values={formData.work_style} onChange={v => handleChange("work_style", v)} />
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.work_style?.length} />
-        </div>
-      )}
-
-      {userType === "university" && step === 7 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
           <StepSubtitle>Optional. Helps Eunice understand what drives you beyond studies.</StepSubtitle>

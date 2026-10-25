@@ -5,6 +5,7 @@ import RegisterPage from "./features/auth/pages/RegisterPage";
 import TermsPage from "./features/auth/pages/TermsPage";
 import PrivacyPage from "./features/auth/pages/PrivacyPage";
 import SurveyPage from "./features/onboarding/pages/SurveyPage";
+import SetupPage from "./features/onboarding/pages/SetupPage";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import PrivateRoute from "./app/PrivateRoute";
 import ChatbotPage from './features/chat/pages/ChatbotPage';
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
   { path: "/terms", element: <TermsPage/> },
   { path: "/privacy", element: <PrivacyPage/> },
   { path: "/survey", element: <PrivateRoute requireProgram={false}><SurveyPage/></PrivateRoute>},
+  { path: "/setup", element: <PrivateRoute requireProgram={false}><SetupPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
   { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute requireProgram={false}><ProfilePage/></PrivateRoute>},

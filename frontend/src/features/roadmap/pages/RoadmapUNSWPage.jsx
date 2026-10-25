@@ -17,7 +17,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import TakeNext from "../components/TakeNext";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, HelpCircle } from "lucide-react";
 import CareersContent from "@/features/careers/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
@@ -31,10 +31,10 @@ const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold t
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
-  structure: "Tick the courses you've completed to see your prerequisite map and what to take next. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
-  next: "See the courses you can take now, the skills each one builds and the careers it helps.",
-  coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
-  societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
+  structure: "Tick the courses you've finished. Use these tabs to switch sections.",
+  next: "Courses you can take now, with the skills and careers each one builds.",
+  coursemesh: "A map of how your courses connect and what they unlock.",
+  societies: "Student societies and professional groups for your degree.",
 };
 const sectionGuideSteps = (steps) => steps.map(({ key, title }) => ({
   targets: [`[data-tour="roadmap-section-${key}"]`],
@@ -488,15 +488,16 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       back={isOwnProgram ? undefined : { label: copy.back, onClick: handleBackClick }}
       actions={
         <>
-          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="border-white/40! text-white! bg-transparent! hover:bg-white/10!" />}
+          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="h-11! w-11! border-white/35! text-white! bg-transparent! hover:bg-white/10!" />}
           {data && !isCareers && (
             <button
               type="button"
               onClick={() => setShowSectionGuide(true)}
-              className={bandLink}
-              aria-label="Show roadmap section tour"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/35 text-white hover:bg-white/10"
+              aria-label="Show section tour"
+              title="Section tour"
             >
-              Section tour
+              <HelpCircle className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
           {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
@@ -522,15 +523,14 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       wide={isCareers}
     >
       {!isCareers && (
-        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft md:flex-row md:items-end md:justify-between md:gap-6">
+        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
           <p className="min-w-0">
             {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
           </p>
           {handbookUrlFor(activeDegree, shownDegreeCode) && (
-            <p className="ml-auto max-w-xl text-right">
-              Full program rules, including capstone and honours, are in the{" "}
+            <p>
               <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-                UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
               </a>
             </p>
           )}

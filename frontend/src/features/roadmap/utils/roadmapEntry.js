@@ -40,29 +40,11 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, view
   }
 
   const specialisationIds = await fetchSpecialisationIds(degreeCode, userId);
-  let roadmap = await fetchMatchingRoadmap(userId, degreeCode, specialisationIds);
-  let finishing = false;
-
-  while (roadmap && !isComplete(roadmap.payload) && isActive()) {
-    const age = Date.now() - new Date(roadmap.created_at).getTime();
-    if (age > STALLED_AFTER_MS && !finishing) {
-      finishing = true;
-      await apiFetch(`/roadmap/unsw/${roadmap.id}/industry`, {
-        method: "POST",
-        token: accessToken,
-        credentials: "include",
-      }).catch((err) => console.error("Finishing roadmap failed:", err));
-    } else {
-      await wait(POLL_MS);
-    }
-    const { data: latest } = await supabase
-      .from("unsw_roadmap")
-      .select("id, created_at, payload")
-      .eq("id", roadmap.id)
-      .maybeSingle();
-    roadmap = latest;
-    if (finishing && roadmap && !isComplete(roadmap.payload)) break;
-  }
+  const roadmap = await finishRoadmap({
+    roadmap: await fetchMatchingRoadmap(userId, degreeCode, specialisationIds),
+    accessToken,
+    isActive,
+  });
   if (!isActive()) return;
 
   if (roadmap) {
@@ -84,4 +66,29 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, view
     replace: true,
     state: { type: "unsw", degree: { ...degree, degree_id: degree.id }, returnToStep: step || null, view },
   });
+}
+
+export async function finishRoadmap({ roadmap, accessToken, isActive = () => true }) {
+  let finishing = false;
+  while (roadmap && !isComplete(roadmap.payload) && isActive()) {
+    const age = Date.now() - new Date(roadmap.created_at).getTime();
+    if (age > STALLED_AFTER_MS && !finishing) {
+      finishing = true;
+      await apiFetch(`/roadmap/unsw/${roadmap.id}/industry`, {
+        method: "POST",
+        token: accessToken,
+        credentials: "include",
+      }).catch((err) => console.error("Finishing roadmap failed:", err));
+    } else {
+      await wait(POLL_MS);
+    }
+    const { data: latest } = await supabase
+      .from("unsw_roadmap")
+      .select("id, created_at, payload")
+      .eq("id", roadmap.id)
+      .maybeSingle();
+    roadmap = latest;
+    if (finishing && roadmap && !isComplete(roadmap.payload)) break;
+  }
+  return roadmap;
 }
