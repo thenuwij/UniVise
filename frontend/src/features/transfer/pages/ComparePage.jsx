@@ -432,8 +432,8 @@ export default function ComparePage() {
           ) : !program ? (
             <div className={`${card} p-6`}>
               <p className="text-lg font-semibold text-ink-strong">Compare needs your program</p>
-              <p className="mt-1 text-[15px] text-ink-muted">Your program isn't in our list, so there's nothing to compare from. You can still explore any program's roadmap to see what it involves.</p>
-              <Link to="/roadmap" className={`${secondary} mt-4`}>Explore a program's roadmap</Link>
+              <p className="mt-1 text-[15px] text-ink-muted">Choose your enrolled degree from the supported list to use personal planning and comparisons. If it isn't listed, UniVise isn't currently supported for your studies.</p>
+              <Link to="/survey" className={`${secondary} mt-4`}>Choose your supported degree</Link>
             </div>
           ) : (
             <>
