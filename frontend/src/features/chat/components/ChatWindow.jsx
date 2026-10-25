@@ -24,7 +24,6 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
   const { session } = UserAuth();
 
   const firstName = session?.user?.user_metadata?.first_name;
-  const userType = session?.user?.user_metadata?.student_type;
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [streamStarted, setStreamStarted] = useState(false);
@@ -259,12 +258,7 @@ return (
                     : "Your academic and career advisor. Ask me anything about your courses, career paths or university life, or pick a question to start."}
                 </p>
                 <div className={`grid gap-3 max-w-lg w-full ${compact ? "grid-cols-1" : "grid-cols-2"}`}>
-                  {(userType === "high_school" ? [
-                    "What degrees suit my interests?",
-                    "How do I improve my ATAR?",
-                    "What subjects should I pick?",
-                    "Tell me about my recommendations",
-                  ] : compact ? [
+                  {(compact ? [
                     "How many courses do I have left?",
                     "Which courses should I take next?",
                     "Explain this page for me",

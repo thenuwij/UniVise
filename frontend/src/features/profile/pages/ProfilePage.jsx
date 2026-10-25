@@ -1,5 +1,5 @@
 import { Label, Select, TextInput } from "flowbite-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, GraduationCap, Pencil, User, X } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
@@ -21,7 +21,6 @@ const secondaryButton =
 const primaryButton =
   "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors disabled:opacity-50";
 
-const toArr = (v) => (Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : []);
 const shown = (v) => (v && v !== NOT_SET ? v : "");
 
 function Section({ title, icon: Icon, editing, onEdit, onCancel, onSave, saving, status, children }) {
@@ -193,10 +192,7 @@ function ProfilePage() {
     gender: NOT_SET,
     hobbies: [],
     year: "",
-    atar: "",
     confidence: NOT_SET,
-    academicStrengths: [],
-    degreeInterests: [],
     careerInterests: [],
     degreeStage: "",
     degreeField: "",
@@ -208,7 +204,6 @@ function ProfilePage() {
   const [status, setStatus] = useState({});
   const { program: enrolledProgram, loading: programLoading } = useEnrolledProgram();
 
-  const isHS = useMemo(() => studentType === "high_school", [studentType]);
   const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
   const onInput = (key) => (e) => set(key)(e.target.value);
 
@@ -229,20 +224,7 @@ function ProfilePage() {
           dob: meta.dob || "",
           gender: meta.gender || NOT_SET,
         };
-        if (st === "high_school") {
-          const { data } = await supabase.from("student_school_data").select("*").eq("user_id", user.id).single();
-          setForm((prev) => ({
-            ...prev,
-            ...base,
-            atar: data?.atar ?? "",
-            year: data?.year ?? "",
-            confidence: data?.confidence ?? NOT_SET,
-            academicStrengths: toArr(data?.academic_strengths),
-            careerInterests: toArr(data?.career_interests),
-            degreeInterests: toArr(data?.degree_interests),
-            hobbies: toArr(data?.hobbies),
-          }));
-        } else if (st === "university") {
+        if (st === "university") {
           const { data } = await supabase.from("student_uni_data").select("*").eq("user_id", user.id).single();
           setForm((prev) => ({
             ...prev,
@@ -288,16 +270,7 @@ function ProfilePage() {
       });
       if (authError) throw authError;
       const { data: { user } } = await supabase.auth.getUser();
-      if (isHS) {
-        const { error } = await supabase.from("student_school_data").update({
-          hobbies: form.hobbies,
-          academic_strengths: form.academicStrengths,
-          degree_interest: form.degreeInterests,
-          career_interests: form.careerInterests,
-          confidence: form.confidence,
-        }).eq("user_id", user.id);
-        if (error) throw error;
-      } else if (studentType === "university") {
+      if (studentType === "university") {
         const { error } = await supabase.from("student_uni_data").update({
           wam: form.wam === "" ? null : form.wam,
           degree_field: cleanText(form.degreeField, 100) || null,
@@ -320,10 +293,8 @@ function ProfilePage() {
   };
 
   const fullName = `${form.firstName} ${form.lastName}`.trim();
-  const typeLabel = isHS ? "High school student" : studentType === "university" ? "University student" : "";
-  const yearOptions = isHS
-    ? [NOT_SET, "Year 10", "Year 11", "Year 12"]
-    : [NOT_SET, "Year 1", "Year 2", "Year 3", "Year 4", "Year 5+", "Postgraduate/Other"];
+  const typeLabel = studentType === "university" ? "University student" : "";
+  const yearOptions = [NOT_SET, "Year 1", "Year 2", "Year 3", "Year 4", "Year 5+", "Postgraduate/Other"];
 
   const sectionProps = (key) => ({
     editing: editing === key,
@@ -427,41 +398,22 @@ function ProfilePage() {
                       ))}
                     </Select>
                   </div>
-                  {isHS ? (
-                    <>
-                      <div>
-                        <Label htmlFor="atar">ATAR</Label>
-                        <TextInput id="atar" type="number" value={form.atar} onChange={onInput("atar")} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Label htmlFor="strengths">Academic strengths</Label>
-                        <TagInput id="strengths" values={form.academicStrengths} setValues={set("academicStrengths")} placeholder="Add a strength" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Label htmlFor="degreeInterests">Degree interests</Label>
-                        <TagInput id="degreeInterests" values={form.degreeInterests} setValues={set("degreeInterests")} placeholder="Add a degree interest" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <Label htmlFor="degreeStage">Degree stage</Label>
-                        <Select id="degreeStage" value={form.degreeStage || NOT_SET} onChange={onInput("degreeStage")}>
-                          {[NOT_SET, "Bachelors Degree", "Masters Degree", "PhD or Doctoral Program", "Other"].map((v) => (
-                            <option key={v} value={v}>{v === NOT_SET ? "Not added" : v}</option>
-                          ))}
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="degreeField">Field of study</Label>
-                        <TextInput id="degreeField" maxLength={100} value={form.degreeField} onChange={onInput("degreeField")} />
-                      </div>
-                      <div>
-                        <Label htmlFor="wam">WAM</Label>
-                        <TextInput id="wam" type="number" min={0} max={100} value={form.wam ?? ""} onChange={onInput("wam")} />
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <Label htmlFor="degreeStage">Degree stage</Label>
+                    <Select id="degreeStage" value={form.degreeStage || NOT_SET} onChange={onInput("degreeStage")}>
+                      {[NOT_SET, "Bachelors Degree", "Masters Degree", "PhD or Doctoral Program", "Other"].map((v) => (
+                        <option key={v} value={v}>{v === NOT_SET ? "Not added" : v}</option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="degreeField">Field of study</Label>
+                    <TextInput id="degreeField" maxLength={100} value={form.degreeField} onChange={onInput("degreeField")} />
+                  </div>
+                  <div>
+                    <Label htmlFor="wam">WAM</Label>
+                    <TextInput id="wam" type="number" min={0} max={100} value={form.wam ?? ""} onChange={onInput("wam")} />
+                  </div>
                   <div className="sm:col-span-2">
                     <Label htmlFor="careerInterests">Career interests</Label>
                     <TagInput id="careerInterests" values={form.careerInterests} setValues={set("careerInterests")} placeholder="Add a career interest" />
@@ -469,22 +421,11 @@ function ProfilePage() {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-5">
-                  {!isHS && <ProgramField program={enrolledProgram} loading={programLoading} />}
+                  <ProgramField program={enrolledProgram} loading={programLoading} />
                   <Field label="Year" value={shown(form.year)} />
-                  {isHS ? (
-                    <>
-                      <Field label="ATAR" value={form.atar} />
-                      <TagField label="Academic strengths" items={form.academicStrengths} />
-                      <TagField label="Degree interests" items={form.degreeInterests} />
-                      <Field label="How sure you are about your path" value={shown(form.confidence)} wide />
-                    </>
-                  ) : (
-                    <>
-                      <Field label="Degree stage" value={shown(form.degreeStage)} />
-                      <Field label="Field of study" value={form.degreeField} />
-                      <Field label="WAM" value={form.wam === null ? "" : String(form.wam)} />
-                    </>
-                  )}
+                  <Field label="Degree stage" value={shown(form.degreeStage)} />
+                  <Field label="Field of study" value={form.degreeField} />
+                  <Field label="WAM" value={form.wam === null ? "" : String(form.wam)} />
                   <TagField label="Career interests" items={form.careerInterests} />
                 </div>
               )}
