@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { apiFetch } from "@/shared/lib/api";
-import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { cleanText } from "@/shared/lib/cleanText";
 import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
@@ -326,15 +324,6 @@ function SurveyForm() {
 
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
-  const generateRecommendations = async (token = session?.access_token) => {
-    if (!RANKED_CAREER_RECOMMENDATIONS_ENABLED) return;
-    await apiFetch("/recommendation/prompt", {
-      method: "POST",
-      token,
-      retry: true,
-    });
-  };
-
   const handleSubmit = async () => {
     if (!isSupportedProgram(formData.program)) {
       setMessage(UNSUPPORTED_PROGRAM_MESSAGE);
@@ -371,8 +360,7 @@ function SurveyForm() {
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       if (needsTerms) await recordTermsAccepted();
       clearDraft(draftKey);
-      const { data: refreshed } = await supabase.auth.refreshSession();
-      generateRecommendations(refreshed?.session?.access_token).catch(console.error);
+      await supabase.auth.refreshSession();
       navigate("/setup", { replace: true });
     } catch {
       setMessage("We couldn't finish saving your setup. Please try again.");

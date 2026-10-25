@@ -10,14 +10,10 @@ import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import PrivateRoute from "./app/PrivateRoute";
 import ChatbotPage from './features/chat/pages/ChatbotPage';
 import ProfilePage from './features/profile/pages/ProfilePage';
-import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
-import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
-import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
-import TraitsPage from "./features/traits/pages/TraitsPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
 import ComparePage from "./features/transfer/pages/ComparePage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
@@ -38,9 +34,6 @@ export const router = createBrowserRouter([
   { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute requireProgram={false}><ProfilePage/></PrivateRoute>},
   { path: "/recommendation/:id", element: <Navigate to={roadmapStepUrl("careers")} replace /> },
-  { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
-  { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
-  { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
   { path: "/handbook", element: <HandbookRedirect /> },
   { path: "/explore-by-degree", element: <HandbookRedirect /> },
   { path: "/explore-by-specialisation", element: <HandbookRedirect /> },
@@ -55,7 +48,6 @@ export const router = createBrowserRouter([
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
   { path: "/planner", element: <Navigate to="/dashboard" replace /> },
   { path: "/planner/school", element: <Navigate to="/dashboard" replace /> },
-  { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
   { path: "/specialisation/major/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/minor/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/honours/:id", element: <HandbookRedirect kind="specialisations" /> },

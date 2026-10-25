@@ -4,7 +4,7 @@ import { Maximize2, MessageCircle, Plus, X } from "lucide-react";
 import ChatWindow from "./ChatWindow";
 import { currentPage } from "../utils/pageContext";
 
-const HIDDEN = ["/chat", "/survey", "/quiz", "/roadmap-loading"];
+const HIDDEN = ["/chat", "/survey", "/roadmap-loading"];
 
 export default function EuniceLauncher() {
   const { pathname } = useLocation();
