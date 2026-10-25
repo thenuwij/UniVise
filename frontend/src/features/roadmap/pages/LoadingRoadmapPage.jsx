@@ -3,17 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import LoadingPage from "../components/LoadingPage";
 import GenerationError from "../components/GenerationError";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
 import { handleRoadmapGeneration } from "../utils/roadmapGeneration";
 
-const getProgressMessage = (progress, isRegeneration, type) => {
-  
-  // Message for school roadmaps
-  if (type === "school") {
-    return isRegeneration ? "Regenerating your roadmap..." : "Generating your roadmap...";
-  }
-
-  // Messages for UNSW roadmaps
+const getProgressMessage = (progress, isRegeneration) => {
   if (isRegeneration) {
     if (progress < 20) return "Customizing roadmap to your chosen specialisation...";
     if (progress < 60) return "Personalising your societies, industry and career sections...";
@@ -53,16 +45,13 @@ function LoadingRoadmapPage() {
     ranRef.current = true;
 
     handleRoadmapGeneration({
-      type,
       degree,
       accessToken,
-      userId,
       navigate,
-      supabase,
       setProgress,
       returnToStep,
       view: state?.view,
-      onError: type === "unsw" ? setError : undefined,
+      onError: setError,
     });
   }, [
     session?.user?.id,
@@ -70,7 +59,6 @@ function LoadingRoadmapPage() {
     state?.type,
     state?.degree,
     navigate,
-    supabase,
     attempt,
   ]);
 
@@ -92,7 +80,7 @@ function LoadingRoadmapPage() {
     );
   }
 
-  const message = getProgressMessage(progress, isRegeneration, state?.type);
+  const message = getProgressMessage(progress, isRegeneration);
 
   return <LoadingPage message={message} progress={progress} />;
 }

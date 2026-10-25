@@ -1,8 +1,6 @@
 import { fetchSupportedDegree, fetchSupportedEnrolment, isSupportedProgram, UNSUPPORTED_PROGRAM_MESSAGE } from "../utils/supportedProgram";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MdOutlineCancel } from "react-icons/md";
-import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
-import { HiBuildingOffice2 } from "react-icons/hi2";
+import { HiAcademicCap, HiCheck } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
@@ -88,18 +86,6 @@ const toggleWithout = (values, option, noneLabel) => {
   const current = (values || []).filter(x => x !== noneLabel);
   return current.includes(option) ? current.filter(x => x !== option) : [...current, option];
 };
-
-// Chip tag for selected items
-function Chip({ label, onRemove }) {
-  return (
-    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium border border-blue-200 dark:border-blue-700">
-      {label}
-      <button type="button" onClick={onRemove} className="rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 p-0.5 transition-colors">
-        <MdOutlineCancel className="h-3.5 w-3.5" />
-      </button>
-    </span>
-  );
-}
 
 // Styled text input
 function StyledInput({ placeholder, value, onChange, type = "text", maxLength }) {
@@ -286,17 +272,12 @@ function SurveyForm() {
     const draft = readDraft(draftKey);
     return isSupportedProgram(draft.formData?.program) && !draft.formData?.program_not_listed ? Math.max(2, Math.min(5, draft.step || 2)) : 2;
   });
-  const [userType, setUserType] = useState("university");
   const [formData, setFormData] = useState(() => {
     const draft = readDraft(draftKey).formData || {};
     return { ...draft, program: !draft.program_not_listed && isSupportedProgram(draft.program) ? draft.program : null, program_not_listed: false, program_other: "" };
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedHobby, setSelectedHobby] = useState('');
-  const [selectedCareerField, setSelectedCareerField] = useState('');
-  const [selectedDegreeInterest, setSelectedDegreeInterest] = useState('');
 
   useEffect(() => {
     try {
@@ -305,39 +286,6 @@ function SurveyForm() {
       return;
     }
   }, [draftKey, step, formData]);
-
-  const subjectOptions = [
-    "None of these","Aboriginal Languages","Aboriginal Studies","Agriculture","Ancient History",
-    "Biology","Business Studies","Ceramics","Community and Family Studies","Computing Applications",
-    "Dance","Design and Technology","Drama","Economics","English","Exploring Early Childhood",
-    "Food Technology","Geography","Health and Movement Science","History","Industrial Technology",
-    "Investigating Science","Legal Studies","Marine Studies","Mathematics","Modern History","Music",
-    "Photography, Video and Digital Imaging","Physics","Science","Society and Culture",
-    "Software Engineering","Sport, Lifestyle and Recreation","Studies of Religion",
-    "Textiles and Design","Visual Arts","Visual Design","VET Courses","Work Studies",
-  ];
-
-  const careerFieldOptions = [
-    "Technology","Business","Health & Medicine","Engineering","Education & Training",
-    "Science & Research","Law & Public Policy","Arts & Design","Media & Communication",
-    "Finance & Accounting","Trades & Construction","Environment & Sustainability",
-    "Government & Public Service","Hospitality & Tourism","Sports & Fitness",
-    "Social Work & Community Services","Agriculture & Natural Resources",
-    "Manufacturing & Logistics","Entrepreneurship","Arts & Entertainment","Other / Not Sure Yet",
-  ];
-
-  const degreeInterestOptions = [
-    "Computer Science & Information Technology","Business, Commerce & Management",
-    "Medicine & Health Sciences","Engineering & Technology","Education & Teaching",
-    "Science (Biological, Physical, Chemical, Environmental)","Law & Legal Studies",
-    "Arts, Humanities & Social Sciences","Media, Communication & Journalism",
-    "Music, Performing & Visual Arts","Finance, Accounting & Economics",
-    "Architecture, Design & Creative Arts","Psychology & Social Work",
-    "Nursing & Allied Health","Agriculture & Environmental Studies",
-    "Sports Science & Physical Education","Politics, International Relations & Public Policy",
-    "Hospitality, Tourism & Event Management","Trades, Vocational & Applied Studies",
-    "Double Degrees / Combined Programs","Other / Not Sure Yet",
-  ];
 
   const handleNext = () => setStep(s => s + 1);
   const startedRef = useRef({ program: null, build: null });
@@ -379,7 +327,7 @@ function SurveyForm() {
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
   const generateRecommendations = async (token = session?.access_token) => {
-    if (userType === "university" && !RANKED_CAREER_RECOMMENDATIONS_ENABLED) return;
+    if (!RANKED_CAREER_RECOMMENDATIONS_ENABLED) return;
     await apiFetch("/recommendation/prompt", {
       method: "POST",
       token,
@@ -388,314 +336,56 @@ function SurveyForm() {
   };
 
   const handleSubmit = async () => {
-    if (userType === "university" && !isSupportedProgram(formData.program)) {
+    if (!isSupportedProgram(formData.program)) {
       setMessage(UNSUPPORTED_PROGRAM_MESSAGE);
       setStep(2);
       return;
     }
     setLoading(true);
     try {
-      if (userType === "high_school") {
-        const { error } = await supabase.from("student_school_data").insert([{
-          user_id: session?.user?.id,
-          year: formData.year_other || formData.year || null,
-          academic_strengths: formData.subjects || [],
-          hobbies: formData.hobbies || [],
-          career_interests: formData.career_fields || [],
-          atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
-          confidence: formData.confidence || null,
-          degree_interest: formData.degree_interest || [],
-        }]);
-        if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
-        await supabase.auth.updateUser({ data: { student_type: "high_school" } });
-        generateRecommendations().catch(console.error);
-        navigate("/quiz/loading");
-      }
-
-      if (userType === "university") {
-        const program = formData.program;
-        try {
-          const supported = await fetchSupportedDegree(program.degree_code);
-          if (!supported) {
-            setMessage(UNSUPPORTED_PROGRAM_MESSAGE); setStep(2); setLoading(false); return;
-          }
-          const enrolled = await fetchSupportedEnrolment(session.user.id);
-          if (enrolled?.degree_code !== supported.degree_code) {
-            await changeEnrolledProgram(session.user.id, supported);
-            await saveChoices(session.user.id, formData.specialisations);
-          }
-        } catch {
-          setMessage("We couldn't verify your supported program. Please try again."); setLoading(false); return;
+      const program = formData.program;
+      try {
+        const supported = await fetchSupportedDegree(program.degree_code);
+        if (!supported) {
+          setMessage(UNSUPPORTED_PROGRAM_MESSAGE); setStep(2); setLoading(false); return;
         }
-        const { error } = await supabase.from("student_uni_data").upsert([{
-          user_id: session?.user?.id,
-          degree_stage: "Bachelor's Degree",
-          academic_year: formData.academic_year_other || formData.academic_year || null,
-          degree_field: program.program_name,
-          interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
-          interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
-          hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
-          hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
-        }]);
-        if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
-        await supabase.auth.updateUser({ data: { student_type: "university" } });
-        if (needsTerms) await recordTermsAccepted();
-        clearDraft(draftKey);
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        generateRecommendations(refreshed?.session?.access_token).catch(console.error);
-        navigate("/setup", { replace: true });
+        const enrolled = await fetchSupportedEnrolment(session.user.id);
+        if (enrolled?.degree_code !== supported.degree_code) {
+          await changeEnrolledProgram(session.user.id, supported);
+          await saveChoices(session.user.id, formData.specialisations);
+        }
+      } catch {
+        setMessage("We couldn't verify your supported program. Please try again."); setLoading(false); return;
       }
+      const { error } = await supabase.from("student_uni_data").upsert([{
+        user_id: session?.user?.id,
+        degree_stage: "Bachelor's Degree",
+        academic_year: formData.academic_year_other || formData.academic_year || null,
+        degree_field: program.program_name,
+        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
+        interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
+        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
+        hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
+      }]);
+      if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
+      await supabase.auth.updateUser({ data: { student_type: "university" } });
+      if (needsTerms) await recordTermsAccepted();
+      clearDraft(draftKey);
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      generateRecommendations(refreshed?.session?.access_token).catch(console.error);
+      navigate("/setup", { replace: true });
     } catch {
       setMessage("We couldn't finish saving your setup. Please try again.");
     } finally { setLoading(false); }
   };
 
-  const totalSteps = userType === "high_school" ? 8 : 5;
+  const totalSteps = 5;
 
   return (
     <div className={`w-full ${step === 4 ? "max-w-4xl" : "max-w-xl"}`}>
       <SurveyProgressBar step={step - 1} totalSteps={totalSteps - 1} />
 
-      {/* ── Step 1: User type ── */}
-      {step === 1 && (
-        <div>
-          <StepHeading>Who are you?</StepHeading>
-          <StepSubtitle>This helps us personalise your UniVise experience.</StepSubtitle>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-            {[
-              { type: "high_school", label: "High School Student", desc: "Year 10–12, exploring degrees and ATAR pathways" },
-              { type: "university", label: "University Student", desc: "Enrolled at UNSW, planning courses and careers" },
-            ].map(({ type, label, desc }) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => { setUserType(type); handleNext(); }}
-                className="flex flex-col items-start gap-3 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all duration-200 text-left group"
-              >
-                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                  {type === "high_school"
-                    ? <HiAcademicCap className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                    : <HiBuildingOffice2 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                  }
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-white text-base">{label}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── HIGH SCHOOL FLOW ── */}
-
-      {userType === "high_school" && step === 2 && (
-        <div>
-          <StepHeading>What year are you currently in?</StepHeading>
-          <StepSubtitle>We'll tailor advice to where you are in your studies.</StepSubtitle>
-          <div className="flex flex-col gap-2">
-            {["Year 10", "Year 11", "Year 12", "Other"].map(o => (
-              <OptionButton key={o} label={o} selected={formData.year === o} onClick={() => handleChange("year", o)} />
-            ))}
-          </div>
-          {formData.year === "Other" && (
-            <div className="mt-3">
-              <StyledInput placeholder="Enter your year (e.g., Year 9)" value={formData.year_other || ""} onChange={e => handleChange("year_other", e.target.value)} />
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.year || (formData.year === "Other" && !formData.year_other)} />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 3 && (
-        <div>
-          <StepHeading>What are your favourite subjects?</StepHeading>
-          <StepSubtitle>Select from the list and add them to your profile.</StepSubtitle>
-          <div className="flex gap-2 mb-3">
-            <select
-              value={selectedSubject}
-              onChange={e => setSelectedSubject(e.target.value)}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>Choose a subject</option>
-              {subjectOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedSubject && !formData.subjects?.includes(selectedSubject)) {
-                  handleChange("subjects", [...(formData.subjects || []), selectedSubject]);
-                  setSelectedSubject('');
-                }
-              }}
-              disabled={!selectedSubject || formData.subjects?.includes(selectedSubject)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-              <HiPlus className="w-4 h-4" /> Add
-            </button>
-          </div>
-          {formData.subjects?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.subjects.map(s => <Chip key={s} label={s} onRemove={() => handleChange("subjects", formData.subjects.filter(x => x !== s))} />)}
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.subjects?.length} />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 4 && (
-        <div>
-          <StepHeading>What are your hobbies or interests?</StepHeading>
-          <StepSubtitle>Type anything — sport, music, coding, art, etc.</StepSubtitle>
-          <div className="flex gap-2 mb-3">
-            <StyledInput
-              placeholder="e.g., coding, photography"
-              value={selectedHobby}
-              onChange={e => setSelectedHobby(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedHobby && !formData.hobbies?.includes(selectedHobby)) {
-                  handleChange("hobbies", [...(formData.hobbies || []), selectedHobby]);
-                  setSelectedHobby('');
-                }
-              }}
-              disabled={!selectedHobby}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0"
-            >
-              <HiPlus className="w-4 h-4" /> Add
-            </button>
-          </div>
-          {formData.hobbies?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.hobbies.map(h => <Chip key={h} label={h} onRemove={() => handleChange("hobbies", formData.hobbies.filter(x => x !== h))} />)}
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.hobbies?.length} />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 5 && (
-        <div>
-          <StepHeading>What career fields interest you?</StepHeading>
-          <StepSubtitle>Select all that appeal to you.</StepSubtitle>
-          <div className="flex gap-2 mb-3">
-            <select
-              value={selectedCareerField}
-              onChange={e => setSelectedCareerField(e.target.value)}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>Choose a career field</option>
-              {careerFieldOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedCareerField && !formData.career_fields?.includes(selectedCareerField)) {
-                  handleChange("career_fields", [...(formData.career_fields || []), selectedCareerField]);
-                  setSelectedCareerField('');
-                }
-              }}
-              disabled={!selectedCareerField || formData.career_fields?.includes(selectedCareerField)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-1.5"
-            >
-              <HiPlus className="w-4 h-4" /> Add
-            </button>
-          </div>
-          {formData.career_fields?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.career_fields.map(f => <Chip key={f} label={f} onRemove={() => handleChange("career_fields", formData.career_fields.filter(x => x !== f))} />)}
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.career_fields?.length} />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 6 && (
-        <div>
-          <StepHeading>What's your ATAR situation?</StepHeading>
-          <StepSubtitle>This helps us match you to realistic degree options.</StepSubtitle>
-          <div className="flex flex-col gap-2 mb-4">
-            {[
-              { value: "known", label: "I already know my ATAR" },
-              { value: "goal", label: "I have an ATAR goal in mind" },
-              { value: "unsure", label: "I'm not sure yet" },
-            ].map(({ value, label }) => (
-              <OptionButton key={value} label={label} selected={formData.atar_status === value} onClick={() => handleChange("atar_status", value)} />
-            ))}
-          </div>
-          {formData.atar_status === "known" && (
-            <StyledInput placeholder="Enter your ATAR (e.g. 92.5)" value={formData.atar || ""} onChange={e => handleChange("atar", e.target.value)} />
-          )}
-          {formData.atar_status === "goal" && (
-            <StyledInput placeholder="Enter your ATAR goal (e.g. 85)" value={formData.atar_goal || ""} onChange={e => handleChange("atar_goal", e.target.value)} />
-          )}
-          <NavButtons
-            onPrev={handlePrev} onNext={handleNext}
-            nextDisabled={!formData.atar_status || (formData.atar_status === "known" && !formData.atar) || (formData.atar_status === "goal" && !formData.atar_goal)}
-          />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 7 && (
-        <div>
-          <StepHeading>How confident are you about your future path?</StepHeading>
-          <StepSubtitle>Be honest — there's no wrong answer.</StepSubtitle>
-          <div className="flex flex-col gap-2">
-            {[
-              "Very confident — I know what I want",
-              "Somewhat confident — I have ideas but unsure",
-              "Not confident — I need help figuring it out",
-            ].map(o => (
-              <OptionButton key={o} label={o} selected={formData.confidence === o} onClick={() => handleChange("confidence", o)} />
-            ))}
-          </div>
-          <NavButtons onPrev={handlePrev} onNext={handleNext} nextDisabled={!formData.confidence} />
-        </div>
-      )}
-
-      {userType === "high_school" && step === 8 && (
-        <div>
-          <StepHeading>What degrees interest you?</StepHeading>
-          <StepSubtitle>Select all that appeal — you can always change later.</StepSubtitle>
-          <div className="flex gap-2 mb-3">
-            <select
-              value={selectedDegreeInterest}
-              onChange={e => setSelectedDegreeInterest(e.target.value)}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>Select degree interest</option>
-              {degreeInterestOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedDegreeInterest && !formData.degree_interest?.includes(selectedDegreeInterest)) {
-                  handleChange("degree_interest", [...(formData.degree_interest || []), selectedDegreeInterest]);
-                  setSelectedDegreeInterest('');
-                }
-              }}
-              disabled={!selectedDegreeInterest || formData.degree_interest?.includes(selectedDegreeInterest)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-1.5"
-            >
-              <HiPlus className="w-4 h-4" /> Add
-            </button>
-          </div>
-          {formData.degree_interest?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {formData.degree_interest.map(d => <Chip key={d} label={d} onRemove={() => handleChange("degree_interest", formData.degree_interest.filter(x => x !== d))} />)}
-            </div>
-          )}
-          <NavButtons onPrev={handlePrev} onSubmit={handleSubmit} loading={loading} isLast />
-          {message && <p className="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">{message}</p>}
-        </div>
-      )}
-
-      {/* ── UNIVERSITY FLOW ── */}
-
-      {userType === "university" && step === 2 && (
+      {step === 2 && (
         <div>
           <StepHeading>Which UNSW program are you enrolled in?</StepHeading>
           <StepSubtitle>UniVise currently supports undergraduate Bachelor's programs.</StepSubtitle>
@@ -724,7 +414,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 3 && (
+      {step === 3 && (
         <div>
           <StepHeading>What year of your degree are you in?</StepHeading>
           <StepSubtitle>This helps us suggest the right courses and opportunities.</StepSubtitle>
@@ -737,7 +427,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 4 && (
+      {step === 4 && (
         <div>
           <StepHeading>Which areas interest you most?</StepHeading>
           <StepSubtitle>Select all that apply — helps us find the best career matches.</StepSubtitle>
@@ -769,7 +459,7 @@ function SurveyForm() {
         </div>
       )}
 
-      {userType === "university" && step === 5 && (
+      {step === 5 && (
         <div>
           <StepHeading>What are your hobbies or interests?</StepHeading>
           <StepSubtitle>Optional. Helps Eunice understand what drives you beyond studies.</StepSubtitle>
