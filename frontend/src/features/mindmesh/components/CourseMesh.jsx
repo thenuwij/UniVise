@@ -8,7 +8,6 @@ import useMindMeshData from "../hooks/useMindMeshData";
 import { colorFor } from "../utils/index";
 import MindMeshGraph from "./MindMeshGraph";
 import MindMeshInfoPanel from "./MindMeshInfoPanel";
-import StatusLegend from "./StatusLegend";
 import PicksPanel from "./PicksPanel";
 import CourseMeshTour from "./CourseMeshTour";
 import ElectivesPanel from "./ElectivesPanel";
@@ -19,7 +18,7 @@ import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram"
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
 import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
-import { Plus, X } from "lucide-react";
+import { Info, Plus, X } from "lucide-react";
 import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
 
 export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
@@ -62,7 +61,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
   );
   const isOwnProgram = !!programCode && programCode === enrolled?.degree_code;
   const counts = useMemo(() => {
-    const c = { completed: 0, available: 0, locked: 0 };
+    const c = { completed: 0, available: 0, locked: 0, not_needed: 0 };
     for (const n of graph?.nodes || []) {
       const st = statusOf(n.id);
       if (st in c) c[st] += 1;
@@ -81,6 +80,10 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     await toggleAdded(options.get(pick.code) || { code: pick.code, name: pick.name, uoc: pick.uoc ?? null, section: ADDED_SECTION }, true);
     setPendingFocus(pick.code);
   };
+  const addMissingRef = useRef(null);
+  addMissingRef.current = (code) => addPickToMap({ code, name: options.get(code)?.name || code });
+  const triedAdding = useRef(new Set());
+  const glideRef = useRef(null);
 
   const toggleAdded = async (option, added) => {
     if (!userId || !option || savingAdded) return;
@@ -132,15 +135,22 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
 
   useEffect(() => {
     if (!pendingFocus) return;
-    let glide = null;
+    containerRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
     const timer = setInterval(() => {
-      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.fx));
+      if (graph.nodes.length && !graph.nodes.some((n) => n.id === pendingFocus) && !triedAdding.current.has(pendingFocus)) {
+        triedAdding.current.add(pendingFocus);
+        clearInterval(timer);
+        addMissingRef.current(pendingFocus);
+        return;
+      }
+      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.x));
       if (!node || isAutoLayoutInProgress.current) return;
       clearInterval(timer);
       setPendingFocus(null);
       setShowHint(false);
       graphRef.current?.zoomToFit(500, 80);
-      glide = setTimeout(() => {
+      clearTimeout(glideRef.current);
+      glideRef.current = setTimeout(() => {
         setFocusedNode(node);
         graphRef.current?.centerAt(node.x, node.y, 700);
         graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 700);
@@ -150,9 +160,10 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     return () => {
       clearInterval(timer);
       clearTimeout(stop);
-      clearTimeout(glide);
     };
   }, [pendingFocus, graph]);
+
+  useEffect(() => () => clearTimeout(glideRef.current), []);
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
@@ -368,18 +379,40 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
 
   return (
     <div className="flex flex-col rounded-2xl border border-line bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-      {isOwnProgram && (
+      {(isOwnProgram || graph?.nodes?.length > 0) && (
         <div className="px-4 md:px-5 py-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-line">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {graph?.nodes?.length > 0 &&
-              [["completed", "done"], ["available", "available now"], ["locked", "to go"]].map(([key, text]) => (
-                <span key={key} className="inline-flex items-center gap-2 text-sm text-ink-muted">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS[key].color }} />
-                  <span className="font-bold text-ink-strong">{counts[key]}</span> {text}
+              [["completed", "Completed"], ["available", "Can take next"], ["locked", "Not yet"], ["not_needed", "Not needed"]]
+                .filter(([key]) => key !== "not_needed" || counts.not_needed > 0)
+                .map(([key, text]) => (
+                  <span key={key} className="inline-flex items-center gap-2 text-sm text-ink-muted">
+                    <span className="h-2.5 w-2.5 rounded-full" style={key === "not_needed" ? { border: `1.5px dashed ${STATUS[key].color}` } : { backgroundColor: STATUS[key].color }} />
+                    <span className="font-bold text-ink-strong">{counts[key]}</span> {text}
+                  </span>
+                ))}
+            {graph?.nodes?.length > 0 && (
+              <span className="group relative inline-flex">
+                <button type="button" aria-label="Colour key" className="inline-flex rounded-full text-slate-600 hover:text-link focus-visible:text-link dark:text-slate-300">
+                  <Info className="h-[18px] w-[18px]" aria-hidden="true" />
+                </button>
+                <span role="tooltip" className="invisible absolute left-1/2 top-full z-30 mt-2 w-72 max-w-[80vw] -translate-x-1/2 rounded-xl border border-line bg-white p-4 opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:bg-slate-900">
+                  <span className="block space-y-2">
+                    {Object.entries(STATUS).map(([key, { label, color }]) => (
+                      <span key={key} className="flex items-center gap-2 text-sm text-ink-strong">
+                        <span className="h-3 w-3 flex-shrink-0 rounded-full" style={key === "not_needed" ? { border: `1.5px dashed ${color}` } : { backgroundColor: color }} />
+                        {label}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="mt-3 block border-t border-line pt-3 text-xs leading-relaxed text-ink-muted">
+                    Based on prerequisites and the courses you marked as done. UOC and program rules are checked in myPlan.
+                  </span>
                 </span>
-              ))}
+              </span>
+            )}
           </div>
-          <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
+          {isOwnProgram && <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
             <button
               onClick={onOpenCourses}
               className="px-2 py-2 text-sm font-semibold text-link underline-offset-4 hover:underline"
@@ -393,7 +426,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
               <Plus className="h-4 w-4" strokeWidth={2.5} />
               Add courses
             </button>
-          </div>
+          </div>}
         </div>
       )}
 
@@ -455,8 +488,6 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
               </div>
             </div>
           )}
-
-          {graph?.nodes?.length > 0 && <StatusLegend />}
 
           {graph?.nodes?.length > 0 && !focusedNode && (
             <p className="absolute bottom-3 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium text-slate-500 dark:text-slate-400 bg-white/90 dark:bg-slate-900/90 border border-line pointer-events-none">

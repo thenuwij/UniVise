@@ -16,7 +16,7 @@ export default function ExpandToggle({ open, onClick, children, wide = false, la
     return (
       <Tag
         {...(Tag === "button" ? { type: "button", onClick, "aria-expanded": open } : {})}
-        className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+        className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[15px] font-semibold text-link shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800 transition-colors"
       >
         {children}
         <ChevronDown aria-hidden="true" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />

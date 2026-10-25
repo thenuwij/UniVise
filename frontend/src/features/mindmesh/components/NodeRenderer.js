@@ -36,6 +36,7 @@ export function nodeCanvasObject(node, ctx, state) {
     node.level ||
     node.metadata?.level ||
     (node.id?.match(/\d/) ? parseInt(node.id.match(/\d/)[0]) : null);
+  const notNeeded = statusOf?.(node.id) === "not_needed";
   const base = STATUS[statusOf?.(node.id)]?.color || getLevelColor(level) || colorFor(node.type);
   let color = base;
 
@@ -71,8 +72,8 @@ export function nodeCanvasObject(node, ctx, state) {
   const w = textW + padX * 2;
 
   // Gradient background
-  let fill = color;
-  if (Number.isFinite(node.x) && Number.isFinite(node.y)) {
+  let fill = notNeeded ? "rgba(148, 163, 184, 0.12)" : color;
+  if (!notNeeded && Number.isFinite(node.x) && Number.isFinite(node.y)) {
     const grad = ctx.createLinearGradient(node.x, node.y - h / 2, node.x, node.y + h / 2);
     grad.addColorStop(0, lighten(color, 10));
     grad.addColorStop(1, darken(color, 10));
@@ -86,6 +87,14 @@ export function nodeCanvasObject(node, ctx, state) {
   roundRect(ctx, node.x - w / 2, node.y - h / 2, w, h, radius);
   ctx.fill();
 
+  if (notNeeded) {
+    ctx.setLineDash([5, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
   if (isPick?.(node.id)) {
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#F59E0B";
@@ -98,8 +107,8 @@ export function nodeCanvasObject(node, ctx, state) {
   ctx.textBaseline = "middle";
 
   ctx.font = `600 ${titleSize}px Inter, system-ui, -apple-system`;
-  ctx.fillStyle = "white";
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.fillStyle = notNeeded ? "#64748B" : "white";
+  ctx.shadowColor = notNeeded ? "transparent" : "rgba(0,0,0,0.45)";
   ctx.shadowBlur = 2;
   ctx.shadowOffsetY = 1;
   const titleY = node.y - (sub ? (subSize + gapY) / 2 : 0);
@@ -108,8 +117,8 @@ export function nodeCanvasObject(node, ctx, state) {
   // Subtext
   if (sub) {
     ctx.font = `500 ${subSize}px Inter, system-ui, -apple-system`;
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.shadowColor = "rgba(0,0,0,0.4)";
+    ctx.fillStyle = notNeeded ? "#64748B" : "rgba(255,255,255,0.95)";
+    ctx.shadowColor = notNeeded ? "transparent" : "rgba(0,0,0,0.4)";
     ctx.shadowBlur = 1.5;
     ctx.shadowOffsetY = 1;
     const subY = node.y + (titleSize + gapY) / 2;

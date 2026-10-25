@@ -1,15 +1,15 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { BriefcaseBusiness, ChevronDown, ExternalLink } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
 const pill = (active) =>
-  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+  `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? "bg-blue-50 text-blue-800 ring-1 ring-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-800"
-      : "text-ink-muted ring-1 ring-line hover:bg-surface-tint hover:text-ink-strong"
+      ? "bg-blue-600 text-white dark:bg-blue-500"
+      : "bg-white text-ink-strong shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
 function Message({ title, children, action }) {
@@ -26,7 +26,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
   const unlocks = pick.unlocks?.length || 0;
   const meta = [pick.core && "Core", unlocks > 0 && `Unlocks ${unlocks} course${unlocks === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
   return (
-    <li className="py-5">
+    <li className="rounded-2xl bg-gradient-to-b from-white to-slate-50 p-5 shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-900/60 dark:ring-slate-800">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-lg font-semibold leading-snug text-ink-strong">
@@ -40,7 +40,13 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <p className="mt-3 text-[15px] text-ink-strong"><span className="text-ink-muted">Builds </span>{pick.skills.join(", ")}</p>
       )}
       {pick.careers?.length > 0 && (
-        <p className="mt-1 text-[15px] text-ink-strong"><span className="text-ink-muted">For </span>{pick.careers.join(", ")}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {pick.careers.map((name) => (
+            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+              <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
+            </span>
+          ))}
+        </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
         <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="text-link hover:underline">
@@ -120,14 +126,14 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
             <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
             {careers.map((name) => (
               <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
-                {name}
+                <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
               </button>
             ))}
           </div>
         </div>
       )}
       {shown.length > 0 ? (
-        <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="mt-5 space-y-4">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
@@ -136,12 +142,14 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
       )}
       {others.length > 0 && (
-        <details className="group mt-4 border-y border-slate-200 dark:border-slate-800">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-[15px] font-semibold text-ink-strong hover:text-link">
-            {others.length} other course{others.length === 1 ? "" : "s"} you can take
-            <ChevronDown className="h-5 w-5 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+        <details className="group mt-6">
+          <summary className="cursor-pointer list-none inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[15px] font-semibold text-link shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800 transition-colors">
+            <span>
+              <span className="group-open:hidden">Show</span><span className="hidden group-open:inline">Hide</span> {others.length} other course{others.length === 1 ? "" : "s"} you can take
+            </span>
+            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
-          <ul className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
             {others.map((course) => (
               <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <span className="text-[15px] text-ink-strong">
@@ -161,10 +169,6 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
           </ul>
         </details>
       )}
-      <p className="mt-5 text-[15px] text-ink-muted">
-        Missing a course you've finished?{" "}
-        <button type="button" onClick={onOpenCourses} className="font-semibold text-link hover:underline">Update my courses</button>
-      </p>
     </div>
   );
 }
