@@ -446,7 +446,7 @@ function SurveyForm() {
         clearDraft(draftKey);
         const { data: refreshed } = await supabase.auth.refreshSession();
         generateRecommendations(refreshed?.session?.access_token).catch(console.error);
-        navigate("/dashboard", { replace: true });
+        navigate("/setup", { replace: true });
       }
     } catch {
       setMessage("We couldn't finish saving your setup. Please try again.");
