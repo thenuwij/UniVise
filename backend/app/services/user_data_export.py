@@ -21,6 +21,7 @@ USER_TABLES = [
     "student_school_data",
     "student_uni_data",
     "unsw_roadmap",
+    "user_career_certifications",
     "user_completed_courses",
     "user_course_picks",
     "user_custom_courses",
