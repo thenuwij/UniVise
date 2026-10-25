@@ -21,7 +21,7 @@ function HeroStat({ value, label, to, linkText }) {
       ) : (
         <p className={`${display} text-[34px] font-extrabold leading-none`}>{value}</p>
       )}
-      <p className="mt-2 text-sm text-blue-100">
+      <p className="mt-2 text-base text-blue-100">
         {label} · <Link to={to} className="font-semibold text-white underline-offset-4 hover:underline">{linkText} ›</Link>
       </p>
     </div>
@@ -55,7 +55,7 @@ function Hero({ greeting, today, dayLine, facts, picks, onHelp }) {
           {ticked ? (
             <HeroStat value={picks ? picks.available : undefined} label="courses open to you" to={roadmapStepUrl("coursemesh")} linkText="CourseMesh" />
           ) : (
-            <p className="self-end text-sm text-blue-100">
+            <p className="self-end text-base text-blue-100">
               New here? <Link to={roadmapViewUrl("degree")} className="font-semibold text-white underline-offset-4 hover:underline">Check out My Program ›</Link>
             </p>
           )}
@@ -69,7 +69,7 @@ function SectionHead({ id, title, to, linkText }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <h2 id={id} className={`${display} text-[22px] font-bold text-ink-strong`}>{title}</h2>
-      {to && <Link to={to} className="text-sm font-semibold text-link hover:underline">{linkText}</Link>}
+      {to && <Link to={to} className="text-base font-semibold text-link hover:underline">{linkText}</Link>}
     </div>
   );
 }
