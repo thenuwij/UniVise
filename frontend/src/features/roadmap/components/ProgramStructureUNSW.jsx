@@ -21,12 +21,12 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="course-tick"][aria-checked="false"]', '[data-tour="course-tick"]'],
     title: "Tick what you've done",
-    text: "Tick the box next to each course you've finished. Each part shows how much is left.",
+    text: "Tick each course you've finished. Each part shows what's left.",
   },
   {
     targets: ['[data-tour="coursemesh-strip"]'],
     title: "See what's next",
-    text: "CourseMesh shows what your ticked courses unlock and which ones you can take next.",
+    text: "See what your ticked courses unlock in CourseMesh.",
   },
 ];
 

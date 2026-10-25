@@ -4,14 +4,11 @@ import { ArrowBigDown, ArrowLeft, ArrowRight, Check, Hand, Mouse, MousePointer2,
 import { markGuideSeen } from "../utils/onboarding";
 
 const STEPS = [
-  { target: "node", title: "This is a course", text: "Each box is a course. Green means done, blue you can take next, grey not yet. Lines lead to the courses it unlocks." },
-  { target: "graph", inside: true, title: "Try it: zoom and move", text: "Zoom in or out, then drag an empty spot to move the map.", waitFor: "zoom-pan", demo: "both" },
-  { target: "node", title: "Try it: click a course", text: "Click this course, or any other box, to see what it needs.", waitFor: "course", demo: "click" },
-  { target: "course-card", title: "What a course needs", text: "Ticks show what you've already done. Press Mark as done when you finish a course." },
-  { target: "node", title: "Try it: double-click a course", text: "Double-click opens the courses it needs, one level deeper.", waitFor: "expand", demo: "dblclick" },
-  { target: "view-tools", title: "Find your way back", text: "Undo steps back and Reset view returns to the full map. Fit to screen brings every course into view, and Arrange by level lines them up from level 1 to 4." },
-  { target: "suggested", title: "Suggested next", text: "Courses that fit your goals. Open it any time." },
-  { target: "plan-actions", title: "Keep your plan up to date", text: "Tick finished courses in My Program, and add any course you plan to take." },
+  { target: "node", title: "This is a course", text: "Green is done, blue you can take next, grey not yet." },
+  { target: "node", title: "Try it: click a course", text: "Click any course to see what it needs.", waitFor: "course", demo: "click" },
+  { target: "course-card", title: "What it needs", text: "Ticks show what you've done. Press Mark as done when you finish it." },
+  { target: "view-tools", title: "Find your way back", text: "Undo, Reset view and Fit to screen bring the full map back." },
+  { target: "plan-actions", title: "Keep it up to date", text: "Tick finished courses and add courses you plan to take." },
 ];
 
 const CARD_W = 320;

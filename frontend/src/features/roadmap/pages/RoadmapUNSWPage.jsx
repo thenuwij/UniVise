@@ -31,10 +31,10 @@ const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold t
 const DEFAULT_PROGRAM_NAME = "";
 const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
-  structure: "Tick the courses you've completed to see your prerequisite map and what to take next. Use the section menu on the left, or the bar above the content on mobile, to switch sections any time.",
-  next: "See the courses you can take now, the skills each one builds and the careers it helps.",
-  coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
-  societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
+  structure: "Tick the courses you've finished. Use these tabs to switch sections.",
+  next: "Courses you can take now, with the skills and careers each one builds.",
+  coursemesh: "A map of how your courses connect and what they unlock.",
+  societies: "Student societies and professional groups for your degree.",
 };
 const sectionGuideSteps = (steps) => steps.map(({ key, title }) => ({
   targets: [`[data-tour="roadmap-section-${key}"]`],
