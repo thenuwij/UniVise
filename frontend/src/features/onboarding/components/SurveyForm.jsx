@@ -1,3 +1,4 @@
+import { fetchSupportedDegree, fetchSupportedEnrolment, isSupportedProgram, UNSUPPORTED_PROGRAM_MESSAGE } from "../utils/supportedProgram";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
@@ -10,7 +11,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { apiFetch } from "@/shared/lib/api";
 import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { cleanText } from "@/shared/lib/cleanText";
-import { saveEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
+import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
 import { saveChoices } from "@/features/roadmap/utils/programCourses";
 import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
@@ -170,20 +171,28 @@ const OTHER_MAX = 60;
 const STILL_EXPLORING = "I'm still exploring";
 const STILL_FIGURING = "Still figuring it out";
 
-const NON_BACHELOR = /^(Diploma|Undergraduate Certificate)|Preparation|Preparatory|Pathway Program/i;
 
 function ProgramPicker({ value, onSelect }) {
   const [programs, setPrograms] = useState([]);
   const [query, setQuery] = useState("");
+  const [programsLoading, setProgramsLoading] = useState(true);
+  const [programsError, setProgramsError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
+    setProgramsLoading(true);
+    setProgramsError(false);
     supabase
       .from("unsw_degrees_final")
-      .select("id, degree_code, program_name")
+      .select("id, degree_code, program_name, is_offered")
       .eq("is_offered", true)
       .order("program_name")
-      .then(({ data }) => setPrograms((data || []).filter(p => !NON_BACHELOR.test(p.program_name))));
-  }, []);
+      .then(({ data, error }) => { if (!active) return; if (error) { setProgramsError(true); } else { setPrograms((data || []).filter(isSupportedProgram)); } })
+      .catch(() => { if (active) setProgramsError(true); })
+      .finally(() => { if (active) setProgramsLoading(false); });
+    return () => { active = false; };
+  }, [loadAttempt]);
 
   const matches = useMemo(() => {
     const shortName = name => name.replace(/bachelor of /gi, "").trim().toLowerCase();
@@ -243,7 +252,9 @@ function ProgramPicker({ value, onSelect }) {
           />
         ))}
       </div>
-      {query.trim() && programs.length > 0 && !matches.length && (
+      {programsLoading && <p role="status" className="mt-3 text-sm text-ink-muted">Loading supported programs…</p>}
+      {programsError && <p role="alert" className="mt-3 text-sm text-ink-muted">We couldn't load the supported list. <button type="button" onClick={() => setLoadAttempt((value) => value + 1)} className="font-semibold text-link">Try again</button></p>}
+      {!programsLoading && !programsError && query.trim() && !matches.length && (
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">No matching programs.</p>
       )}
     </div>
@@ -269,12 +280,18 @@ function clearDraft(key) {
 }
 
 function SurveyForm() {
-  const { session } = UserAuth();
+  const { session, signOut } = UserAuth();
   const draftKey = `univise-survey-draft-${session?.user?.id}`;
   const navigate = useNavigate();
-  const [step, setStep] = useState(() => readDraft(draftKey).step ?? 2);
+  const [step, setStep] = useState(() => {
+    const draft = readDraft(draftKey);
+    return isSupportedProgram(draft.formData?.program) && !draft.formData?.program_not_listed ? Math.max(2, Math.min(7, draft.step || 2)) : 2;
+  });
   const [userType, setUserType] = useState("university");
-  const [formData, setFormData] = useState(() => readDraft(draftKey).formData ?? {});
+  const [formData, setFormData] = useState(() => {
+    const draft = readDraft(draftKey).formData || {};
+    return { ...draft, program: !draft.program_not_listed && isSupportedProgram(draft.program) ? draft.program : null, program_not_listed: false, program_other: "" };
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -327,26 +344,35 @@ function SurveyForm() {
   const startedRef = useRef({ program: null, build: null });
 
   const handleProgramNext = async () => {
-    handleNext();
-    const program = formData.program_not_listed ? null : formData.program;
+    if (loading) return;
+    const program = formData.program;
     const userId = session?.user?.id;
-    if (needsTerms && userId) await recordTermsAccepted();
-    if (!program || !userId) return;
+    if (!isSupportedProgram(program) || !userId || (needsTerms && !formData.terms_agreed)) return;
+    setLoading(true);
+    setMessage("");
     try {
+      const supported = await fetchSupportedDegree(program.degree_code);
+      if (!supported) {
+        setMessage(UNSUPPORTED_PROGRAM_MESSAGE);
+        setFormData((previous) => ({ ...previous, program: null, specialisations: {} }));
+        return;
+      }
+      if (needsTerms) await recordTermsAccepted();
       if (startedRef.current.program !== program.degree_code) {
-        await saveEnrolledProgram(userId, program);
+        const existing = await fetchSupportedEnrolment(userId);
+        if (existing?.degree_code !== program.degree_code) await changeEnrolledProgram(userId, supported);
         startedRef.current.program = program.degree_code;
       }
       await saveChoices(userId, formData.specialisations);
-    } catch (err) {
-      console.error("Error saving program:", err);
-      return;
-    }
-    const buildKey = JSON.stringify([program.degree_code, Object.values(formData.specialisations || {}).map(s => s?.id || null)]);
-    if (startedRef.current.build === buildKey) return;
-    startedRef.current.build = buildKey;
-    buildRoadmap({ degreeId: program.id, accessToken: session?.access_token })
-      .catch(err => console.error("Background roadmap failed:", err));
+      handleNext();
+      const buildKey = JSON.stringify([program.degree_code, Object.values(formData.specialisations || {}).map((spec) => spec?.id || null)]);
+      if (startedRef.current.build !== buildKey) {
+        startedRef.current.build = buildKey;
+        buildRoadmap({ degreeId: program.id, accessToken: session?.access_token }).catch((error) => console.error("Background roadmap failed:", error));
+      }
+    } catch {
+      setMessage("We couldn't confirm and save your program. Please try again before continuing.");
+    } finally { setLoading(false); }
   };
   const handlePrev = () => setStep(s => s - 1);
   const needsTerms = !session?.user?.user_metadata?.terms_accepted_at;
@@ -369,46 +395,68 @@ function SurveyForm() {
   };
 
   const handleSubmit = async () => {
+    if (userType === "university" && !isSupportedProgram(formData.program)) {
+      setMessage(UNSUPPORTED_PROGRAM_MESSAGE);
+      setStep(2);
+      return;
+    }
     setLoading(true);
-    if (userType === "high_school") {
-      const { error } = await supabase.from("student_school_data").insert([{
-        user_id: session?.user?.id,
-        year: formData.year_other || formData.year || null,
-        academic_strengths: formData.subjects || [],
-        hobbies: formData.hobbies || [],
-        career_interests: formData.career_fields || [],
-        atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
-        confidence: formData.confidence || null,
-        degree_interest: formData.degree_interest || [],
-      }]);
-      if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
-      await supabase.auth.updateUser({ data: { student_type: "high_school" } });
-      generateRecommendations().catch(console.error);
-      navigate("/quiz/loading");
-    }
+    try {
+      if (userType === "high_school") {
+        const { error } = await supabase.from("student_school_data").insert([{
+          user_id: session?.user?.id,
+          year: formData.year_other || formData.year || null,
+          academic_strengths: formData.subjects || [],
+          hobbies: formData.hobbies || [],
+          career_interests: formData.career_fields || [],
+          atar: formData.atar ? parseFloat(formData.atar) : formData.atar_goal ? parseFloat(formData.atar_goal) : null,
+          confidence: formData.confidence || null,
+          degree_interest: formData.degree_interest || [],
+        }]);
+        if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
+        await supabase.auth.updateUser({ data: { student_type: "high_school" } });
+        generateRecommendations().catch(console.error);
+        navigate("/quiz/loading");
+      }
 
-    if (userType === "university") {
-      const program = formData.program_not_listed ? null : formData.program;
-      const { error } = await supabase.from("student_uni_data").insert([{
-        user_id: session?.user?.id,
-        degree_stage: "Bachelor's Degree",
-        academic_year: formData.academic_year_other || formData.academic_year || null,
-        degree_field: program?.program_name || cleanText(formData.program_other, 150) || null,
-        interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
-        interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
-        priorities: formData.priorities || [],
-        work_style: formData.work_style || [],
-        hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
-        hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
-      }]);
-      if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
-      await supabase.auth.updateUser({ data: { student_type: "university" } });
-      if (needsTerms) await recordTermsAccepted();
-      clearDraft(draftKey);
-      const { data: refreshed } = await supabase.auth.refreshSession();
-      generateRecommendations(refreshed?.session?.access_token).catch(console.error);
-      navigate("/dashboard", { replace: true });
-    }
+      if (userType === "university") {
+        const program = formData.program;
+        try {
+          const supported = await fetchSupportedDegree(program.degree_code);
+          if (!supported) {
+            setMessage(UNSUPPORTED_PROGRAM_MESSAGE); setStep(2); setLoading(false); return;
+          }
+          const enrolled = await fetchSupportedEnrolment(session.user.id);
+          if (enrolled?.degree_code !== supported.degree_code) {
+            await changeEnrolledProgram(session.user.id, supported);
+            await saveChoices(session.user.id, formData.specialisations);
+          }
+        } catch {
+          setMessage("We couldn't verify your supported program. Please try again."); setLoading(false); return;
+        }
+        const { error } = await supabase.from("student_uni_data").upsert([{
+          user_id: session?.user?.id,
+          degree_stage: "Bachelor's Degree",
+          academic_year: formData.academic_year_other || formData.academic_year || null,
+          degree_field: program.program_name,
+          interest_areas: (formData.interest_areas || []).map(a => a === "Other" ? `Other: ${cleanText(formData.interest_areas_other, OTHER_MAX)}` : a),
+          interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
+          priorities: formData.priorities || [],
+          work_style: formData.work_style || [],
+          hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
+          hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
+        }]);
+        if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
+        await supabase.auth.updateUser({ data: { student_type: "university" } });
+        if (needsTerms) await recordTermsAccepted();
+        clearDraft(draftKey);
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        generateRecommendations(refreshed?.session?.access_token).catch(console.error);
+        navigate("/dashboard", { replace: true });
+      }
+    } catch {
+      setMessage("We couldn't finish saving your setup. Please try again.");
+    } finally { setLoading(false); }
   };
 
   const totalSteps = userType === "high_school" ? 8 : 7;
@@ -660,31 +708,18 @@ function SurveyForm() {
         <div>
           <StepHeading>Which UNSW program are you enrolled in?</StepHeading>
           <StepSubtitle>UniVise currently supports undergraduate Bachelor's programs.</StepSubtitle>
-          {!formData.program_not_listed && (
-            <ProgramPicker value={formData.program} onSelect={p => setFormData(f => ({ ...f, program: p, specialisations: {} }))} />
+          <ProgramPicker value={formData.program} onSelect={(program) => { setMessage(""); setFormData((previous) => ({ ...previous, program, specialisations: {} })); }} />
+          {formData.program && (
+            <SpecialisationPicker key={formData.program.degree_code} degreeCode={formData.program.degree_code} value={formData.specialisations} onChange={(value) => handleChange("specialisations", value)} />
           )}
-          {!formData.program_not_listed && formData.program && (
-            <SpecialisationPicker
-              key={formData.program.degree_code}
-              degreeCode={formData.program.degree_code}
-              value={formData.specialisations}
-              onChange={v => handleChange("specialisations", v)}
-            />
-          )}
-          {!formData.program && (
-            <div className="mt-3">
-              <OptionButton
-                label="My program isn't listed"
-                selected={!!formData.program_not_listed}
-                onClick={() => setFormData(f => ({ ...f, program_not_listed: !f.program_not_listed, program: null }))}
-              />
-            </div>
-          )}
-          {formData.program_not_listed && (
-            <div className="mt-3">
-              <StyledInput placeholder="Enter your program name" value={formData.program_other || ""} onChange={e => handleChange("program_other", e.target.value)} />
-            </div>
-          )}
+          <div className="mt-5 rounded-xl border border-line bg-slate-50 p-4 dark:bg-slate-900">
+            <p className="text-sm font-semibold text-ink-strong">Can't find your degree?</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">UniVise doesn't support it yet, so you can't use UniVise for now.</p>
+            <button type="button" onClick={signOut} className="button-secondary mt-3 rounded-lg px-4 py-2 text-sm font-semibold">
+              Sign out
+            </button>
+          </div>
+          {message && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{message}</p>}
           {needsTerms && (
             <div className="mt-6 flex items-start gap-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4">
               <input
@@ -710,7 +745,8 @@ function SurveyForm() {
           )}
           <NavButtons
             onNext={handleProgramNext}
-            nextDisabled={(formData.program_not_listed ? !formData.program_other?.trim() : !formData.program) || (needsTerms && !formData.terms_agreed)}
+            loading={loading}
+            nextDisabled={loading || !isSupportedProgram(formData.program) || (needsTerms && !formData.terms_agreed)}
           />
         </div>
       )}
