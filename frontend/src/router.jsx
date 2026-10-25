@@ -9,7 +9,7 @@ import SetupPage from "./features/onboarding/pages/SetupPage";
 import HomePage from "./features/home/pages/HomePage";
 import PrivateRoute from "./app/PrivateRoute";
 import EunicePage from './features/eunice/pages/EunicePage';
-import ProfilePage from './features/profile/pages/ProfilePage';
+import AccountPage from './features/account/pages/AccountPage';
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
@@ -30,7 +30,7 @@ export const router = createBrowserRouter([
   { path: "/setup", element: <PrivateRoute requireProgram={false}><SetupPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><HomePage/></PrivateRoute>},
   { path: "/chat/:conversationId?", element: <PrivateRoute><EunicePage /></PrivateRoute>},
-  { path: "/profile", element: <PrivateRoute requireProgram={false}><ProfilePage/></PrivateRoute>},
+  { path: "/profile", element: <PrivateRoute requireProgram={false}><AccountPage/></PrivateRoute>},
   { path: "/handbook", element: <HandbookRedirect /> },
   { path: "/explore-by-degree", element: <HandbookRedirect /> },
   { path: "/explore-by-specialisation", element: <HandbookRedirect /> },

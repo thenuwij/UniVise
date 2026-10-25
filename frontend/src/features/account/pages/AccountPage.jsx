@@ -179,7 +179,7 @@ function Avatar({ url, name }) {
   );
 }
 
-function ProfilePage() {
+function AccountPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
@@ -441,4 +441,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage;
+export default AccountPage;
