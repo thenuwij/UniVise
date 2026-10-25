@@ -1,18 +1,14 @@
 """Tests for the university-only guard.
 
 The high-school flow is closed: its student type is refused before any
-database or AI work, and the school roadmap endpoint refuses every caller.
+database or AI work.
 """
 import asyncio
 from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
-from app.core.auth import get_current_user
-from app.main import app
-from app.routers import roadmap
 from app.services import user_profile
 from app.services.user_profile import UNIVERSITY_ONLY, get_student_type
 
@@ -75,25 +71,3 @@ def test_high_school_account_found_by_lookup_is_still_refused(monkeypatch):
 
     assert exc.value.status_code == 403
 
-
-@pytest.mark.parametrize("student_type", ["university", "high_school"])
-def test_school_roadmap_is_refused_without_ai_call(monkeypatch, student_type):
-    calls = []
-
-    async def gather(*args):
-        calls.append("gather")
-
-    async def generate(*args):
-        calls.append("generate")
-
-    monkeypatch.setattr(roadmap, "gather_school_context", gather)
-    monkeypatch.setattr(roadmap, "ai_generate_school_payload", generate)
-    app.dependency_overrides[get_current_user] = lambda: user_with_type(student_type)
-    try:
-        response = TestClient(app).post("/roadmap/school", json={"degree_name": "Bachelor of Science"})
-    finally:
-        app.dependency_overrides.clear()
-
-    assert response.status_code == 403
-    assert response.json() == {"detail": UNIVERSITY_ONLY}
-    assert calls == []

@@ -1,11 +1,6 @@
 from pydantic import BaseModel, Field, create_model
 from typing import Optional, Any, Dict, Literal
 
-class SchoolReq(BaseModel):
-    recommendation_id: Optional[str] = None
-    degree_name: Optional[str] = None
-    country: Optional[str] = "AU"
-
 class UNSWReq(BaseModel):
     degree_id: Optional[str] = None
     uac_code: Optional[str] = None

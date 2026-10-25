@@ -6,42 +6,13 @@ from app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
-from app.models.roadmap import SchoolReq, UNSWReq, RoadmapResp
+from app.models.roadmap import UNSWReq, RoadmapResp
 from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
 from app.services.roadmap.common import ensure
-from app.services.roadmap.school import gather_school_context, ai_generate_school_payload, generate_and_update_school_careers
 from app.services.roadmap.unsw import gather_unsw_context, ai_generate_unsw_payload
 from app.services.roadmap.industry import generate_and_update_all_industry
-from app.services.user_profile import UNIVERSITY_ONLY
 
 router = APIRouter(tags=["roadmap"])
-
-# Generate roadmap for high school students
-@router.post("/school", response_model=RoadmapResp)
-async def create_school(body: SchoolReq, user=Depends(get_current_user)):
-    import asyncio
-
-    raise HTTPException(status_code=403, detail=UNIVERSITY_ONLY)
-    ensure(bool(body.recommendation_id or body.degree_name), "Provide recommendation_id or degree_name.")
-    ctx = await gather_school_context(user.id, body)
-    payload = await ai_generate_school_payload(ctx)
-    try:
-        ins = (
-            supabase.table("school_roadmap")
-            .insert({"user_id": user.id, "degree_name": ctx.get("degree_name"), "mode": "school", "payload": payload})
-            .execute()
-        )
-    except Exception as e:
-        logger.exception(f"School roadmap insert failed for user {user.id}: {e}")
-        raise HTTPException(status_code=500, detail="Could not save the roadmap. Please try again.")
-    if not ins.data:
-        raise HTTPException(status_code=500, detail="Roadmap insert returned no data")
-    rec = ins.data[0]
-
-    # Trigger background task for careers
-    asyncio.create_task(generate_and_update_school_careers(rec["id"], ctx))
-    
-    return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 # Generate roadmap for UNSW students, triggers background tasks for societies/careers
 @router.post("/unsw", response_model=RoadmapResp)
