@@ -611,6 +611,19 @@ h3 {
   animation: slide-right 1.5s ease-in-out infinite;
 }
 
+@keyframes loading-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.animate-loading-slide {
+  animation: loading-slide 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-loading-slide { animation: none; }
+}
+
 /* ========================================
    CTA BUTTON PULSE — gently scales to prompt click
 ======================================== */

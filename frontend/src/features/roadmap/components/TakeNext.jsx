@@ -103,7 +103,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
     return (
       <div role="status" className="space-y-3">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-          <div className="h-full w-1/3 animate-pulse rounded-full bg-blue-500" />
+          <div className="h-full w-1/3 animate-loading-slide rounded-full bg-blue-500" />
         </div>
         <p className="text-[15px] text-ink-muted">Finding the courses you can take next and how they fit your careers.</p>
       </div>
