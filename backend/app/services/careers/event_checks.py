@@ -22,11 +22,11 @@ LIST_PATH = re.compile(r"/(events|news-events|events-webinars-and-courses|calend
 
 
 def event_date(date_label: str, today: date) -> date | None:
-    match = re.search(r"(\d{1,2})\s+([A-Za-z]{3})", date_label or "")
+    match = re.search(r"(\d{1,2})\s+([A-Za-z]{3})[a-z]*(?:[,\s]+(20\d{2}))?", date_label or "", re.I)
     if not match or match.group(2).lower() not in MONTHS:
         return None
     month = MONTHS.index(match.group(2).lower()) + 1
-    year = today.year if month >= today.month else today.year + 1
+    year = int(match.group(3)) if match.group(3) else today.year if month >= today.month else today.year + 1
     try:
         return date(year, month, int(match.group(1)))
     except ValueError:
@@ -38,7 +38,10 @@ def is_list_page(url: str) -> bool:
 
 
 def upcoming(item: Dict[str, Any], today: date) -> bool:
-    when = event_date(item.get("date_label"), today)
+    try:
+        when = date.fromisoformat(item["event_date"]) if item.get("event_date") else event_date(item.get("date_label"), today)
+    except (ValueError, TypeError):
+        return False
     return when is not None and when > today
 
 
@@ -57,7 +60,10 @@ def as_calendar(item: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def check_events(items: List[Dict[str, Any]], today: date) -> List[Dict[str, Any]]:
-    events = [item for item in items if not is_list_page(item.get("url")) and upcoming(item, today)]
+    events = [
+        {**item, "event_date": item.get("event_date") or event_date(item.get("date_label"), today).isoformat()}
+        for item in items if not is_list_page(item.get("url")) and upcoming(item, today)
+    ]
     calendars = [as_calendar(item) for item in items if is_list_page(item.get("url"))]
     candidates = events + calendars
     async with httpx.AsyncClient(timeout=15, follow_redirects=True, headers=HEADERS) as client:
