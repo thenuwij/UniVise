@@ -5,7 +5,6 @@
     "src/features/roadmap/components/EntryRequirementsUnsw.jsx",
     "src/features/roadmap/components/CapstoneHonours.jsx",
     "src/features/roadmap/components/DegreeRequirements.jsx",
-    "src/features/dashboard/components/AtAGlance.jsx",
-    "src/features/recommendations/pages/RecommendationPage.jsx"
+    "src/features/dashboard/components/AtAGlance.jsx"
   ]
 }

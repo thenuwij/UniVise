@@ -4,8 +4,6 @@ import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
-import { RecommendationTable } from "@/features/recommendations/components/RecommendationTable";
-import { RANKED_CAREER_RECOMMENDATIONS_ENABLED } from "@/shared/lib/featureFlags";
 import { UserAuth } from "@/app/AuthContext";
 import DashboardHome from "../components/DashboardHome";
 import ProgramCard from "../components/ProgramCard";
@@ -115,11 +113,6 @@ export default function DashboardPage() {
             </div>
             <ProgramCard facts={facts} />
           </>
-        )}
-        {RANKED_CAREER_RECOMMENDATIONS_ENABLED && (
-          <div className="mt-10">
-            <RecommendationTable />
-          </div>
         )}
       </main>
     </div>
