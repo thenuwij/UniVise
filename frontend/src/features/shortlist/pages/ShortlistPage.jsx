@@ -24,7 +24,7 @@ import {
 const control =
   "rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-export default function SavedItemsPage() {
+export default function ShortlistPage() {
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const [isOpen, setIsOpen] = useState(false);

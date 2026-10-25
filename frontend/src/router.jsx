@@ -14,7 +14,7 @@ import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
-import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
+import ShortlistPage from "./features/shortlist/pages/ShortlistPage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
 
 
@@ -45,7 +45,7 @@ export const router = createBrowserRouter([
   { path: "/specialisation/major/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/minor/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/honours/:id", element: <HandbookRedirect kind="specialisations" /> },
-  { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
+  { path: "/saved", element: <PrivateRoute><ShortlistPage /></PrivateRoute> },
   { path: "/auth/callback", element: <AuthCallback /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
   
