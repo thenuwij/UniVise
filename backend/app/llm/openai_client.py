@@ -25,27 +25,6 @@ _GPT_SYSTEM = "You are a helpful expert career advisor."
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
 
-async def ask_gpt_async(prompt: str, max_tokens: int = 3000, temperature: float = 1, system_prompt: str = _GPT_SYSTEM, model: str = _GPT_MODEL, reasoning_effort: str = None) -> str:
-    """Async GPT call. Supports GPT-5.x reasoning_effort."""
-    try:
-        # reasoning_effort is only supported on GPT-5.x models
-        reasoning_param = {"reasoning_effort": reasoning_effort} if reasoning_effort and model.startswith("gpt-5") else {}
-        response = await _openai_async_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            max_completion_tokens=max_tokens,
-            **reasoning_param,
-            temperature=temperature,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        logger.error(f"OpenAI API error (ask_gpt_async): {e}")
-        raise
-
-
 async def ask_gpt_structured(
     prompt: str,
     schema: type[SchemaT],
