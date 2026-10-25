@@ -1,4 +1,5 @@
 import { officialHandbookHref } from "@/shared/lib/handbook";
+import IndependenceNotice from "@/shared/ui/IndependenceNotice";
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "flowbite-react";
 import { MessageCircle, SendHorizontal } from "lucide-react";
@@ -348,9 +349,10 @@ return (
           </div>
           <p className="mt-2 text-center text-xs text-ink-muted">
             {compact
-              ? "Eunice can make mistakes. Check important details in the Handbook."
-              : "Enter to send, Shift + Enter for a new line. Eunice can make mistakes, so check important details in the Handbook."}
+              ? "Eunice can make mistakes."
+              : "Enter to send, Shift + Enter for a new line. Eunice can make mistakes."}
           </p>
+          <IndependenceNotice variant="eunice" className="mt-1 text-center text-xs leading-relaxed text-ink-muted" />
         </div>
       </div>
     </div>

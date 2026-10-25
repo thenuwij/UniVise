@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Check, CircleCheck, CircleX, GraduationCap, 
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
+import IndependenceNotice from "@/shared/ui/IndependenceNotice";
 import FormattedText from "@/shared/ui/FormattedText";
 import { card } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
@@ -423,7 +424,9 @@ export default function ComparePage() {
     <div className="min-h-screen app-page">
       <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
       <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
-      <PageHeader eyebrow="Compare programs" title="Compare programs" subtitle="See how your courses would count in another UNSW program." />
+      <PageHeader eyebrow="Compare programs" title="Compare programs" subtitle="See how your courses would count in another UNSW program.">
+        <IndependenceNotice variant="comparison" className="mt-3 max-w-3xl text-sm leading-relaxed text-band-soft" />
+      </PageHeader>
 
       <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8">
         <div className="space-y-8">
