@@ -13,8 +13,6 @@ EXPECTED_ROUTES = {
     ("POST", "/careers/refresh"),
     ("POST", "/chat/conversations/{conv_id}/reply/stream"),
     ("POST", "/compare"),
-    ("POST", "/recommendation/prompt"),
-    ("POST", "/recommendation/{rec_id}/explain"),
     ("POST", "/roadmap/unsw"),
     ("POST", "/roadmap/unsw/{roadmap_id}/industry"),
     ("POST", "/switch-advisor"),

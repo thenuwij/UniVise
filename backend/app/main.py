@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .routers import chat, recommendation, user, roadmap
+from .routers import chat, user, roadmap
 from app.routers import health
 from app.routers import compare_programs
 from app.routers import switch_advisor
@@ -40,9 +40,6 @@ app.add_middleware(
 )
 
 app.include_router(user.router, prefix="/user", tags=["User"])
-app.include_router(
-    recommendation.router, prefix="/recommendation", tags=["Recommendation"]
-)
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
 app.include_router(health.router, prefix="/health", tags=["Health"])

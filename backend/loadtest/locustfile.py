@@ -5,7 +5,7 @@ Run from the backend folder after `python -m loadtest.accounts create --count N`
         --csv ../ai/loadtest/run-N --html ../ai/loadtest/run-N.html
 
 Each simulated student signs in, completes the survey (saves the program and
-major, starts the roadmap build and career recommendations), opens the
+major and starts the roadmap build), opens the
 dashboard, the roadmap, CourseMesh with its course picks, and asks Eunice one
 question, with reading time between steps. Then they keep browsing until the
 run ends. Requests go to the live API and Supabase exactly as the app sends them.
@@ -89,12 +89,10 @@ class Student(HttpUser):
             "user_id": self.user_id, "degree_stage": "Bachelor's Degree", "academic_year": "2nd year",
             "degree_field": a["program_name"], "interest_areas": ["Tech & Software"], "priorities": [], "work_style": [], "hobbies": [],
         }, "save survey")
-        self.client.post("/recommendation/prompt", headers=self.api_headers(), name="api: career recommendations")
         self.surveyed = True
 
     def dashboard(self):
         self.db_get("user_enrolled_program", f"select=degree_code,program_name&user_id=eq.{self.user_id}", "enrolled program")
-        self.db_get("career_recommendations", f"select=*&user_id=eq.{self.user_id}", "career recommendations")
         self.db_get("user_completed_courses", f"select=course_code,is_completed&user_id=eq.{self.user_id}", "completed courses")
 
     def roadmap(self):
