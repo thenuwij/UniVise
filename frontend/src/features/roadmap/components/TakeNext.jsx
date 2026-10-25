@@ -9,7 +9,7 @@ const pill = (active) =>
   `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
     active
       ? "bg-blue-600 text-white dark:bg-blue-500"
-      : "bg-blue-50 text-blue-800 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/60"
+      : "bg-white text-ink-strong shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
 function Message({ title, children, action }) {
