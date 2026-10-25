@@ -26,7 +26,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
   const unlocks = pick.unlocks?.length || 0;
   const meta = [pick.core && "Core", unlocks > 0 && `Unlocks ${unlocks} course${unlocks === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
   return (
-    <li className="py-5">
+    <li className="rounded-2xl bg-gradient-to-b from-white to-slate-50 p-5 shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-900/60 dark:ring-slate-800">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-lg font-semibold leading-snug text-ink-strong">
@@ -42,7 +42,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
       {pick.careers?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {pick.careers.map((name) => (
-            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">
+            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
               <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
             </span>
           ))}
@@ -133,7 +133,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         </div>
       )}
       {shown.length > 0 ? (
-        <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="mt-5 space-y-4">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
