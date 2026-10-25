@@ -1,15 +1,15 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { BriefcaseBusiness, ChevronDown, ExternalLink } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
 const pill = (active) =>
-  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+  `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? "bg-blue-50 text-blue-800 ring-1 ring-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-800"
-      : "text-ink-muted ring-1 ring-line hover:bg-surface-tint hover:text-ink-strong"
+      ? "bg-blue-600 text-white dark:bg-blue-500"
+      : "bg-blue-50 text-blue-800 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/60"
   }`;
 
 function Message({ title, children, action }) {
@@ -40,7 +40,13 @@ function PickRow({ pick, onOpenCourseMesh }) {
         <p className="mt-3 text-[15px] text-ink-strong"><span className="text-ink-muted">Builds </span>{pick.skills.join(", ")}</p>
       )}
       {pick.careers?.length > 0 && (
-        <p className="mt-1 text-[15px] text-ink-strong"><span className="text-ink-muted">For </span>{pick.careers.join(", ")}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {pick.careers.map((name) => (
+            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">
+              <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
+            </span>
+          ))}
+        </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
         <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="text-link hover:underline">
@@ -120,7 +126,7 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
             <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
             {careers.map((name) => (
               <button key={name} type="button" className={pill(career === name)} aria-pressed={career === name} onClick={() => setCareer(name)}>
-                {name}
+                <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
               </button>
             ))}
           </div>
