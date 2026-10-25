@@ -97,6 +97,7 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
     baseline.current = live.current.getTransform();
     expandBase.current = live.current.expandCount;
     let missing = 0;
+    let scrolled = false;
     let prev = null;
     let panned = 0;
     let zoomed = false;
@@ -114,6 +115,10 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
         return;
       }
       missing = 0;
+      if (!scrolled && (r.top < 0 || r.top + r.height > window.innerHeight)) {
+        scrolled = true;
+        window.scrollBy({ top: r.top + r.height / 2 - window.innerHeight / 2, behavior: "smooth" });
+      }
       setRect((prev) =>
         prev && prev.top === r.top && prev.left === r.left && prev.width === r.width && prev.height === r.height
           ? prev
