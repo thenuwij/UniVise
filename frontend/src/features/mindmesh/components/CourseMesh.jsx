@@ -81,6 +81,10 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     await toggleAdded(options.get(pick.code) || { code: pick.code, name: pick.name, uoc: pick.uoc ?? null, section: ADDED_SECTION }, true);
     setPendingFocus(pick.code);
   };
+  const addMissingRef = useRef(null);
+  addMissingRef.current = (code) => addPickToMap({ code, name: options.get(code)?.name || code });
+  const triedAdding = useRef(new Set());
+  const glideRef = useRef(null);
 
   const toggleAdded = async (option, added) => {
     if (!userId || !option || savingAdded) return;
@@ -132,15 +136,22 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
 
   useEffect(() => {
     if (!pendingFocus) return;
-    let glide = null;
+    containerRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
     const timer = setInterval(() => {
-      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.fx));
+      if (graph.nodes.length && !graph.nodes.some((n) => n.id === pendingFocus) && !triedAdding.current.has(pendingFocus)) {
+        triedAdding.current.add(pendingFocus);
+        clearInterval(timer);
+        addMissingRef.current(pendingFocus);
+        return;
+      }
+      const node = graph.nodes.find((n) => n.id === pendingFocus && Number.isFinite(n.x));
       if (!node || isAutoLayoutInProgress.current) return;
       clearInterval(timer);
       setPendingFocus(null);
       setShowHint(false);
       graphRef.current?.zoomToFit(500, 80);
-      glide = setTimeout(() => {
+      clearTimeout(glideRef.current);
+      glideRef.current = setTimeout(() => {
         setFocusedNode(node);
         graphRef.current?.centerAt(node.x, node.y, 700);
         graphRef.current?.zoom(Math.max(graphRef.current.zoom(), 1.4), 700);
@@ -150,9 +161,10 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     return () => {
       clearInterval(timer);
       clearTimeout(stop);
-      clearTimeout(glide);
     };
   }, [pendingFocus, graph]);
+
+  useEffect(() => () => clearTimeout(glideRef.current), []);
 
   const idOf = (v) => (v && typeof v === "object" ? v.id : v);
   const isAutoLayoutInProgress = useRef(false);
