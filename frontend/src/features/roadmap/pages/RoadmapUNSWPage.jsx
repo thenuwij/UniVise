@@ -35,7 +35,7 @@ const SECTION_GUIDE_TEXT = {
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
 };
-const sectionGuideSteps = (view) => ROADMAP_VIEWS[view].steps.map(({ key, title }) => ({
+const sectionGuideSteps = (steps) => steps.map(({ key, title }) => ({
   targets: [`[data-tour="roadmap-section-${key}"]`],
   title,
   text: SECTION_GUIDE_TEXT[key],
@@ -357,6 +357,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
+  const visibleSteps = useMemo(
+    () => ROADMAP_VIEWS[view].steps.filter((step) => step.key !== "next" || isOwnProgram),
+    [view, isOwnProgram]
+  );
   const [specNames, setSpecNames] = useState([]);
   const [meshFocus, setMeshFocus] = useState(() => searchParams.get("focus"));
 
@@ -374,6 +378,12 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     preloadedRoadmapId
   );
   const stepIndex = useCallback((key) => ROADMAP_VIEWS[view].steps.findIndex((s) => s.key === key), [view]);
+  // Keep the existing URL step numbers stable when Next courses is hidden.
+  const activeStepKey = ROADMAP_VIEWS[view].steps[activeIndex]?.key;
+  const visibleActiveIndex = Math.max(0, visibleSteps.findIndex((step) => step.key === activeStepKey));
+  useEffect(() => {
+    if (shownDegreeCode && !enrolledLoading && !isOwnProgram && activeStepKey === "next") setActiveIndex(0);
+  }, [shownDegreeCode, enrolledLoading, isOwnProgram, activeStepKey, setActiveIndex]);
   const openCourseMesh = useCallback((code) => {
     setMeshFocus(code || null);
     setActiveIndex(stepIndex("coursemesh"));
@@ -450,8 +460,8 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       ),
     };
 
-    return ROADMAP_VIEWS[view].steps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, view, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
+    return visibleSteps.map((step) => ({ ...step, render: renderers[step.key] }));
+  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
 
   const headerProgramName =
     activeDegree?.degree_name ||
@@ -533,7 +543,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
       {showSectionGuide && data && !isCareers && (
         <SpotlightGuide
-          steps={sectionGuideSteps(view)}
+          steps={sectionGuideSteps(visibleSteps)}
           seenKey={sectionGuideKey}
           onClose={() => setShowSectionGuide(false)}
         />
@@ -554,10 +564,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             personal={isOwnProgram}
           />
         ) : null}
-        activeIndex={activeIndex}
+        activeIndex={visibleActiveIndex}
         onIndexChange={(index) => {
           setMeshFocus(null);
-          setActiveIndex(index);
+          setActiveIndex(stepIndex(visibleSteps[index].key));
         }}
       />
     </div>

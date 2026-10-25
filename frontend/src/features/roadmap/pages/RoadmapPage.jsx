@@ -134,7 +134,7 @@ function RoadmapPage() {
                 disabled={saving}
                 className="button-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold"
               >
-                {view === "careers" ? "Show careers" : "Generate roadmap"}
+                {view === "careers" ? "Show careers" : "Explore program"}
                 <HiArrowRight className="w-5 h-5" />
               </button>
               {!enrolledLoading && selectedDegreeObject.program_name && selectedCode !== enrolledProgram?.degree_code && (
