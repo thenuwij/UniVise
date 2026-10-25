@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, useContext } from "react";
 import { supabase } from "@/shared/lib/supabase";
+import { TERMS_VERSION } from "@/features/auth/data/termsContent";
 
 const AuthContext = createContext();
 
@@ -17,7 +18,8 @@ export const AuthContextProvider = ({ children }) => {
           last_name: lastName,
           dob: dob,
           gender: gender,
-          terms_accepted_at: termsAcceptedAt
+          terms_accepted_at: termsAcceptedAt,
+          terms_accepted_version: termsAcceptedAt ? TERMS_VERSION : null
         }
       }
     });

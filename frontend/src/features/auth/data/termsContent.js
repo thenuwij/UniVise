@@ -3,7 +3,7 @@ export const TERMS_VERSION = "2026-10-25";
 export const TERMS_UPDATED = "25 October 2026";
 export const TERMS_OPERATOR = "ResBuild";
 export const TERMS_CONTACT = "z5343238@ad.unsw.edu.au";
-const MINIMUM_AGE = 13;
+export const MINIMUM_AGE = 13;
 export const ETHICS_REFERENCE = "iRECS7235";
 
 export const TERMS_SUMMARY = [

@@ -1,6 +1,5 @@
 import { fetchSupportedDegree, fetchSupportedEnrolment, isSupportedProgram, UNSUPPORTED_PROGRAM_MESSAGE } from "../utils/supportedProgram";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { MdOutlineCancel } from "react-icons/md";
 import { HiAcademicCap, HiCheck, HiPlus } from "react-icons/hi";
 import { HiBuildingOffice2 } from "react-icons/hi2";
@@ -15,7 +14,8 @@ import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram
 import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
 import { saveChoices } from "@/features/roadmap/utils/programCourses";
 import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
-import { TermsText } from "@/features/auth/components/TermsText";
+import { TermsAgreement } from "@/features/auth/components/TermsAgreement";
+import { hasAcceptedCurrentTerms, recordTermsAccepted } from "@/features/auth/utils/terms";
 
 // ── Shared primitives ──────────────────────────────────────────────
 
@@ -375,13 +375,7 @@ function SurveyForm() {
     } finally { setLoading(false); }
   };
   const handlePrev = () => setStep(s => s - 1);
-  const needsTerms = !session?.user?.user_metadata?.terms_accepted_at;
-  const [termsOpen, setTermsOpen] = useState(false);
-
-  const recordTermsAccepted = async () => {
-    const { error } = await supabase.auth.updateUser({ data: { terms_accepted_at: new Date().toISOString() } });
-    if (error) console.error("Error recording terms acceptance:", error);
-  };
+  const needsTerms = !hasAcceptedCurrentTerms(session?.user);
 
   const handleChange = (field, value) => setFormData(f => ({ ...f, [field]: value }));
 
@@ -722,25 +716,7 @@ function SurveyForm() {
           {message && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{message}</p>}
           {needsTerms && (
             <div className="mt-6 flex items-start gap-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4">
-              <input
-                id="survey-terms"
-                type="checkbox"
-                checked={!!formData.terms_agreed}
-                onChange={e => handleChange("terms_agreed", e.target.checked)}
-                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded accent-blue-600 cursor-pointer"
-              />
-              <label htmlFor="survey-terms" className="text-sm text-slate-700 dark:text-slate-300">
-                I agree with the{" "}
-                <button type="button" onClick={() => setTermsOpen(true)} className="font-semibold text-blue-700 dark:text-blue-300 hover:underline">
-                  terms and conditions
-                </button>
-              </label>
-              <Modal show={termsOpen} onClose={() => setTermsOpen(false)}>
-                <ModalHeader>Terms & Conditions</ModalHeader>
-                <ModalBody>
-                  <TermsText />
-                </ModalBody>
-              </Modal>
+              <TermsAgreement id="survey-terms" checked={!!formData.terms_agreed} onChange={checked => handleChange("terms_agreed", checked)} />
             </div>
           )}
           <NavButtons
