@@ -6,6 +6,7 @@ import { bandButton } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
 import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
 import { roadmapViewUrl } from "../utils/roadmapSteps";
+import IndependenceNotice from "@/shared/ui/IndependenceNotice";
 
 export default function MakeMyProgramButton({ degreeCode, programName, label = "Make this my program", className = bandButton, onBeforeChange, view = "degree" }) {
   const { session } = UserAuth();
@@ -43,15 +44,22 @@ export default function MakeMyProgramButton({ degreeCode, programName, label = "
         {label}
       </button>
 
-      <Modal show={open} size="md" onClose={close} popup>
+      <Modal show={open} size="lg" onClose={close} popup>
         <ModalHeader>
           <p className="text-lg font-medium p-4">Set {programName} as your program?</p>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Your ticked courses stay. Majors are chosen per program.
+              UniVise will use this program to personalise your academic and career planning.
             </p>
+            <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600 dark:text-slate-300">
+              <li><strong>My Program</strong> will show this degree’s requirements, courses, CourseMesh and next-course suggestions.</li>
+              <li><strong>My Career</strong> will show careers and opportunities related to this degree.</li>
+              <li><strong>Your completed courses stay saved.</strong> How they count towards requirements depends on the new program.</li>
+              <li><strong>Majors and minors are saved per program.</strong> Review your choices for this degree.</li>
+            </ul>
+            <IndependenceNotice variant="enrolment" />
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
             <div className="flex justify-end gap-2">
               <button

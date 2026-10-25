@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.svg";
+import IndependenceBanner from "@/shared/ui/IndependenceBanner";
 import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { isNavigationActive } from "./navigation";
@@ -149,6 +150,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
           </Dropdown>
         </div>
       </div>
+      <IndependenceBanner innerClassName="mx-auto max-w-[1680px] px-5 py-2 md:px-10" />
     </header>
   );
 }

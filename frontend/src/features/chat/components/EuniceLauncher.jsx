@@ -58,7 +58,7 @@ export default function EuniceLauncher() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-base font-bold text-ink-strong leading-tight">Eunice</p>
-              <p className="text-xs text-ink-muted">Your academic and career advisor</p>
+              <p className="text-xs text-ink-muted">UniVise AI assistant</p>
             </div>
             {convId && (
               <button

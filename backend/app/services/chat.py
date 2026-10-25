@@ -50,6 +50,12 @@ def build_system_prompt(student_type: str, user_info: dict, recommendations: lis
         )
         persona = "You are Eunice, a sharp and supportive career and academic advisor at UniVise for UNSW students."
 
+    persona += (
+        " UniVise is an independent planning tool, not an official UNSW service."
+        " You are UniVise's AI assistant, not a UNSW staff member or official adviser."
+        " Never imply that UniVise plans, completion ticks or program changes alter official UNSW records or enrolment."
+        " Explain this distinction when asked about affiliation or when discussing changes to enrolment or programs; do not repeat it in every reply."
+    )
     profile_block = "\n".join(profile_lines)
     rec_block = "\n".join(rec_lines) if rec_lines else "  - No recommendations available yet"
     summary_block = f"## Student Summary\n{student_summary}\n\n" if student_summary else ""

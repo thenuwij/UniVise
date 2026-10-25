@@ -1,5 +1,7 @@
 import { createContext, useEffect, useState, useContext } from "react";
 import { supabase } from "@/shared/lib/supabase";
+import { TERMS_VERSION } from "@/features/auth/data/termsContent";
+import { BANNER_DISMISSED_KEY } from "@/shared/ui/IndependenceBanner";
 
 const AuthContext = createContext();
 
@@ -17,7 +19,8 @@ export const AuthContextProvider = ({ children }) => {
           last_name: lastName,
           dob: dob,
           gender: gender,
-          terms_accepted_at: termsAcceptedAt
+          terms_accepted_at: termsAcceptedAt,
+          terms_accepted_version: termsAcceptedAt ? TERMS_VERSION : null
         }
       }
     });
@@ -60,6 +63,11 @@ export const AuthContextProvider = ({ children }) => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Sign out had an error");
+    }
+    try {
+      localStorage.removeItem(BANNER_DISMISSED_KEY);
+    } catch {
+      return;
     }
   }
 

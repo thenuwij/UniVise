@@ -1,4 +1,3 @@
-import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -6,7 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
-import { TermsText } from "./TermsText";
+import { MINIMUM_AGE } from "../data/termsContent";
+import { isOldEnough } from "../utils/terms";
+import { TermsAgreement } from "./TermsAgreement";
 import { errorText, fieldInput, fieldLabel, footerLink, footerText, googleButton, primaryButton } from "./authStyles";
 
 
@@ -24,7 +25,6 @@ function RegisterForm() {
     const [agreed, setAgreed] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [openModal, setOpenModal] = useState(false)
     const [showPassword, setShowPassword] = useState(false);
     
     const navigate = useNavigate() 
@@ -46,6 +46,11 @@ function RegisterForm() {
 
       if (password !== confirmPassword) {
         setError("Passwords don't match. Please try again.");
+        return;
+      }
+
+      if (!isOldEnough(dob)) {
+        setError(`You must be at least ${MINIMUM_AGE} to use UniVise.`);
         return;
       }
 
@@ -232,29 +237,7 @@ function RegisterForm() {
         </div>
 
         <div className="flex items-start gap-3">
-          <input
-            id="agree"
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-line accent-blue-600 cursor-pointer"
-          />
-          <label htmlFor="agree" className="text-sm text-ink">
-            I agree with the{" "}
-            <button
-              type="button"
-              className={footerLink}
-              onClick={() => setOpenModal(true)}
-            >
-              terms and conditions
-            </button>
-          </label>
-          <Modal show={openModal} onClose={() => setOpenModal(false)}>
-            <ModalHeader>Terms & Conditions</ModalHeader>
-            <ModalBody>
-              <TermsText />
-            </ModalBody>
-          </Modal>
+          <TermsAgreement id="agree" checked={agreed} onChange={setAgreed} />
         </div>
 
         {error && <p role="alert" className={errorText}>{error}</p>}

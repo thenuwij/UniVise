@@ -68,7 +68,7 @@ export default function YourDataCard() {
         <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
         Your data
       </h2>
-      <p className="mt-2 text-[15px] text-ink-muted">Get a copy of everything UniVise stores about you, or delete your account.</p>
+      <p className="mt-2 text-[15px] text-ink-muted">Download your account and app records, or delete your account.</p>
       <div className="mt-4 space-y-3">
         <button
           type="button"
@@ -97,8 +97,12 @@ export default function YourDataCard() {
         <ModalBody>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              This permanently deletes your account and everything UniVise stores about you: your survey answers,
+              This permanently deletes your UniVise account and associated app records, including survey answers,
               roadmaps, chats, saved items and completed courses. It can't be undone.
+            </p>
+            <p className="text-xs leading-relaxed text-ink-muted">
+              Backups, operational logs and records held by service providers may have separate retention periods.
+              Download anything you want to keep before continuing.
             </p>
             <div>
               <label htmlFor="confirmDelete" className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-200">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.svg";
+import IndependenceBanner from "@/shared/ui/IndependenceBanner";
 
 export function Header({ matchDashboard = false }) {
   const [isDark, setIsDark] = useState(
@@ -42,6 +43,7 @@ export function Header({ matchDashboard = false }) {
           }
         </button>
       </div>
+      <IndependenceBanner />
     </div>
   );
 }

@@ -6,7 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-8B949E?style=flat-square&labelColor=0D1117&logo=postgresql&logoColor=8B949E)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-8B949E?style=flat-square&labelColor=0D1117&logo=awslambda&logoColor=8B949E)
 
-UniVise is an AI-powered academic and career planning platform for UNSW students. Pick your degree and it shows what you need to graduate, which courses to take next, what switching programs would cost you, and which careers your degree leads to. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
+UniVise is an independent AI-powered academic and career planning platform for UNSW students, not an official UNSW service. Plans and changes in UniVise have no effect on official UNSW enrolment or study plans. Pick your degree and it shows what you need to graduate, which courses to take next, what switching programs would cost you, and which careers your degree leads to. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
 
 ---
 
