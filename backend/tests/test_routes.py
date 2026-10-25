@@ -15,7 +15,6 @@ EXPECTED_ROUTES = {
     ("POST", "/compare"),
     ("POST", "/roadmap/unsw"),
     ("POST", "/roadmap/unsw/{roadmap_id}/industry"),
-    ("POST", "/switch-advisor"),
 }
 
 
