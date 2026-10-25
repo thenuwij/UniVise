@@ -8,6 +8,7 @@ EXPECTED_ROUTES = {
     ("GET", "/careers/feed"),
     ("GET", "/course-picks"),
     ("GET", "/health"),
+    ("GET", "/handbook/{kind}/{identifier}"),
     ("GET", "/traits/results"),
     ("GET", "/user/me/export"),
     ("POST", "/careers/refresh"),
