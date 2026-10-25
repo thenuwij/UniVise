@@ -143,11 +143,11 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
       )}
       {others.length > 0 && (
         <details className="group mt-6">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl bg-white px-5 py-4 text-base font-semibold text-link shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800">
+          <summary className="cursor-pointer list-none inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[15px] font-semibold text-link shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-slate-600 dark:hover:bg-slate-800 transition-colors">
             <span>
               <span className="group-open:hidden">Show</span><span className="hidden group-open:inline">Hide</span> {others.length} other course{others.length === 1 ? "" : "s"} you can take
             </span>
-            <ChevronDown className="h-5 w-5 transition-transform group-open:rotate-180" aria-hidden="true" />
+            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
           <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
             {others.map((course) => (
