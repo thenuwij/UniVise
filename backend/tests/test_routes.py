@@ -17,7 +17,6 @@ EXPECTED_ROUTES = {
     ("POST", "/final-unsw-degrees/"),
     ("POST", "/recommendation/prompt"),
     ("POST", "/recommendation/{rec_id}/explain"),
-    ("POST", "/roadmap/school"),
     ("POST", "/roadmap/unsw"),
     ("POST", "/roadmap/unsw/{roadmap_id}/industry"),
     ("POST", "/smart-related/degrees-for-course"),
