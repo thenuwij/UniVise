@@ -5,7 +5,7 @@ EUNICE_TEMPERATURE = 0.4
 EUNICE_MAX_TOKENS = 1500
 
 
-def build_system_prompt(user_info: dict, recommendations: list, student_summary: str | None = None, page: str | None = None) -> str:
+def build_system_prompt(user_info: dict, student_summary: str | None = None, page: str | None = None) -> str:
     profile_lines = [
         f"- Degree field: {user_info.get('degree_field') or 'unknown'}",
         f"- Degree stage: {user_info.get('degree_stage') or 'unknown'}",
@@ -14,11 +14,6 @@ def build_system_prompt(user_info: dict, recommendations: list, student_summary:
         f"- Career priorities: {survey_answers(user_info, 'priorities')}",
         f"- Preferred work style: {survey_answers(user_info, 'work_style')}",
         f"- Hobbies: {survey_answers(user_info, 'hobbies')}",
-    ]
-    rec_lines = [
-        f"  - {r.get('career_title', 'Unknown')} in {r.get('industry', 'Unknown')} "
-        f"(salary: {r.get('avg_salary_range', '?')}, education: {r.get('education_required', '?')})"
-        for r in (recommendations or [])[:5]
     ]
     focus = (
         "Your focus areas: course selection, elective planning, internship and job opportunities, "
@@ -33,7 +28,6 @@ def build_system_prompt(user_info: dict, recommendations: list, student_summary:
         " Explain this distinction when asked about affiliation or when discussing changes to enrolment or programs; do not repeat it in every reply."
     )
     profile_block = "\n".join(profile_lines)
-    rec_block = "\n".join(rec_lines) if rec_lines else "  - No recommendations available yet"
     summary_block = f"## Student Summary\n{student_summary}\n\n" if student_summary else ""
     clean_page = " ".join((page or "").split())[:300]
     page_block = (
@@ -46,7 +40,6 @@ def build_system_prompt(user_info: dict, recommendations: list, student_summary:
         f"{persona}\n\n"
         f"{focus}\n\n"
         f"## Student Profile\n{profile_block}\n\n"
-        f"## Their Top Recommendations\n{rec_block}\n\n"
         f"{summary_block}"
         f"{page_block}"
         "## How to respond\n"
@@ -65,6 +58,6 @@ def build_system_prompt(user_info: dict, recommendations: list, student_summary:
         "- Do NOT use emojis. Do not use em dashes, en dashes or double hyphens.\n"
         "- Most UNSW courses are 6 UOC. Use the course counts in Degree progress rather than working them out yourself.\n"
         "- Ask one follow-up question when appropriate to keep the conversation going.\n"
-        "- Reference the student's specific profile details and recommendations when relevant — make it personal.\n"
+        "- Reference the student's specific profile details when relevant — make it personal.\n"
         "- If asked about something outside your scope (e.g., unrelated personal issues), gently redirect to academic/career topics."
     )

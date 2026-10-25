@@ -5,11 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
-from app.services.user_profile import (
-    get_user_info,
-    get_student_type,
-    get_user_recommendations,
-)
+from app.services.user_profile import get_student_type, get_user_info
 from app.core.database import supabase
 from app.models.chat import ReplyRequest
 from app.llm.openai_client import ask_gpt_stream_with_tools
@@ -38,11 +34,10 @@ async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | Non
         if not conversation.data:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-        student_type = await get_student_type(user)
+        await get_student_type(user)
         user_info = await get_user_info(user)
-        recommendations = await get_user_recommendations(user, student_type)
 
-        if not student_type or not user_info:
+        if not user_info:
             raise HTTPException(status_code=401, detail="Invalid User")
 
         user_messages = (
@@ -68,7 +63,7 @@ async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | Non
 
         student_summary = await safe_student_summary(user.id)
         page = payload.page if payload else None
-        system_prompt = build_system_prompt(user_info, recommendations, student_summary, page)
+        system_prompt = build_system_prompt(user_info, student_summary, page)
 
         async def lookup(name: str, arguments: str) -> str:
             return await asyncio.to_thread(run_tool, name, arguments, user.id)
