@@ -12,7 +12,6 @@ EXPECTED_ROUTES = {
     ("GET", "/user/me/export"),
     ("POST", "/careers/refresh"),
     ("POST", "/chat/conversations/{conv_id}/reply/stream"),
-    ("POST", "/compare"),
     ("POST", "/roadmap/unsw"),
     ("POST", "/roadmap/unsw/{roadmap_id}/industry"),
 }

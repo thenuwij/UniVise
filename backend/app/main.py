@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 from .routers import chat, user, roadmap
 from app.routers import health
-from app.routers import compare_programs
 from app.routers import course_picks
 from app.routers import careers
 from app.routers import handbook
@@ -42,7 +41,6 @@ app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
-app.include_router(compare_programs.router)
 app.include_router(course_picks.router)
 app.include_router(careers.router)
 app.include_router(handbook.router)
