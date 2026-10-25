@@ -384,7 +384,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
               onClick={onOpenCourses}
               className="px-2 py-2 text-sm font-semibold text-link underline-offset-4 hover:underline"
             >
-              Tick courses in Courses
+              Tick courses in My courses
             </button>
             <button
               onClick={() => setShowElectives(true)}
