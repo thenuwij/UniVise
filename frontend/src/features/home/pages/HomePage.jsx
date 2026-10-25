@@ -43,7 +43,7 @@ const GUIDE_STEPS = [
   },
 ];
 
-export default function DashboardPage() {
+export default function HomePage() {
   const { session } = UserAuth();
   const guideKey = `univise-dashboard-guide-seen-${session?.user?.id || "guest"}`;
   const facts = useDashboardFacts();
