@@ -17,7 +17,7 @@ import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import TakeNext from "../components/TakeNext";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, HelpCircle } from "lucide-react";
 import CareersContent from "@/features/careers/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
@@ -488,15 +488,16 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       back={isOwnProgram ? undefined : { label: copy.back, onClick: handleBackClick }}
       actions={
         <>
-          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="border-white/40! text-white! bg-transparent! hover:bg-white/10!" />}
+          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="h-11! w-11! border-white/35! text-white! bg-transparent! hover:bg-white/10!" />}
           {data && !isCareers && (
             <button
               type="button"
               onClick={() => setShowSectionGuide(true)}
-              className={bandLink}
-              aria-label="Show roadmap section tour"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/35 text-white hover:bg-white/10"
+              aria-label="Show section tour"
+              title="Section tour"
             >
-              Section tour
+              <HelpCircle className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
           {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (

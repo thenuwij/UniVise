@@ -1,6 +1,6 @@
 import { handbookUrl, openHandbook } from "@/shared/lib/handbook";
 // src/pages/roadmap/ProgramStructureUNSW.jsx
-import { ArrowRight, Layers, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, HelpCircle, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -376,9 +376,11 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             <button
               type="button"
               onClick={() => openGuide()}
-              className="text-[15px] font-semibold text-link underline-offset-4 hover:underline"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-link ring-1 ring-line hover:bg-surface-tint"
+              aria-label="How ticking courses works"
+              title="How it works"
             >
-              How it works
+              <HelpCircle className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
         </span>
