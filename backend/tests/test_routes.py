@@ -18,7 +18,6 @@ EXPECTED_ROUTES = {
     ("POST", "/recommendation/{rec_id}/explain"),
     ("POST", "/roadmap/unsw"),
     ("POST", "/roadmap/unsw/{roadmap_id}/industry"),
-    ("POST", "/smart-related/degrees-for-course"),
     ("POST", "/switch-advisor"),
 }
 

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .routers import chat, recommendation, user, roadmap, smart_related
+from .routers import chat, recommendation, user, roadmap
 from app.routers import traits
 from app.routers import health
 from app.routers import compare_programs
@@ -46,7 +46,6 @@ app.include_router(
 )
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(roadmap.router, prefix="/roadmap", tags=["Roadmap"])
-app.include_router(smart_related.router)
 app.include_router(traits.router, prefix="/traits", tags=["Traits"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(compare_programs.router)
