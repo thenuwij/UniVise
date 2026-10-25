@@ -1,3 +1,4 @@
+import HandbookRedirect from "./features/explore/pages/HandbookRedirect";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
@@ -9,15 +10,11 @@ import ProfilePage from './features/profile/pages/ProfilePage';
 import PersonalityQuizPage from "./features/onboarding/pages/PersonalityQuizPage";
 import PersonalityResultPage from "./features/onboarding/pages/PersonalityResultPage";
 import LoadingPersonalityPage from "./features/onboarding/pages/LoadingPersonalityPage";
-import HandbookPage from "./features/explore/pages/HandbookPage";
-import DegreeDetailPage from "./features/explore/pages/DegreeDetailPage";
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
-import CourseDetailPage from "./features/explore/pages/CourseDetailPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
 import TraitsPage from "./features/traits/pages/TraitsPage";
-import SpecialisationDetailPage from "./features/explore/pages/SpecialisationDetailPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
 import ComparePage from "./features/transfer/pages/ComparePage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
@@ -38,12 +35,12 @@ export const router = createBrowserRouter([
   { path: "/quiz", element: <PrivateRoute><PersonalityQuizPage /></PrivateRoute>},
   { path: "/quiz/result", element: <PrivateRoute><PersonalityResultPage /></PrivateRoute>},
   { path: "/quiz/loading", element: <PrivateRoute><LoadingPersonalityPage /></PrivateRoute> },
-  { path: "/handbook", element: <PrivateRoute><HandbookPage /></PrivateRoute> },
-  { path: "/explore-by-degree", element: <Navigate to="/handbook?type=degrees" replace /> },
-  { path: "/explore-by-specialisation", element: <Navigate to="/handbook?type=specialisations" replace /> },
-  { path: "/explore-by-course", element: <Navigate to="/handbook?type=courses" replace /> },
-  { path: "/degrees/:degreeId", element: <PrivateRoute><DegreeDetailPage /></PrivateRoute> },
-  { path: "/course/:courseId", element: <PrivateRoute><CourseDetailPage /></PrivateRoute> },
+  { path: "/handbook", element: <HandbookRedirect /> },
+  { path: "/explore-by-degree", element: <HandbookRedirect /> },
+  { path: "/explore-by-specialisation", element: <HandbookRedirect /> },
+  { path: "/explore-by-course", element: <HandbookRedirect /> },
+  { path: "/degrees/:degreeId", element: <HandbookRedirect kind="programs" /> },
+  { path: "/course/:courseId", element: <HandbookRedirect kind="courses" /> },
   { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },
   { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
   { path: "/roadmap/school", element: <Navigate to="/roadmap" replace /> },
@@ -53,9 +50,9 @@ export const router = createBrowserRouter([
   { path: "/planner", element: <Navigate to="/dashboard" replace /> },
   { path: "/planner/school", element: <Navigate to="/dashboard" replace /> },
   { path: "/traits", element: <PrivateRoute><TraitsPage /></PrivateRoute> },
-  { path: "/specialisation/major/:id", element: <PrivateRoute><SpecialisationDetailPage variant="major" /></PrivateRoute> },
-  { path: "/specialisation/minor/:id", element: <PrivateRoute><SpecialisationDetailPage variant="minor" /></PrivateRoute> },
-  { path: "/specialisation/honours/:id", element: <PrivateRoute><SpecialisationDetailPage variant="honours" /></PrivateRoute> },
+  { path: "/specialisation/major/:id", element: <HandbookRedirect kind="specialisations" /> },
+  { path: "/specialisation/minor/:id", element: <HandbookRedirect kind="specialisations" /> },
+  { path: "/specialisation/honours/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
   { path: "/compare", element: <PrivateRoute><ComparePage /></PrivateRoute> },
   { path: "/progress", element: <Navigate to="/compare" replace /> },
