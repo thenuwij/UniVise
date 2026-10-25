@@ -16,7 +16,6 @@ import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
-import { roadmapStepUrl } from "./features/roadmap/utils/roadmapSteps";
 
 
 
@@ -32,7 +31,6 @@ export const router = createBrowserRouter([
   { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
   { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute requireProgram={false}><ProfilePage/></PrivateRoute>},
-  { path: "/recommendation/:id", element: <Navigate to={roadmapStepUrl("careers")} replace /> },
   { path: "/handbook", element: <HandbookRedirect /> },
   { path: "/explore-by-degree", element: <HandbookRedirect /> },
   { path: "/explore-by-specialisation", element: <HandbookRedirect /> },
@@ -41,16 +39,14 @@ export const router = createBrowserRouter([
   { path: "/course/:courseId", element: <HandbookRedirect kind="courses" /> },
   { path: "/roadmap", element: <PrivateRoute><RoadmapPage /></PrivateRoute> },
   { path: "/roadmap-loading", element: <PrivateRoute><LoadingRoadmapPage /></PrivateRoute> },
-  { path: "/roadmap/school", element: <Navigate to="/roadmap" replace /> },
   { path: "/roadmap/unsw", element: <PrivateRoute><RoadmapUNSWPage /></PrivateRoute> },
   { path: "/careers", element: <PrivateRoute><RoadmapUNSWPage view="careers" /></PrivateRoute> },
   { path: "/roadmap-entryload", element: <PrivateRoute><LoadingRoadmapEntryPage /></PrivateRoute> },
-  { path: "/planner", element: <Navigate to="/dashboard" replace /> },
-  { path: "/planner/school", element: <Navigate to="/dashboard" replace /> },
   { path: "/specialisation/major/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/minor/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/honours/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
   { path: "/auth/callback", element: <AuthCallback /> },
+  { path: "*", element: <Navigate to="/dashboard" replace /> },
   
 ]);
