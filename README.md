@@ -10,6 +10,10 @@ UniVise is an AI-powered academic and career planning platform for UNSW students
 
 ---
 
+## Supported programs
+
+Personal planning requires an enrolled degree from UniVise's supported undergraduate list; a free-text or missing degree cannot be used to complete setup. Accounts without a supported degree can still manage/export/delete their account data.
+
 ## Key Features
 
 ### Home
