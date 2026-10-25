@@ -6,7 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-8B949E?style=flat-square&labelColor=0D1117&logo=postgresql&logoColor=8B949E)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-8B949E?style=flat-square&labelColor=0D1117&logo=awslambda&logoColor=8B949E)
 
-UniVise is an independent AI-powered academic and career planning platform for UNSW students, not an official UNSW service. Plans and changes in UniVise have no effect on official UNSW enrolment or study plans. Pick your degree and it shows what you need to graduate, which courses to take next, what switching programs would cost you, and which careers your degree leads to. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
+UniVise is an independent AI-powered academic and career planning platform for UNSW students, not an official UNSW service. Plans and changes in UniVise have no effect on official UNSW enrolment or study plans. Pick your degree and it shows what you need to graduate, which courses to take next and which careers your degree leads to. Built as an Honours research thesis at UNSW Sydney on AI systems for aligning university courses, majors, and career choice.
 
 ---
 
@@ -18,22 +18,22 @@ Personal planning requires an enrolled degree from UniVise's supported undergrad
 
 ### Home
 
-Home brings together two main areas: **My Program** for your degree and **My Career** for opportunities after and during study. The program panel shows your degree, selected specialisations and completed units of credit (UOC), with an edit menu for changing your program or specialisation. Compare programs is available below the two panels.
+Home brings together two main areas: **My Program** for your degree and **My Career** for opportunities after and during study. The program panel shows your degree, selected specialisations and completed units of credit (UOC), with an edit menu for changing your program or specialisation.
 
 ### My Program
 
-Your degree guide opens on **Requirements**. A persistent section menu on desktop, and a section bar on mobile, lets you move between four sections:
+Your degree guide opens on **My courses**. A persistent section menu on desktop, and a section bar on mobile, lets you move between four sections:
 
 | Section | What you get |
 |---|---|
-| **Requirements** | An overview of the program, its requirements and your specialisation, and the UOC needed to graduate. For programs with an honours pathway, it also covers entry rules, WAM and honours classes, and awards |
-| **Courses** | A continuous checklist of core courses, discipline electives, free electives and general education, grouped by the requirements of your degree and specialisation |
+| **My courses** | A continuous checklist of core courses, discipline electives, free electives and general education, grouped by the requirements of your degree and specialisation |
+| **Next courses** | Courses you can take now, with the skills and careers each one builds (shown for your own program) |
 | **CourseMesh** | An interactive prerequisite map showing how your courses connect and what you can take next |
-| **Societies** | Student societies and professional bodies related to your field, plus links to Hello Rubric and the Arc club directory |
+| **Societies** | Student societies related to your field, plus links to Rubric and the Arc club directory |
 
-In **Courses**, tick completed courses, add courses to elective groups and track progress against each group's requirements. The first incomplete group opens automatically; expand individual groups or the whole checklist. Optional minors can be selected where the program offers them, and level-specific UOC rules appear alongside the relevant course group. Until a specialisation is selected, the checklist heading uses the degree name.
+In **My courses**, tick completed courses, add courses to elective groups and track progress against each group's requirements. The first incomplete group opens automatically; expand individual groups or the whole checklist. Optional minors can be selected where the program offers them, and level-specific UOC rules appear alongside the relevant course group. Until a specialisation is selected, the checklist heading uses the degree name.
 
-Change your program or specialisation to view its requirements and course lists. You can also explore other programs before making one your own.
+Change your program or specialisation to view its course lists. You can also explore other programs before making one your own.
 
 ### My Career
 
@@ -43,7 +43,7 @@ My Career opens on **Jobs**, with the same section navigation as My Program. It 
 |---|---|
 | **Jobs** | Graduate and junior job ads, with top picks from SEEK or Adzuna and the latest Adzuna listings; filter by career role and save ads to your shortlist |
 | **Internships** | Ads open now, annual internship programs and their application periods where available, plus placements built into your degree |
-| **Networking** | Upcoming career fairs, industry nights and other events in Sydney or online, with links to organisations' event calendars |
+| **Networking** | Upcoming career fairs, industry nights and other events in Sydney or online, with links to organisations' event calendars and professional bodies for your field |
 | **Certifications** | Relevant industry certifications, their providers and how long they take |
 | **Career outlook** | Entry-level, mid-career and senior roles, salary information with source labels, QILT graduate full-time employment and starting salary figures where available, and UNSW career resources |
 
@@ -57,14 +57,6 @@ Inside My Program, CourseMesh lets you explore your degree as a prerequisite map
 - Add courses, arrange the map by course level, fit it to the screen, freeze its movement, and undo or reset view changes.
 - **Suggested next** recommends courses that fit your career goals, each with a short reason.
 - A guided tour introduces the controls on your first visit and can be reopened from the help button.
-
-### Compare programs
-
-Thinking of switching degrees? Compare how your completed courses could count towards another program or specialisation.
-
-- **Summary:** courses that count, UOC carried over, extra study needed and an estimated finish.
-- **Breakdown:** courses that meet listed requirements, courses that could fill free electives, courses that would not count and requirements still to complete.
-- **Advisor:** reasons to switch, reasons to stay and suggested next steps.
 
 ### My shortlist
 
@@ -92,10 +84,10 @@ React 19, Vite, Tailwind CSS, FastAPI and PostgreSQL (Supabase), with OpenAI and
 UniVise/
 ├── frontend/             React app
 │   └── src/
-│       ├── app/          sign-in state and route guard
+│       ├── app/          sign-in state, route guards and Handbook redirects
 │       ├── shared/       layout, shared UI and API clients
-│       └── features/     roadmap, mindmesh (CourseMesh), transfer (Compare programs),
-│                         chat (Eunice), dashboard, onboarding and more
+│       └── features/     home, program (with CourseMesh), career, eunice,
+│                         shortlist, account, onboarding and auth
 ├── backend/              FastAPI app
 │   ├── app/              routers, services, llm, models, core
 │   ├── scripts/          UNSW Handbook import and data maintenance
