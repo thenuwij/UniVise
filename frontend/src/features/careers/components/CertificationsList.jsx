@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
@@ -19,10 +20,10 @@ export default function CertificationsList({ certifications }) {
     <div>
       <ul className="divide-y divide-line border-y border-line">
         {shown.map((cert) => (
-          <li key={cert.name}>
+          <li key={cert.name} className="flex items-center gap-2">
             <a
               {...(cert.url ? { href: cert.url, target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="group flex items-start justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
+              className="group flex min-w-0 flex-1 items-start justify-between gap-4 px-2 py-3 hover:bg-surface-tint transition-colors"
             >
               <span className="min-w-0">
                 <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{cert.name}</span>
@@ -38,6 +39,7 @@ export default function CertificationsList({ certifications }) {
                 {cert.url && <ChevronRight className="h-4 w-4 text-ink-muted" />}
               </span>
             </a>
+            <SaveButton itemType="certification" itemId={`${cert.provider}:${cert.name}`} itemName={cert.name} itemData={cert} />
           </li>
         ))}
       </ul>

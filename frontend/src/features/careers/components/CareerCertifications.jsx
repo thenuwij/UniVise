@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { useState } from "react";
 import { Clock, ExternalLink, GraduationCap } from "lucide-react";
 import { useCareerCertifications } from "../hooks/useCareerCertifications";
@@ -12,7 +13,7 @@ const pill = (active) =>
       : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
 
-function CertRow({ cert }) {
+function CertRow({ cert, career }) {
   return (
     <li className="rounded-2xl bg-gradient-to-br from-white to-blue-50/70 p-5 ring-1 ring-slate-200 dark:from-slate-900 dark:to-blue-950/40 dark:ring-slate-800">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -20,6 +21,7 @@ function CertRow({ cert }) {
           {cert.name} <span className="font-normal text-ink-muted">· {cert.provider}</span>
         </p>
         <div className="flex flex-wrap gap-2">
+          <SaveButton itemType="certification" itemId={`${cert.provider}:${cert.name}`} itemName={cert.name} itemData={{ ...cert, career }} />
           {cert.start_here && <span className={`${badge} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Start here</span>}
           <span className={`${badge} bg-white text-slate-700 ring-1 ring-slate-300 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600`}>{cert.level}</span>
           <span className={`${badge} bg-white text-slate-700 ring-1 ring-slate-300 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600`}>{cert.cost}</span>
@@ -84,7 +86,7 @@ export default function CareerCertifications({ roadmapId }) {
             <SubLabel hint={`${group.certifications.length} certification${group.certifications.length === 1 ? "" : "s"} employers value`}>{group.career}</SubLabel>
             <ul className="mt-4 space-y-4">
               {group.certifications.map((cert) => (
-                <CertRow key={cert.name} cert={cert} />
+                <CertRow key={cert.name} cert={cert} career={group.career} />
               ))}
             </ul>
           </section>

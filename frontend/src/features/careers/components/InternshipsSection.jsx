@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, CircleCheck, Megaphone } from "lucide-react";
 import { UserAuth } from "@/app/AuthContext";
@@ -19,10 +20,10 @@ function ProgramRow({ program }) {
   const linkProps = program.apply_url ? { href: program.apply_url, target: "_blank", rel: "noopener noreferrer" } : {};
 
   return (
-    <li>
+    <li className="flex items-center gap-2">
       <Row
         {...linkProps}
-        className="group grid gap-x-6 gap-y-2 px-2 py-3 hover:bg-surface-tint transition-colors md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-center"
+        className="group min-w-0 flex-1 grid gap-x-6 gap-y-2 px-2 py-3 hover:bg-surface-tint transition-colors md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-center"
       >
         <span className="min-w-0">
           <span className="block text-[15px] font-semibold text-ink-strong group-hover:text-link">{program.program_name}</span>
@@ -46,6 +47,7 @@ function ProgramRow({ program }) {
           </span>
         )}
       </Row>
+      <SaveButton itemType="internship" itemId={`${program.company}-${program.program_name}`} itemName={program.program_name} itemData={program} />
     </li>
   );
 }

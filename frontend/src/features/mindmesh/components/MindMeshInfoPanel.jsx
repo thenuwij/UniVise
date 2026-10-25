@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { openHandbook } from "@/shared/lib/handbook";
 // src/mindmesh/components/MindMeshInfoPanel.jsx
 import { useEffect, useState } from "react";
@@ -137,6 +138,7 @@ export default function MindMeshInfoPanel({ focusedNode, status, requirements = 
           >
             View in UNSW Handbook ↗
           </button>
+          <SaveButton itemType="course" itemId={id} itemName={`${id} · ${label}`} itemData={{ ...metadata, code: id, name: label }} />
           <button
             onClick={onDismiss}
             className="absolute top-3 right-3 p-2 rounded-lg text-slate-400 dark:text-slate-500

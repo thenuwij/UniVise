@@ -31,7 +31,7 @@ function SocietyRow({ society, link }) {
           <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             {society.kind === "faculty" ? "Your faculty" : "Across UNSW"}
           </span>
-          <SaveButton itemType="society" itemId={society.name} itemName={society.name} itemData={society.saveData} className="p-1! rounded-lg! border! shadow-none!" />
+          <SaveButton itemType="society" itemId={society.name} itemName={society.name} itemData={{ ...society.saveData, relevance: society.why, website: link?.url || ARC_CLUB_SEARCH }} className="p-1! rounded-lg! border! shadow-none!" />
         </div>
       </div>
       {society.why && <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{society.why}</p>}

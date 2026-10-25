@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -487,6 +488,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       back={isOwnProgram ? undefined : { label: copy.back, onClick: handleBackClick }}
       actions={
         <>
+          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="border-white/40! text-white! bg-transparent! hover:bg-white/10!" />}
           {data && !isCareers && (
             <button
               type="button"

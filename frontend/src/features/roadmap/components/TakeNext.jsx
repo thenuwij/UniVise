@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
 import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
@@ -34,6 +35,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
           {pick.code} · {pick.name}
         </p>
         <div className="flex flex-wrap gap-2">
+          <SaveButton itemType="course" itemId={pick.code} itemName={`${pick.code} · ${pick.name}`} itemData={pick} />
           {pick.core && <span className={`${badge} bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
           {pick.usefulness === "high" && <span className={`${badge} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Highly useful</span>}
         </div>

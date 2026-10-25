@@ -1,3 +1,4 @@
+import SaveButton from "@/shared/ui/SaveButton";
 import { Bookmark, BookmarkCheck, CalendarDays, ChevronRight, ExternalLink } from "lucide-react";
 import { postedAgo } from "@/features/roadmap/utils/hiringNow";
 import { cleanDateLabel, isRecent } from "../utils/careersDates";
@@ -61,12 +62,12 @@ export function EventRows({ events }) {
   return (
     <ul className="divide-y divide-line border-y border-line">
       {events.map((event) => (
-        <li key={event.id}>
+        <li key={event.id} className="flex items-center gap-2">
           <a
             href={event.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group grid gap-x-5 gap-y-1 px-2 py-3 hover:bg-surface-tint transition-colors sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-center"
+            className="group min-w-0 flex-1 grid gap-x-5 gap-y-1 px-2 py-3 hover:bg-surface-tint transition-colors sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-center"
           >
             <span className="text-sm font-semibold text-link">{event.date_label}</span>
             <span className="min-w-0">
@@ -80,6 +81,7 @@ export function EventRows({ events }) {
               <ChevronRight className="h-4 w-4" />
             </span>
           </a>
+          <SaveButton itemType="event" itemId={event.id || event.url} itemName={event.title} itemData={event} />
         </li>
       ))}
     </ul>
@@ -98,12 +100,12 @@ export function CalendarLinks({ calendars }) {
   return (
     <div className="grid sm:grid-cols-2 gap-3">
       {calendars.map((calendar) => (
+        <div key={calendar.id} className="flex items-center gap-2">
         <a
-          key={calendar.id}
           href={calendar.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-blue-200 hover:bg-blue-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-blue-800 dark:hover:bg-blue-950/40 transition-colors"
+          className="group flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-blue-200 hover:bg-blue-50 hover:ring-blue-400 dark:bg-slate-900 dark:ring-blue-800 dark:hover:bg-blue-950/40 transition-colors"
         >
           <span className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white dark:bg-blue-500">
@@ -116,6 +118,8 @@ export function CalendarLinks({ calendars }) {
           </span>
           <ExternalLink className="h-4 w-4 flex-shrink-0 text-blue-700 dark:text-blue-300" aria-hidden="true" />
         </a>
+        <SaveButton itemType="calendar" itemId={calendar.id || calendar.url} itemName={calendar.organisation || calendar.title} itemData={calendar} />
+        </div>
       ))}
     </div>
   );
