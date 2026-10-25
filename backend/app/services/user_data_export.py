@@ -7,18 +7,7 @@ PAGE_SIZE = 1000
 ID_CHUNK = 100
 
 USER_TABLES = [
-    "career_recommendations",
     "conversations",
-    "degree_recommendations",
-    "final_degree_recommendations",
-    "mindmesh_edges",
-    "mindmesh_items",
-    "mindmeshes",
-    "personality_results",
-    "recommendation_runs",
-    "school_report_analysis",
-    "school_roadmap",
-    "student_school_data",
     "student_uni_data",
     "unsw_roadmap",
     "user_career_certifications",
@@ -33,8 +22,6 @@ USER_TABLES = [
 
 CHILD_TABLES = {
     "conversation_messages": ("conversations", "conversation_id"),
-    "career_rec_details": ("career_recommendations", "id"),
-    "degree_rec_details": ("degree_recommendations", "id"),
 }
 
 
