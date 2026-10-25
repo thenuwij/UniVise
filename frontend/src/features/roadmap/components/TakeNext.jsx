@@ -11,10 +11,10 @@ import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
 
 const pill = (active) =>
-  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
+  `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
-      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
+      ? "bg-blue-50 text-blue-800 ring-1 ring-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-800"
+      : "text-ink-muted ring-1 ring-line hover:bg-surface-tint hover:text-ink-strong"
   }`;
 
 function Message({ title, children, action }) {
@@ -145,12 +145,11 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
 
   return (
     <div>
-      <SectionHeading subtitle={`You can take ${available.length} course${available.length === 1 ? "" : "s"} next. These fit your careers best.`}>
-        What to take next
+      <SectionHeading subtitle={`${available.length} course${available.length === 1 ? "" : "s"} open to you. Ranked by fit with your careers.`}>
+        Top picks for you
       </SectionHeading>
       {careers.length > 0 && (
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-ink-strong">Show courses for</p>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
             <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
             {careers.map((name) => (
@@ -161,11 +160,8 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
           </div>
         </div>
       )}
-      <div className="mt-8">
-        <SubLabel hint={career ? `Picks that help you become a ${career}` : "Ranked by how well they fit your careers"}>Top picks for you</SubLabel>
-      </div>
       {shown.length > 0 ? (
-        <ul className="mt-1 divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
