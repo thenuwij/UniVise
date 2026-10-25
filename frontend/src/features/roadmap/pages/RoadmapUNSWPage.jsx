@@ -18,7 +18,7 @@ import SocietiesCommunity from "../components/SocietiesCommunity";
 import TakeNext from "../components/TakeNext";
 import CourseMesh from "@/features/mindmesh/components/CourseMesh";
 import { ExternalLink, HelpCircle } from "lucide-react";
-import CareersContent from "@/features/careers/components/CareersContent";
+import CareersContent from "@/features/career/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";

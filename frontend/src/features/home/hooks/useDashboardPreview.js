@@ -3,7 +3,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
 import { fetchMatchingRoadmap } from "@/features/roadmap/utils/roadmapEntry";
 import { fetchSpecialisationIds } from "@/features/roadmap/utils/programCourses";
-import { mergeListings } from "@/features/careers/utils/careersListings";
+import { mergeListings } from "@/features/career/utils/careersListings";
 import { fetchSocietyLinks, findLink } from "@/features/roadmap/utils/societyLinks";
 
 function summariseFeed(feed) {

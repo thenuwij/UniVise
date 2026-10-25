@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import { card } from "@/shared/ui/cardStyles";
-import { describeBody } from "@/features/roadmap/utils/professionalBodies";
+import { describeBody } from "../utils/professionalBodies";
 import { SubLabel } from "./CareersSection";
 
 export default function ProfessionalBodies({ societies }) {

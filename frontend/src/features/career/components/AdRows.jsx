@@ -1,6 +1,6 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { Bookmark, BookmarkCheck, CalendarDays, ChevronRight, ExternalLink } from "lucide-react";
-import { postedAgo } from "@/features/roadmap/utils/hiringNow";
+import { postedAgo } from "../utils/hiringNow";
 import { cleanDateLabel, isRecent } from "../utils/careersDates";
 
 const sourceLabel = (ad) =>

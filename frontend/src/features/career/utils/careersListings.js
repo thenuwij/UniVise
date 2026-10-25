@@ -1,4 +1,4 @@
-import { companyKey } from "@/features/roadmap/utils/hiringNow";
+import { companyKey } from "./hiringNow";
 
 const listingKey = (item) => `${(item.title || "").trim().toLowerCase()}|${companyKey(item.organisation)}`;
 

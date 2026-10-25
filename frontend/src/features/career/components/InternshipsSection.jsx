@@ -5,7 +5,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
-import { sameCompany } from "@/features/roadmap/utils/hiringNow";
+import { sameCompany } from "../utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
 import AdRows from "./AdRows";
 import { SubLabel } from "./CareersSection";
