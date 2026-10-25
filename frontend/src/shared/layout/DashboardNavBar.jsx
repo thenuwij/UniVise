@@ -7,11 +7,8 @@ import {
 import { useState } from "react";
 import {
   Bookmark,
-  BookOpen,
-  Compass,
   LogOut,
   Menu,
-  MessageCircle,
   Moon,
   Sun,
   User,
@@ -81,6 +78,7 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
             ["dashboard", "Home", "/dashboard"],
             ["roadmap", "My Program", "/roadmap-entryload"],
             ["careers", "My Career", roadmapViewUrl("careers")],
+            ["eunice", "Ask Eunice", "/chat"],
           ].map(([key, label, path]) => (
             <Link
               key={key}
@@ -93,33 +91,6 @@ export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
               {label}
             </Link>
           ))}
-          <Dropdown
-            arrowIcon={false}
-            inline
-            placement="bottom-start"
-            className="app-nav-dropdown"
-            renderTrigger={() => (
-              <button
-                type="button"
-                className={navClass("explore")}
-                aria-current={
-                  isNavigationActive("explore", pathname) ? "page" : undefined
-                }
-              >
-                Explore
-              </button>
-            )}
-          >
-            <DropdownItem icon={BookOpen} onClick={() => navigate("/handbook")}>
-              Search the Handbook
-            </DropdownItem>
-            <DropdownItem icon={Compass} onClick={() => navigate("/roadmap")}>
-              Explore other programs
-            </DropdownItem>
-            <DropdownItem icon={MessageCircle} onClick={() => navigate("/chat")}>
-              Ask Eunice
-            </DropdownItem>
-          </Dropdown>
         </nav>
         <div className="app-nav-actions">
           <Link

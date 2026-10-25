@@ -46,7 +46,7 @@ const GUIDE_STEPS = [
   {
     targets: ['[data-tour="app-navigation"]'],
     title: "Find your way around",
-    text: "The top navigation and mobile Menu lead to My Program, My Career and Explore. Account has your profile, appearance settings and sign out.",
+    text: "The top navigation and mobile Menu lead to My Program, My Career and Ask Eunice. Account has your profile, appearance settings and sign out.",
   },
 ];
 
