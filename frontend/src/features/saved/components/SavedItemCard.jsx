@@ -1,342 +1,351 @@
-// src/components/pathway/SavedItemCard.jsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  HiAcademicCap,
-  HiBriefcase,
-  HiCheck,
-  HiClipboard,
-  HiPencil,
-  HiTrash,
-  HiUsers,
-  HiX,
-} from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase";
-import { savedAdExpired } from "@/features/careers/utils/careersDates";
-import CareerPathCard from "./CareerPathCard";
-import CommunityCard from "./CommunityCard";
-import CourseCard from "./CourseCard";
-import InternshipCard from "./InternshipCard";
-import JobAdCard from "./JobAdCard";
-import SpecialisationCard from "./SpecialisationCard";
+  Bookmark,
+  CalendarDays,
+  Check,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
+import {
+  availabilityOf,
+  categoryOf,
+  CATEGORIES,
+  destinationOf,
+  PLANNING_STATES,
+  planningOf,
+  snapshotOf,
+  sydneyDate,
+  titleOf,
+} from "../utils/shortlist";
 
-const MAX_CHARS = 600;
+const input =
+  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink-strong focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 
-export default function SavedItemCard({ item, onRemove }) {
-  const navigate = useNavigate();
-
-  const [degreeData, setDegreeData] = useState(null);
-  const [loadingDegree, setLoadingDegree] = useState(false);
-
+export default function SavedItemCard({ item, now, onUpdate, onRemove }) {
+  const data = snapshotOf(item);
+  const plan = planningOf(item);
+  const availability = availabilityOf(item, now);
+  const title = titleOf(item);
+  const category = categoryOf(item);
+  const href = destinationOf(item);
+  const [editing, setEditing] = useState(false);
   const [notes, setNotes] = useState(item.personal_notes || "");
-  const [showNotes, setShowNotes] = useState(false);
-  const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'saved'
-  const [lastSaved, setLastSaved] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const debounceRef = useRef(null);
-  const textareaRef = useRef(null);
-  const confirmTimeout = useRef(null);
-
-  const isDegree = item.item_type === "degree";
-  const snapshot = item.item_data || {};
-  const expired = item.item_type === "job_ad" && savedAdExpired(snapshot, item.saved_at);
-  const hasNotes = notes.trim().length > 0;
-  const charsLeft = MAX_CHARS - notes.length;
-
-  // Fetch degree data
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
   useEffect(() => {
-    if (!isDegree) return;
-    const fetchDegree = async () => {
-      setLoadingDegree(true);
-      const isUUID = item.item_id.includes('-');
-      let data, error;
-      if (isUUID) {
-        ({ data, error } = await supabase.from("unsw_degrees_final").select("*").eq("id", item.item_id).maybeSingle());
-      } else {
-        ({ data, error } = await supabase.from("unsw_degrees_final").select("*").eq("degree_code", item.item_id).maybeSingle());
-      }
-      if (error) console.error("Degree fetch error:", error);
-      else if (data) setDegreeData(data);
-      else {
-        const parsed = typeof item.item_data === 'string' ? JSON.parse(item.item_data) : item.item_data;
-        setDegreeData(parsed);
-      }
-      setLoadingDegree(false);
-    };
-    fetchDegree();
-  }, [item, isDegree]);
+    if (!editing) setNotes(item.personal_notes || "");
+  }, [item.personal_notes, editing]);
 
-  // Auto-focus textarea when notes panel opens
-  useEffect(() => {
-    if (showNotes) textareaRef.current?.focus();
-  }, [showNotes]);
-
-  // Auto-save notes with debounce
-  useEffect(() => {
-    if (notes === (item.personal_notes || "")) return;
-    setSaveStatus('saving');
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      const { error } = await supabase
-        .from("user_saved_items")
-        .update({ personal_notes: notes })
-        .eq("id", item.id);
-      if (!error) {
-        setSaveStatus('saved');
-        setLastSaved(new Date());
-        setTimeout(() => setSaveStatus(null), 2500);
-      }
-    }, 800);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [notes, item.id, item.personal_notes]);
-
-  // Reset confirm delete after 3s of no action
-  const handleDeleteClick = () => {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      confirmTimeout.current = setTimeout(() => setConfirmDelete(false), 3000);
-    } else {
-      clearTimeout(confirmTimeout.current);
-      onRemove(item.id);
+  const run = async (action) => {
+    setBusy(true);
+    setError("");
+    try {
+      await action();
+    } catch {
+      setError("Couldn't save this change. Please try again.");
+    } finally {
+      setBusy(false);
     }
   };
-
-  useEffect(() => () => {
-    clearTimeout(confirmTimeout.current);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-  }, []);
-
-  const formatDate = (dt) => {
-    if (!dt) return "";
-    const date = new Date(dt);
-    const diff = Math.floor((Date.now() - date) / 86400000);
-    if (diff === 0) return "Today";
-    if (diff === 1) return "Yesterday";
-    if (diff < 7) return `${diff}d ago`;
-    return date.toLocaleDateString();
-  };
-
-  const formatTime = (dt) => {
-    if (!dt) return "";
-    const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-    if (diff < 60) return "just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    return `${Math.floor(diff / 3600)}h ago`;
-  };
-
-  const getIcon = () => {
-    switch (item.item_type) {
-      case "degree":
-      case "major":
-      case "minor":
-      case "specialisation":
-        return <HiAcademicCap className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
-      case "course":
-        return <HiClipboard className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
-      case "society":
-        return <HiUsers className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
-      case "internship":
-      case "career_path":
-      case "job_ad":
-        return <HiBriefcase className="w-5 h-5 text-sky-600 dark:text-sky-400" />;
-      default:
-        return <HiAcademicCap className="w-5 h-5 text-slate-500" />;
-    }
-  };
-
-  const gotoDetails = () => {
-    if (item.item_type === "degree" && degreeData) navigate(`/degrees/${degreeData.id}`);
-    if (item.item_type === "course") navigate(`/course/${item.item_id}`);
-  };
-
-  const typeLabel = item.item_type === "society"
-    ? "Community"
-    : item.item_type === "job_ad"
-      ? snapshot.kind === "internship" ? "Internship ad" : "Job ad"
-      : item.item_type.charAt(0).toUpperCase() + item.item_type.slice(1).replace('_', ' ');
+  const updatePlan = (change) =>
+    run(() =>
+      onUpdate(item.id, {
+        item_data: { ...data, _shortlist: { ...plan, ...change } },
+      }),
+    );
+  const saveNotes = () =>
+    run(async () => {
+      await onUpdate(item.id, { personal_notes: notes.trim() });
+      setEditing(false);
+    });
+  const expired = availability.state === "expired";
+  const meta = [
+    data.organisation || data.company || data.provider || data.faculty,
+    data.location,
+    data.code || data.degree_code || data.major_code,
+  ].filter(Boolean);
+  const description =
+    data.why ||
+    data.reason ||
+    data.summary ||
+    data.description ||
+    data.why_join ||
+    data.relevance ||
+    data.overview_description;
+  const details = [
+    data.time || data.timeline || data.duration,
+    data.cost,
+    data.application_period && `Usually opens ${data.application_period}`,
+    data.date_label,
+    data.salary_range,
+  ].filter((value) => typeof value === "string" && value);
+  const savedDate = Number.isFinite(Date.parse(item.saved_at))
+    ? new Date(item.saved_at).toLocaleDateString("en-AU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "Australia/Sydney",
+      })
+    : "earlier";
+  const moreDetails = [
+    ["Careers this supports", data.careers],
+    ["Requirements", data.requirements || data.eligibility],
+    ["Progression", data.career_progression],
+    ["Suggested timing", data.when],
+    ["Level", data.level],
+    ["Activities", data.key_activities],
+    ["Membership benefits", data.membership_benefits],
+    ["Additional notes", data.notes],
+  ]
+    .map(([label, value]) => [
+      label,
+      Array.isArray(value)
+        ? value.filter((part) => typeof part === "string").join(" · ")
+        : value,
+    ])
+    .filter(([, value]) => typeof value === "string" && value.trim());
+  const overdue =
+    plan.target_date &&
+    plan.target_date < sydneyDate(now) &&
+    plan.status !== "done";
+  const canClose =
+    ["jobs", "internships", "networking"].includes(category) &&
+    item.item_type !== "calendar";
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col">
-
-      {/* Card Header */}
-      <div className="p-5 flex-1">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-sky-50 dark:bg-sky-900/30 flex-shrink-0">
-            {getIcon()}
+    <article
+      className={`flex min-w-0 flex-col rounded-2xl border bg-surface p-5 ${expired ? "border-amber-300 dark:border-amber-800" : "border-line"}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+          {CATEGORIES[category]}
+        </span>
+        {availability.label && (
+          <span
+            className={`rounded-md px-2 py-1 text-xs font-semibold ${expired ? "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}
+          >
+            {availability.label}
+          </span>
+        )}
+      </div>
+      <h2 className="mt-3 break-words text-lg font-bold leading-snug text-ink-strong">
+        {title}
+      </h2>
+      {meta.length > 0 && (
+        <p className="mt-1 text-sm text-ink-muted">{meta.join(" · ")}</p>
+      )}
+      {typeof description === "string" && (
+        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink">
+          {description}
+        </p>
+      )}
+      {details.length > 0 && (
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          {details.join(" · ")}
+        </p>
+      )}
+      {Array.isArray(data.skills || data.key_skills) && (
+        <p className="mt-2 text-xs text-ink-muted">
+          Skills: {(data.skills || data.key_skills).join(" · ")}
+        </p>
+      )}
+      {availability.reason && (
+        <p
+          className={`mt-3 text-xs leading-relaxed ${expired ? "text-amber-800 dark:text-amber-200" : "text-ink-muted"}`}
+        >
+          {availability.deadline && !expired
+            ? `${availability.label}: ${availability.deadline}. Check the source for current details.`
+            : availability.reason}
+        </p>
+      )}
+      {moreDetails.length > 0 && (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer font-semibold text-link">
+            Saved details
+          </summary>
+          <dl className="mt-3 space-y-2">
+            {moreDetails.map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-xs font-semibold text-ink-muted">
+                  {label}
+                </dt>
+                <dd className="mt-0.5 leading-relaxed text-ink">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      )}
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-semibold">
+        {href && (
+          <a
+            href={href}
+            target={href.startsWith("/") ? undefined : "_blank"}
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-link hover:underline"
+          >
+            {["courses", "programs"].includes(category)
+              ? "UNSW Handbook"
+              : item.item_type === "career_path"
+                ? "Career outlook"
+                : "Open saved link"}
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+        )}
+        {canClose && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => updatePlan({ closed: !plan.closed })}
+            className="text-xs text-ink-muted underline-offset-2 hover:underline disabled:opacity-50"
+          >
+            {plan.closed ? "Clear closed marker" : "Mark closed"}
+          </button>
+        )}
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-3 border-t border-line pt-4">
+        <label className="min-w-0 text-xs font-semibold text-ink-muted">
+          Plan status
+          <select
+            aria-label={`Plan status for ${title}`}
+            value={plan.status}
+            disabled={busy}
+            onChange={(event) => updatePlan({ status: event.target.value })}
+            className={`${input} mt-1.5`}
+          >
+            {Object.entries(PLANNING_STATES).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="min-w-0 text-xs font-semibold text-ink-muted">
+          Target date
+          <input
+            aria-label={`Target date for ${title}`}
+            type="date"
+            value={plan.target_date}
+            disabled={busy}
+            onChange={(event) =>
+              updatePlan({ target_date: event.target.value })
+            }
+            className={`${input} mt-1.5 min-w-0`}
+          />
+        </label>
+      </div>
+      {overdue && (
+        <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+          <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+          Your target date has passed.
+        </p>
+      )}
+      <div className="mt-4">
+        {editing ? (
+          <div>
+            <label
+              className="text-xs font-semibold text-ink-muted"
+              htmlFor={`notes-${item.id}`}
+            >
+              Your next steps or notes
+            </label>
+            <textarea
+              id={`notes-${item.id}`}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              maxLength={2000}
+              rows={4}
+              className={`${input} mt-1.5 resize-y`}
+              placeholder="What interests you? What will you do next?"
+              disabled={busy}
+              autoFocus
+            />
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="text-xs text-ink-muted">
+                {notes.length}/2000
+              </span>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setEditing(false)}
+                  className="text-xs text-ink-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={saveNotes}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-link disabled:opacity-50"
+                >
+                  <Check className="h-4 w-4" />
+                  {busy ? "Saving…" : "Save notes"}
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white leading-tight truncate">
-              {isDegree ? degreeData?.program_name || "Loading..." : item.item_name}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {expired && (
-                <span className="mr-1.5 inline-block rounded px-1.5 py-px text-[11px] font-semibold text-amber-900 bg-amber-100 dark:text-amber-200 dark:bg-amber-900/50">
-                  Expired
-                </span>
-              )}
-              {typeLabel}
-              <span className="mx-1.5">·</span>
-              Saved {formatDate(item.saved_at)}
-            </p>
-          </div>
-        </div>
-
-        {/* Type-specific content */}
-        {isDegree && (
+        ) : (
           <>
-            {loadingDegree && (
-              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <div className="w-4 h-4 border-2 border-slate-200 border-t-sky-600 rounded-full animate-spin" />
-                Loading…
-              </div>
+            {item.personal_notes && (
+              <p className="mb-2 whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-ink dark:bg-slate-800">
+                {item.personal_notes}
+              </p>
             )}
-            {degreeData && (
-              <div
-                className="mt-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition"
-                onClick={gotoDetails}
-              >
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-500 dark:text-slate-400">Faculty: </span>{degreeData.faculty}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-500 dark:text-slate-400">Code: </span>{degreeData.degree_code}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-500 dark:text-slate-400">UOC: </span>{degreeData.minimum_uoc}</p>
-                  <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-500 dark:text-slate-400">Duration: </span>{degreeData.duration}y</p>
-                  {degreeData.lowest_atar && (
-                    <p className="text-slate-700 dark:text-slate-300 col-span-2"><span className="text-slate-500 dark:text-slate-400">ATAR: </span>{degreeData.lowest_atar}</p>
-                  )}
-                </div>
-                {degreeData.overview_description && (
-                  <p className="text-sm mt-3 text-slate-600 dark:text-slate-400 line-clamp-2">{degreeData.overview_description}</p>
-                )}
-              </div>
-            )}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-link"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+              {item.personal_notes ? "Edit notes" : "Add notes & next steps"}
+            </button>
           </>
         )}
-
-        {(item.item_type === "major" || item.item_type === "minor" || item.item_type === "specialisation" || item.item_type === "honours") && (
-          <div className="mt-3"><SpecialisationCard data={snapshot} itemType={item.item_type} /></div>
-        )}
-        {item.item_type === "course" && <div className="mt-3"><CourseCard data={snapshot} /></div>}
-        {item.item_type === "internship" && <div className="mt-3"><InternshipCard data={snapshot} /></div>}
-        {item.item_type === "career_path" && <div className="mt-3"><CareerPathCard data={snapshot} /></div>}
-        {item.item_type === "job_ad" && <div className="mt-3"><JobAdCard data={snapshot} expired={expired} /></div>}
-        {item.item_type === "society" && <div className="mt-3"><CommunityCard data={snapshot} /></div>}
-
-        {/* Note preview — shown when notes exist and panel is closed */}
-        {hasNotes && !showNotes && (
-          <button
-            onClick={() => setShowNotes(true)}
-            className="mt-4 w-full text-left p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition group"
-          >
-            <div className="flex items-center gap-1.5 mb-1">
-              <HiPencil className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Note</span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-              {notes}
-            </p>
-          </button>
-        )}
-
-        {/* Notes editor */}
-        {showNotes && (
-          <div className="mt-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 overflow-hidden">
-            {/* Notes toolbar */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-amber-200 dark:border-amber-800 bg-amber-100/60 dark:bg-amber-900/30">
-              <div className="flex items-center gap-1.5">
-                <HiPencil className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wide">Personal Note</span>
-              </div>
-              <div className="flex items-center gap-3">
-                {saveStatus === 'saving' && (
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 border-2 border-slate-300 border-t-sky-500 rounded-full animate-spin" />
-                    Saving…
-                  </span>
-                )}
-                {saveStatus === 'saved' && (
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <HiCheck className="w-3 h-3" />
-                    Saved
-                  </span>
-                )}
-                {saveStatus === null && lastSaved && (
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Edited {formatTime(lastSaved)}
-                  </span>
-                )}
-                <button
-                  onClick={() => setShowNotes(false)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition"
-                >
-                  <HiX className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <textarea
-              ref={textareaRef}
-              className="w-full px-4 py-3 bg-transparent text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none resize-none leading-relaxed"
-              rows={5}
-              maxLength={MAX_CHARS}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Write your thoughts, reminders, or reasons for saving this…"
-            />
-
-            {/* Notes footer */}
-            <div className="flex items-center justify-between px-4 py-2 border-t border-amber-200 dark:border-amber-800 bg-amber-100/40 dark:bg-amber-900/20">
-              <span className={`text-[11px] ${charsLeft < 60 ? "text-red-500 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>
-                {charsLeft} characters left
-              </span>
-              <div className="flex items-center gap-2">
-                {hasNotes && (
-                  <button
-                    onClick={() => setNotes("")}
-                    className="text-[11px] text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition"
-                  >
-                    Clear note
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowNotes(false)}
-                  className="text-[11px] font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
+      </div>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">
+          {error}
+        </p>
+      )}
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-5 text-xs text-ink-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
+          Saved {savedDate}
+        </span>
+        {confirmRemove ? (
+          <div className="flex items-center gap-2">
+            <span>Remove item and notes?</span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run(() => onRemove(item.id))}
+              className="font-semibold text-red-700 dark:text-red-300"
+            >
+              Remove
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmRemove(false)}
+              aria-label="Cancel removal"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        )}
-      </div>
-
-      {/* Action bar */}
-      <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2">
-        {!showNotes && (
+        ) : (
           <button
-            onClick={() => setShowNotes(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-              hasNotes
-                ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50"
-                : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"
-            }`}
+            type="button"
+            onClick={() => setConfirmRemove(true)}
+            className="inline-flex items-center gap-1 hover:text-red-600"
           >
-            <HiPencil className="w-3.5 h-3.5" />
-            {hasNotes ? "Edit Note" : "Add Note"}
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Remove
           </button>
         )}
-
-        <button
-          onClick={handleDeleteClick}
-          className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-            confirmDelete
-              ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
-              : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
-          }`}
-        >
-          <HiTrash className="w-3.5 h-3.5" />
-          {confirmDelete ? "Confirm remove?" : "Remove"}
-        </button>
       </div>
-    </div>
+    </article>
   );
 }

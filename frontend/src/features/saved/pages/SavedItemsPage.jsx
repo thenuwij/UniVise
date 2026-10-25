@@ -1,175 +1,332 @@
-import { useEffect, useState } from "react";
-import {
-  HiBookmark,
-  HiBriefcase,
-  HiClipboardList,
-  HiOfficeBuilding,
-  HiUsers,
-  HiViewGrid,
-} from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Bookmark, CalendarDays, CheckCircle2, Search } from "lucide-react";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
 import { MenuBar } from "@/shared/layout/MenuBar";
 import PageHeader from "@/shared/layout/PageHeader";
-import { card } from "@/shared/ui/cardStyles";
-import SavedItemCard from "../components/SavedItemCard";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { roadmapStepUrl } from "@/features/roadmap/utils/roadmapSteps";
-import { savedAdExpired } from "@/features/careers/utils/careersDates";
+import {
+  careerSectionUrl,
+  roadmapStepUrl,
+} from "@/features/roadmap/utils/roadmapSteps";
+import SavedItemCard from "../components/SavedItemCard";
+import {
+  availabilityOf,
+  categoryOf,
+  CATEGORIES,
+  filterItems,
+  isDueSoon,
+  PLANNING_STATES,
+  planningOf,
+} from "../utils/shortlist";
 
-const SHORTLIST_TYPES = ["job_ad", "career_path", "internship", "society"];
-const TYPE_OF = { jobs: "job_ad", careers: "career_path", internships: "internship", societies: "society" };
+const control =
+  "rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-function SavedItemsPage() {
-  const navigate = useNavigate();
+export default function SavedItemsPage() {
   const { session } = UserAuth();
+  const userId = session?.user?.id;
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
-  const [savedItems, setSavedItems] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    const fetchItems = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
+  const [error, setError] = useState("");
+  const [category, setCategory] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("recent");
+  const [now, setNow] = useState(Date.now);
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const { data, error: loadError } = await supabase
         .from("user_saved_items")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("user_id", userId)
         .order("saved_at", { ascending: false });
-      if (!error && data) setSavedItems(data.filter((i) => SHORTLIST_TYPES.includes(i.item_type)));
+      if (loadError) throw loadError;
+      setItems(data || []);
+    } catch {
+      setError(
+        "Your shortlist couldn't be loaded. Please try again to view your saved items.",
+      );
+    } finally {
       setLoading(false);
-    };
-    fetchItems();
-  }, [session]);
-
-  const jobItems         = savedItems.filter((i) => i.item_type === "job_ad");
-  const careerItems      = savedItems.filter((i) => i.item_type === "career_path");
-  const internshipItems  = savedItems.filter((i) => i.item_type === "internship");
-  const societyItems     = savedItems.filter((i) => i.item_type === "society");
-
-  const tabs = [
-    { id: "all", label: "All", icon: <HiViewGrid className="w-4 h-4" />, items: savedItems },
-    { id: "jobs", label: "Jobs", icon: <HiClipboardList className="w-4 h-4" />, items: jobItems },
-    { id: "careers", label: "Careers", icon: <HiBriefcase className="w-4 h-4" />, items: careerItems },
-    { id: "internships", label: "Internships", icon: <HiOfficeBuilding className="w-4 h-4" />, items: internshipItems },
-    { id: "societies", label: "Societies", icon: <HiUsers className="w-4 h-4" />, items: societyItems },
-  ];
-  const active = tabs.find((t) => t.id === activeTab) || tabs[0];
-
+    }
+  }, [userId]);
   useEffect(() => {
-    if (activeTab !== "all" && !savedItems.some((i) => i.item_type === TYPE_OF[activeTab])) setActiveTab("all");
-  }, [savedItems, activeTab]);
-
-  const handleRemove = async (itemId) => {
-    const { error } = await supabase.from("user_saved_items").delete().eq("id", itemId);
-    if (!error) setSavedItems((prev) => prev.filter((item) => item.id !== itemId));
+    load();
+  }, [load]);
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    const timer = setInterval(update, 60000);
+    window.addEventListener("focus", update);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", update);
+    };
+  }, []);
+  const updateItem = async (id, changes) => {
+    const { data, error: updateError } = await supabase
+      .from("user_saved_items")
+      .update(changes)
+      .eq("user_id", userId)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (updateError) throw updateError;
+    setItems((previous) =>
+      previous.map((item) => (item.id === id ? data : item)),
+    );
   };
-
-  const expiredJobs = jobItems.filter((i) => savedAdExpired(i.item_data, i.saved_at));
-
-  const removeExpired = async () => {
-    const ids = expiredJobs.map((item) => item.id);
-    const { error } = await supabase.from("user_saved_items").delete().in("id", ids);
-    if (!error) setSavedItems((prev) => prev.filter((item) => !ids.includes(item.id)));
+  const removeItem = async (id) => {
+    const { error: removeError } = await supabase
+      .from("user_saved_items")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", id);
+    if (removeError) throw removeError;
+    setItems((previous) => previous.filter((item) => item.id !== id));
   };
-
-  const withNotes = savedItems.filter((i) => i.personal_notes?.trim()).length;
+  const visible = filterItems(items, { category, status, query, sort }, now);
+  const expired = items.filter(
+    (item) => availabilityOf(item, now).state === "expired",
+  ).length;
+  const check = items.filter(
+    (item) => availabilityOf(item, now).state === "check",
+  ).length;
+  const due = items.filter((item) => isDueSoon(item, now)).length;
+  const done = items.filter(
+    (item) => planningOf(item).status === "done",
+  ).length;
+  const reset = () => {
+    setCategory("all");
+    setStatus("all");
+    setQuery("");
+  };
 
   return (
     <div className="min-h-screen app-page">
-      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
-
-      <PageHeader
-        eyebrow="Your careers"
-        title="My shortlist"
-        subtitle={`${savedItems.length} item${savedItems.length !== 1 ? "s" : ""} saved${withNotes > 0 ? ` · ${withNotes} with notes` : ""}`}
+      <DashboardNavBar
+        onMenuClick={() => setIsOpen(true)}
+        isMenuOpen={isOpen}
       />
-
-      <main className="max-w-[1680px] mx-auto px-5 md:px-10 py-8 space-y-6">
-        {savedItems.length > 0 && (
-          <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter your shortlist">
-            {tabs.map((tab) => {
-              const on = tab.id === active.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  disabled={!tab.items.length}
-                  aria-pressed={on}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                    on
-                      ? "text-white bg-blue-600 border-blue-600"
-                      : "text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                  <span className={`px-1.5 rounded-full text-xs font-bold ${on ? "bg-white/25" : "bg-white/70 dark:bg-slate-900/50"}`}>{tab.items.length}</span>
-                </button>
-              );
-            })}
-          </nav>
-        )}
-
-        {!loading && expiredJobs.length > 0 && (active.id === "all" || active.id === "jobs") && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
-            <p className="text-[15px] text-amber-900 dark:text-amber-200">
-              {expiredJobs.length === 1 ? "1 saved job has" : `${expiredJobs.length} saved jobs have`} probably closed.
-            </p>
-            <button
-              type="button"
-              onClick={removeExpired}
-              className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 dark:hover:bg-amber-900"
-            >
-              Remove expired
-            </button>
+      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      <PageHeader
+        eyebrow="Your next steps"
+        title="My shortlist"
+        subtitle="Keep what interests you. Turn it into a plan."
+      >
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-band-soft">
+          Save courses, careers and opportunities, add a target date and keep
+          track of what you want to do next. This is your personal plan,
+          separate from official applications and enrolment.
+        </p>
+      </PageHeader>
+      <main className="mx-auto max-w-[1680px] space-y-6 px-5 py-8 md:px-10">
+        {!loading && !error && (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              {
+                label: "Saved items",
+                value: items.length,
+                icon: Bookmark,
+                filter: "all",
+              },
+              {
+                label: "Due soon or overdue",
+                value: due,
+                icon: CalendarDays,
+                filter: "due",
+              },
+              {
+                label: "Needs review",
+                value: check + expired,
+                icon: Search,
+                filter: "attention",
+              },
+              {
+                label: "Done",
+                value: done,
+                icon: CheckCircle2,
+                filter: "done",
+              },
+            ].map(({ label, value, icon: Icon, filter }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => {
+                  setStatus(filter);
+                  setCategory("all");
+                  setQuery("");
+                }}
+                className="rounded-2xl border border-line bg-surface p-4 text-left hover:border-blue-400"
+              >
+                <Icon className="mb-3 h-5 w-5 text-link" aria-hidden="true" />
+                <p className="text-2xl font-bold text-ink-strong">{value}</p>
+                <p className="mt-1 text-xs font-medium text-ink-muted">
+                  {label}
+                </p>
+              </button>
+            ))}
           </div>
         )}
-
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-link">
+          <Link to={careerSectionUrl("jobs")} className="hover:underline">
+            Find opportunities →
+          </Link>
+          <Link to={roadmapStepUrl("next")} className="hover:underline">
+            Explore next courses →
+          </Link>
+        </div>
+        {!error && items.length > 0 && (
+          <>
+            <nav
+              aria-label="Shortlist categories"
+              className="flex gap-2 overflow-x-auto pb-1"
+            >
+              {Object.entries(CATEGORIES)
+                .filter(
+                  ([key]) =>
+                    key === "all" ||
+                    items.some((item) => categoryOf(item) === key),
+                )
+                .map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={category === key}
+                    onClick={() => setCategory(key)}
+                    className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold ${category === key ? "border-blue-600 bg-blue-600 text-white" : "border-line bg-surface text-ink-muted hover:border-blue-400"}`}
+                  >
+                    {label}{" "}
+                    <span className="ml-1 text-xs opacity-80">
+                      {key === "all"
+                        ? items.length
+                        : items.filter((item) => categoryOf(item) === key)
+                            .length}
+                    </span>
+                  </button>
+                ))}
+            </nav>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <label className="relative flex-1">
+                <span className="sr-only">Search your shortlist</span>
+                <Search
+                  className="absolute left-3 top-3 h-4 w-4 text-ink-muted"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search items, organisations or your notes"
+                  className={`${control} w-full pl-9`}
+                />
+              </label>
+              <label>
+                <span className="sr-only">
+                  Filter by planning status or availability
+                </span>
+                <select
+                  className={`${control} w-full`}
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                >
+                  <option value="all">All statuses</option>
+                  {Object.entries(PLANNING_STATES).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                  <option value="due">Due soon or overdue</option>
+                  <option value="attention">Needs review</option>
+                  <option value="expired">Expired</option>
+                  <option value="check">Check availability</option>
+                </select>
+              </label>
+              <label>
+                <span className="sr-only">Sort saved items</span>
+                <select
+                  className={`${control} w-full`}
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                >
+                  <option value="recent">Recently saved</option>
+                  <option value="date">Next date first</option>
+                  <option value="name">Name A–Z</option>
+                </select>
+              </label>
+            </div>
+            <p className="text-xs leading-relaxed text-ink-muted">
+              Expired labels use saved closing dates, event dates or a closed
+              marker. Older ads without a deadline say “Check availability”. We
+              do not continuously check external websites; open the source for
+              current details. Target dates are your own planning dates.
+            </p>
+            <p className="text-sm text-ink-muted" role="status">
+              {visible.length} of {items.length} saved items
+              {expired ? ` · ${expired} expired` : ""}
+            </p>
+          </>
+        )}
         {loading ? (
-          <LoadingState />
-        ) : active.items.length === 0 ? (
-          <EmptyState onAction={() => navigate(roadmapStepUrl("careers"))} />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {active.items.map((item) => (
-              <SavedItemCard key={item.id} item={item} onRemove={handleRemove} />
+          <p role="status" className="py-16 text-center text-ink-muted">
+            Loading your shortlist…
+          </p>
+        ) : error ? (
+          <div
+            role="alert"
+            className="rounded-2xl border border-line bg-surface p-6"
+          >
+            <p className="text-ink">{error}</p>
+            <button
+              type="button"
+              onClick={load}
+              className="mt-3 font-semibold text-link"
+            >
+              Try again
+            </button>
+          </div>
+        ) : visible.length ? (
+          <div className="grid items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {visible.map((item) => (
+              <SavedItemCard
+                key={item.id}
+                item={item}
+                now={now}
+                onUpdate={updateItem}
+                onRemove={removeItem}
+              />
             ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-line bg-surface px-6 py-14 text-center">
+            <Bookmark className="mx-auto h-9 w-9 text-link" />
+            <h2 className="mt-4 text-xl font-bold text-ink-strong">
+              {items.length
+                ? "No items match your filters"
+                : "Make room for your next step"}
+            </h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-ink-muted">
+              {items.length
+                ? "Try another category, status or search. Your other saved items are still here."
+                : "Use the bookmark buttons across My Program and My Career. Save a course, certification, job, event or society, then add notes and a target date here."}
+            </p>
+            {items.length > 0 && (
+              <button
+                type="button"
+                onClick={reset}
+                className="mt-4 font-semibold text-link"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 }
-
-function LoadingState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4" />
-      <p className="text-sm text-slate-500 dark:text-slate-400">Loading your shortlist...</p>
-    </div>
-  );
-}
-
-function EmptyState({ onAction }) {
-  return (
-    <div className={`${card} p-10 text-center`}>
-      <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-        <HiBookmark className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-      </div>
-      <h3 className="text-lg font-bold text-ink-strong">Nothing saved yet</h3>
-      <p className="mt-2 text-[15px] text-ink-muted max-w-md mx-auto">
-        Use the save button on jobs, careers, internships and societies in My Program and My Career. They'll collect here so you can compare them and add notes.
-      </p>
-      <button type="button" onClick={onAction} className="button-primary mt-6 px-5 py-2.5 rounded-xl text-sm font-bold">
-        Open the Careers step
-      </button>
-    </div>
-  );
-}
-
-export default SavedItemsPage;
