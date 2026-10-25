@@ -25,8 +25,8 @@ const GUIDE_STEPS = [
   },
   {
     targets: ['[data-tour="coursemesh-strip"]'],
-    title: "See what's next",
-    text: "See what your ticked courses unlock in CourseMesh.",
+    title: "See how they connect",
+    text: "Open CourseMesh to see what your ticked courses unlock.",
   },
 ];
 
