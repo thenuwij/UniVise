@@ -1,10 +1,9 @@
-import { Briefcase, Map, Network } from "lucide-react";
+import { Briefcase, Network } from "lucide-react";
 import { Header } from "@/shared/layout/Header";
 
 const FEATURES = [
-  { icon: Map, title: "My Program", text: "Your requirements, courses and specialisation in one place." },
-  { icon: Network, title: "CourseMesh", text: "See which courses unlock next and plan your terms." },
-  { icon: Briefcase, title: "Careers", text: "Real graduate outcomes, live job ads and internships." },
+  { icon: Network, title: "Connect courses to careers", text: "See what you can take next, the skills each course builds and the careers it supports." },
+  { icon: Briefcase, title: "Find your next opportunity", text: "Explore jobs, internships, certifications, networking events and societies for your field." },
 ];
 
 export default function AuthLayout({ title, subtitle, children }) {
@@ -16,15 +15,18 @@ export default function AuthLayout({ title, subtitle, children }) {
           <div aria-hidden className="absolute -top-32 -right-24 h-[380px] w-[380px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
           <div aria-hidden className="absolute -bottom-40 -left-20 h-[360px] w-[360px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
           <div className="relative flex h-full max-w-xl flex-col lg:mx-auto lg:justify-center">
-            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-band-soft">UniVise for UNSW students</p>
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-band-soft">Built for UNSW students</p>
             <h2 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-band-ink">
-              Plan your degree, courses and career in one place
+              Your academic and career planning hub.
             </h2>
-            <ul className="mt-10 hidden lg:flex flex-col gap-6">
+            <p className="mt-4 text-base leading-relaxed text-band-soft md:text-lg">
+              Bring your degree, skills and future opportunities together in one place.
+            </p>
+            <ul className="mt-8 hidden lg:flex flex-col gap-6">
               {FEATURES.map(({ icon: Icon, title: name, text }) => (
                 <li key={name} className="flex items-start gap-4">
                   <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                    <Icon className="h-5 w-5 text-white" />
+                    <Icon className="h-5 w-5 text-white" aria-hidden="true" />
                   </span>
                   <div>
                     <p className="font-semibold text-band-ink">{name}</p>
@@ -33,6 +35,9 @@ export default function AuthLayout({ title, subtitle, children }) {
                 </li>
               ))}
             </ul>
+            <p className="mt-8 hidden border-t border-white/20 pt-5 text-sm leading-relaxed text-band-soft lg:block">
+              Need a hand? Ask Eunice, your AI academic and career adviser.
+            </p>
           </div>
         </section>
 
