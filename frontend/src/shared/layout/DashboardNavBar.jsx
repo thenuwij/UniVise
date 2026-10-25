@@ -16,7 +16,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.svg";
 import IndependenceBanner from "@/shared/ui/IndependenceBanner";
-import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { isNavigationActive } from "./navigation";
 import "./navigation.css";

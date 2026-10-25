@@ -5,7 +5,7 @@ import GenerationError from "../components/GenerationError";
 import { UserAuth } from "@/app/AuthContext";
 import { openOwnRoadmap } from "../utils/roadmapEntry";
 
-function LoadingRoadmapEntryPage() {
+function ProgramEntryPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -46,4 +46,4 @@ function LoadingRoadmapEntryPage() {
   return <LoadingPage message="Getting your roadmap ready..." progress={30} />;
 }
 
-export default LoadingRoadmapEntryPage;
+export default ProgramEntryPage;

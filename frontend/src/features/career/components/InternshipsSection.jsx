@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, CircleCheck, Megaphone } from "lucide-react";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
+import { setCourseCompleted } from "@/features/program/utils/completedCourses";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { sameCompany } from "../utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";

@@ -6,10 +6,10 @@ import SurveyProgressBar from "./SurveyProgressBar";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import { cleanText } from "@/shared/lib/cleanText";
-import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
-import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
-import { saveChoices } from "@/features/roadmap/utils/programCourses";
-import SpecialisationPicker from "@/features/roadmap/components/SpecialisationPicker";
+import { changeEnrolledProgram } from "@/features/program/utils/enrolledProgram";
+import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
+import { saveChoices } from "@/features/program/utils/programCourses";
+import SpecialisationPicker from "@/features/program/components/SpecialisationPicker";
 import { TermsAgreement } from "@/features/auth/components/TermsAgreement";
 import { hasAcceptedCurrentTerms, recordTermsAccepted } from "@/features/auth/utils/terms";
 

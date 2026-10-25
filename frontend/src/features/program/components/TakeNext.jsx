@@ -3,7 +3,7 @@ import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
 import { BriefcaseBusiness, ChevronDown, ExternalLink } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
+import { useCoursePicks } from "../coursemesh/hooks/useCoursePicks";
 
 const pill = (active) =>
   `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${

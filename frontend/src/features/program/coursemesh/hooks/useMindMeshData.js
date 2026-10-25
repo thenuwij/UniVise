@@ -2,9 +2,9 @@ import { Graph } from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase";
-import { fetchMyCourses } from "@/features/roadmap/utils/programCourses";
-import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
-import { myCourseCodes } from "@/features/roadmap/utils/myCourses";
+import { fetchMyCourses } from "../../utils/programCourses";
+import { fetchCompletedCourses } from "../../utils/completedCourses";
+import { myCourseCodes } from "../../utils/myCourses";
 
 const EDGE_FIELDS = "from_key,to_key,edge_type,confidence,logic_type,group_id";
 

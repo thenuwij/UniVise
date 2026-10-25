@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
-import { fetchMatchingRoadmap } from "@/features/roadmap/utils/roadmapEntry";
-import { fetchSpecialisationIds } from "@/features/roadmap/utils/programCourses";
+import { fetchMatchingRoadmap } from "@/features/program/utils/roadmapEntry";
+import { fetchSpecialisationIds } from "@/features/program/utils/programCourses";
 import { mergeListings } from "@/features/career/utils/careersListings";
-import { fetchSocietyLinks, findLink } from "@/features/roadmap/utils/societyLinks";
+import { fetchSocietyLinks, findLink } from "@/features/program/utils/societyLinks";
 
 function summariseFeed(feed) {
   const sources = Object.fromEntries((feed?.sources || []).map((s) => [s.source, s]));

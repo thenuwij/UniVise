@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
-import { fetchMyCourses, fetchSavedChoices, fetchSpecialisationOptions } from "@/features/roadmap/utils/programCourses";
-import { fetchCompletedCourses } from "@/features/transfer/utils/completedCourses";
-import { courseStatus, prereqGroups } from "@/features/mindmesh/utils/availability";
-import { myCourseCodes, notNeededCodes } from "@/features/roadmap/utils/myCourses";
+import { useEnrolledProgram } from "@/features/program/hooks/useEnrolledProgram";
+import { fetchMyCourses, fetchSavedChoices, fetchSpecialisationOptions } from "@/features/program/utils/programCourses";
+import { fetchCompletedCourses } from "@/features/program/utils/completedCourses";
+import { courseStatus, prereqGroups } from "@/features/program/coursemesh/utils/availability";
+import { myCourseCodes, notNeededCodes } from "@/features/program/utils/myCourses";
 
 async function loadFacts(program, userId) {
   const code = program.degree_code;

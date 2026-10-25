@@ -113,7 +113,7 @@ def test_frontend_roadmap_version_matches_the_prompt_version():
 
     from app.services.roadmap.cache import PROMPT_VERSION
 
-    source = (Path(__file__).resolve().parents[2] / "frontend/src/features/roadmap/utils/roadmapEntry.js").read_text()
+    source = (Path(__file__).resolve().parents[2] / "frontend/src/features/program/utils/roadmapEntry.js").read_text()
     assert int(re.search(r"ROADMAP_PROMPT_VERSION = (\d+);", source).group(1)) == PROMPT_VERSION
 
 

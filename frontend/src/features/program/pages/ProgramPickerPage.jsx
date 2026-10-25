@@ -1,5 +1,5 @@
 import { handbookUrl } from "@/shared/lib/handbook";
-// src/pages/RoadmapPage.jsx
+// src/pages/ProgramPickerPage.jsx
 import { useCallback, useEffect, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -17,7 +17,7 @@ import { roadmapViewUrl, stepNumber } from "../utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 
-function RoadmapPage() {
+function ProgramPickerPage() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDegreeId, setSelectedDegreeId] = useState(null);
@@ -168,4 +168,4 @@ function RoadmapPage() {
   );
 }
 
-export default RoadmapPage;
+export default ProgramPickerPage;

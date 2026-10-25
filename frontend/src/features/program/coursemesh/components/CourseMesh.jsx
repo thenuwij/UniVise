@@ -14,12 +14,12 @@ import ElectivesPanel from "./ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
 import { hasSeenGuide } from "../utils/onboarding";
-import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
-import { setCourseCompleted } from "@/features/transfer/utils/completedCourses";
-import { setCourseAdded } from "@/features/roadmap/utils/programCourses";
-import { notNeededCodes } from "@/features/roadmap/utils/myCourses";
+import { useEnrolledProgram } from "../../hooks/useEnrolledProgram";
+import { setCourseCompleted } from "../../utils/completedCourses";
+import { setCourseAdded } from "../../utils/programCourses";
+import { notNeededCodes } from "../../utils/myCourses";
 import { Info, Plus, X } from "lucide-react";
-import { ADDED_SECTION } from "@/features/roadmap/utils/myCourses";
+import { ADDED_SECTION } from "../../utils/myCourses";
 
 export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
   const { session } = UserAuth();

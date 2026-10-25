@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Award, BriefcaseBusiness, Building2, CalendarDays, Check, ChevronRight, CircleAlert, HelpCircle, ListChecks } from "lucide-react";
-import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useDashboardPreview } from "../hooks/useDashboardPreview";
 import DegreeEditMenu from "./DegreeEditMenu";
 

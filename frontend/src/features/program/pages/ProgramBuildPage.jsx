@@ -19,7 +19,7 @@ const getProgressMessage = (progress, isRegeneration) => {
   return "Almost ready...";
 };
 
-function LoadingRoadmapPage() {
+function ProgramBuildPage() {
   const { session } = UserAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -85,4 +85,4 @@ function LoadingRoadmapPage() {
   return <LoadingPage message={message} progress={progress} />;
 }
 
-export default LoadingRoadmapPage;
+export default ProgramBuildPage;

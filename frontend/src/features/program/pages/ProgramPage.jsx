@@ -16,7 +16,7 @@ import RoadmapFlow from "../components/RoadmapFlow";
 import SkeletonCard from "../components/SkeletonCard";
 import SocietiesCommunity from "../components/SocietiesCommunity";
 import TakeNext from "../components/TakeNext";
-import CourseMesh from "@/features/mindmesh/components/CourseMesh";
+import CourseMesh from "../coursemesh/components/CourseMesh";
 import { ExternalLink, HelpCircle } from "lucide-react";
 import CareersContent from "@/features/career/components/CareersContent";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
@@ -324,7 +324,7 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
 };
 
 // --- Main Component ---
-export default function RoadmapUNSWPage({ view = "degree" }) {
+export default function ProgramPage({ view = "degree" }) {
   const { state, search } = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(search);

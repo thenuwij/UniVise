@@ -8,7 +8,7 @@ import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
-import { useEnrolledProgram } from "@/features/roadmap/hooks/useEnrolledProgram";
+import { useEnrolledProgram } from "@/features/program/hooks/useEnrolledProgram";
 import YourDataCard from "../components/YourDataCard";
 
 const TAG_MAX_LENGTH = 60;

@@ -4,7 +4,7 @@ import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 import { GraduationCap } from "lucide-react";
 import { bandButton } from "@/shared/ui/cardStyles";
 import { UserAuth } from "@/app/AuthContext";
-import { changeEnrolledProgram } from "@/features/transfer/utils/enrolledProgram";
+import { changeEnrolledProgram } from "../utils/enrolledProgram";
 import { roadmapViewUrl } from "../utils/roadmapSteps";
 import IndependenceNotice from "@/shared/ui/IndependenceNotice";
 

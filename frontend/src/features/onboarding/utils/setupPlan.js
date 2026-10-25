@@ -1,8 +1,8 @@
 import { supabase } from "@/shared/lib/supabase";
 import { apiJson } from "@/shared/lib/api";
-import { fetchSpecialisationIds } from "@/features/roadmap/utils/programCourses";
-import { fetchMatchingRoadmap } from "@/features/roadmap/utils/roadmapEntry";
-import { buildRoadmap } from "@/features/roadmap/utils/roadmapGeneration";
+import { fetchSpecialisationIds } from "@/features/program/utils/programCourses";
+import { fetchMatchingRoadmap } from "@/features/program/utils/roadmapEntry";
+import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
 
 const POLL_MS = 3000;
 const WAIT_FOR_SURVEY_BUILD_MS = 90 * 1000;

@@ -1,5 +1,5 @@
 import { handbookUrl, officialHandbookHref } from "@/shared/lib/handbook";
-import { careerSectionUrl } from "@/features/roadmap/utils/roadmapSteps";
+import { careerSectionUrl } from "@/features/program/utils/roadmapSteps";
 
 export const PLANNING_STATES = {
   saved: "Exploring",

@@ -9,7 +9,7 @@ import { supabase } from "@/shared/lib/supabase";
 import {
   careerSectionUrl,
   roadmapStepUrl,
-} from "@/features/roadmap/utils/roadmapSteps";
+} from "@/features/program/utils/roadmapSteps";
 import SavedItemCard from "../components/SavedItemCard";
 import {
   availabilityOf,

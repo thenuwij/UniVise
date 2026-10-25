@@ -2,7 +2,7 @@ import { handbookUrl } from "@/shared/lib/handbook";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, CircleCheck, Info, MapPin, Plus, Search, X } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase";
-import { ADDED_SECTION, canCheckRules, matchesRule } from "@/features/roadmap/utils/myCourses";
+import { ADDED_SECTION, canCheckRules, matchesRule } from "../../utils/myCourses";
 
 const MIN_SEARCH = 2;
 const YOURS = "Your added courses";
