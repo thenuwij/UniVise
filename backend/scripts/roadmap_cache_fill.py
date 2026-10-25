@@ -34,7 +34,7 @@ from app.services.roadmap.cache import (
     write_cached_roadmap,
 )
 from app.services.roadmap.industry import generate_industry_sections
-from app.services.roadmap.unsw import ai_generate_unsw_payload, gather_unsw_context
+from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
 
 UNUSED_DAYS = 90
 DELETE_BATCH = 20
@@ -116,7 +116,7 @@ def label(key):
 
 
 async def generate(ctx, key):
-    payload = await ai_generate_unsw_payload(ctx)
+    payload = build_unsw_payload(ctx)
     payload["specialisation_ids"] = ctx["specialisation_ids"]
     payload["cache_key"] = key
     sections, failed = await generate_industry_sections(ctx["degree_code"], ctx["program_name"], payload)
