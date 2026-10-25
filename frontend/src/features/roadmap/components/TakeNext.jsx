@@ -1,7 +1,7 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
-import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { SubLabel } from "@/features/careers/components/CareersSection";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
@@ -28,61 +28,32 @@ function Message({ title, children, action }) {
 }
 
 function PickRow({ pick, onOpenCourseMesh }) {
+  const unlocks = pick.unlocks?.length || 0;
+  const meta = [pick.core && "Core", unlocks > 0 && `Unlocks ${unlocks} course${unlocks === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
   return (
-    <li className="py-7">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-lg font-semibold leading-snug text-ink-strong">
-          {pick.code} · {pick.name}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <SaveButton itemType="course" itemId={pick.code} itemName={`${pick.code} · ${pick.name}`} itemData={pick} />
-          {pick.core && <span className={`${badge} bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
-          {pick.usefulness === "high" && <span className={`${badge} bg-slate-900 text-white dark:bg-white dark:text-slate-900`}>Highly useful</span>}
+    <li className="py-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-lg font-semibold leading-snug text-ink-strong">
+            {pick.code} · {pick.name}
+          </p>
+          {meta && <p className="mt-0.5 text-sm text-ink-muted">{meta}</p>}
         </div>
+        <SaveButton itemType="course" itemId={pick.code} itemName={`${pick.code} · ${pick.name}`} itemData={pick} />
       </div>
-      <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{pick.reason}</p>
-      {(pick.skills?.length > 0 || pick.careers?.length > 0) && (
-        <dl className="mt-4 space-y-2 rounded-xl bg-gradient-to-br from-white to-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-800/60 dark:ring-slate-800">
-          {pick.skills?.length > 0 && (
-            <div className="flex gap-2">
-              <dt className="flex w-20 flex-shrink-0 items-center gap-1.5 text-ink-muted"><Wrench className="h-4 w-4" aria-hidden="true" /> Skills</dt>
-              <dd className="text-ink-strong">{pick.skills.join(" · ")}</dd>
-            </div>
-          )}
-          {pick.careers?.length > 0 && (
-            <div className="flex gap-2">
-              <dt className="flex w-20 flex-shrink-0 items-center gap-1.5 text-ink-muted"><BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> Careers</dt>
-              <dd className="text-ink-strong">{pick.careers.join(" · ")}</dd>
-            </div>
-          )}
-        </dl>
+      {pick.skills?.length > 0 && (
+        <p className="mt-3 text-[15px] text-ink-strong"><span className="text-ink-muted">Builds </span>{pick.skills.join(", ")}</p>
       )}
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-        <span className="inline-flex items-center gap-1.5 text-ink-muted">
-          <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-          Prerequisites met
-          {pick.unlocks?.length > 0 && (
-            <>
-              {" "}· Unlocks{" "}
-              {pick.unlocks.map((u, i) => (
-                <span key={u.code}>
-                  <a href={handbookUrl("courses", u.code)} target="_blank" rel="noopener noreferrer" title={`${u.name} in the UNSW Handbook`} className="underline decoration-slate-400 underline-offset-2 hover:text-ink-strong hover:decoration-slate-600">
-                    {u.code}
-                  </a>
-                  {i < pick.unlocks.length - 1 ? ", " : ""}
-                </span>
-              ))}
-            </>
-          )}
-        </span>
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
-          <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
-            <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
-          </button>
-          <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
-            Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </div>
+      {pick.careers?.length > 0 && (
+        <p className="mt-1 text-[15px] text-ink-strong"><span className="text-ink-muted">For </span>{pick.careers.join(", ")}</p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+        <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="text-link hover:underline">
+          See in CourseMesh
+        </button>
+        <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+          Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+        </a>
       </div>
     </li>
   );
