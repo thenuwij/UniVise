@@ -12,6 +12,8 @@ function SurveyPage() {
   const navigate = useNavigate();
   const [, setFirstName] = useState('');
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [accessError, setAccessError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     async function fetchUser() {
@@ -39,14 +41,18 @@ function SurveyPage() {
       return;
     }
 
+    setAccessError(false);
+    setCheckingAccess(true);
     hasCompletedSurvey(session.user.id).then((completed) => {
       if (completed) {
         navigate("/dashboard", { replace: true });
       } else {
         setCheckingAccess(false);
       }
-    });
-  }, [session, navigate]);
+    }).catch(() => { setAccessError(true); setCheckingAccess(false); });
+  }, [session, navigate, attempt]);
+
+  if (accessError) return <div className="min-h-screen app-page"><Header /><main className="mx-auto max-w-xl px-6 py-16"><h1 className="text-2xl font-bold text-ink-strong">We couldn't check your setup</h1><p className="mt-3 text-ink-muted">Please try again. We haven't changed your saved program.</p><button type="button" onClick={() => setAttempt((value) => value + 1)} className="button-primary mt-5 rounded-xl px-5 py-3">Try again</button></main></div>;
 
   if (loading || checkingAccess) {
     return <div className="min-h-screen flex items-center justify-center text-slate-700 dark:text-slate-200 text-xl">Loading…</div>;

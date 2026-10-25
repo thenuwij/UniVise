@@ -8,7 +8,11 @@ function AuthCallback() {
 
   useEffect(() => {
     const redirect = async (session) => {
-      navigate(await pathAfterSignIn(session.user.id), { replace: true });
+      try {
+        navigate(await pathAfterSignIn(session.user.id), { replace: true });
+      } catch {
+        navigate("/survey", { replace: true });
+      }
     };
 
     // Try getSession first (works if token exchange already completed)

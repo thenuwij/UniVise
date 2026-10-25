@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function ProgramCard({ facts }) {
   if (!facts) {
@@ -17,13 +17,12 @@ export default function ProgramCard({ facts }) {
     return (
       <section className="dashboard-empty" aria-labelledby="dashboard-no-program">
         <p className="dashboard-eyebrow">Your next step</p>
-        <h2 id="dashboard-no-program">Explore any UNSW program</h2>
+        <h2 id="dashboard-no-program">Choose a supported degree</h2>
         <p className="dashboard-muted">
-          Your program isn't in our list yet. You can still explore degree requirements, courses and careers.
+          Personal planning requires your enrolled degree to be supported by UniVise. If it isn't listed, UniVise isn't currently supported for your studies.
         </p>
         <div className="dashboard-fallback-actions">
-          <Link to="/roadmap" className="dashboard-action">Explore a program <ArrowRight aria-hidden="true" /></Link>
-          <Link to="/handbook" className="dashboard-text-link">Search the Handbook <ArrowUpRight aria-hidden="true" /></Link>
+          <Link to="/survey" className="dashboard-action">Choose your degree <ArrowRight aria-hidden="true" /></Link>
         </div>
       </section>
     );

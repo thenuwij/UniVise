@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
 import EuniceLauncher from "@/features/chat/components/EuniceLauncher";
+import SupportedProgramGate from "./SupportedProgramGate";
 
 const UniversityOnlyNotice = ({ onSignOut }) => (
   <div className="min-h-screen flex items-center justify-center px-4 app-page">
@@ -22,7 +23,7 @@ const UniversityOnlyNotice = ({ onSignOut }) => (
   </div>
 );
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children, requireProgram = true }) => {
   const { session, signOut } = UserAuth();
 
   if (session === undefined) {
@@ -37,8 +38,7 @@ const PrivateRoute = ({ children }) => {
     <div>
       {session ? (
         <>
-          {children}
-          <EuniceLauncher />
+          {requireProgram ? <SupportedProgramGate>{children}<EuniceLauncher /></SupportedProgramGate> : children}
         </>
       ) : (
         <Navigate to="/login" replace />

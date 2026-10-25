@@ -35,7 +35,7 @@ export async function openOwnRoadmap({ userId, accessToken, navigate, step, view
 
   const degreeCode = programs?.[0]?.degree_code;
   if (!degreeCode) {
-    navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap", { replace: true });
+    navigate("/survey", { replace: true });
     return;
   }
 
