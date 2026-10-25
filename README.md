@@ -68,7 +68,7 @@ Thinking of switching degrees? Compare how your completed courses could count to
 
 ### My shortlist
 
-Save job and internship ads, career paths, annual internship programs and student societies in one place. Filter saved items by type, add personal notes and remove anything you no longer need. Saved ads older than four weeks are flagged as probably closed, with links back to current opportunities and an option to remove expired ads.
+Save job and internship ads, career paths, annual internship programs, certifications, networking events and calendars, courses, programs, societies and professional bodies in one place. Search saved items and notes, filter by category or status, and sort by your next date. Use Exploring, Next up, In progress and Done to organise your plans, with personal target dates and notes. Passed closing dates and event dates show as expired; old ads without a known deadline are flagged for an availability check. Saved items remain until you choose to remove them. Planning status and target dates are stored with each saved snapshot, so existing saves need no schema migration.
 
 ### Official UNSW Handbook links
 

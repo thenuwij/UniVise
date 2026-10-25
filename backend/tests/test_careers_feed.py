@@ -85,6 +85,26 @@ def test_event_date_rolls_into_next_year():
     assert event_date("Date to be announced", TODAY) is None
 
 
+def test_explicit_event_year_and_stored_date_do_not_roll_forward():
+    from app.services.careers.event_checks import upcoming
+
+    assert event_date("6 November 2025", TODAY) == date(2025, 11, 6)
+    assert not upcoming({"date_label": "6 Nov", "event_date": "2025-11-06"}, TODAY)
+
+
+def test_checked_events_keep_an_absolute_date_for_saved_items(monkeypatch):
+    from app.services.careers import event_checks
+
+    async def live(*args):
+        return True
+
+    monkeypatch.setattr(event_checks, "page_is_live", live)
+    result = asyncio.run(event_checks.check_events([
+        {"url": "https://events.humanitix.com/test", "date_label": "6 Nov, 6pm", "kind": "event"},
+    ], TODAY))
+    assert result[0]["event_date"] == "2026-11-06"
+
+
 def test_merge_events_keeps_upcoming_events_and_calendars_and_drops_past_ones():
     fresh = [{"url": "https://www.meetup.com/a/events/1", "date_label": "Thu 12 Nov, 6pm", "kind": "event"}]
     previous = [

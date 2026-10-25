@@ -5,17 +5,7 @@ import { supabase } from "@/shared/lib/supabase";
 
 const SAVED_AD_TYPE = "job_ad";
 
-const adSnapshot = (ad) => ({
-  title: ad.title,
-  organisation: ad.organisation,
-  location: ad.location,
-  url: ad.url,
-  source_site: ad.source_site,
-  posted_at: ad.posted_at,
-  date_label: ad.date_label,
-  kind: ad.kind,
-  summary: ad.summary,
-});
+const adSnapshot = (ad) => ({ ...ad });
 
 export function useSavedAds() {
   const { session } = UserAuth();
