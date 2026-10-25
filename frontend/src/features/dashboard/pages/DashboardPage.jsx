@@ -22,7 +22,6 @@ const DAY_LINES = [
   "Weekend mode. A quick look ahead never hurts.",
 ];
 
-const GUIDE_KEY = "univise-dashboard-guide-seen";
 const GUIDE_STEPS = [
   {
     targets: ['[data-tour="dash-next"]'],
@@ -53,14 +52,15 @@ const GUIDE_STEPS = [
 
 export default function DashboardPage() {
   const { session } = UserAuth();
+  const guideKey = `univise-dashboard-guide-seen-${session?.user?.id || "guest"}`;
   const facts = useDashboardFacts();
   const [isOpen, setIsOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   useEffect(() => {
-    if (!facts?.program || hasSeenGuide(GUIDE_KEY)) return;
+    if (!facts?.program || !session?.user?.id || hasSeenGuide(guideKey)) return;
     const timer = setTimeout(() => setShowGuide(true), 700);
     return () => clearTimeout(timer);
-  }, [facts?.program]);
+  }, [facts?.program, session?.user?.id, guideKey]);
   const metadata = session?.user?.user_metadata;
   const firstName =
     metadata?.first_name ||
@@ -88,7 +88,7 @@ export default function DashboardPage() {
       {showGuide && (
         <SpotlightGuide
           steps={GUIDE_STEPS}
-          seenKey={GUIDE_KEY}
+          seenKey={guideKey}
           onClose={() => setShowGuide(false)}
         />
       )}
