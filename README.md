@@ -66,13 +66,13 @@ Thinking of switching degrees? Compare how your completed courses could count to
 
 Save job and internship ads, career paths, annual internship programs and student societies in one place. Filter saved items by type, add personal notes and remove anything you no longer need. Saved ads older than four weeks are flagged as probably closed, with links back to current opportunities and an option to remove expired ads.
 
-### Handbook
+### Official UNSW Handbook links
 
-Search UNSW degrees, specialisations and courses by name or code. Open their detail pages to explore program structures, course information and prerequisite rules, or choose a degree to explore in My Program and My Career.
+Course, program and specialisation details open in the official UNSW Handbook. Links prefer a published 2027 entry, then try 2026 and earlier years down to 2019. If the Handbook cannot be checked or no entry is found, the link opens the official Handbook home. The internal Handbook search and static detail pages are retired; old bookmarks redirect externally. **Explore other programs** still lets you choose a degree and explore its courses and careers within UniVise, with an official Handbook link for full details.
 
 ### Ask Eunice
 
-An AI academic and career adviser available through the floating chat button, the Explore menu or the full chat page. Eunice uses your program, specialisations, completed courses, degree progress, available next courses and shortlisted careers to answer in context. It can look up UNSW courses, programs and specialisations, check prerequisites and link to the Handbook sources it uses. Conversations are saved so you can return to them.
+An AI academic and career adviser available through the floating chat button, Ask Eunice in the main navigation or the full chat page. Eunice uses your program, specialisations, completed courses, degree progress, available next courses and shortlisted careers to answer in context. It can look up UNSW courses, programs and specialisations, check prerequisites and link to the Handbook sources it uses. Conversations are saved so you can return to them.
 
 ---
 

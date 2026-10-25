@@ -14,6 +14,7 @@ from app.routers import compare_programs
 from app.routers import switch_advisor
 from app.routers import course_picks
 from app.routers import careers
+from app.routers import handbook
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -58,3 +59,4 @@ app.include_router(compare_programs.router)
 app.include_router(switch_advisor.router)
 app.include_router(course_picks.router)
 app.include_router(careers.router)
+app.include_router(handbook.router)

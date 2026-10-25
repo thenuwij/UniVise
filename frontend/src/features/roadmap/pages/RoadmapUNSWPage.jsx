@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
@@ -34,7 +35,7 @@ const SECTION_GUIDE_TEXT = {
   coursemesh: "See how your courses connect, what your ticked courses unlock and what you can take next.",
   societies: "Discover student societies and professional communities. Return to any section whenever you need it.",
 };
-const sectionGuideSteps = (view) => ROADMAP_VIEWS[view].steps.map(({ key, title }) => ({
+const sectionGuideSteps = (steps) => steps.map(({ key, title }) => ({
   targets: [`[data-tour="roadmap-section-${key}"]`],
   title,
   text: SECTION_GUIDE_TEXT[key],
@@ -86,12 +87,9 @@ const useDegreeData = (degreeCode) => {
   return degreeData;
 };
 
-const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
-
 const handbookUrlFor = (degree, degreeCode) => {
   if (!degreeCode) return null;
-  const sourceUrl = degree?.source_url;
-  return sourceUrl && sourceUrl.includes(`/${degreeCode}`) ? sourceUrl : `${HANDBOOK_PROGRAM_URL}/${degreeCode}`;
+  return handbookUrl("programs", degreeCode, degree?.source_url);
 };
 
 const extractDegreeCode = (degree) => {
@@ -359,6 +357,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
   const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
+  const visibleSteps = useMemo(
+    () => ROADMAP_VIEWS[view].steps.filter((step) => step.key !== "next" || isOwnProgram),
+    [view, isOwnProgram]
+  );
   const [specNames, setSpecNames] = useState([]);
   const [meshFocus, setMeshFocus] = useState(() => searchParams.get("focus"));
 
@@ -376,6 +378,12 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
     preloadedRoadmapId
   );
   const stepIndex = useCallback((key) => ROADMAP_VIEWS[view].steps.findIndex((s) => s.key === key), [view]);
+  // Keep the existing URL step numbers stable when Next courses is hidden.
+  const activeStepKey = ROADMAP_VIEWS[view].steps[activeIndex]?.key;
+  const visibleActiveIndex = Math.max(0, visibleSteps.findIndex((step) => step.key === activeStepKey));
+  useEffect(() => {
+    if (shownDegreeCode && !enrolledLoading && !isOwnProgram && activeStepKey === "next") setActiveIndex(0);
+  }, [shownDegreeCode, enrolledLoading, isOwnProgram, activeStepKey, setActiveIndex]);
   const openCourseMesh = useCallback((code) => {
     setMeshFocus(code || null);
     setActiveIndex(stepIndex("coursemesh"));
@@ -452,8 +460,8 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       ),
     };
 
-    return ROADMAP_VIEWS[view].steps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, view, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
+    return visibleSteps.map((step) => ({ ...step, render: renderers[step.key] }));
+  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
 
   const headerProgramName =
     activeDegree?.degree_name ||
@@ -512,17 +520,19 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       wide={isCareers}
     >
       {!isCareers && (
-        <p className="mt-2 text-[15px] text-band-soft">
-          {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
-        </p>
-      )}
-      {!isCareers && handbookUrlFor(activeDegree, shownDegreeCode) && (
-        <p className="mt-1 text-[15px] text-band-soft">
-          Full program rules, including capstone and honours, are in the{" "}
-          <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-            UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </p>
+        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft md:flex-row md:items-end md:justify-between md:gap-6">
+          <p className="min-w-0">
+            {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
+          </p>
+          {handbookUrlFor(activeDegree, shownDegreeCode) && (
+            <p className="ml-auto max-w-xl text-right">
+              Full program rules, including capstone and honours, are in the{" "}
+              <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
+                UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </p>
+          )}
+        </div>
       )}
     </PageHeader>
   );
@@ -533,7 +543,7 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
       {showSectionGuide && data && !isCareers && (
         <SpotlightGuide
-          steps={sectionGuideSteps(view)}
+          steps={sectionGuideSteps(visibleSteps)}
           seenKey={sectionGuideKey}
           onClose={() => setShowSectionGuide(false)}
         />
@@ -554,10 +564,10 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
             personal={isOwnProgram}
           />
         ) : null}
-        activeIndex={activeIndex}
+        activeIndex={visibleActiveIndex}
         onIndexChange={(index) => {
           setMeshFocus(null);
-          setActiveIndex(index);
+          setActiveIndex(stepIndex(visibleSteps[index].key));
         }}
       />
     </div>

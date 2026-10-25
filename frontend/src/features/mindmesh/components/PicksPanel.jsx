@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
 import { ChevronDown, Info, MapPin, Plus, Sparkles } from "lucide-react";
 import { MYPLAN_URL } from "../hooks/useCoursePicks";
@@ -57,7 +58,7 @@ export default function PicksPanel({ picks, loading, failed, onRetry, onMap, onS
                     </button>
                   )}
                   <a
-                    href={`/course/${encodeURIComponent(p.code)}`}
+                    href={handbookUrl("courses", p.code)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-semibold text-link hover:underline"

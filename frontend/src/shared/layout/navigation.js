@@ -10,15 +10,8 @@ export function isNavigationActive(section, pathname) {
       );
     case "careers":
       return pathname === "/careers";
-    case "explore":
-      return (
-        pathname === "/roadmap" ||
-        pathname === "/handbook" ||
-        pathname === "/compare" ||
-        ["/degrees/", "/course/", "/specialisation/"].some((prefix) =>
-          pathname.startsWith(prefix),
-        )
-      );
+    case "eunice":
+      return pathname === "/chat" || pathname.startsWith("/chat/");
     default:
       return false;
   }

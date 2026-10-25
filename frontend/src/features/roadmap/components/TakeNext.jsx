@@ -1,10 +1,10 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
 import { BriefcaseBusiness, CircleCheck, ExternalLink, Network, Wrench } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { SubLabel } from "@/features/careers/components/CareersSection";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
 
-const HANDBOOK_COURSE_URL = "https://www.handbook.unsw.edu.au/undergraduate/courses/2026";
 
 
 const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
@@ -64,7 +64,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
               {" "}· Unlocks{" "}
               {pick.unlocks.map((u, i) => (
                 <span key={u.code}>
-                  <a href={`${HANDBOOK_COURSE_URL}/${u.code}`} target="_blank" rel="noopener noreferrer" title={`${u.name} in the UNSW Handbook`} className="underline decoration-slate-400 underline-offset-2 hover:text-ink-strong hover:decoration-slate-600">
+                  <a href={handbookUrl("courses", u.code)} target="_blank" rel="noopener noreferrer" title={`${u.name} in the UNSW Handbook`} className="underline decoration-slate-400 underline-offset-2 hover:text-ink-strong hover:decoration-slate-600">
                     {u.code}
                   </a>
                   {i < pick.unlocks.length - 1 ? ", " : ""}
@@ -73,12 +73,14 @@ function PickRow({ pick, onOpenCourseMesh }) {
             </>
           )}
         </span>
-        <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
-          <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
-        </button>
-        <a href={`${HANDBOOK_COURSE_URL}/${pick.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
-          Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-        </a>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
+          <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
+            <Network className="h-4 w-4" aria-hidden="true" /> See in CourseMesh
+          </button>
+          <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
+            Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
       </div>
     </li>
   );
@@ -179,11 +181,11 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
                   {course.code} · {course.name}
                   {course.core && <span className={`${badge} ml-2 bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
                 </span>
-                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                <div className="ml-auto flex flex-wrap justify-end gap-x-5 gap-y-2 text-sm font-semibold">
                   <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
                     See in CourseMesh
                   </button>
-                  <a href={`${HANDBOOK_COURSE_URL}/${course.code}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+                  <a href={handbookUrl("courses", course.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
                     Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   </a>
                 </div>

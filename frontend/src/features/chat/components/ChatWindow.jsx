@@ -1,3 +1,4 @@
+import { officialHandbookHref } from "@/shared/lib/handbook";
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "flowbite-react";
 import { MessageCircle, SendHorizontal } from "lucide-react";
@@ -194,6 +195,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              a: ({ href, children }) => <a href={officialHandbookHref(href)} target="_blank" rel="noopener noreferrer" className="text-link underline">{children}</a>,
               // strip default <p> margin
               p: ({ node, ...props }) => (
                 <p className="my-2.5 first:mt-0 last:mb-0 leading-relaxed" {...props} />

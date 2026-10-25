@@ -1,6 +1,6 @@
 import { Drawer } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { Bookmark, BookOpen, Briefcase, Compass, House, LogOut, Map, MessageCircle, X } from "lucide-react";
+import { Bookmark, Briefcase, House, LogOut, Map, MessageCircle, X } from "lucide-react";
 import { isNavigationActive } from "./navigation";
 import { roadmapViewUrl } from "@/features/roadmap/utils/roadmapSteps";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,13 +14,6 @@ const GROUPS = [
       { path: "/dashboard", label: "Home", icon: House },
       { path: "/roadmap-entryload", label: "My Program", icon: Map },
       { path: roadmapViewUrl("careers"), label: "My Career", icon: Briefcase },
-    ],
-  },
-  {
-    label: "Explore",
-    items: [
-      { path: "/handbook", label: "Handbook", icon: BookOpen },
-      { path: "/roadmap", label: "Explore other programs", icon: Compass },
     ],
   },
   {
@@ -77,9 +70,6 @@ export function MenuBar({ isOpen, handleClose }) {
     }
     if (path === roadmapViewUrl("careers")) {
       return isNavigationActive("careers", location.pathname);
-    }
-    if (path === "/handbook") {
-      return ["/handbook", "/degrees/", "/course/", "/specialisation/"].some((p) => location.pathname.startsWith(p));
     }
     if (path === "/chat") return location.pathname.startsWith("/chat");
     return location.pathname === path;

@@ -13,16 +13,9 @@ describe("shared navigation", () => {
     }
   });
 
-  it("keeps program browsing and handbook detail pages under Explore", () => {
-    for (const path of [
-      "/roadmap",
-      "/handbook",
-      "/degrees/12",
-      "/course/34",
-      "/specialisation/major/56",
-      "/compare",
-    ]) {
-      expect(isNavigationActive("explore", path)).toBe(true);
+  it("keeps Eunice active for new and existing conversations", () => {
+    for (const path of ["/chat", "/chat/conversation-id"]) {
+      expect(isNavigationActive("eunice", path)).toBe(true);
       expect(isNavigationActive("roadmap", path)).toBe(false);
     }
   });
@@ -31,9 +24,9 @@ describe("shared navigation", () => {
     expect(isNavigationActive("dashboard", "/dashboard")).toBe(true);
     expect(isNavigationActive("careers", "/careers")).toBe(true);
     expect(isNavigationActive("roadmap", "/careers")).toBe(false);
-    for (const section of ["dashboard", "roadmap", "careers", "explore"]) {
+    for (const section of ["dashboard", "roadmap", "careers", "eunice"]) {
       expect(isNavigationActive(section, "/profile")).toBe(false);
-      expect(isNavigationActive(section, "/chat")).toBe(false);
+      expect(isNavigationActive(section, "/roadmap")).toBe(false);
     }
   });
 });

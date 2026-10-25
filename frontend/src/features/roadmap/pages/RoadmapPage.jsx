@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 // src/pages/RoadmapPage.jsx
 import { useCallback, useEffect, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
@@ -122,6 +123,9 @@ function RoadmapPage() {
               )}
             </div>
 
+            <div className="mt-4 flex justify-end">
+            <a href={handbookUrl("programs", selectedCode, selectedDegreeObject.source_url)} target="_blank" rel="noopener noreferrer" className="inline-block text-sm font-semibold text-link hover:underline">View in UNSW Handbook ↗</a></div>
+
             <SpecialisationPicker key={selectedCode} degreeCode={selectedCode} value={choices} onChange={setChoices} />
 
             <div className="mt-6 pt-6 border-t border-line flex flex-col sm:flex-row sm:items-center gap-3">
@@ -130,7 +134,7 @@ function RoadmapPage() {
                 disabled={saving}
                 className="button-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold"
               >
-                {view === "careers" ? "Show careers" : "Generate roadmap"}
+                {view === "careers" ? "Show careers" : "Explore program"}
                 <HiArrowRight className="w-5 h-5" />
               </button>
               {!enrolledLoading && selectedDegreeObject.program_name && selectedCode !== enrolledProgram?.degree_code && (
