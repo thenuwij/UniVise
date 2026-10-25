@@ -26,7 +26,7 @@ from app.services.chat_context import build_student_summary
 from app.services.course_picks import load_inputs
 from app.services.eunice_tools import TOOLS, course_url, run_tool
 from app.services.requirements import requirement_status, to_uoc
-from app.services.user_profile import get_student_type, get_user_info, get_user_recommendations
+from app.services.user_profile import get_student_type, get_user_info
 
 CODE = re.compile(r"\b[A-Z]{4}\d{4}\b")
 FAKE_CODE = "ZZZZ9999"
@@ -139,11 +139,9 @@ async def main() -> None:
 
     user_id = args.user or busiest_student()
     user = type("User", (), {"id": user_id})()
-    student_type = await get_student_type(user)
+    await get_student_type(user)
     system = build_system_prompt(
-        student_type,
-        await get_user_info(user, student_type),
-        await get_user_recommendations(user, student_type),
+        await get_user_info(user),
         build_student_summary(user_id),
     )
     cases = build_cases(load_inputs(user_id), sample_courses(args.courses))

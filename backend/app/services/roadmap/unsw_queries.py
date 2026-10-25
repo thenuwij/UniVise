@@ -279,34 +279,6 @@ def enrich_courses_with_db_details(courses: List[Dict[str, Any]]) -> List[Dict[s
     return courses
 
 
-def format_core_courses_for_prompt(courses: List[Dict[str, Any]]) -> str:
-    if not courses:
-        return ""
-    formatted = "\n=== PROGRAM CORE COURSES (Detailed) ===\n"
-    formatted += "The following core courses are part of this program's structure:\n\n"
-    sections_map = {}
-    for c in courses:
-        section = c.get("section", "Core Courses")
-        sections_map.setdefault(section, []).append(c)
-    for section, items in sections_map.items():
-        formatted += f"{section}:\n"
-        for course in items:
-            formatted += f"  - {course['code']}: {course.get('name') or course.get('title', '')} ({course.get('uoc', 6)} UOC)\n"
-            overview = (course.get("overview") or "").strip()
-            if overview:
-                truncated = overview[:400] + "..." if len(overview) > 400 else overview
-                formatted += f"    ↳ {truncated}\n"
-        formatted += "\n"
-    formatted += (
-        "IMPORTANT: Use these course details to identify final-year 'capstone', 'project', "
-        "'thesis', or 'design' courses that represent the culminating experience in the degree.\n"
-    )
-    return formatted
-
-
-
-# Helper functions for general UNSW roadmap mode
-# Fetch a specific UNSW degree entry from Supabase using an identifier that matches.
 def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None) -> Dict[str, Any]:
 
     degree = None

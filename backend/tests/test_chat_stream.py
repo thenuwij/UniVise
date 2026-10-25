@@ -51,11 +51,8 @@ def inserts(monkeypatch):
     async def student_type(user):
         return "university"
 
-    async def user_info(user, student_type):
+    async def user_info(user):
         return {"degree_field": "Bachelor of Computer Science"}
-
-    async def recommendations(user, student_type):
-        return []
 
     async def summary(user_id):
         return None
@@ -63,7 +60,6 @@ def inserts(monkeypatch):
     monkeypatch.setattr(chat, "supabase", SimpleNamespace(table=lambda name: Table(name, saved)))
     monkeypatch.setattr(chat, "get_student_type", student_type)
     monkeypatch.setattr(chat, "get_user_info", user_info)
-    monkeypatch.setattr(chat, "get_user_recommendations", recommendations)
     monkeypatch.setattr(chat, "safe_student_summary", summary)
     app.dependency_overrides[get_current_user] = lambda: USER
     yield saved

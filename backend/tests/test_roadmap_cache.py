@@ -81,19 +81,19 @@ def test_hit_returns_the_payload_and_marks_it_used(monkeypatch):
     assert log[0][0] == "update" and "last_used_at" in log[0][1]
 
 
-def test_cached_roadmap_is_copied_without_an_ai_call(monkeypatch):
+def test_cached_roadmap_is_copied_without_rebuilding(monkeypatch):
     log = []
     cached = {"summary": "Cached", "career_pathways": {"entry_level": {}}, "industry_failed": []}
 
     async def context(user_id, body):
         return dict(CONTEXT)
 
-    async def no_ai(ctx):
-        raise AssertionError("AI should not be called on a cache hit")
+    def no_build(ctx):
+        raise AssertionError("The payload should not be rebuilt on a cache hit")
 
     monkeypatch.setattr(roadmap_router, "gather_unsw_context", context)
     monkeypatch.setattr(roadmap_router, "read_cached_roadmap", lambda key: dict(cached))
-    monkeypatch.setattr(roadmap_router, "ai_generate_unsw_payload", no_ai)
+    monkeypatch.setattr(roadmap_router, "build_unsw_payload", no_build)
     monkeypatch.setattr(roadmap_router, "supabase", SimpleNamespace(table=lambda name: Table([], log)))
 
     body = SimpleNamespace(degree_id="d1", uac_code=None, program_name=None)

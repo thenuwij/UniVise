@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 from app.models.roadmap import UNSWReq, RoadmapResp
 from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
 from app.services.roadmap.common import ensure
-from app.services.roadmap.unsw import gather_unsw_context, ai_generate_unsw_payload
+from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
 from app.services.roadmap.industry import generate_and_update_all_industry
 
 router = APIRouter(tags=["roadmap"])
@@ -29,7 +29,7 @@ async def create_unsw(
     # Build roadmap context & payload 
     ctx = await gather_unsw_context(user.id, body)
     cache_key = roadmap_cache_key(ctx)
-    payload = read_cached_roadmap(cache_key) or await ai_generate_unsw_payload(ctx)
+    payload = read_cached_roadmap(cache_key) or build_unsw_payload(ctx)
     payload["specialisation_ids"] = ctx["specialisation_ids"]
     payload["cache_key"] = cache_key
 
