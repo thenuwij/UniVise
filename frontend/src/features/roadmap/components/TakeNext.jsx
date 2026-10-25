@@ -1,14 +1,9 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import { SubLabel } from "@/features/careers/components/CareersSection";
 import { useCoursePicks } from "@/features/mindmesh/hooks/useCoursePicks";
-
-
-
-const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
 
 const pill = (active) =>
   `rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
@@ -141,14 +136,17 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
         <p className="mt-6 text-[15px] text-ink-muted">None of your top picks link to {career} yet. Try All careers or look through the full list below.</p>
       )}
       {others.length > 0 && (
-        <div className="mt-10">
-          <SubLabel hint="Also open to you now, with prerequisites met">Other courses you can take</SubLabel>
-          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800">
+        <details className="group mt-4 border-y border-slate-200 dark:border-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-[15px] font-semibold text-ink-strong hover:text-link">
+            {others.length} other course{others.length === 1 ? "" : "s"} you can take
+            <ChevronDown className="h-5 w-5 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <ul className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-slate-800 dark:border-slate-800">
             {others.map((course) => (
               <li key={course.code} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <span className="text-[15px] text-ink-strong">
                   {course.code} · {course.name}
-                  {course.core && <span className={`${badge} ml-2 bg-white text-slate-900 ring-1 ring-slate-900 dark:bg-slate-900 dark:text-white dark:ring-white`}>Core</span>}
+                  {course.core && <span className="ml-2 text-sm text-ink-muted">Core</span>}
                 </span>
                 <div className="ml-auto flex flex-wrap justify-end gap-x-5 gap-y-2 text-sm font-semibold">
                   <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
@@ -161,12 +159,12 @@ export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh
               </li>
             ))}
           </ul>
-        </div>
+        </details>
       )}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-800/50">
-        <p className="text-[15px] text-ink-muted">Missing a course you've finished? These suggestions follow your ticks.</p>
-        {updateCourses}
-      </div>
+      <p className="mt-5 text-[15px] text-ink-muted">
+        Missing a course you've finished?{" "}
+        <button type="button" onClick={onOpenCourses} className="font-semibold text-link hover:underline">Update my courses</button>
+      </p>
     </div>
   );
 }
