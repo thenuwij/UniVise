@@ -9,7 +9,7 @@ import ChatWindow from "../components/ChatWindow";
 
 const startsCollapsed = () => typeof window !== "undefined" && window.innerWidth < 768;
 
-export default function ChatbotPage() {
+export default function EunicePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(startsCollapsed);
   const [conversations, setConversations] = useState([]);

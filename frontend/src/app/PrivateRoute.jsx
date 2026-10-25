@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
-import EuniceLauncher from "@/features/chat/components/EuniceLauncher";
+import EuniceLauncher from "@/features/eunice/components/EuniceLauncher";
 import SupportedProgramGate from "./SupportedProgramGate";
 import TermsUpdateGate from "./TermsUpdateGate";
 

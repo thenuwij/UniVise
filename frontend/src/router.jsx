@@ -8,7 +8,7 @@ import SurveyPage from "./features/onboarding/pages/SurveyPage";
 import SetupPage from "./features/onboarding/pages/SetupPage";
 import HomePage from "./features/home/pages/HomePage";
 import PrivateRoute from "./app/PrivateRoute";
-import ChatbotPage from './features/chat/pages/ChatbotPage';
+import EunicePage from './features/eunice/pages/EunicePage';
 import ProfilePage from './features/profile/pages/ProfilePage';
 import RoadmapPage from "./features/roadmap/pages/RoadmapPage";
 import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
   { path: "/survey", element: <PrivateRoute requireProgram={false}><SurveyPage/></PrivateRoute>},
   { path: "/setup", element: <PrivateRoute requireProgram={false}><SetupPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><HomePage/></PrivateRoute>},
-  { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},
+  { path: "/chat/:conversationId?", element: <PrivateRoute><EunicePage /></PrivateRoute>},
   { path: "/profile", element: <PrivateRoute requireProgram={false}><ProfilePage/></PrivateRoute>},
   { path: "/handbook", element: <HandbookRedirect /> },
   { path: "/explore-by-degree", element: <HandbookRedirect /> },
