@@ -15,7 +15,6 @@ import LoadingRoadmapPage from "./features/roadmap/pages/LoadingRoadmapPage";
 import RoadmapUNSWPage from "./features/roadmap/pages/RoadmapUNSWPage";
 import LoadingRoadmapEntryPage from "./features/roadmap/pages/LoadingRoadmapEntryPage";
 import SavedItemsPage from "./features/saved/pages/SavedItemsPage";
-import ComparePage from "./features/transfer/pages/ComparePage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
 import { roadmapStepUrl } from "./features/roadmap/utils/roadmapSteps";
 
@@ -52,8 +51,6 @@ export const router = createBrowserRouter([
   { path: "/specialisation/minor/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/specialisation/honours/:id", element: <HandbookRedirect kind="specialisations" /> },
   { path: "/saved", element: <PrivateRoute><SavedItemsPage /></PrivateRoute> },
-  { path: "/compare", element: <PrivateRoute><ComparePage /></PrivateRoute> },
-  { path: "/progress", element: <Navigate to="/compare" replace /> },
   { path: "/auth/callback", element: <AuthCallback /> },
   
 ]);
