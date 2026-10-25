@@ -30,9 +30,8 @@ export default forwardRef(function GraphControls({
 
   return (
     <div className="border-b border-line bg-surface">
-      <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
-        <p className="text-sm text-ink-muted">Click a course to see what it needs and what it unlocks.</p>
-        <div data-tour="view-tools" className="flex flex-wrap items-center justify-end gap-2">
+      <div className="px-4 py-1.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <div data-tour="view-tools" className="flex flex-wrap items-center gap-2">
           {graphHistory?.current?.length > 0 && (
             <>
               <button onClick={handleBack} className={TOOL} title="Undo the last step">
