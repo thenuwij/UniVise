@@ -523,15 +523,14 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       wide={isCareers}
     >
       {!isCareers && (
-        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft md:flex-row md:items-end md:justify-between md:gap-6">
+        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
           <p className="min-w-0">
             {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
           </p>
           {handbookUrlFor(activeDegree, shownDegreeCode) && (
-            <p className="ml-auto max-w-xl text-right">
-              Full program rules, including capstone and honours, are in the{" "}
+            <p>
               <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-                UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
               </a>
             </p>
           )}
