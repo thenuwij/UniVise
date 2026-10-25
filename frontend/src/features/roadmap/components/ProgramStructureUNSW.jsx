@@ -1,9 +1,9 @@
+import { handbookUrl, openHandbook } from "@/shared/lib/handbook";
 // src/pages/roadmap/ProgramStructureUNSW.jsx
 import { ArrowRight, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "@/features/transfer/utils/completedCourses";
@@ -30,11 +30,9 @@ const GUIDE_STEPS = [
   },
 ];
 
-const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
 
 // Main 
 export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
-  const navigate = useNavigate();
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const [completed, setCompleted] = useState({});
@@ -43,7 +41,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   const [openMap, setOpenMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [handbookUrl, setHandbookUrl] = useState("");
   
   const [specs, setSpecs] = useState(null);
   
@@ -197,7 +194,6 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
 
         const [filled] = await withCourseUoc([parsed.filter((s) => s && s.title && !s.title.toLowerCase().includes("overview"))]);
         setSections(filled);
-        setHandbookUrl(data?.source_url || "");
         setOpenMap({});
       } catch (e) {
         console.error("Error during fetchStructure:", e);
@@ -356,14 +352,8 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
     setOpenMap(Object.fromEntries(shownSections.map((s, i) => [`${s.title}-${i}`, open])));
   
 
-  const handleCourseClick = async (course) => {
-    if (!course?.code) return;
-    const { data: match } = await supabase
-      .from("unsw_courses")
-      .select("id")
-      .eq("code", course.code)
-      .maybeSingle();
-    if (match?.id) navigate(`/course/${match.id}`);
+  const handleCourseClick = (course) => {
+    if (course?.code) openHandbook("courses", course.code);
   };
 
 
@@ -469,7 +459,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
             {canChooseMinor && minorControlsOpen && (
               <MinorControls uoc={optionalMinorUoc} options={minorOptions} value={minorId} saving={savingMinor} onChange={chooseMinor} />
             )}
-            {thin && hasMajors && <ChooseSpecialisationNotice handbookUrl={handbookUrl || `${HANDBOOK_PROGRAM_URL}/${degreeCode}`} />}
+            {thin && hasMajors && <ChooseSpecialisationNotice handbookUrl={handbookUrl("programs", degreeCode)} />}
             {groups.length > 0 && (
               <div className="course-checklist-sheet">
                 {groups.map((group, groupIndex) => {

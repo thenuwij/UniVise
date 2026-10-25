@@ -1,3 +1,4 @@
+import { officialHandbookHref } from "@/shared/lib/handbook";
 import { ExternalLink } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { motion } from "framer-motion";
@@ -175,7 +176,7 @@ export default function CapstoneHonours({ data, handbookUrl, faculty, children }
       {handbookUrl && (
         <div>
           <a
-            href={handbookUrl}
+            href={officialHandbookHref(handbookUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-base font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 shadow-sm hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"

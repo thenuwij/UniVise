@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight, Check, CircleCheck, CircleX, GraduationCap, Info, MessageCircle, Search, X } from "lucide-react";
@@ -80,7 +81,7 @@ function CodeLines({ courses, note }) {
     <ul className="mt-3 space-y-1.5">
       {courses.map((c) => (
         <li key={c.code} className="text-sm">
-          <Link to={`/course/${c.code}`} className="font-bold text-link hover:underline">{c.code}</Link>
+          <a href={handbookUrl("courses", c.code)} target="_blank" rel="noopener noreferrer" className="font-bold text-link hover:underline">{c.code}</a>
           <span className="text-ink"> {c.name}</span>
           {note && c[note] && <span className="text-ink-muted"> · {c[note]}</span>}
         </li>

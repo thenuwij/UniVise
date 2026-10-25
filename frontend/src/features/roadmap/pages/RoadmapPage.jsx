@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 // src/pages/RoadmapPage.jsx
 import { useCallback, useEffect, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
@@ -121,6 +122,9 @@ function RoadmapPage() {
                 </button>
               )}
             </div>
+
+            <div className="mt-4 flex justify-end">
+            <a href={handbookUrl("programs", selectedCode, selectedDegreeObject.source_url)} target="_blank" rel="noopener noreferrer" className="inline-block text-sm font-semibold text-link hover:underline">View in UNSW Handbook ↗</a></div>
 
             <SpecialisationPicker key={selectedCode} degreeCode={selectedCode} value={choices} onChange={setChoices} />
 

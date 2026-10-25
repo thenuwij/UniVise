@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, CircleCheck, Info, MapPin, Plus, Search, X } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase";
@@ -157,7 +158,7 @@ export default function ElectivesPanel({
                         {option.name && <span className="block text-sm text-slate-600 dark:text-slate-300 truncate">{option.name}</span>}
                         <span className="mt-0.5 flex flex-wrap items-center gap-x-3">
                           <a
-                            href={`/course/${encodeURIComponent(option.code)}`}
+                            href={handbookUrl("courses", option.code)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-xs font-semibold text-link hover:underline"

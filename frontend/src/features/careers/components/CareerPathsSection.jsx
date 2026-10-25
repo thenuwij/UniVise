@@ -1,5 +1,5 @@
+import { openHandbook } from "@/shared/lib/handbook";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-react";
 import SaveButton from "@/shared/ui/SaveButton";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
@@ -47,7 +47,6 @@ const seekSearchUrl = (title) =>
 
 const cleanSalary = (s) => s.replace(" AUD based on current listings", "").replace(" based on current listings", "");
 
-const specialisationPath = (spec) => `/specialisation/${spec.type === "Honours" ? "honours" : "major"}/${spec.id}`;
 
 const linkChip = "inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium text-link bg-surface border border-line hover:border-blue-300 transition-colors";
 
@@ -70,7 +69,6 @@ function useInterestAreas(enabled) {
 }
 
 function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCount, onOpenCourse }) {
-  const navigate = useNavigate();
   const matches = personal && matchesInterests(role.title, interestAreas);
 
   return (
@@ -124,7 +122,7 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
                     <button key={code} type="button" onClick={() => onOpenCourse(code)} className={linkChip}>{code}</button>
                   ))}
                   {(role.specialisations || []).map((spec) => (
-                    <button key={spec.id} type="button" onClick={() => navigate(specialisationPath(spec))} className={linkChip}>{spec.name}</button>
+                    <button key={spec.id} type="button" onClick={() => openHandbook("specialisations", spec.id)} className={linkChip}>{spec.name}</button>
                   ))}
                 </div>
               )}
@@ -160,7 +158,6 @@ function RoleRow({ role, level, open, onToggle, personal, interestAreas, jobCoun
 }
 
 export default function CareerPathsSection({ careerPathways, personal, jobs }) {
-  const navigate = useNavigate();
   const interestAreas = useInterestAreas(personal);
   const [level, setLevel] = useState("entry");
   const [openRoles, setOpenRoles] = useState(() => new Set());
@@ -175,10 +172,7 @@ export default function CareerPathsSection({ careerPathways, personal, jobs }) {
     return next;
   });
 
-  const openCourse = async (code) => {
-    const { data: match } = await supabase.from("unsw_courses").select("id").eq("code", code).maybeSingle();
-    if (match?.id) navigate(`/course/${match.id}`);
-  };
+  const openCourse = (code) => openHandbook("courses", code);
 
   const jobCount = (role) => (level === "entry" && role.ad_search ? (jobs || []).filter((ad) => ad.role === role.ad_search).length : 0);
 

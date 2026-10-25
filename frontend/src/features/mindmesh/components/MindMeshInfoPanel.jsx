@@ -1,7 +1,7 @@
+import { openHandbook } from "@/shared/lib/handbook";
 // src/mindmesh/components/MindMeshInfoPanel.jsx
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase";
 import { STATUS } from "../utils/availability";
 import { otherConditions } from "../utils/conditions";
@@ -18,7 +18,6 @@ function RuleItem({ met, children }) {
 }
 
 export default function MindMeshInfoPanel({ focusedNode, status, requirements = [], completed = new Set(), onToggleDone, saving, onDismiss }) {
-  const navigate = useNavigate();
   const [conditions, setConditions] = useState([]);
   const focusedId = focusedNode?.id;
 
@@ -42,19 +41,7 @@ export default function MindMeshInfoPanel({ focusedNode, status, requirements = 
   const { id, label, metadata = {} } = focusedNode;
   const { uoc, faculty, school, level } = metadata;
 
-  const handleViewCourse = async () => {
-    if (!id) return;
-    try {
-      const { data: match } = await supabase
-        .from("unsw_courses")
-        .select("id")
-        .eq("code", id)
-        .maybeSingle();
-      if (match?.id) navigate(`/course/${match.id}`);
-    } catch (err) {
-      console.error("Failed to navigate to course:", err);
-    }
-  };
+  const handleViewCourse = () => openHandbook("courses", id);
 
   return (
     <div data-tour="course-card" className="absolute bottom-4 right-4 z-20 w-[min(26rem,calc(100%-2rem))] max-h-[calc(100%-2rem)] overflow-y-auto
@@ -148,7 +135,7 @@ export default function MindMeshInfoPanel({ focusedNode, status, requirements = 
                        hover:from-blue-700 hover:to-indigo-700
                        shadow-sm transition-all duration-200"
           >
-            View Course Details
+            View in UNSW Handbook ↗
           </button>
           <button
             onClick={onDismiss}

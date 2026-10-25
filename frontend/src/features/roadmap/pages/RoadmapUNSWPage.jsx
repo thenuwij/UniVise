@@ -1,3 +1,4 @@
+import { handbookUrl } from "@/shared/lib/handbook";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
@@ -86,12 +87,9 @@ const useDegreeData = (degreeCode) => {
   return degreeData;
 };
 
-const HANDBOOK_PROGRAM_URL = "https://www.handbook.unsw.edu.au/undergraduate/programs/2026";
-
 const handbookUrlFor = (degree, degreeCode) => {
   if (!degreeCode) return null;
-  const sourceUrl = degree?.source_url;
-  return sourceUrl && sourceUrl.includes(`/${degreeCode}`) ? sourceUrl : `${HANDBOOK_PROGRAM_URL}/${degreeCode}`;
+  return handbookUrl("programs", degreeCode, degree?.source_url);
 };
 
 const extractDegreeCode = (degree) => {
@@ -512,17 +510,19 @@ export default function RoadmapUNSWPage({ view = "degree" }) {
       wide={isCareers}
     >
       {!isCareers && (
-        <p className="mt-2 text-[15px] text-band-soft">
-          {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
-        </p>
-      )}
-      {!isCareers && handbookUrlFor(activeDegree, shownDegreeCode) && (
-        <p className="mt-1 text-[15px] text-band-soft">
-          Full program rules, including capstone and honours, are in the{" "}
-          <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-            UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </p>
+        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft md:flex-row md:items-end md:justify-between md:gap-6">
+          <p className="min-w-0">
+            {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
+          </p>
+          {handbookUrlFor(activeDegree, shownDegreeCode) && (
+            <p className="ml-auto max-w-xl text-right">
+              Full program rules, including capstone and honours, are in the{" "}
+              <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
+                UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </p>
+          )}
+        </div>
       )}
     </PageHeader>
   );
