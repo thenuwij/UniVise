@@ -141,8 +141,7 @@ async def main() -> None:
     user = type("User", (), {"id": user_id})()
     student_type = await get_student_type(user)
     system = build_system_prompt(
-        student_type,
-        await get_user_info(user, student_type),
+        await get_user_info(user),
         await get_user_recommendations(user, student_type),
         build_student_summary(user_id),
     )

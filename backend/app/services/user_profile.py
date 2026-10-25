@@ -38,16 +38,9 @@ async def get_student_type(user) -> str:
     return student_type
 
 
-async def get_user_info(user, student_type):
-    if student_type == "university":
-        table = "student_uni_data"
-    elif student_type == "high_school":
-        table = "student_school_data"
-    else:
-        raise HTTPException(status_code=400, detail="Invalid student type")
-
+async def get_user_info(user):
     try:
-        resp = supabase.table(table).select("*").eq("user_id", user.id).single().execute()
+        resp = supabase.table("student_uni_data").select("*").eq("user_id", user.id).single().execute()
     except Exception as e:
         logger.error(f"[user_info] DB query failed for user {user.id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user info")

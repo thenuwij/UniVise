@@ -51,7 +51,7 @@ def inserts(monkeypatch):
     async def student_type(user):
         return "university"
 
-    async def user_info(user, student_type):
+    async def user_info(user):
         return {"degree_field": "Bachelor of Computer Science"}
 
     async def recommendations(user, student_type):

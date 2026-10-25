@@ -39,7 +39,7 @@ async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | Non
             raise HTTPException(status_code=404, detail="Conversation not found")
 
         student_type = await get_student_type(user)
-        user_info = await get_user_info(user, student_type)
+        user_info = await get_user_info(user)
         recommendations = await get_user_recommendations(user, student_type)
 
         if not student_type or not user_info:
@@ -68,7 +68,7 @@ async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | Non
 
         student_summary = await safe_student_summary(user.id)
         page = payload.page if payload else None
-        system_prompt = build_system_prompt(student_type, user_info, recommendations, student_summary, page)
+        system_prompt = build_system_prompt(user_info, recommendations, student_summary, page)
 
         async def lookup(name: str, arguments: str) -> str:
             return await asyncio.to_thread(run_tool, name, arguments, user.id)
