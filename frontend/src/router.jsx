@@ -2,6 +2,8 @@ import HandbookRedirect from "./features/explore/pages/HandbookRedirect";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
+import TermsPage from "./features/auth/pages/TermsPage";
+import PrivacyPage from "./features/auth/pages/PrivacyPage";
 import SurveyPage from "./features/onboarding/pages/SurveyPage";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import PrivateRoute from "./app/PrivateRoute";
@@ -27,6 +29,8 @@ export const router = createBrowserRouter([
   { path: "/", element: <LoginPage/> },
   { path: "/login", element: <LoginPage/> },
   { path: "/register", element: <RegisterPage/> },
+  { path: "/terms", element: <TermsPage/> },
+  { path: "/privacy", element: <PrivacyPage/> },
   { path: "/survey", element: <PrivateRoute requireProgram={false}><SurveyPage/></PrivateRoute>},
   { path: "/dashboard", element: <PrivateRoute><DashboardPage/></PrivateRoute>},
   { path: "/chat/:conversationId?", element: <PrivateRoute><ChatbotPage /></PrivateRoute>},

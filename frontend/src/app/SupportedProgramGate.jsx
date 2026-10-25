@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Header } from "@/shared/layout/Header";
 import { UserAuth } from "./AuthContext";
 import { fetchSupportedEnrolment } from "@/features/onboarding/utils/supportedProgram";
+import { TERMS_CONTACT } from "@/features/auth/data/termsContent";
 
 // A brief cache avoids repeating eligibility lookups on each navigation.
 // Missing programs and failures are never cached, so setup can be completed immediately.
@@ -82,10 +83,10 @@ export default function SupportedProgramGate({ children }) {
             <p className="mt-5 text-sm text-ink-muted">
               Questions?{" "}
               <a
-                href="mailto:z5343238@ad.unsw.edu.au"
+                href={`mailto:${TERMS_CONTACT}`}
                 className="text-link underline"
               >
-                z5343238@ad.unsw.edu.au
+                {TERMS_CONTACT}
               </a>
             </p>
           </>
