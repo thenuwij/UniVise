@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Check, CircleAlert, Loader2 } from "lucide-react";
 import { UserAuth } from "@/app/AuthContext";
 import { Header } from "@/shared/layout/Header";
-import { finishRoadmap } from "@/features/roadmap/utils/roadmapEntry";
+import { finishRoadmap } from "@/features/program/utils/roadmapEntry";
 import { findOrBuildRoadmap, loadCertifications, loadOpportunities } from "../utils/setupPlan";
 
 const STEPS = [

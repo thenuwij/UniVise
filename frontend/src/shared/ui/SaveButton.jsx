@@ -3,7 +3,7 @@ import { HiBookmark, HiOutlineBookmark } from "react-icons/hi";
 import toast from "react-hot-toast";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
-import { canonicalType, typeAliases } from "@/features/saved/utils/shortlist";
+import { canonicalType, typeAliases } from "@/features/shortlist/utils/shortlist";
 const CHANGE_EVENT = "univise-shortlist-change";
 
 export default function SaveButton({
