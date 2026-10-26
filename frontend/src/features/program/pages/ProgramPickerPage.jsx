@@ -6,7 +6,7 @@ import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import SectionHeading from "@/shared/ui/SectionHeading";
-import DegreeSelectorSection from "../components/DegreeSelectorSection";
+import ProgramSearch from "../components/ProgramSearch";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import SpecialisationPicker from "../components/SpecialisationPicker";
@@ -145,10 +145,12 @@ function ProgramPickerPage() {
           <section className={`${card} p-5 md:p-6`}>
             <SectionHeading subtitle="Click a degree to select it">Search UNSW programs</SectionHeading>
             <div className="mt-6">
-              <DegreeSelectorSection
-                selectedDegreeId={selectedDegreeId}
-                setSelectedDegreeId={setSelectedDegreeId}
-                setSelectedDegreeObject={setSelectedDegreeObject}
+              <ProgramSearch
+                selectedId={selectedDegreeId}
+                onSelect={(degree) => {
+                  setSelectedDegreeId(degree.id);
+                  setSelectedDegreeObject(degree);
+                }}
               />
             </div>
           </section>
