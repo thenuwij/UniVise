@@ -7,15 +7,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 export default [
   { ignores: ['dist'] },
   {
-    files: ['prettier.config.js'],
-    languageOptions: {
-      globals: globals.node,
-      sourceType: 'commonjs',
-    },
-  },
-  {
     files: ['**/*.{js,jsx}'],
-    ignores: ['prettier.config.js'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
