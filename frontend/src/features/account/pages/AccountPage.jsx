@@ -8,6 +8,7 @@ import { card } from "@/shared/ui/cardStyles";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
 import { useEnrolledProgram } from "@/features/program/hooks/useEnrolledProgram";
+import { loadStudentProfile, updateStudentProfile } from "../api";
 import YourDataCard from "../components/YourDataCard";
 
 const TAG_MAX_LENGTH = 60;
@@ -223,7 +224,7 @@ function AccountPage() {
           gender: meta.gender || NOT_SET,
         };
         if (st === "university") {
-          const { data } = await supabase.from("student_uni_data").select("*").eq("user_id", user.id).single();
+          const { data } = await loadStudentProfile(user.id);
           setForm((prev) => ({
             ...prev,
             ...base,
@@ -269,7 +270,7 @@ function AccountPage() {
       if (authError) throw authError;
       const { data: { user } } = await supabase.auth.getUser();
       if (studentType === "university") {
-        const { error } = await supabase.from("student_uni_data").update({
+        const { error } = await updateStudentProfile(user.id, {
           wam: form.wam === "" ? null : form.wam,
           degree_field: cleanText(form.degreeField, 100) || null,
           degree_stage: form.degreeStage,
@@ -277,7 +278,7 @@ function AccountPage() {
           hobbies: form.hobbies,
           confidence: form.confidence,
           academic_year: form.year,
-        }).eq("user_id", user.id);
+        });
         if (error) throw error;
       }
       setStatus({ [editing]: { saved: true } });
