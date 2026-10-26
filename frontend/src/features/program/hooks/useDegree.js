@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchDegree } from "../api";
 
 export function useDegree(degreeCode) {
   const [degree, setDegree] = useState(null);
@@ -7,11 +7,7 @@ export function useDegree(degreeCode) {
   useEffect(() => {
     if (!degreeCode) return;
     let active = true;
-    supabase
-      .from("unsw_degrees_final")
-      .select("*")
-      .eq("degree_code", degreeCode)
-      .maybeSingle()
+    fetchDegree(degreeCode)
       .then(({ data, error }) => {
         if (active && !error) setDegree(data);
       });

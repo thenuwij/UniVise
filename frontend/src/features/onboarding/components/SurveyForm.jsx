@@ -9,6 +9,7 @@ import { cleanText } from "@/shared/lib/cleanText";
 import { changeEnrolledProgram } from "@/features/program/utils/enrolledProgram";
 import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
 import { saveChoices } from "@/features/program/utils/programCourses";
+import { listOfferedDegrees } from "@/features/program/api";
 import SpecialisationPicker from "@/features/program/components/SpecialisationPicker";
 import { TermsAgreement } from "@/features/auth/components/TermsAgreement";
 import { hasAcceptedCurrentTerms, recordTermsAccepted } from "@/features/auth/utils/terms";
@@ -166,10 +167,7 @@ function ProgramPicker({ value, onSelect }) {
     let active = true;
     setProgramsLoading(true);
     setProgramsError(false);
-    supabase
-      .from("unsw_degrees_final")
-      .select("id, degree_code, program_name, is_offered")
-      .eq("is_offered", true)
+    listOfferedDegrees("id, degree_code, program_name, is_offered")
       .order("program_name")
       .then(({ data, error }) => { if (!active) return; if (error) { setProgramsError(true); } else { setPrograms((data || []).filter(isSupportedProgram)); } })
       .catch(() => { if (active) setProgramsError(true); })

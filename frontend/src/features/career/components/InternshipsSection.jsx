@@ -2,8 +2,8 @@ import SaveButton from "@/shared/ui/SaveButton";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, CircleCheck, Megaphone } from "lucide-react";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
-import { setCourseCompleted } from "@/features/program/utils/completedCourses";
+import { fetchCourse } from "@/features/program/api";
+import { fetchCompletedCourse, setCourseCompleted } from "@/features/program/utils/completedCourses";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { sameCompany } from "../utils/hiringNow";
 import { monthsUntilOpen } from "../utils/careersDates";
@@ -62,12 +62,7 @@ function usePlacementCompletion(code, enabled) {
   useEffect(() => {
     if (!enabled || !code || !userId) return;
     let active = true;
-    supabase
-      .from("user_completed_courses")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("course_code", code)
-      .maybeSingle()
+    fetchCompletedCourse(userId, code)
       .then(({ data, error }) => {
         if (!active) return;
         setRow(error ? undefined : data || null);
@@ -80,7 +75,7 @@ function usePlacementCompletion(code, enabled) {
     if (!userId || row === undefined) return;
     setSaving(true);
     try {
-      const { data: course } = await supabase.from("unsw_courses").select("code, title, uoc").eq("code", code).maybeSingle();
+      const { data: course } = await fetchCourse(code, "code, title, uoc");
       const saved = await setCourseCompleted({
         userId,
         course: { code, name: course?.title || code, uoc: course?.uoc },

@@ -8,6 +8,9 @@ export async function fetchCompletedCourses(userId) {
   return data || [];
 }
 
+export const fetchCompletedCourse = (userId, code) =>
+  supabase.from("user_completed_courses").select("*").eq("user_id", userId).eq("course_code", code).maybeSingle();
+
 export async function setCourseCompleted({ userId, course, existing, isCompleted, category = null, source = null }) {
   let row;
   if (existing?.id) {

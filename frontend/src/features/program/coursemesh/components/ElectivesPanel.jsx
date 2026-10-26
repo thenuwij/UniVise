@@ -1,7 +1,7 @@
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, CircleCheck, Info, MapPin, Plus, Search, X } from "lucide-react";
-import { supabase } from "@/shared/lib/supabase";
+import { searchCourses } from "../../api";
 import { ADDED_SECTION, canCheckRules, matchesRule } from "../../utils/myCourses";
 
 const MIN_SEARCH = 2;
@@ -20,12 +20,7 @@ function useCourseSearch(query, exclude) {
     let active = true;
     setSearching(true);
     const timer = setTimeout(() => {
-      supabase
-        .from("unsw_courses")
-        .select("code, title, uoc")
-        .or(`code.ilike.%${q}%,title.ilike.%${q}%`)
-        .order("code")
-        .limit(25)
+      searchCourses(q)
         .then(({ data }) => {
           if (!active) return;
           setResults((data || []).filter((c) => !exclude.has(c.code)).map((c) => ({ code: c.code, name: c.title, uoc: c.uoc, section: ADDED_SECTION })));

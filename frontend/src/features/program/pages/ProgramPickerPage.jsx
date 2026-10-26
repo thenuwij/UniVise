@@ -14,7 +14,7 @@ import SpecialisationPicker from "../components/SpecialisationPicker";
 import { fetchSavedChoices, saveChoices } from "../utils/programCourses";
 import { roadmapViewUrl, stepNumber } from "../utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchDegree } from "../api";
 
 function ProgramPickerPage() {
   const navigate = useNavigate();
@@ -33,11 +33,7 @@ function ProgramPickerPage() {
 
   useEffect(() => {
     if (!presetCode) return;
-    supabase
-      .from("unsw_degrees_final")
-      .select("*")
-      .eq("degree_code", presetCode)
-      .maybeSingle()
+    fetchDegree(presetCode)
       .then(({ data }) => {
         if (!data) return;
         setSelectedDegreeId(data.id);
