@@ -36,13 +36,7 @@ export default forwardRef(function AutoLayoutControls({
     const idSet = new Set(allNodes.map((n) => n.id));
 
     const validLinks = links.filter(l => idSet.has(l.source) && idSet.has(l.target));
-    
-    const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
-    const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
-    
-    if (nodes.length === 0) {
-      return;
-    }
+    const nodes = allNodes;
 
     const prereq = validLinks.filter((l) => l.type === "prereq");
     const belongs = validLinks.filter((l) => l.type === "belongs_to");
@@ -140,11 +134,8 @@ export default forwardRef(function AutoLayoutControls({
     
     const idSet = new Set(allNodes.map((n) => n.id));
     const validLinks = links.filter(l => idSet.has(l.source) && idSet.has(l.target));
-    
-    const connectedNodeIds = new Set(validLinks.flatMap((l) => [l.source, l.target]));
-    const nodes = allNodes.filter(n => connectedNodeIds.has(n.id));
-    
-    setGraph({ nodes, links: validLinks });
+
+    setGraph({ nodes: allNodes, links: validLinks });
     setFrozen?.(false);
     requestAnimationFrame(() => graphRef.current?.d3ReheatSimulation());
   }, [graph, graphRef, setGraph, setFrozen]);
