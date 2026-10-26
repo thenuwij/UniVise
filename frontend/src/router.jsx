@@ -13,6 +13,7 @@ import AccountPage from './features/account/pages/AccountPage';
 import ProgramPickerPage from "./features/program/pages/ProgramPickerPage";
 import ProgramBuildPage from "./features/program/pages/ProgramBuildPage";
 import ProgramPage from "./features/program/pages/ProgramPage";
+import CareerPage from "./features/career/pages/CareerPage";
 import ProgramEntryPage from "./features/program/pages/ProgramEntryPage";
 import ShortlistPage from "./features/shortlist/pages/ShortlistPage";
 import AuthCallback from "./features/auth/pages/AuthCallback";
@@ -49,7 +50,7 @@ export const router = createBrowserRouter([
       { path: "/roadmap", element: <ProgramPickerPage /> },
       { path: "/roadmap-loading", element: <ProgramBuildPage /> },
       { path: "/roadmap/unsw", element: <ProgramPage /> },
-      { path: "/careers", element: <ProgramPage view="careers" /> },
+      { path: "/careers", element: <CareerPage /> },
       { path: "/roadmap-entryload", element: <ProgramEntryPage /> },
       { path: "/saved", element: <ShortlistPage /> },
     ],
