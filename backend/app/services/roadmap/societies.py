@@ -5,7 +5,7 @@ from app.llm.claude_client import ask_claude_structured
 from app.models.roadmap import SocietiesSection
 from app.services.roadmap.grounding import chosen_specialisations
 from app.services.roadmap.professional_bodies import link_professional_bodies, professional_body_names
-from app.services.roadmap.unsw_queries import fetch_society_rows
+from app.services.roadmap.queries import fetch_society_rows
 
 logger = logging.getLogger(__name__)
 

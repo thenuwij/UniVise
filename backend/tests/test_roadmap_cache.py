@@ -91,13 +91,13 @@ def test_cached_roadmap_is_copied_without_rebuilding(monkeypatch):
     def no_build(ctx):
         raise AssertionError("The payload should not be rebuilt on a cache hit")
 
-    monkeypatch.setattr(roadmap_router, "gather_unsw_context", context)
+    monkeypatch.setattr(roadmap_router, "gather_context", context)
     monkeypatch.setattr(roadmap_router, "read_cached_roadmap", lambda key: dict(cached))
-    monkeypatch.setattr(roadmap_router, "build_unsw_payload", no_build)
+    monkeypatch.setattr(roadmap_router, "build_payload", no_build)
     monkeypatch.setattr(roadmap_router, "supabase", SimpleNamespace(table=lambda name: Table([], log)))
 
     body = SimpleNamespace(degree_id="d1", uac_code=None, program_name=None)
-    result = asyncio.run(roadmap_router.create_unsw(body, user=SimpleNamespace(id="u1")))
+    result = asyncio.run(roadmap_router.create_roadmap(body, user=SimpleNamespace(id="u1")))
 
     inserted = log[0][1]
     assert inserted["user_id"] == "u1"

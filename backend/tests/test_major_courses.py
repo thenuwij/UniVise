@@ -5,7 +5,7 @@ electives count, and that free electives and general education do not.
 """
 import json
 
-from app.services.roadmap.unsw_queries import extract_core_course_codes_from_sections
+from app.services.roadmap.queries import extract_core_course_codes_from_sections
 
 SECTIONS = [
     {"title": "Overview", "courses": []},

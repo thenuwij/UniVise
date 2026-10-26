@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 
 from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
-from app.services.roadmap.unsw_queries import normalise_program_name
+from app.services.roadmap.queries import normalise_program_name
 
 STUDY_AREAS = [
     "Agriculture and environmental studies",

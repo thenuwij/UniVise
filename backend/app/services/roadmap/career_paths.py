@@ -7,7 +7,7 @@ from urllib.parse import quote
 from app.llm.openai_client import ask_gpt_structured
 from app.models.roadmap import career_pathways_schema
 from app.services.roadmap.grounding import chosen_specialisations, course_list_for_prompt, keep_listed_codes, replace_unlisted_codes, validate_url
-from app.services.roadmap.job_ads import ad_search_words
+from app.services.careers.search_words import ad_search_words
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-"""Tests for the roadmap industry experience step.
+"""Tests for the roadmap internships step.
 
 The AI call, the opening-time search and the link check are faked; these
 check the payload shape the frontend reads, that placement and WIL courses

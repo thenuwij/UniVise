@@ -6,7 +6,7 @@ roadmap entry page can match a roadmap to the student's current choices.
 """
 from types import SimpleNamespace
 
-from app.services.roadmap import unsw_queries
+from app.services.roadmap import queries
 
 
 class Query:
@@ -38,19 +38,19 @@ ROWS = [
 
 
 def test_collects_choices_from_both_halves_in_order(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(ROWS))))
-    monkeypatch.setattr(unsw_queries, "component_degree_codes", lambda code, name: [code, "3778", "3970"])
+    monkeypatch.setattr(queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(ROWS))))
+    monkeypatch.setattr(queries, "component_degree_codes", lambda code, name: [code, "3778", "3970"])
 
-    ids = unsw_queries.fetch_specialisation_ids("u1", "3781", "Science / Computer Science")
+    ids = queries.fetch_specialisation_ids("u1", "3781", "Science / Computer Science")
 
     assert ids == ["a-major", "b-major", "c-minor"]
 
 
 def test_no_choices_gives_an_empty_list(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(ROWS))))
-    monkeypatch.setattr(unsw_queries, "component_degree_codes", lambda code, name: [code])
+    monkeypatch.setattr(queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(ROWS))))
+    monkeypatch.setattr(queries, "component_degree_codes", lambda code, name: [code])
 
-    assert unsw_queries.fetch_specialisation_ids("u1", "3707", "Bachelor of Engineering (Honours)") == []
+    assert queries.fetch_specialisation_ids("u1", "3707", "Bachelor of Engineering (Honours)") == []
 
 
 SPECIALISATIONS = [
@@ -69,9 +69,9 @@ SPECIALISATIONS = [
 
 
 def test_context_joins_both_halves_and_groups_by_type(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(SPECIALISATIONS))))
+    monkeypatch.setattr(queries, "supabase", SimpleNamespace(from_=lambda name: Query(list(SPECIALISATIONS))))
 
-    context = unsw_queries.fetch_specialisation_context(["a-major", "b-major", "c-minor", "d-honours"])
+    context = queries.fetch_specialisation_context(["a-major", "b-major", "c-minor", "d-honours"])
 
     assert context["selected_major_name"] == "Accounting and Computer Science"
     assert context["selected_major_courses"] == ["ACCT1511", "MATH1081", "COMP2521", "COMP3311"]
@@ -82,9 +82,9 @@ def test_context_joins_both_halves_and_groups_by_type(monkeypatch):
 
 
 def test_no_ids_gives_an_empty_context_without_a_query(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", None)
+    monkeypatch.setattr(queries, "supabase", None)
 
-    context = unsw_queries.fetch_specialisation_context([])
+    context = queries.fetch_specialisation_context([])
 
     assert context["selected_major_name"] is None
     assert context["selected_major_courses"] == []

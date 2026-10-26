@@ -1,5 +1,5 @@
 """Tests for turning a role title into job ad search words."""
-from app.services.roadmap.job_ads import ad_search_words, is_early_career
+from app.services.careers.search_words import ad_search_words, is_early_career
 
 
 def test_search_words_drop_level_words_and_keep_two():

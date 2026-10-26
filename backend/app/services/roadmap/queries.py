@@ -22,7 +22,6 @@ CORE_COURSE_KEYWORDS = [
     "honours",
 ]
 
-# Helper functions for Capstone (Program Highlights section) in roadmap unsw
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:
         logger.info("Missing degree_code in fetch_program_core_courses.")

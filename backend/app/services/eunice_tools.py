@@ -4,7 +4,7 @@ import re
 
 from app.core.database import supabase
 from app.services.course_picks import prereq_groups
-from app.services.roadmap.unsw_queries import COURSE_CODE, parse_sections_json
+from app.services.roadmap.queries import COURSE_CODE, parse_sections_json
 
 logger = logging.getLogger(__name__)
 

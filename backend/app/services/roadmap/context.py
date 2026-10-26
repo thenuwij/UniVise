@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Dict
 
-from app.services.roadmap.unsw_queries import (
+from app.services.roadmap.queries import (
     fetch_degree_by_identifier,
     fetch_program_core_courses,
     fetch_program_course_list,
@@ -14,7 +14,7 @@ from app.services.roadmap.unsw_queries import (
 logger = logging.getLogger(__name__)
 
 # Gathers complete context for UNSW degree roadmap generation.
-async def gather_unsw_context(user_id: str, req, specialisation_ids: list | None = None) -> Dict[str, Any]:
+async def gather_context(user_id: str, req, specialisation_ids: list | None = None) -> Dict[str, Any]:
 
     logger.info(f"Gathering UNSW context for request: {req}")
 
@@ -70,7 +70,7 @@ async def gather_unsw_context(user_id: str, req, specialisation_ids: list | None
         "selected_minor_courses": specialisations.get("selected_minor_courses", []),
     }
 
-def build_unsw_payload(context: Dict[str, Any]) -> Dict[str, Any]:
+def build_payload(context: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "program_name": context.get("program_name"),
         "uac_code": context.get("uac_code"),

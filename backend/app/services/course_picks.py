@@ -10,7 +10,7 @@ from app.models.course_picks import CoursePicks
 from app.services.requirements import to_uoc
 from app.services.roadmap.cache import PROMPT_VERSION as ROADMAP_PROMPT_VERSION
 from app.services.roadmap.grounding import replace_unlisted_codes
-from app.services.roadmap.unsw_queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
+from app.services.roadmap.queries import COURSE_CODE, component_degree_codes, fetch_program_course_list, parse_sections_json
 
 logger = logging.getLogger(__name__)
 

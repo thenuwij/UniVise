@@ -9,7 +9,7 @@ from app.services.roadmap.career_data import fetch_career_data
 from app.services.roadmap.career_paths import generate_career_paths
 from app.services.roadmap.internships import generate_internships
 from app.services.roadmap.societies import generate_societies
-from app.services.roadmap.unsw_queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
+from app.services.roadmap.queries import fetch_program_course_list, fetch_society_rows, fetch_specialisation_context, fetch_specialisation_options
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ async def generate_sections(degree_code: str, program_name: str, existing: dict)
         return_exceptions=True,
     )
 
-    logger.debug(f"[TIMING] Societies + Industry + Career Pathways generated in {time.time() - ai_start:.1f}s")
+    logger.debug(f"[TIMING] Societies, internships and career paths generated in {time.time() - ai_start:.1f}s")
 
     sections = {}
     failed = []
@@ -99,7 +99,7 @@ async def generate_and_save_sections(roadmap_id: str, roadmap_data: dict):
         roadmap_data.get("payload") or {},
     )
 
-    logger.info("All industry sections finished. Merging payload...")
+    logger.info("All roadmap sections finished. Merging payload...")
 
     latest = supabase.from_("unsw_roadmap").select("payload").eq("id", roadmap_id).single().execute()
     payload = latest.data.get("payload", {}) if latest.data else {}
@@ -118,4 +118,4 @@ async def generate_and_save_sections(roadmap_id: str, roadmap_data: dict):
     if not failed and all(payload.get(k) for k in SECTION_GENERATORS):
         write_cached_roadmap(payload.get("cache_key"), payload)
 
-    logger.info(f"[TIMING] Total industry background generation: {time.time() - total_start:.1f}s")
+    logger.info(f"[TIMING] Total roadmap section generation: {time.time() - total_start:.1f}s")

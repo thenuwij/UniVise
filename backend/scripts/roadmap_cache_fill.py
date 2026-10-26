@@ -34,7 +34,7 @@ from app.services.roadmap.cache import (
     write_cached_roadmap,
 )
 from app.services.roadmap.sections import generate_sections
-from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
+from app.services.roadmap.context import build_payload, gather_context
 
 UNUSED_DAYS = 90
 DELETE_BATCH = 20
@@ -82,7 +82,7 @@ async def build_contexts(targets):
     async def one(degree_id, specialisation_ids):
         async with gate:
             req = SimpleNamespace(degree_id=degree_id, uac_code=None, program_name=None)
-            ctx = await gather_unsw_context(None, req, specialisation_ids=list(specialisation_ids))
+            ctx = await gather_context(None, req, specialisation_ids=list(specialisation_ids))
             return ctx, roadmap_cache_key(ctx)
 
     return await asyncio.gather(*[one(degree_id, ids) for degree_id, _, ids in targets])
@@ -116,7 +116,7 @@ def label(key):
 
 
 async def generate(ctx, key):
-    payload = build_unsw_payload(ctx)
+    payload = build_payload(ctx)
     payload["specialisation_ids"] = ctx["specialisation_ids"]
     payload["cache_key"] = key
     sections, failed = await generate_sections(ctx["degree_code"], ctx["program_name"], payload)
