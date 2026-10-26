@@ -4,7 +4,7 @@ import { Bookmark, CalendarDays, CheckCircle2, Search } from "lucide-react";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
+import { listSavedItems, removeSavedItem, updateSavedItem } from "../api";
 import {
   careerSectionUrl,
   roadmapStepUrl,
@@ -39,11 +39,7 @@ export default function ShortlistPage() {
     setLoading(true);
     setError("");
     try {
-      const { data, error: loadError } = await supabase
-        .from("user_saved_items")
-        .select("*")
-        .eq("user_id", userId)
-        .order("saved_at", { ascending: false });
+      const { data, error: loadError } = await listSavedItems(userId);
       if (loadError) throw loadError;
       setItems(data || []);
     } catch {
@@ -67,24 +63,14 @@ export default function ShortlistPage() {
     };
   }, []);
   const updateItem = async (id, changes) => {
-    const { data, error: updateError } = await supabase
-      .from("user_saved_items")
-      .update(changes)
-      .eq("user_id", userId)
-      .eq("id", id)
-      .select("*")
-      .single();
+    const { data, error: updateError } = await updateSavedItem(userId, id, changes);
     if (updateError) throw updateError;
     setItems((previous) =>
       previous.map((item) => (item.id === id ? data : item)),
     );
   };
   const removeItem = async (id) => {
-    const { error: removeError } = await supabase
-      .from("user_saved_items")
-      .delete()
-      .eq("user_id", userId)
-      .eq("id", id);
+    const { error: removeError } = await removeSavedItem(userId, id);
     if (removeError) throw removeError;
     setItems((previous) => previous.filter((item) => item.id !== id));
   };

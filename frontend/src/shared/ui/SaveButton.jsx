@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { HiBookmark, HiOutlineBookmark } from "react-icons/hi";
 import toast from "react-hot-toast";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
 import { canonicalType, typeAliases } from "@/features/shortlist/utils/shortlist";
+import { findSavedItem, saveItem, unsaveItem } from "@/features/shortlist/api";
 const CHANGE_EVENT = "univise-shortlist-change";
 
 export default function SaveButton({
@@ -21,13 +21,7 @@ export default function SaveButton({
     let active = true;
     setIsSaved(false);
     if (!userId || !itemId) return;
-    supabase
-      .from("user_saved_items")
-      .select("id")
-      .eq("user_id", userId)
-      .in("item_type", typeAliases(itemType))
-      .eq("item_id", String(itemId))
-      .limit(1)
+    findSavedItem(userId, typeAliases(itemType), itemId)
       .then(({ data, error }) => {
         if (active && !error) setIsSaved(!!data?.length);
       });
@@ -56,21 +50,8 @@ export default function SaveButton({
     setIsLoading(true);
     try {
       const { error } = isSaved
-        ? await supabase
-            .from("user_saved_items")
-            .delete()
-            .eq("user_id", userId)
-            .in("item_type", typeAliases(itemType))
-            .eq("item_id", String(itemId))
-        : await supabase
-            .from("user_saved_items")
-            .insert({
-              user_id: userId,
-              item_type: canonicalType(itemType),
-              item_id: String(itemId),
-              item_name: itemName,
-              item_data: itemData,
-            });
+        ? await unsaveItem(userId, typeAliases(itemType), itemId)
+        : await saveItem(userId, { itemType: canonicalType(itemType), itemId, itemName, itemData });
       if (error) throw error;
       setIsSaved(!isSaved);
       window.dispatchEvent(
