@@ -132,6 +132,7 @@ export default function ProgramPage() {
       },
       next: () => (
         <NextCoursesTab
+          degreeCode={degreeCode}
           isOwnProgram={isOwnProgram}
           onOpenCourses={() => {
             setActiveIndex(stepIndex("structure"));

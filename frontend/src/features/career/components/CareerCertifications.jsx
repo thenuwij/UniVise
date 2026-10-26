@@ -1,5 +1,6 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Clock, ExternalLink, GraduationCap } from "lucide-react";
 import { useCareerCertifications } from "../hooks/useCareerCertifications";
 import { SubLabel } from "./CareersSection";
@@ -35,8 +36,34 @@ function CertRow({ cert, career }) {
   );
 }
 
+function CareersBasis({ savedCareers }) {
+  const [, setSearchParams] = useSearchParams();
+  const openOutlook = () => {
+    setSearchParams((params) => {
+      params.set("section", "career-outlook");
+      return params;
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  return (
+    <div className="mb-6 rounded-2xl bg-gradient-to-br from-white to-blue-50/70 px-5 py-4 text-[15px] text-ink-muted shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-blue-950/40 dark:ring-slate-800">
+      <p>
+        {savedCareers.length
+          ? <>Based on the careers you saved: <span className="font-semibold text-ink-strong">{savedCareers.join(", ")}</span>. Saving or removing a career updates this list.</>
+          : "Based on careers your degree leads to. Save the careers you're interested in and this list follows them."}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm font-semibold">
+        <button type="button" onClick={openOutlook} className="text-link hover:underline">
+          {savedCareers.length ? "Change careers in Career outlook" : "Save careers in Career outlook"}
+        </button>
+        <Link to="/saved" className="text-link hover:underline">Manage your shortlist</Link>
+      </div>
+    </div>
+  );
+}
+
 export default function CareerCertifications({ roadmapId }) {
-  const { loading, groups, failed, retry } = useCareerCertifications(roadmapId);
+  const { loading, groups, savedCareers, failed, retry } = useCareerCertifications(roadmapId);
   const [career, setCareer] = useState(null);
 
   if (loading) {
@@ -58,13 +85,19 @@ export default function CareerCertifications({ roadmapId }) {
     );
   }
   if (!groups.length) {
-    return <p className="text-[15px] text-ink-muted">No certifications to suggest for your careers yet.</p>;
+    return (
+      <div>
+        <CareersBasis savedCareers={savedCareers} />
+        <p className="text-[15px] text-ink-muted">No certifications to suggest for your careers yet.</p>
+      </div>
+    );
   }
 
   const shown = career ? groups.filter((g) => g.career === career) : groups;
 
   return (
     <div>
+      <CareersBasis savedCareers={savedCareers} />
       <p className="mb-2 text-sm font-semibold text-ink-strong">Show certifications for</p>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
         <button type="button" className={filterPill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>

@@ -16,7 +16,7 @@ PROMPT_VERSION = 1
 PER_CAREER = 4
 
 
-def careers_for(user_id: str, roadmap: dict) -> list:
+def saved_career_names(user_id: str) -> list:
     saved = (
         supabase.from_("user_saved_items")
         .select("item_name")
@@ -26,7 +26,11 @@ def careers_for(user_id: str, roadmap: dict) -> list:
         .data
         or []
     )
-    careers = [s["item_name"] for s in saved if s.get("item_name")]
+    return [s["item_name"] for s in saved if s.get("item_name")]
+
+
+def careers_for(saved: list, roadmap: dict) -> list:
+    careers = list(saved)
     careers += [name for name in career_roles(roadmap.get("payload")) if name.lower() not in {c.lower() for c in careers}]
     return careers[:MAX_CAREERS]
 
@@ -108,8 +112,9 @@ def clean(groups: list, careers: list) -> list:
 
 
 async def get_certifications(user_id: str, roadmap: dict) -> dict:
-    careers = await asyncio.to_thread(careers_for, user_id, roadmap)
-    result = {"careers": careers, "groups": [], "failed": False}
+    saved = await asyncio.to_thread(saved_career_names, user_id)
+    careers = careers_for(saved, roadmap)
+    result = {"careers": careers, "saved_careers": [c for c in careers if c in saved], "groups": [], "failed": False}
     if not careers:
         return result
     program = roadmap.get("program_name") or roadmap.get("degree_code") or "their degree"
