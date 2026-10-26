@@ -1,10 +1,9 @@
 import { handbookUrl } from "@/shared/lib/handbook";
 // src/pages/ProgramPickerPage.jsx
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import SectionHeading from "@/shared/ui/SectionHeading";
@@ -19,7 +18,6 @@ import { supabase } from "@/shared/lib/supabase";
 
 function ProgramPickerPage() {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDegreeId, setSelectedDegreeId] = useState(null);
   const [selectedDegreeObject, setSelectedDegreeObject] = useState(null);
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
@@ -57,8 +55,6 @@ function ProgramPickerPage() {
     return () => { active = false; };
   }, [selectedCode, userId]);
 
-  const openDrawer = useCallback(() => setIsMenuOpen(true), []);
-  const closeDrawer = useCallback(() => setIsMenuOpen(false), []);
 
   useEffect(() => {
     if (selectedDegreeId) {
@@ -81,8 +77,7 @@ function ProgramPickerPage() {
 
   return (
     <div className="min-h-screen app-page text-primary transition-colors duration-500">
-      <DashboardNavBar onMenuClick={openDrawer} isMenuOpen={isMenuOpen} />
-      <MenuBar isOpen={isMenuOpen} handleClose={closeDrawer} />
+      <AppNav />
 
       <PageHeader
         back={{

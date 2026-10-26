@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bookmark, CalendarDays, CheckCircle2, Search } from "lucide-react";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
@@ -27,7 +26,6 @@ const control =
 export default function ShortlistPage() {
   const { session } = UserAuth();
   const userId = session?.user?.id;
-  const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -109,11 +107,7 @@ export default function ShortlistPage() {
 
   return (
     <div className="min-h-screen app-page">
-      <DashboardNavBar
-        onMenuClick={() => setIsOpen(true)}
-        isMenuOpen={isOpen}
-      />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      <AppNav />
       <PageHeader
         eyebrow="Your next steps"
         title="My shortlist"

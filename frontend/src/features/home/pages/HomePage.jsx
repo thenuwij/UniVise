@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun, Sunset } from "lucide-react";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { UserAuth } from "@/app/AuthContext";
@@ -47,7 +46,6 @@ export default function HomePage() {
   const { session } = UserAuth();
   const guideKey = `univise-dashboard-guide-seen-${session?.user?.id || "guest"}`;
   const facts = useDashboardFacts();
-  const [isOpen, setIsOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   useEffect(() => {
     if (!facts?.program || !session?.user?.id || hasSeenGuide(guideKey)) return;
@@ -73,11 +71,7 @@ export default function HomePage() {
   const dayLine = DAY_LINES[now.getDay()];
   return (
     <div className="min-h-screen app-page dashboard-page">
-      <DashboardNavBar
-        onMenuClick={() => setIsOpen(true)}
-        isMenuOpen={isOpen}
-      />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      <AppNav />
       {showGuide && (
         <SpotlightGuide
           steps={GUIDE_STEPS}

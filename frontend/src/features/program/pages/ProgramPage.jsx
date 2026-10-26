@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 
 import { formatDuration } from "@/shared/lib/format";
@@ -139,7 +138,6 @@ export default function ProgramPage({ view = "degree" }) {
   const searchParams = new URLSearchParams(search);
   const roadmapId = searchParams.get("id");
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { session } = UserAuth();
   const [showSectionGuide, setShowSectionGuide] = useState(false);
   const sectionGuideKey = `univise-${view}-sections-guide-v2-${session?.user?.id || "guest"}`;
@@ -266,7 +264,6 @@ export default function ProgramPage({ view = "degree" }) {
     () => navigate(isOwnProgram ? "/dashboard" : roadmapViewUrl(view)),
     [navigate, isOwnProgram, view]
   );
-  const handleMenuToggle = useCallback((open) => setIsMenuOpen(open), []);
 
   const headerFacts = [
     ["Faculty", activeDegree?.faculty?.replace(/^Faculty of\s+/i, "")],
@@ -333,8 +330,7 @@ export default function ProgramPage({ view = "degree" }) {
 
   return (
     <div className="min-h-screen app-page text-primary transition-colors duration-500">
-      <DashboardNavBar onMenuClick={() => handleMenuToggle(true)} isMenuOpen={isMenuOpen} />
-      <MenuBar isOpen={isMenuOpen} handleClose={() => handleMenuToggle(false)} />
+      <AppNav />
       {showSectionGuide && data && !isCareers && (
         <SpotlightGuide
           steps={sectionGuideSteps(visibleSteps)}

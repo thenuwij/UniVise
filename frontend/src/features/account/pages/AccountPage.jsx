@@ -2,8 +2,7 @@ import { Label, Select, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, GraduationCap, Pencil, User, X } from "lucide-react";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { card } from "@/shared/ui/cardStyles";
 import { cleanText } from "@/shared/lib/cleanText";
@@ -180,7 +179,6 @@ function Avatar({ url, name }) {
 }
 
 function AccountPage() {
-  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -307,8 +305,7 @@ function AccountPage() {
 
   return (
     <div className="min-h-screen app-page">
-      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      <AppNav />
 
       <PageHeader eyebrow="Account" title="My account" subtitle="Your details, your studies and your data." />
 
