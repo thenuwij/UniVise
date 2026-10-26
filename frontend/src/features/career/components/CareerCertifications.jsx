@@ -3,15 +3,9 @@ import { useState } from "react";
 import { Clock, ExternalLink, GraduationCap } from "lucide-react";
 import { useCareerCertifications } from "../hooks/useCareerCertifications";
 import { SubLabel } from "./CareersSection";
+import { filterPill } from "@/shared/ui/cardStyles";
 
 const badge = "rounded-md px-2.5 py-1 text-xs font-semibold";
-
-const pill = (active) =>
-  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
-    active
-      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
-      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
-  }`;
 
 function CertRow({ cert, career }) {
   return (
@@ -73,9 +67,9 @@ export default function CareerCertifications({ roadmapId }) {
     <div>
       <p className="mb-2 text-sm font-semibold text-ink-strong">Show certifications for</p>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
-        <button type="button" className={pill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
+        <button type="button" className={filterPill(!career)} aria-pressed={!career} onClick={() => setCareer(null)}>All careers</button>
         {groups.map((g) => (
-          <button key={g.career} type="button" className={pill(career === g.career)} aria-pressed={career === g.career} onClick={() => setCareer(g.career)}>
+          <button key={g.career} type="button" className={filterPill(career === g.career)} aria-pressed={career === g.career} onClick={() => setCareer(g.career)}>
             {g.career}
           </button>
         ))}

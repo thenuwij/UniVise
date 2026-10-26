@@ -11,7 +11,7 @@ const POLL_MS = 3000;
 const sameIds = (a = [], b = []) => a.length === b.length && a.every((id, i) => id === b[i]);
 const isCurrent = (payload) => payload?.cache_key?.prompt_version === ROADMAP_PROMPT_VERSION;
 const isComplete = (payload) => SECTIONS.every((k) => payload?.[k]) || (payload?.industry_failed?.length ?? 0) > 0;
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function fetchMatchingRoadmap(userId, degreeCode, specialisationIds) {
   const { data: rows, error } = await supabase
