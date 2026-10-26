@@ -8,7 +8,7 @@ from app.core.database import supabase
 from app.llm.openai_client import ask_gpt_structured
 from app.models.certifications import CareerCertificationGroups
 from app.services.course_picks import MAX_CAREERS, career_roles
-from app.services.roadmap.industry import validate_url
+from app.services.roadmap.grounding import validate_url
 
 logger = logging.getLogger(__name__)
 
