@@ -27,7 +27,7 @@ Your degree guide opens on **My courses**. A persistent section menu on desktop,
 | Section | What you get |
 |---|---|
 | **My courses** | A continuous checklist of core courses, discipline electives, free electives and general education, grouped by the requirements of your degree and specialisation |
-| **Next courses** | Courses you can take now, with the skills and careers each one builds (shown for your own program) |
+| **Next courses** | Courses you can take now, with the skills and careers each one builds, and a one-click Add to My courses (shown for your own program) |
 | **CourseMesh** | An interactive prerequisite map showing how your courses connect and what you can take next |
 | **Societies** | Student societies related to your field, plus links to Rubric and the Arc club directory |
 
@@ -60,7 +60,7 @@ Inside My Program, CourseMesh lets you explore your degree as a prerequisite map
 
 ### My shortlist
 
-Save job and internship ads, career paths, annual internship programs, certifications, networking events and calendars, courses, programs, societies and professional bodies in one place. Search saved items and notes, filter by category or status, and sort by your next date. Use Exploring, Next up, In progress and Done to organise your plans, with personal target dates and notes. Passed closing dates and event dates show as expired; old ads without a known deadline are flagged for an availability check. Saved items remain until you choose to remove them. Planning status and target dates are stored with each saved snapshot, so existing saves need no schema migration.
+Everything you save is grouped into sections, each tracked the way it needs: jobs and internships move through Saved, Applied, Interview, Offer and Not successful (with the date you applied); certifications through Interested, Studying, Exam booked and Earned, with an exam date; events can be marked Going and societies Joined; saved courses show whether they are completed, already in My courses, or can be added with one click. Careers and programs are plain bookmarks, and saved careers shape your certification suggestions. Each section has filters and notes, and closed ads and past events are marked.
 
 ### Official UNSW Handbook links
 
