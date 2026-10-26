@@ -15,7 +15,6 @@ USER_TABLES = [
     "user_course_picks",
     "user_custom_courses",
     "user_enrolled_program",
-    "user_progress_stats",
     "user_saved_items",
     "user_specialisation_selections",
 ]

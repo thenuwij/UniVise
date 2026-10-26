@@ -99,7 +99,7 @@ def test_export_holds_only_the_students_rows_and_every_table(client, monkeypatch
     body = response.json()
     assert body["account"]["email"] == "student@example.com"
     assert body["account"]["sign_in_provider"] == "google"
-    assert len(body["tables"]) == 12
+    assert len(body["tables"]) == 11
     assert body["tables"]["user_career_certifications"] == [ROWS["user_career_certifications"][0]]
     assert body["tables"]["student_uni_data"] == [ROWS["student_uni_data"][0]]
     assert body["tables"]["conversation_messages"] == [ROWS["conversation_messages"][0]]
