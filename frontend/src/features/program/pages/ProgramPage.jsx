@@ -1,7 +1,7 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
@@ -19,17 +19,17 @@ import TakeNext from "../components/TakeNext";
 import CourseMesh from "../coursemesh/components/CourseMesh";
 import { ExternalLink, HelpCircle } from "lucide-react";
 import CareersContent from "@/features/career/components/CareersContent";
+import { useDegree } from "../hooks/useDegree";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
+import { hasSection, useRoadmap } from "../hooks/useRoadmap";
+import { useStepNavigation } from "../hooks/useStepNavigation";
 import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
-import { supabase } from "@/shared/lib/supabase";
-import { apiFetch } from "@/shared/lib/api";
 import { UserAuth } from "@/app/AuthContext";
 
 const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold text-band-ink underline-offset-4 hover:underline";
 
 const DEFAULT_PROGRAM_NAME = "";
-const DEFAULT_UAC_CODE = "—";
 const SECTION_GUIDE_TEXT = {
   structure: "Tick the courses you've finished. Use these tabs to switch sections.",
   next: "Courses you can take now, with the skills and careers each one builds.",
@@ -46,178 +46,9 @@ const VIEW_COPY = {
   careers: { own: "My Career", exploring: "Exploring careers", back: "Back to My Career" },
 };
 
-const INDUSTRY_KEYS = ["industry_societies", "industry_experience", "career_pathways"];
-const SECTION_POLL_MS = 5000;
-const SECTION_GIVE_UP_MS = 90000;
-
-const hasSection = (payload, key) => {
-  const value = payload?.[key];
-  return !!value && Object.keys(value).length > 0;
-};
-
-// Helper functions
-const extractStepIndexFromUrl = (searchParams) => {
-  const stepParam = new URLSearchParams(searchParams).get("step");
-  const step = Number(stepParam);
-  return Number.isInteger(step) && step >= 1 && step <= ROADMAP_VIEWS.degree.steps.length ? step - 1 : 0;
-};
-
-const useDegreeData = (degreeCode) => {
-  const [degreeData, setDegreeData] = useState(null);
-
-  useEffect(() => {
-    const fetchDegree = async () => {
-      if (!degreeCode) return;
-      try {
-        const { data: degree, error } = await supabase
-          .from("unsw_degrees_final")
-          .select("*")
-          .eq("degree_code", degreeCode)
-          .maybeSingle();
-
-        if (error) throw error;
-        setDegreeData(degree);
-      } catch {
-        // degree fetch failed — component renders without degree data
-      }
-    };
-
-    fetchDegree();
-  }, [degreeCode]);
-
-  return degreeData;
-};
-
 const handbookUrlFor = (degree, degreeCode) => {
   if (!degreeCode) return null;
   return handbookUrl("programs", degreeCode, degree?.source_url);
-};
-
-const extractDegreeCode = (degree) => {
-  if (!degree) return null;
-  const finalCode = degree.code || degree.degree_code || degree.program_code || null;
-  if (!finalCode) {
-    // no degree code available — caller handles null return
-  }
-  return finalCode;
-};
-
-const useRoadmapData = (preloadedPayload, preloadedRoadmapId, accessToken) => {
-  const [data, setData] = useState(preloadedPayload);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [sectionsStatus, setSectionsStatus] = useState("loading");
-  const [pollKey, setPollKey] = useState(0);
-  const [header, setHeader] = useState({
-    program_name: null,
-    uac_code: null,
-    degree_code: null, 
-  });
-
-  useEffect(() => {
-    const fetchByIdIfNeeded = async () => {
-      if (data || !preloadedRoadmapId) return;
-
-      try {
-        setLoading(true);
-        const { data: row, error: fetchError } = await supabase
-          .from("unsw_roadmap")
-          .select("payload, program_name, uac_code, degree_code")
-          .eq("id", preloadedRoadmapId)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-
-        setData(row?.payload || null);
-        setHeader((prevHeader) => ({
-          program_name: prevHeader.program_name || row?.program_name || null,
-          uac_code: prevHeader.uac_code || row?.uac_code || null,
-          degree_code: prevHeader.degree_code || row?.degree_code || null,
-        }));
-      } catch (err) {
-        setError(err.message || "Failed to fetch UNSW roadmap by id.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchByIdIfNeeded();
-  }, [preloadedRoadmapId, data]);
-
-  useEffect(() => {
-    if (!preloadedRoadmapId) return;
-
-    let stopped = false;
-    let intervalId = null;
-    const startedAt = Date.now();
-
-    const check = async () => {
-      const { data: row, error: pollError } = await supabase
-        .from("unsw_roadmap")
-        .select("payload")
-        .eq("id", preloadedRoadmapId)
-        .maybeSingle();
-
-      if (stopped) return true;
-      const timedOut = Date.now() - startedAt > SECTION_GIVE_UP_MS;
-      if (pollError || !row) {
-        if (timedOut) setSectionsStatus("failed");
-        return timedOut;
-      }
-
-      const payload = row.payload || {};
-      setData((prev) => ({ ...(prev || {}), ...payload }));
-
-      const failed = payload.industry_failed || [];
-      if (INDUSTRY_KEYS.every((k) => hasSection(payload, k)) && failed.length === 0) {
-        setSectionsStatus("done");
-        return true;
-      }
-      if (failed.length > 0 || timedOut) {
-        setSectionsStatus("failed");
-        return true;
-      }
-      return false;
-    };
-
-    setSectionsStatus("loading");
-    check().then((finished) => {
-      if (finished || stopped) return;
-      intervalId = setInterval(async () => {
-        if (await check()) clearInterval(intervalId);
-      }, SECTION_POLL_MS);
-    });
-
-    return () => {
-      stopped = true;
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [preloadedRoadmapId, pollKey]);
-
-  const retrySections = useCallback(async () => {
-    if (!preloadedRoadmapId) return;
-    setSectionsStatus("loading");
-    try {
-      await apiFetch(`/roadmap/unsw/${preloadedRoadmapId}/industry`, {
-        method: "POST",
-        token: accessToken,
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Retrying roadmap sections failed:", err);
-    }
-    setPollKey((k) => k + 1);
-  }, [preloadedRoadmapId, accessToken]);
-
-  const updateHeader = useCallback((degree) => {
-    setHeader({
-      program_name: degree?.degree_name || degree?.program_name || null,
-      uac_code: degree?.uac_code || null,
-      degree_code: extractDegreeCode(degree),
-    });
-  }, []);
-
-  return { data, loading, error, header, updateHeader, sectionsStatus, retrySections };
 };
 
 function SectionError({ onRetry }) {
@@ -238,28 +69,6 @@ function SectionError({ onRetry }) {
     </div>
   );
 }
-
-const useStepNavigation = (searchParams, hasData, preloadedRoadmapId) => {
-  const [activeIndex, setActiveIndex] = useState(() => extractStepIndexFromUrl(searchParams));
-
-  // Handle URL-based step navigation on mount
-  useEffect(() => {
-    const stepIndex = extractStepIndexFromUrl(searchParams);
-    setActiveIndex(stepIndex);
-  }, [searchParams]);
-
-  // Sync activeIndex to URL (without page reload)
-  useEffect(() => {
-    if (!hasData || !preloadedRoadmapId) return;
-
-    const section = new URLSearchParams(window.location.search).get("section");
-    const sectionQuery = section ? `&section=${encodeURIComponent(section)}` : "";
-    const newUrl = `${window.location.pathname}?id=${preloadedRoadmapId}&step=${activeIndex + 1}${sectionQuery}`;
-    window.history.replaceState(null, '', newUrl);
-  }, [activeIndex, hasData, preloadedRoadmapId]);
-
-  return { activeIndex, setActiveIndex };
-};
 
 const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header, content = null }) => {
   if (!data && loading) {
@@ -325,13 +134,10 @@ const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChang
 
 // --- Main Component ---
 export default function ProgramPage({ view = "degree" }) {
-  const { state, search } = useLocation();
+  const { search } = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(search);
-
-  const degree = state?.degree || null;
-  const preloadedPayload = state?.payload || null;
-  const preloadedRoadmapId = state?.roadmap_id || searchParams.get('id') || null;
+  const roadmapId = searchParams.get("id");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { session } = UserAuth();
@@ -339,14 +145,8 @@ export default function ProgramPage({ view = "degree" }) {
   const sectionGuideKey = `univise-${view}-sections-guide-v2-${session?.user?.id || "guest"}`;
   const copy = VIEW_COPY[view];
 
-  const { data, loading, error, header, updateHeader, sectionsStatus, retrySections } = useRoadmapData(
-    preloadedPayload,
-    preloadedRoadmapId,
-    session?.access_token
-  );
-
-
-  const fetchedDegree = useDegreeData(header.degree_code);
+  const { data, loading, error, header, sectionsStatus, retrySections } = useRoadmap(roadmapId, session?.access_token);
+  const activeDegree = useDegree(header.degree_code);
   const roadmapReady = !!data;
   const isCareers = view === "careers";
   useEffect(() => {
@@ -354,9 +154,8 @@ export default function ProgramPage({ view = "degree" }) {
     const timer = setTimeout(() => setShowSectionGuide(true), 500);
     return () => clearTimeout(timer);
   }, [isCareers, roadmapReady, sectionGuideKey, session?.user?.id]);
-  const activeDegree = degree || fetchedDegree;
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
-  const shownDegreeCode = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
+  const shownDegreeCode = header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
   const visibleSteps = useMemo(
     () => ROADMAP_VIEWS[view].steps.filter((step) => step.key !== "next" || isOwnProgram),
@@ -376,7 +175,7 @@ export default function ProgramPage({ view = "degree" }) {
   const { activeIndex, setActiveIndex } = useStepNavigation(
     search,
     !!data,
-    preloadedRoadmapId
+    roadmapId
   );
   const stepIndex = useCallback((key) => ROADMAP_VIEWS[view].steps.findIndex((s) => s.key === key), [view]);
   // Keep the existing URL step numbers stable when Next courses is hidden.
@@ -395,12 +194,6 @@ export default function ProgramPage({ view = "degree" }) {
     if (activeIndex !== stepIndex("coursemesh")) setMeshFocus(null);
   }, [activeIndex, stepIndex]);
 
-  useEffect(() => {
-    if (degree) { 
-      updateHeader(degree);
-    }
-  }, [degree, updateHeader]);
-
   const steps = useMemo(() => {
     if (!data) return [];
 
@@ -413,7 +206,7 @@ export default function ProgramPage({ view = "degree" }) {
       return content();
     };
 
-    const degreeCodeValue = activeDegree ? extractDegreeCode(activeDegree) : header.degree_code;
+    const degreeCodeValue = header.degree_code;
 
     const renderers = {
       structure: () => {
@@ -462,10 +255,9 @@ export default function ProgramPage({ view = "degree" }) {
     };
 
     return visibleSteps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, activeDegree, header, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
+  }, [data, header, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
 
   const headerProgramName =
-    activeDegree?.degree_name ||
     activeDegree?.program_name ||
     header.program_name ||
     DEFAULT_PROGRAM_NAME;
@@ -559,7 +351,7 @@ export default function ProgramPage({ view = "degree" }) {
         steps={steps}
         content={isCareers ? (
           <CareersContent
-            roadmapId={preloadedRoadmapId}
+            roadmapId={roadmapId}
             data={data}
             sectionsStatus={sectionsStatus}
             onRetry={retrySections}
