@@ -8,7 +8,7 @@ import asyncio
 import pytest
 
 from app.models.roadmap import SocietiesSection
-from app.services.roadmap import industry
+from app.services.roadmap import societies
 
 CONTEXT = {"program_name": "Bachelor of Commerce", "faculty": "UNSW Business School"}
 
@@ -41,7 +41,7 @@ SECTION = {
 @pytest.fixture(autouse=True)
 def fake_society_list(monkeypatch):
     rows = [{"name": "Commerce Society", "arc_category": "Faculty", "short_name": "CommSoc"}]
-    monkeypatch.setattr(industry, "fetch_society_rows", lambda: rows)
+    monkeypatch.setattr(societies, "fetch_society_rows", lambda: rows)
 
 
 def test_returns_societies_as_plain_dict(monkeypatch):
@@ -51,9 +51,9 @@ def test_returns_societies_as_plain_dict(monkeypatch):
         assert "CPA Australia" in prompt and "Never write a URL" in prompt
         return SocietiesSection.model_validate(SECTION)
 
-    monkeypatch.setattr(industry, "ask_claude_structured", reply)
+    monkeypatch.setattr(societies, "ask_claude_structured", reply)
 
-    result = asyncio.run(industry.ai_generate_societies(CONTEXT))
+    result = asyncio.run(societies.generate_societies(CONTEXT))
 
     bodies = result["societies"]["professional_development"].pop("professional_bodies")
     assert bodies == [{"name": "CPA Australia", "url": "https://www.cpaaustralia.com.au"}]
@@ -64,9 +64,9 @@ def test_returns_fallback_when_generation_fails(monkeypatch):
     async def ai_down(*args, **kwargs):
         raise ValueError("Claude returned no structured output (stop_reason=max_tokens)")
 
-    monkeypatch.setattr(industry, "ask_claude_structured", ai_down)
+    monkeypatch.setattr(societies, "ask_claude_structured", ai_down)
 
-    result = asyncio.run(industry.ai_generate_societies(CONTEXT))
+    result = asyncio.run(societies.generate_societies(CONTEXT))
 
     assert result["failed"] is True
     assert result["societies"]["faculty_specific"] == []
@@ -117,11 +117,11 @@ def test_prompt_names_the_careers_the_degree_leads_to(monkeypatch):
         prompts.append(prompt)
         return SocietiesSection.model_validate(SECTION)
 
-    monkeypatch.setattr(industry, "ask_claude_structured", reply)
+    monkeypatch.setattr(societies, "ask_claude_structured", reply)
     context = {**CONTEXT, "career_occupations": [{"code": "221111", "title": "Accountant"}, {"code": "224711", "title": "Management Consultant"}]}
 
-    asyncio.run(industry.ai_generate_societies(context))
-    asyncio.run(industry.ai_generate_societies(CONTEXT))
+    asyncio.run(societies.generate_societies(context))
+    asyncio.run(societies.generate_societies(CONTEXT))
 
     assert "Careers this degree commonly leads to: Accountant, Management Consultant." in prompts[0]
     assert "Careers this degree commonly leads to" not in prompts[1]

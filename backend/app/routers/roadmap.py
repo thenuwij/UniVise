@@ -10,7 +10,7 @@ from app.models.roadmap import UNSWReq, RoadmapResp
 from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
 from app.services.roadmap.common import ensure
 from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
-from app.services.roadmap.industry import generate_and_update_all_industry
+from app.services.roadmap.sections import generate_and_save_sections
 
 router = APIRouter(tags=["roadmap"])
 
@@ -105,7 +105,7 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
         return {"status": "already_generated"}
 
     try:
-        await generate_and_update_all_industry(roadmap_id, rec)
+        await generate_and_save_sections(roadmap_id, rec)
     except Exception as e:
         logger.exception(f"Industry generation failed for {roadmap_id}: {e}")
         raise HTTPException(status_code=500, detail="Could not finish the roadmap. Please try again.")

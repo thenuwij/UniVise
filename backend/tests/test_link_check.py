@@ -7,14 +7,14 @@ import asyncio
 
 import httpx
 
-from app.services.roadmap import industry
+from app.services.roadmap import grounding
 
 
 def check(monkeypatch, url, handler):
     transport = httpx.MockTransport(handler)
     real_client = httpx.AsyncClient
-    monkeypatch.setattr(industry.httpx, "AsyncClient", lambda **kwargs: real_client(transport=transport, **kwargs))
-    return asyncio.run(industry.validate_url(url))
+    monkeypatch.setattr(grounding.httpx, "AsyncClient", lambda **kwargs: real_client(transport=transport, **kwargs))
+    return asyncio.run(grounding.validate_url(url))
 
 
 def test_live_page_passes(monkeypatch):
@@ -39,4 +39,4 @@ def test_query_words_alone_do_not_count_as_an_error_page(monkeypatch):
 
 
 def test_non_web_link_is_dead():
-    assert not asyncio.run(industry.validate_url("mailto:careers@example.com"))
+    assert not asyncio.run(grounding.validate_url("mailto:careers@example.com"))

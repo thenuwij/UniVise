@@ -14,7 +14,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.models.roadmap import CareerPathwaysSection, career_pathways_schema
-from app.services.roadmap import industry
+from app.services.roadmap import career_paths, internships, sections
 
 JSA = {"data_period": "Earnings May 2025", "source": "Jobs and Skills Australia", "source_url": "https://www.jobsandskills.gov.au/data/occupation-and-industry-profiles"}
 OCCUPATIONS = [
@@ -77,13 +77,13 @@ def fakes(monkeypatch):
     async def link_ok(url):
         return calls.get("links_ok", True)
 
-    monkeypatch.setattr(industry, "ask_gpt_structured", reply)
-    monkeypatch.setattr(industry, "validate_url", link_ok)
+    monkeypatch.setattr(career_paths, "ask_gpt_structured", reply)
+    monkeypatch.setattr(career_paths, "validate_url", link_ok)
     return calls
 
 
 def test_roles_carry_their_occupation_and_the_prompt_lists_only_allowed_groups(fakes):
-    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
+    result = asyncio.run(career_paths.generate_career_paths(CONTEXT))
 
     role = result["career_pathways"]["entry_level"]["roles"][0]
     assert role["anzsco_code"] == "2211"
@@ -108,7 +108,7 @@ def test_without_occupations_the_plain_schema_is_used():
 
 
 def test_salaries_stay_the_ai_estimate_without_a_source(fakes):
-    pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
+    pathways = asyncio.run(career_paths.generate_career_paths(CONTEXT))["career_pathways"]
 
     role = pathways["entry_level"]["roles"][0]
     assert role["salary_range"] == "$70,000 - $80,000"
@@ -119,7 +119,7 @@ def test_salaries_stay_the_ai_estimate_without_a_source(fakes):
 def test_dead_certification_link_becomes_a_search(fakes):
     fakes["links_ok"] = False
 
-    cert = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]["certifications"][0]
+    cert = asyncio.run(career_paths.generate_career_paths(CONTEXT))["career_pathways"]["certifications"][0]
 
     assert cert["url"].startswith("https://www.google.com/search?q=CPA%20Program%20CPA%20Australia")
 
@@ -131,7 +131,7 @@ def test_drops_course_codes_outside_the_program(fakes):
     role["degree_path"] = "Start with FAKE9999 and ACCT1501."
     fakes["generated"] = invented
 
-    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
+    result = asyncio.run(career_paths.generate_career_paths(CONTEXT))
 
     assert "Core\n- ACCT1501: Accounting and Financial Management 1A" in fakes["prompts"][0]
     first = result["career_pathways"]["entry_level"]["roles"][0]
@@ -159,16 +159,16 @@ def test_returns_fallback_when_generation_fails(monkeypatch):
     async def ai_down(*args, **kwargs):
         raise ValueError("OpenAI returned no structured output (finish_reason=length)")
 
-    monkeypatch.setattr(industry, "ask_gpt_structured", ai_down)
+    monkeypatch.setattr(career_paths, "ask_gpt_structured", ai_down)
 
-    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
+    result = asyncio.run(career_paths.generate_career_paths(CONTEXT))
 
     assert result["failed"] is True
     assert result["career_pathways"]["entry_level"]["roles"] == []
 
 
 def test_prompt_says_no_codes_without_a_course_list(fakes):
-    result = asyncio.run(industry.ai_generate_career_pathways({"program_name": "Bachelor of Arts"}))
+    result = asyncio.run(career_paths.generate_career_paths({"program_name": "Bachelor of Arts"}))
 
     assert "do not name any course codes" in fakes["prompts"][0]
     assert fakes["schemas"][0] is CareerPathwaysSection
@@ -190,7 +190,7 @@ def test_thin_program_suggests_real_specialisations_instead_of_courses(fakes):
     fakes["generated"] = suggested
     context = {**CONTEXT, "specialisation_options": OPTIONS}
 
-    result = asyncio.run(industry.ai_generate_career_pathways(context))
+    result = asyncio.run(career_paths.generate_career_paths(context))
 
     prompt = fakes["prompts"][0]
     assert "- COMPI1: Computer Science (Artificial Intelligence)" in prompt
@@ -216,7 +216,7 @@ def test_schema_rejects_a_specialisation_outside_the_program():
 
 
 def test_programs_with_courses_ask_for_no_specialisations(fakes):
-    result = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))
+    result = asyncio.run(career_paths.generate_career_paths(CONTEXT))
 
     assert "- specialisations: an empty list" in fakes["prompts"][0]
     assert "SPECIALISATIONS:" not in fakes["prompts"][0]
@@ -235,16 +235,16 @@ def test_options_only_load_for_thin_programs_without_a_choice(monkeypatch, chose
         return {"career_pathways": {"entry_level": {"roles": []}}}
 
     empty_context = {"selected_major_courses": [], "selected_minor_courses": [], "selected_honours_courses": [], "selected_major_codes": []}
-    monkeypatch.setattr(industry, "supabase", None)
-    monkeypatch.setattr(industry, "fetch_specialisation_context", lambda ids: dict(empty_context))
-    monkeypatch.setattr(industry, "fetch_program_course_list", lambda code, extra: [{"code": f"COMP{1000 + i}"} for i in range(course_count)])
-    monkeypatch.setattr(industry, "fetch_career_data", lambda code, majors: {"occupations": [], "outlook": []})
-    monkeypatch.setattr(industry, "fetch_specialisation_options", lambda code, name: OPTIONS)
-    monkeypatch.setattr(industry, "fetch_society_rows", lambda: [])
-    monkeypatch.setitem(industry.INDUSTRY_GENERATORS, "career_pathways", (careers, "career_pathways"))
+    monkeypatch.setattr(sections, "supabase", None)
+    monkeypatch.setattr(sections, "fetch_specialisation_context", lambda ids: dict(empty_context))
+    monkeypatch.setattr(sections, "fetch_program_course_list", lambda code, extra: [{"code": f"COMP{1000 + i}"} for i in range(course_count)])
+    monkeypatch.setattr(sections, "fetch_career_data", lambda code, majors: {"occupations": [], "outlook": []})
+    monkeypatch.setattr(sections, "fetch_specialisation_options", lambda code, name: OPTIONS)
+    monkeypatch.setattr(sections, "fetch_society_rows", lambda: [])
+    monkeypatch.setitem(sections.SECTION_GENERATORS, "career_pathways", (careers, "career_pathways"))
 
     existing = {"industry_societies": {"x": 1}, "industry_experience": {"x": 1}, "specialisation_ids": chosen}
-    asyncio.run(industry.generate_industry_sections("3778", "Bachelor of Computer Science", existing))
+    asyncio.run(sections.generate_sections("3778", "Bachelor of Computer Science", existing))
 
     assert seen["options"] == expected
 
@@ -255,7 +255,7 @@ def test_roles_carry_official_pay_and_demand_and_the_outlook_is_attached(fakes):
     generated["career_pathways"]["mid_career"]["roles"] = [other, other]
     fakes["generated"] = generated
 
-    pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
+    pathways = asyncio.run(career_paths.generate_career_paths(CONTEXT))["career_pathways"]
 
     entry = pathways["entry_level"]["roles"][0]
     assert entry["typical_pay"] == {"weekly": 2010, "period": "Earnings May 2025", "source": "Jobs and Skills Australia", "source_url": JSA["source_url"]}
@@ -269,7 +269,7 @@ def test_roles_carry_official_pay_and_demand_and_the_outlook_is_attached(fakes):
 
 
 def test_only_entry_roles_get_ad_search_words(fakes):
-    pathways = asyncio.run(industry.ai_generate_career_pathways(CONTEXT))["career_pathways"]
+    pathways = asyncio.run(career_paths.generate_career_paths(CONTEXT))["career_pathways"]
 
     assert pathways["entry_level"]["roles"][0]["ad_search"] == "accountant"
     assert "ad_search" not in pathways["mid_career"]["roles"][0]
@@ -291,7 +291,7 @@ def test_internships_prompt_prefers_employers_from_the_field(monkeypatch):
         prompts.append(prompt)
         raise ValueError("stop after the prompt")
 
-    monkeypatch.setattr(industry, "ask_claude_structured", reply)
-    asyncio.run(industry.ai_generate_industry_experience(CONTEXT))
+    monkeypatch.setattr(internships, "ask_claude_structured", reply)
+    asyncio.run(internships.generate_internships(CONTEXT))
 
     assert "main business is in this field" in prompts[0]

@@ -33,7 +33,7 @@ from app.services.roadmap.cache import (
     update_saved_roadmaps,
     write_cached_roadmap,
 )
-from app.services.roadmap.industry import generate_industry_sections
+from app.services.roadmap.sections import generate_sections
 from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
 
 UNUSED_DAYS = 90
@@ -119,7 +119,7 @@ async def generate(ctx, key):
     payload = build_unsw_payload(ctx)
     payload["specialisation_ids"] = ctx["specialisation_ids"]
     payload["cache_key"] = key
-    sections, failed = await generate_industry_sections(ctx["degree_code"], ctx["program_name"], payload)
+    sections, failed = await generate_sections(ctx["degree_code"], ctx["program_name"], payload)
     if failed:
         return failed
     payload.update(sections)
