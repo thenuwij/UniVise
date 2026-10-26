@@ -1,39 +1,5 @@
 import { supabase } from "@/shared/lib/supabase";
 
-async function recalculateStats(userId) {
-  const { data: courses } = await supabase
-    .from("user_completed_courses")
-    .select("*")
-    .eq("user_id", userId);
-
-  if (!courses) return;
-
-  const uocCompleted = courses
-    .filter((c) => c.is_completed)
-    .reduce((sum, c) => sum + c.uoc, 0);
-
-  const { data: currentStats } = await supabase
-    .from("user_progress_stats")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  if (!currentStats) return;
-
-  const coursesCompletedCount = courses.filter((c) => c.is_completed).length;
-  const uocRemaining = currentStats.total_uoc_required - uocCompleted;
-
-  await supabase
-    .from("user_progress_stats")
-    .update({
-      uoc_completed: uocCompleted,
-      uoc_remaining: uocRemaining,
-      courses_completed_count: coursesCompletedCount,
-      last_updated: new Date().toISOString(),
-    })
-    .eq("user_id", userId);
-}
-
 export async function fetchCompletedCourses(userId) {
   const { data } = await supabase
     .from("user_completed_courses")
@@ -72,6 +38,5 @@ export async function setCourseCompleted({ userId, course, existing, isCompleted
     row = data;
   }
 
-  await recalculateStats(userId);
   return row;
 }
