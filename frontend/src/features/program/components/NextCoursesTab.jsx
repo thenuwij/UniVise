@@ -1,9 +1,11 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { handbookUrl } from "@/shared/lib/handbook";
 import { useState } from "react";
-import { BriefcaseBusiness, ChevronDown, ExternalLink } from "lucide-react";
+import { BriefcaseBusiness, Check, ChevronDown, ExternalLink, Plus } from "lucide-react";
+import { UserAuth } from "@/app/AuthContext";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { useCoursePicks } from "../coursemesh/hooks/useCoursePicks";
+import { usePlanCourses } from "../hooks/usePlanCourses";
 
 const pill = (active) =>
   `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
@@ -22,7 +24,28 @@ function Message({ title, children, action }) {
   );
 }
 
-function PickRow({ pick, onOpenCourseMesh }) {
+function PlanAction({ course, plan, onOpenCourses }) {
+  if (!plan.ready) return null;
+  if (plan.inPlan(course.code)) {
+    return (
+      <button type="button" onClick={onOpenCourses} className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline dark:text-emerald-300">
+        <Check className="h-4 w-4" aria-hidden="true" /> In My courses
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => plan.addToPlan(course)}
+      disabled={!!plan.saving}
+      className="inline-flex items-center gap-1.5 text-link hover:underline disabled:opacity-50"
+    >
+      <Plus className="h-4 w-4" aria-hidden="true" /> {plan.saving === course.code ? "Adding..." : "Add to My courses"}
+    </button>
+  );
+}
+
+function PickRow({ pick, plan, onOpenCourses, onOpenCourseMesh }) {
   const unlocks = pick.unlocks?.length || 0;
   const meta = [pick.core && "Core", unlocks > 0 && `Unlocks ${unlocks} course${unlocks === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
   return (
@@ -49,6 +72,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+        <PlanAction course={pick} plan={plan} onOpenCourses={onOpenCourses} />
         <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="text-link hover:underline">
           See in CourseMesh
         </button>
@@ -60,8 +84,10 @@ function PickRow({ pick, onOpenCourseMesh }) {
   );
 }
 
-export default function NextCoursesTab({ isOwnProgram, onOpenCourses, onOpenCourseMesh }) {
+export default function NextCoursesTab({ degreeCode, isOwnProgram, onOpenCourses, onOpenCourseMesh }) {
+  const { session } = UserAuth();
   const { loading, picks, available, careers, completedCount, failed, retry } = useCoursePicks(isOwnProgram);
+  const plan = usePlanCourses(isOwnProgram ? degreeCode : null, session?.user?.id);
   const [career, setCareer] = useState(null);
 
   if (!isOwnProgram) {
@@ -135,7 +161,7 @@ export default function NextCoursesTab({ isOwnProgram, onOpenCourses, onOpenCour
       {shown.length > 0 ? (
         <ul className="mt-5 space-y-4">
           {shown.map((pick) => (
-            <PickRow key={pick.code} pick={pick} onOpenCourseMesh={onOpenCourseMesh} />
+            <PickRow key={pick.code} pick={pick} plan={plan} onOpenCourses={onOpenCourses} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
         </ul>
       ) : (
@@ -157,6 +183,7 @@ export default function NextCoursesTab({ isOwnProgram, onOpenCourses, onOpenCour
                   {course.core && <span className="ml-2 text-sm text-ink-muted">Core</span>}
                 </span>
                 <div className="ml-auto flex flex-wrap justify-end gap-x-5 gap-y-2 text-sm font-semibold">
+                  <PlanAction course={course} plan={plan} onOpenCourses={onOpenCourses} />
                   <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
                     See in CourseMesh
                   </button>
