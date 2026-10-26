@@ -259,9 +259,7 @@ def load_inputs(user_id: str) -> dict | None:
     )
     interests = (survey[0].get("interest_areas") if survey else None) or []
     saved_careers = [s["item_name"] for s in saved if s.get("item_name")]
-    careers = list(saved_careers)
-    careers += [name for name in _roadmap_careers(user_id, degree_code, spec_ids) if name.lower() not in {c.lower() for c in careers}]
-    careers = careers[:MAX_CAREERS]
+    careers = _roadmap_careers(user_id, degree_code, spec_ids)[:MAX_CAREERS]
 
     return {
         "degree_code": degree_code,
