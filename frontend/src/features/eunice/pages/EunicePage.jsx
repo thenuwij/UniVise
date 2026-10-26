@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AppNav from "@/shared/layout/AppNav";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
+import { listConversations, removeConversation } from "../api";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
 
@@ -18,11 +18,7 @@ export default function EunicePage() {
 
   useEffect(() => {
     if (!userId) return;
-    supabase
-      .from("conversations")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+    listConversations(userId)
       .then(({ data, error }) => {
         if (error) console.error("Error fetching conversations:", error);
         else setConversations(data || []);
@@ -31,8 +27,7 @@ export default function EunicePage() {
 
   const deleteConversation = async (id) => {
     if (!confirm("Delete this chat? This can't be undone.")) return;
-    await supabase.from("conversation_messages").delete().eq("conversation_id", id);
-    const { error } = await supabase.from("conversations").delete().eq("id", id);
+    const { error } = await removeConversation(id);
     if (error) {
       console.error("Error deleting conversation:", error);
       return;
