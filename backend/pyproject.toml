@@ -1,0 +1,8 @@
+[tool.ruff.lint]
+select = ["F"]
+
+[tool.vulture]
+paths = ["app", "scripts", "loadtest"]
+exclude = ["app/models/"]
+ignore_decorators = ["@router.*", "@task", "@events.*"]
+ignore_names = ["Student", "on_start", "wait_time", "cache_period"]

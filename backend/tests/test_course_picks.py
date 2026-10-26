@@ -8,7 +8,7 @@ import asyncio
 
 from app.models.course_picks import CoursePick, CoursePicks
 from app.services import course_picks
-from app.services.roadmap import unsw_queries
+from app.services.roadmap import queries
 
 
 def edge(frm, to, logic="or", group=None, kind="prereq"):
@@ -158,7 +158,7 @@ def test_failed_generation_is_not_cached(monkeypatch):
 
 
 def test_double_degree_halves_match_single_program_names():
-    norm = unsw_queries.normalise_program_name
+    norm = queries.normalise_program_name
 
     assert norm("Advanced Science (Honours) ") == norm("Bachelor of Advanced Science (Honours)")
     assert norm(" Bachelor of Commerce - BCom") == norm("Bachelor of Commerce")

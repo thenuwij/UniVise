@@ -22,7 +22,6 @@ CORE_COURSE_KEYWORDS = [
     "honours",
 ]
 
-# Helper functions for Capstone (Program Highlights section) in roadmap unsw
 def fetch_program_core_courses(degree_code: str) -> List[Dict[str, Any]]:
     if not degree_code:
         logger.info("Missing degree_code in fetch_program_core_courses.")
@@ -351,56 +350,6 @@ def fetch_degree_by_identifier(degree_id=None, uac_code=None, program_name=None)
     return degree
 
 
-
-
-def extract_all_course_codes(sections: list) -> List[str]:
-
-    course_codes = []
-    
-    for section in sections:
-        # Skip sections without courses (like Free Electives, General Education)
-        if 'courses' in section and section['courses']:
-            for course in section['courses']:
-                if 'code' in course and course['code']:
-                    course_codes.append(course['code'])
-    
-    return course_codes
-
-# Format selected degrees for AI prompt with all the relevant details
-def format_candidates_for_ai(candidates: List[Dict[str, Any]]) -> str:
-
-    formatted = ""
-    
-    for i, candidate in enumerate(candidates, 1):
-        shared_courses_str = ", ".join(candidate.get('shared_courses', [])[:8])  # Show first 8
-        if len(candidate.get('shared_courses', [])) > 8:
-            shared_courses_str += f" (and {len(candidate['shared_courses']) - 8} more)"
-        
-        spec = candidate.get('specialisation')
-        
-        if spec:
-            spec_name = spec.get('spec_name', '')
-            spec_type = spec.get('spec_type', '')
-            program_display = f"{candidate['program_name']} + {spec_name} ({spec_type})"
-        else:
-            program_display = candidate['program_name']
-        
-        formatted += f"""
-{i}. {program_display}
-   Faculty: {candidate['faculty']}
-   Course Overlap: {candidate['overlap_percentage']:.1f}% ({candidate['overlap_count']}/{candidate['total_current_courses']} courses)
-   Shared Courses: {shared_courses_str}
-   Total Courses in Target: {candidate['total_target_courses']}"""
-        
-        if spec:
-            formatted += f"""
-     RECOMMENDED SPECIALIZATION: {spec.get('spec_name')} ({spec.get('spec_type')})
-   This specialization significantly improves course overlap"""
-        
-        formatted += "\n"
-    
-    return formatted
-
 # Fetches the user's selected specialisations with CORE COURSES.
 # Extract CORE course codes from sections JSON. 
 # Filters out electives and only returns core/required courses.
@@ -431,42 +380,3 @@ def extract_core_course_codes_from_sections(sections_data) -> List[str]:
     except Exception as e:
         logger.error(f"[extract_core_courses_from_sections] Error: {e}")
         return []
-
-
-# Calculate overlap percentage with specialization courses weighted more heavily.
-def calculate_overlap_weighted(
-    current_courses: List[str],
-    target_courses: List[str],
-    spec_course_codes: List[str] = None
-) -> float:
-
-    if not current_courses:
-        return 0.0
-    
-    current_set = set(current_courses)
-    target_set = set(target_courses)
-    shared = current_set & target_set
-    
-    if not spec_course_codes:
-        # No specs selected - use normal calculation
-        return (len(shared) / len(current_courses)) * 100
-    
-    spec_set = set(spec_course_codes)
-    
-    # Calculate weighted total
-    weighted_total = 0
-    for course in current_courses:
-        if course in spec_set:
-            weighted_total += 1.5  # Spec courses count 1.5x
-        else:
-            weighted_total += 1.0  # Base courses count 1.0x
-    
-    # Calculate weighted shared
-    weighted_shared = 0
-    for course in shared:
-        if course in spec_set:
-            weighted_shared += 1.5
-        else:
-            weighted_shared += 1.0
-    
-    return (weighted_shared / weighted_total) * 100

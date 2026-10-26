@@ -1,35 +1,33 @@
 import logging
+import time
 
 from fastapi import APIRouter, Depends, HTTPException
-from app.core.database import supabase
+
 from app.core.auth import get_current_user
+from app.core.database import supabase
+from app.models.roadmap import RoadmapRequest, RoadmapResp
+from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
+from app.services.roadmap.context import build_payload, gather_context
+from app.services.roadmap.sections import generate_and_save_sections
 
 logger = logging.getLogger(__name__)
 
-from app.models.roadmap import UNSWReq, RoadmapResp
-from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
-from app.services.roadmap.common import ensure
-from app.services.roadmap.unsw import build_unsw_payload, gather_unsw_context
-from app.services.roadmap.industry import generate_and_update_all_industry
-
 router = APIRouter(tags=["roadmap"])
 
-# Generate roadmap for UNSW students, triggers background tasks for societies/careers
 @router.post("/unsw", response_model=RoadmapResp)
-async def create_unsw(
-    body: UNSWReq,
+async def create_roadmap(
+    body: RoadmapRequest,
     user=Depends(get_current_user)
 ):
-    import time
     endpoint_start = time.time()
     
-    ensure(any([body.degree_id, body.uac_code, body.program_name]),
-           "Provide degree_id or uac_code or program_name.")
+    if not any([body.degree_id, body.uac_code, body.program_name]):
+        raise HTTPException(status_code=400, detail="Provide degree_id or uac_code or program_name.")
 
     # Build roadmap context & payload 
-    ctx = await gather_unsw_context(user.id, body)
+    ctx = await gather_context(user.id, body)
     cache_key = roadmap_cache_key(ctx)
-    payload = read_cached_roadmap(cache_key) or build_unsw_payload(ctx)
+    payload = read_cached_roadmap(cache_key) or build_payload(ctx)
     payload["specialisation_ids"] = ctx["specialisation_ids"]
     payload["cache_key"] = cache_key
 
@@ -77,11 +75,11 @@ async def create_unsw(
     return {"id": rec["id"], "mode": rec["mode"], "payload": rec["payload"]}
 
 # Generate societies / industry experience / career pathways for a roadmap.
-# Called by the frontend right after create_unsw returns; takes ~15-25s and
+# Called by the frontend right after create_roadmap returns; takes ~15-25s and
 # writes the three sections into unsw_roadmap.payload, which the roadmap page
 # is already polling for. Safe to call more than once.
 @router.post("/unsw/{roadmap_id}/industry")
-async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)):
+async def generate_roadmap_sections(roadmap_id: str, user=Depends(get_current_user)):
     try:
         res = (
             supabase.from_("unsw_roadmap")
@@ -105,7 +103,7 @@ async def generate_unsw_industry(roadmap_id: str, user=Depends(get_current_user)
         return {"status": "already_generated"}
 
     try:
-        await generate_and_update_all_industry(roadmap_id, rec)
+        await generate_and_save_sections(roadmap_id, rec)
     except Exception as e:
         logger.exception(f"Industry generation failed for {roadmap_id}: {e}")
         raise HTTPException(status_code=500, detail="Could not finish the roadmap. Please try again.")

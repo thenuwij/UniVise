@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 import httpx
 
-from app.services.roadmap.job_ads import is_early_career
+from app.services.careers.search_words import is_early_career
 
 API = "https://api.adzuna.com/v1/api/jobs/au/search/1"
 MAX_ROLES = 4

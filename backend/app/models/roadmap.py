@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, create_model
 from typing import Optional, Any, Dict, Literal
 
-class UNSWReq(BaseModel):
+class RoadmapRequest(BaseModel):
     degree_id: Optional[str] = None
     uac_code: Optional[str] = None
     program_name: Optional[str] = None

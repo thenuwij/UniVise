@@ -6,7 +6,7 @@ their titles.
 """
 from types import SimpleNamespace
 
-from app.services.roadmap import unsw_queries
+from app.services.roadmap import queries
 
 SECTIONS = [
     {"title": "Overview", "courses": []},
@@ -42,12 +42,12 @@ def fake_supabase(tables):
 
 
 def test_lists_program_and_specialisation_courses(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", fake_supabase({
+    monkeypatch.setattr(queries, "supabase", fake_supabase({
         "unsw_degrees_final": [{"sections": SECTIONS}],
         "unsw_courses": [{"code": "COMP3311", "title": "Database Systems"}],
     }))
 
-    courses = unsw_queries.fetch_program_course_list("3778", ["COMP3311", "COMP1511", "COMPA1"])
+    courses = queries.fetch_program_course_list("3778", ["COMP3311", "COMP1511", "COMPA1"])
 
     assert courses == [
         {"code": "COMP1511", "name": "Programming Fundamentals", "section": "Level 1 Core", "section_rule": ""},
@@ -57,11 +57,11 @@ def test_lists_program_and_specialisation_courses(monkeypatch):
 
 
 def test_program_without_sections_still_lists_specialisation_courses(monkeypatch):
-    monkeypatch.setattr(unsw_queries, "supabase", fake_supabase({
+    monkeypatch.setattr(queries, "supabase", fake_supabase({
         "unsw_degrees_final": [],
         "unsw_courses": [{"code": "COMP3311", "title": "Database Systems"}],
     }))
 
-    assert unsw_queries.fetch_program_course_list("3778", ["COMP3311"]) == [
+    assert queries.fetch_program_course_list("3778", ["COMP3311"]) == [
         {"code": "COMP3311", "name": "Database Systems", "section": "Chosen specialisation", "section_rule": ""},
     ]
