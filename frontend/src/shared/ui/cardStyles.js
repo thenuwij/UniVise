@@ -10,3 +10,5 @@ export const filterPill = (active) =>
       ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
       : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
   }`;
+
+export const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold text-band-ink underline-offset-4 hover:underline";

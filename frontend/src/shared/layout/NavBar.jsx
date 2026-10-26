@@ -21,7 +21,7 @@ import { UserAuth } from "@/app/AuthContext";
 import { isNavigationActive } from "./navigation";
 import "./navigation.css";
 
-export function DashboardNavBar({ onMenuClick, isMenuOpen = false }) {
+export function NavBar({ onMenuClick, isMenuOpen = false }) {
   const { session, signOut } = UserAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();

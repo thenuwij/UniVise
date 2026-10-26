@@ -1,34 +1,31 @@
-import SaveButton from "@/shared/ui/SaveButton";
-import { handbookUrl } from "@/shared/lib/handbook";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import SpotlightGuide from "@/shared/ui/SpotlightGuide";
-import { hasSeenGuide } from "@/shared/lib/guideSeen";
+import { ExternalLink, HelpCircle } from "lucide-react";
+import { UserAuth } from "@/app/AuthContext";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
-
 import { formatDuration } from "@/shared/lib/format";
+import { hasSeenGuide } from "@/shared/lib/guideSeen";
+import { handbookUrl } from "@/shared/lib/handbook";
+import { bandLink } from "@/shared/ui/cardStyles";
+import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import GeneratingMessage from "../components/GeneratingMessage";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
-import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
-import RoadmapFlow from "../components/RoadmapFlow";
-import SkeletonCard from "../components/SkeletonCard";
-import SocietiesCommunity from "../components/SocietiesCommunity";
-import TakeNext from "../components/TakeNext";
+import MyCoursesTab from "../components/MyCoursesTab";
+import ProgramTabs from "../components/ProgramTabs";
+import RoadmapStatus from "../components/RoadmapStatus";
+import SaveProgramButton from "../components/SaveProgramButton";
+import SocietiesTab from "../components/SocietiesTab";
+import NextCoursesTab from "../components/NextCoursesTab";
 import CourseMesh from "../coursemesh/components/CourseMesh";
-import { ExternalLink, HelpCircle } from "lucide-react";
-import CareersContent from "@/features/career/components/CareersContent";
 import { useDegree } from "../hooks/useDegree";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
 import { hasSection, useRoadmap } from "../hooks/useRoadmap";
+import { useSpecialisationNames } from "../hooks/useSpecialisationNames";
 import { useStepNavigation } from "../hooks/useStepNavigation";
-import { fetchChosenSpecialisations } from "../utils/programCourses";
 import { ROADMAP_VIEWS, roadmapViewUrl } from "../utils/roadmapSteps";
-import { UserAuth } from "@/app/AuthContext";
 
-const bandLink = "inline-flex items-center px-1 py-2 text-[15px] font-semibold text-band-ink underline-offset-4 hover:underline";
-
-const DEFAULT_PROGRAM_NAME = "";
+const STEPS = ROADMAP_VIEWS.degree.steps;
 const SECTION_GUIDE_TEXT = {
   structure: "Tick the courses you've finished. Use these tabs to switch sections.",
   next: "Courses you can take now, with the skills and careers each one builds.",
@@ -40,15 +37,7 @@ const sectionGuideSteps = (steps) => steps.map(({ key, title }) => ({
   title,
   text: SECTION_GUIDE_TEXT[key],
 }));
-const VIEW_COPY = {
-  degree: { own: "My Program", exploring: "Exploring a program", back: "Back to My Program" },
-  careers: { own: "My Career", exploring: "Exploring careers", back: "Back to My Career" },
-};
-
-const handbookUrlFor = (degree, degreeCode) => {
-  if (!degreeCode) return null;
-  return handbookUrl("programs", degreeCode, degree?.source_url);
-};
+const stepIndex = (key) => STEPS.findIndex((s) => s.key === key);
 
 function SectionError({ onRetry }) {
   return (
@@ -69,70 +58,7 @@ function SectionError({ onRetry }) {
   );
 }
 
-const ContentSection = ({ data, loading, error, steps, activeIndex, onIndexChange, header, content = null }) => {
-  if (!data && loading) {
-    return (
-      <>
-        {header}
-        <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-12 space-y-4">
-          <SkeletonCard lines={4} />
-          <SkeletonCard lines={6} />
-          <SkeletonCard lines={4} />
-        </div>
-      </>
-    );
-  }
-
-  if (data && content) {
-    return (
-      <>
-        {header}
-        {content}
-      </>
-    );
-  }
-
-  if (data) {
-    return (
-      <RoadmapFlow 
-        steps={steps} 
-        activeIndex={activeIndex} 
-        onChange={onIndexChange} 
-        header={header}
-        sectionNavigation
-      />
-    );
-  }
-
-  if (!data && !loading && !error) {
-    return (
-      <>
-        {header}
-        <div className="text-center py-16 text-secondary">
-          Ready when you are. Your UNSW roadmap will appear here.
-        </div>
-      </>
-    );
-  }
-
-  if (error && !loading) {
-    return (
-      <>
-        {header}
-        <div className="max-w-[1680px] mx-auto px-5 md:px-10 py-12">
-          <div className="rounded-2xl border border-red-200 bg-red-50/70 dark:border-red-700 dark:bg-red-900/40 p-4 text-sm text-red-700 dark:text-red-300">
-            {error}
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return null;
-};
-
-// --- Main Component ---
-export default function ProgramPage({ view = "degree" }) {
+export default function ProgramPage() {
   const { search } = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(search);
@@ -140,62 +66,44 @@ export default function ProgramPage({ view = "degree" }) {
 
   const { session } = UserAuth();
   const [showSectionGuide, setShowSectionGuide] = useState(false);
-  const sectionGuideKey = `univise-${view}-sections-guide-v2-${session?.user?.id || "guest"}`;
-  const copy = VIEW_COPY[view];
+  const sectionGuideKey = `univise-degree-sections-guide-v2-${session?.user?.id || "guest"}`;
 
   const { data, loading, error, header, sectionsStatus, retrySections } = useRoadmap(roadmapId, session?.access_token);
   const activeDegree = useDegree(header.degree_code);
-  const roadmapReady = !!data;
-  const isCareers = view === "careers";
-  useEffect(() => {
-    if (isCareers || !roadmapReady || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
-    const timer = setTimeout(() => setShowSectionGuide(true), 500);
-    return () => clearTimeout(timer);
-  }, [isCareers, roadmapReady, sectionGuideKey, session?.user?.id]);
   const { program: enrolledProgram, loading: enrolledLoading } = useEnrolledProgram();
-  const shownDegreeCode = header.degree_code;
-  const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === shownDegreeCode;
-  const visibleSteps = useMemo(
-    () => ROADMAP_VIEWS[view].steps.filter((step) => step.key !== "next" || isOwnProgram),
-    [view, isOwnProgram]
-  );
-  const [specNames, setSpecNames] = useState([]);
+  const specNames = useSpecialisationNames(header.degree_code, session?.user?.id);
+  const degreeCode = header.degree_code;
+  const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === degreeCode;
+  const visibleSteps = useMemo(() => STEPS.filter((step) => step.key !== "next" || isOwnProgram), [isOwnProgram]);
   const [meshFocus, setMeshFocus] = useState(() => searchParams.get("focus"));
 
   useEffect(() => {
-    let active = true;
-    fetchChosenSpecialisations(shownDegreeCode, session?.user?.id).then((specs) => {
-      if (active) setSpecNames(specs.map((s) => s.name));
-    });
-    return () => { active = false; };
-  }, [shownDegreeCode, session?.user?.id]);
+    if (!data || !session?.user?.id || hasSeenGuide(sectionGuideKey)) return;
+    const timer = setTimeout(() => setShowSectionGuide(true), 500);
+    return () => clearTimeout(timer);
+  }, [data, sectionGuideKey, session?.user?.id]);
 
-  const { activeIndex, setActiveIndex } = useStepNavigation(
-    search,
-    !!data,
-    roadmapId
-  );
-  const stepIndex = useCallback((key) => ROADMAP_VIEWS[view].steps.findIndex((s) => s.key === key), [view]);
+  const { activeIndex, setActiveIndex } = useStepNavigation(search, !!data, roadmapId);
   // Keep the existing URL step numbers stable when Next courses is hidden.
-  const activeStepKey = ROADMAP_VIEWS[view].steps[activeIndex]?.key;
+  const activeStepKey = STEPS[activeIndex]?.key;
   const visibleActiveIndex = Math.max(0, visibleSteps.findIndex((step) => step.key === activeStepKey));
   useEffect(() => {
-    if (shownDegreeCode && !enrolledLoading && !isOwnProgram && activeStepKey === "next") setActiveIndex(0);
-  }, [shownDegreeCode, enrolledLoading, isOwnProgram, activeStepKey, setActiveIndex]);
+    if (degreeCode && !enrolledLoading && !isOwnProgram && activeStepKey === "next") setActiveIndex(0);
+  }, [degreeCode, enrolledLoading, isOwnProgram, activeStepKey, setActiveIndex]);
   const openCourseMesh = useCallback((code) => {
     setMeshFocus(code || null);
     setActiveIndex(stepIndex("coursemesh"));
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [setActiveIndex, stepIndex]);
+  }, [setActiveIndex]);
 
   useEffect(() => {
     if (activeIndex !== stepIndex("coursemesh")) setMeshFocus(null);
-  }, [activeIndex, stepIndex]);
+  }, [activeIndex]);
 
   const steps = useMemo(() => {
     if (!data) return [];
 
-    const industrySection = (key, content, title, message) => {
+    const generatedSection = (key, content, title, message) => {
       const failed = data?.industry_failed?.includes(key) || !hasSection(data, key);
       if (sectionsStatus === "loading" && failed) {
         return <GeneratingMessage title={title} message={message} />;
@@ -204,11 +112,9 @@ export default function ProgramPage({ view = "degree" }) {
       return content();
     };
 
-    const degreeCodeValue = header.degree_code;
-
     const renderers = {
       structure: () => {
-        if (!degreeCodeValue) {
+        if (!degreeCode) {
           return (
             <div className="text-center py-10 text-secondary">
               Unable to load program structure. Please try again.
@@ -216,16 +122,16 @@ export default function ProgramPage({ view = "degree" }) {
           );
         }
         return (
-          <ProgramStructureUNSW
-            degreeCode={degreeCodeValue}
+          <MyCoursesTab
+            degreeCode={degreeCode}
             trackCompletion={isOwnProgram}
-            onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCodeValue}`)}
+            onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCode}`)}
             onOpenCourseMesh={openCourseMesh}
           />
         );
       },
       next: () => (
-        <TakeNext
+        <NextCoursesTab
           isOwnProgram={isOwnProgram}
           onOpenCourses={() => {
             setActiveIndex(stepIndex("structure"));
@@ -236,7 +142,7 @@ export default function ProgramPage({ view = "degree" }) {
       ),
       coursemesh: () => (
         <CourseMesh
-          programCode={degreeCodeValue}
+          programCode={degreeCode}
           focus={meshFocus}
           onOpenCourses={() => {
             setMeshFocus(null);
@@ -244,41 +150,33 @@ export default function ProgramPage({ view = "degree" }) {
           }}
         />
       ),
-      societies: () => industrySection(
+      societies: () => generatedSection(
         "industry_societies",
-        () => <SocietiesCommunity societies={data.industry_societies} />,
+        () => <SocietiesTab societies={data.industry_societies} />,
         "Generating Societies & Community...",
         "Finding UNSW societies and community events for your program."
       ),
     };
 
     return visibleSteps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, header, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex, stepIndex]);
+  }, [data, degreeCode, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex]);
 
-  const headerProgramName =
-    activeDegree?.program_name ||
-    header.program_name ||
-    DEFAULT_PROGRAM_NAME;
-
-  const handleBackClick = useCallback(
-    () => navigate(isOwnProgram ? "/dashboard" : roadmapViewUrl(view)),
-    [navigate, isOwnProgram, view]
-  );
-
+  const programName = activeDegree?.program_name || header.program_name || "";
+  const handbookLink = degreeCode ? handbookUrl("programs", degreeCode, activeDegree?.source_url) : null;
   const headerFacts = [
-    ["Faculty", activeDegree?.faculty?.replace(/^Faculty of\s+/i, "")],
-    ["Duration", formatDuration(activeDegree?.duration_years, activeDegree?.duration)],
-    ["Program code", shownDegreeCode],
-    ["UAC code", activeDegree?.uac_code],
-  ].filter(([, value]) => value);
+    activeDegree?.faculty?.replace(/^Faculty of\s+/i, ""),
+    formatDuration(activeDegree?.duration_years, activeDegree?.duration),
+    degreeCode && `Program ${degreeCode}`,
+    activeDegree?.uac_code && `UAC ${activeDegree.uac_code}`,
+  ].filter(Boolean);
 
   const programHeader = (
     <PageHeader
-      back={isOwnProgram ? undefined : { label: copy.back, onClick: handleBackClick }}
+      back={isOwnProgram ? undefined : { label: "Back to My Program", onClick: () => navigate(roadmapViewUrl("degree")) }}
       actions={
         <>
-          {shownDegreeCode && <SaveButton itemType="degree" itemId={shownDegreeCode} itemName={activeDegree?.program_name || headerProgramName} itemData={{ degree_code: shownDegreeCode, program_name: activeDegree?.program_name || headerProgramName, faculty: activeDegree?.faculty, source_url: activeDegree?.source_url }} className="h-11! w-11! border-white/35! text-white! bg-transparent! hover:bg-white/10!" />}
-          {data && !isCareers && (
+          <SaveProgramButton degreeCode={degreeCode} degree={activeDegree} programName={programName} />
+          {data && (
             <button
               type="button"
               onClick={() => setShowSectionGuide(true)}
@@ -289,77 +187,59 @@ export default function ProgramPage({ view = "degree" }) {
               <HelpCircle className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
-          {!isCareers && !enrolledLoading && !isOwnProgram && shownDegreeCode && headerProgramName && (
-            <MakeMyProgramButton degreeCode={shownDegreeCode} programName={activeDegree?.program_name || headerProgramName} view={view} />
+          {!enrolledLoading && !isOwnProgram && degreeCode && programName && (
+            <MakeMyProgramButton degreeCode={degreeCode} programName={programName} />
           )}
-          <button onClick={() => navigate(view === "careers" ? "/roadmap?view=careers" : "/roadmap")} className={bandLink}>
+          <button onClick={() => navigate("/roadmap")} className={bandLink}>
             Explore a different degree
           </button>
         </>
       }
-      eyebrow={isOwnProgram ? copy.own : copy.exploring}
-      title={
-        isCareers && specNames.length > 0 ? (
-          <>
-            {headerProgramName}
-            <span className="ml-2 align-middle text-base font-semibold text-band-soft md:text-lg">· {specNames.join(" · ")}</span>
-          </>
-        ) : headerProgramName
-      }
-      subtitle={!isCareers && specNames.length > 0 ? specNames.join(" · ") : null}
+      eyebrow={isOwnProgram ? "My Program" : "Exploring a program"}
+      title={programName}
+      subtitle={specNames.length > 0 ? specNames.join(" · ") : null}
       compact
-      slim={isCareers}
-      wide={isCareers}
     >
-      {!isCareers && (
-        <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
-          <p className="min-w-0">
-            {headerFacts.map(([label, value]) => (label === "Program code" ? `Program ${value}` : label === "UAC code" ? `UAC ${value}` : value)).join(" · ")}
+      <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
+        <p className="min-w-0">{headerFacts.join(" · ")}</p>
+        {handbookLink && (
+          <p>
+            <a href={handbookLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
+              Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
           </p>
-          {handbookUrlFor(activeDegree, shownDegreeCode) && (
-            <p>
-              <a href={handbookUrlFor(activeDegree, shownDegreeCode)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-                Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              </a>
-            </p>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </PageHeader>
   );
 
   return (
     <div className="min-h-screen app-page text-primary transition-colors duration-500">
       <AppNav />
-      {showSectionGuide && data && !isCareers && (
+      {showSectionGuide && data && (
         <SpotlightGuide
           steps={sectionGuideSteps(visibleSteps)}
           seenKey={sectionGuideKey}
           onClose={() => setShowSectionGuide(false)}
         />
       )}
-
-      <ContentSection
-        header={programHeader}
-        data={data}
-        loading={loading}
-        error={error}
-        steps={steps}
-        content={isCareers ? (
-          <CareersContent
-            roadmapId={roadmapId}
-            data={data}
-            sectionsStatus={sectionsStatus}
-            onRetry={retrySections}
-            personal={isOwnProgram}
-          />
-        ) : null}
-        activeIndex={visibleActiveIndex}
-        onIndexChange={(index) => {
-          setMeshFocus(null);
-          setActiveIndex(stepIndex(visibleSteps[index].key));
-        }}
-      />
+      {data ? (
+        <ProgramTabs
+          steps={steps}
+          activeIndex={visibleActiveIndex}
+          onChange={(index) => {
+            setMeshFocus(null);
+            setActiveIndex(stepIndex(visibleSteps[index].key));
+          }}
+          header={programHeader}
+          sectionNavigation
+        />
+      ) : (
+        <>
+          {programHeader}
+          <RoadmapStatus loading={loading} error={error} />
+        </>
+      )}
     </div>
   );
 }

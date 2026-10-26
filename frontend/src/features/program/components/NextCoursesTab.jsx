@@ -60,7 +60,7 @@ function PickRow({ pick, onOpenCourseMesh }) {
   );
 }
 
-export default function TakeNext({ isOwnProgram, onOpenCourses, onOpenCourseMesh }) {
+export default function NextCoursesTab({ isOwnProgram, onOpenCourses, onOpenCourseMesh }) {
   const { loading, picks, available, careers, completedCount, failed, retry } = useCoursePicks(isOwnProgram);
   const [career, setCareer] = useState(null);
 

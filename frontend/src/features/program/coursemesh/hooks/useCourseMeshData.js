@@ -8,7 +8,7 @@ import { myCourseCodes } from "../../utils/myCourses";
 
 const EDGE_FIELDS = "from_key,to_key,edge_type,confidence,logic_type,group_id";
 
-export default function useMindMeshData({ programCode, userId }) {
+export default function useCourseMeshData({ programCode, userId }) {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
   const [programCourses, setProgramCourses] = useState([]);
   const [programMeta, setProgramMeta] = useState(null);

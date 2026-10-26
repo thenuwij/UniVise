@@ -31,7 +31,7 @@ function summariseRoadmap(payload, completedCodes, links) {
   };
 }
 
-export function useDashboardPreview(facts) {
+export function useHomePreview(facts) {
   const { session } = UserAuth();
   const token = session?.access_token;
   const userId = session?.user?.id;

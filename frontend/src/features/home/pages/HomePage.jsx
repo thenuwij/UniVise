@@ -4,9 +4,9 @@ import AppNav from "@/shared/layout/AppNav";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { UserAuth } from "@/app/AuthContext";
-import DashboardHome from "../components/DashboardHome";
+import HomeContent from "../components/HomeContent";
 import ProgramCard from "../components/ProgramCard";
-import { useDashboardFacts } from "../hooks/useDashboardFacts";
+import { useHomeFacts } from "../hooks/useHomeFacts";
 import "../dashboard.css";
 
 const DAY_LINES = [
@@ -45,7 +45,7 @@ const GUIDE_STEPS = [
 export default function HomePage() {
   const { session } = UserAuth();
   const guideKey = `univise-dashboard-guide-seen-${session?.user?.id || "guest"}`;
-  const facts = useDashboardFacts();
+  const facts = useHomeFacts();
   const [showGuide, setShowGuide] = useState(false);
   useEffect(() => {
     if (!facts?.program || !session?.user?.id || hasSeenGuide(guideKey)) return;
@@ -81,7 +81,7 @@ export default function HomePage() {
       )}
       <main className="dashboard-main">
         {facts?.program ? (
-          <DashboardHome
+          <HomeContent
             facts={facts}
             greeting={`${greeting}${name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}`}
             today={today}

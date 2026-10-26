@@ -15,7 +15,6 @@ import SpecialisationPicker from "@/features/program/components/SpecialisationPi
 import { TermsAgreement } from "@/features/auth/components/TermsAgreement";
 import { hasAcceptedCurrentTerms, recordTermsAccepted } from "@/features/auth/utils/terms";
 
-// ── Shared primitives ──────────────────────────────────────────────
 
 function StepHeading({ children }) {
   return (
@@ -243,7 +242,6 @@ function ProgramPicker({ value, onSelect }) {
   );
 }
 
-// ── Main Form ──────────────────────────────────────────────────────
 
 function readDraft(key) {
   try {

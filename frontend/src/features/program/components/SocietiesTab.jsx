@@ -38,7 +38,7 @@ function SocietyRow({ society, link }) {
   );
 }
 
-export default function SocietiesCommunity({ societies }) {
+export default function SocietiesTab({ societies }) {
   const [filter, setFilter] = useState("all");
   const [showAll, setShowAll] = useState(false);
   const [links, setLinks] = useState(null);

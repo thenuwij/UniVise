@@ -4,10 +4,10 @@ import { fetchCourseLinks, fetchMeshNodes } from "../../api";
 import { UserAuth } from "@/app/AuthContext";
 import GraphControls from "./GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./NodeRenderer";
-import useMindMeshData from "../hooks/useMindMeshData";
-import { colorFor } from "../utils/index";
-import MindMeshGraph from "./MindMeshGraph";
-import MindMeshInfoPanel from "./MindMeshInfoPanel";
+import useCourseMeshData from "../hooks/useCourseMeshData";
+import { colorFor } from "../utils/canvas";
+import CourseMeshGraph from "./CourseMeshGraph";
+import CourseInfoPanel from "./CourseInfoPanel";
 import PicksPanel from "./PicksPanel";
 import CourseMeshTour from "./CourseMeshTour";
 import ElectivesPanel from "./ElectivesPanel";
@@ -49,7 +49,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
   const {
     graph, setGraph, loading, thin, mine, reload,
     completed, completedRows, setCompletedRows, prereqEdges, addPrereqEdges,
-  } = useMindMeshData({ programCode, userId });
+  } = useCourseMeshData({ programCode, userId });
   const noProgram = !programCode && !enrolledLoading;
   const noCourses = !!programCode && !loading && !graph.nodes.length;
   const needsSpecialisation = !!programCode && !loading && thin;
@@ -260,7 +260,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
   );
 
   // Graph interactions
-  const expandGlobalMindMesh = async (n) => {
+  const expandCourse = async (n) => {
     setExpandCount((c) => c + 1);
     graphHistoryRef.current.push(graph);
     const courseKey = n.id;
@@ -313,7 +313,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     // double-click → expand
     if (lastClickRef.current.id === node.id && delta < 250) {
       lastClickRef.current = { id: null, time: 0 };
-      await expandGlobalMindMesh(node);
+      await expandCourse(node);
 
       return;
     }
@@ -520,7 +520,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
             </div>
           )}
 
-          <MindMeshGraph
+          <CourseMeshGraph
             ref={graphRef}
             graph={graph}
             canvasSize={canvasSize}
@@ -536,7 +536,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
             linkWidth={linkWidth}
             onZoom={(t) => { transformRef.current = t; }}
           />
-          <MindMeshInfoPanel
+          <CourseInfoPanel
             focusedNode={focusedNode}
             status={focusedNode ? statusOf(focusedNode.id) : null}
             requirements={focusedNode ? groups.get(focusedNode.id) || [] : []}

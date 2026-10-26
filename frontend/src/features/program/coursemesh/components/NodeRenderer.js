@@ -1,5 +1,4 @@
-// src/components/mindmesh/NodeRenderer.js
-import { roundRect, getLevelColor } from "../utils";
+import { roundRect, getLevelColor } from "../utils/canvas";
 import { STATUS } from "../utils/availability";
 
 // Color helpers 

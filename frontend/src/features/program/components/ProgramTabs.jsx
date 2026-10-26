@@ -47,7 +47,7 @@ function StepBar({ steps, activeIndex, onChange }) {
 const SECTION_ICONS = { structure: Layers, next: Sparkles, coursemesh: Network, societies: Users };
 
 
-export default function RoadmapFlow({ steps = [], activeIndex = 0, onChange, header = null, sectionNavigation = false }) {
+export default function ProgramTabs({ steps = [], activeIndex = 0, onChange, header = null, sectionNavigation = false }) {
   const prev = steps[activeIndex - 1];
   const next = steps[activeIndex + 1];
 

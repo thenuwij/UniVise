@@ -1,14 +1,9 @@
-// src/components/roadmap/DegreeSelectorForRoadmap.jsx
 import { useEffect, useState } from "react";
 import { HiAcademicCap, HiFilter, HiSearch, HiX } from "react-icons/hi";
 import { listOfferedDegrees } from "../api";
 
-function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefined }) {
-  const [query, setQuery] = useState(initialQuery ?? "");
-
-  useEffect(() => {
-    if (initialQuery !== undefined) setQuery(initialQuery);
-  }, [initialQuery]);
+function ProgramSearch({ onSelect, selectedId }) {
+  const [query, setQuery] = useState("");
   const [facultyFilter, setFacultyFilter] = useState("");
   const [degrees, setDegrees] = useState([]);
   const [faculties, setFaculties] = useState([]);
@@ -39,32 +34,29 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
 
   return (
     <div className="w-full">
-      {/* Search Input — hidden when parent controls query via initialQuery */}
-      {initialQuery === undefined && (
-        <div className="relative mb-4">
-          <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
-          <input
-            type="text"
-            placeholder="Type to search UNSW degrees..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-lg pl-12 pr-12 py-3 text-sm
-                       bg-white dark:bg-slate-900/60
-                       border border-slate-300 dark:border-slate-700
-                       focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:outline-none
-                       text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500
-                       transition-all"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              <HiX className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-      )}
+      <div className="relative mb-4">
+        <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
+        <input
+          type="text"
+          placeholder="Type to search UNSW degrees..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full rounded-lg pl-12 pr-12 py-3 text-sm
+                     bg-white dark:bg-slate-900/60
+                     border border-slate-300 dark:border-slate-700
+                     focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:outline-none
+                     text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500
+                     transition-all"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+          >
+            <HiX className="w-5 h-5" />
+          </button>
+        )}
+      </div>
 
       {/* Filter Toggle */}
       <div className="mb-4">
@@ -200,4 +192,4 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
   );
 }
 
-export default DegreeSelectorForRoadmap;
+export default ProgramSearch;

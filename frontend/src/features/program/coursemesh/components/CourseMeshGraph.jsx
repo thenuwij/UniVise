@@ -1,9 +1,8 @@
-// src/pages/mindmesh/components/MindMeshGraph.jsx
 import { forwardRef, useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 
-const MindMeshGraph = forwardRef(function MindMeshGraph(
+const CourseMeshGraph = forwardRef(function CourseMeshGraph(
   {
     graph,
     canvasSize,
@@ -140,4 +139,4 @@ const MindMeshGraph = forwardRef(function MindMeshGraph(
   );
 });
 
-export default MindMeshGraph;
+export default CourseMeshGraph;

@@ -1,4 +1,3 @@
-// src/pages/mindmesh/components/GraphControls.jsx
 import { forwardRef, useRef, useImperativeHandle } from "react";
 import { HelpCircle, LayoutGrid, Maximize2, Pause, Play, RotateCcw, Undo2 } from "lucide-react";
 import AutoLayoutControls from "./AutoLayoutControls";
