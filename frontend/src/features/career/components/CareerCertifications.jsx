@@ -46,7 +46,7 @@ function CareersBasis({ savedCareers }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
-    <div className="mb-6 rounded-2xl bg-slate-50 px-5 py-4 text-[15px] text-ink-muted dark:bg-slate-800/50">
+    <div className="mb-6 rounded-2xl bg-gradient-to-br from-white to-blue-50/70 px-5 py-4 text-[15px] text-ink-muted shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-blue-950/40 dark:ring-slate-800">
       <p>
         {savedCareers.length
           ? <>Based on the careers you saved: <span className="font-semibold text-ink-strong">{savedCareers.join(", ")}</span>. Saving or removing a career updates this list.</>
