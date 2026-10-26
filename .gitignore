@@ -1,37 +1,29 @@
-# Node (frontend)
+# Dependencies and builds
 node_modules/
 dist/
-.env
-*.log
-
-# macOS
-.DS_Store
-
-# Python (backend)
+.venv/
+venv/
 __pycache__/
 *.pyc
-venv/
-.env
 
-# OS/Editor
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+supabase/.temp/
+
+# Secrets and logs
+.env
+*.local
+*.log
+
+# Editors and OS
+.DS_Store
 .idea/
 .vscode/
+.claude/
+
+# Local notes, not published
 CLAUDE.md
-AGENTS.md
-
-# Inventory docs (generated, not for repo)
-DATABASE_INVENTORY.md
-AUTH_INVENTORY.md
-costs.csv
-
-# Engineering decision records and runbooks - kept locally, not published
-docs/*
-!docs/images/
+docs/
 infra/
 ai/
-
-# Pytest
-.pytest_cache/
-
-# Supabase CLI
-supabase/.temp/
