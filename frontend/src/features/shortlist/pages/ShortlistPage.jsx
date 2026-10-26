@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bookmark, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Award, BookOpen, Bookmark, BriefcaseBusiness, CalendarDays, ChevronLeft, ChevronRight, GraduationCap, Route, Search, Users } from "lucide-react";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { UserAuth } from "@/app/AuthContext";
@@ -14,6 +14,24 @@ import { deadlineOf, snapshotOf, titleOf } from "../utils/shortlist";
 import { isPastEvent, SECTIONS, sectionByKey, sectionOf, sectionSummary, trackOf } from "../utils/sections";
 
 const SEARCH_FROM = 7;
+const ICONS = { jobs: BriefcaseBusiness, certifications: Award, courses: BookOpen, events: CalendarDays, careers: Route, programs: GraduationCap, communities: Users, other: Bookmark };
+const card = "rounded-2xl bg-gradient-to-br from-white to-blue-50/70 shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-blue-950/40 dark:ring-slate-800";
+
+function filtersFor(section, courseStatus) {
+  if (section.statuses) return Object.entries(section.statuses).map(([key, label]) => ({ key, label, test: (item) => trackOf(item).status === key }));
+  if (section.key === "events") return [{ key: "going", label: "Going", test: (item) => trackOf(item).going }, { key: "not_going", label: "Not going", test: (item) => !trackOf(item).going }];
+  if (section.key === "communities") return [{ key: "joined", label: "Joined", test: (item) => trackOf(item).joined }, { key: "not_joined", label: "Not joined", test: (item) => !trackOf(item).joined }];
+  if (section.key === "courses") {
+    const codeOf = (item) => snapshotOf(item).code || item.item_id;
+    const status = (item) => courseStatus(item);
+    return [
+      { key: "completed", label: "Completed", test: (item) => status(item).completed(codeOf(item)) },
+      { key: "in_plan", label: "In My courses", test: (item) => !status(item).completed(codeOf(item)) && status(item).inPlan(codeOf(item)) },
+      { key: "not_in_plan", label: "Not in My courses", test: (item) => !status(item).completed(codeOf(item)) && !status(item).inPlan(codeOf(item)) },
+    ];
+  }
+  return [];
+}
 
 function useCourseStatus(userId, enabled) {
   const { program } = useEnrolledProgram();
@@ -64,6 +82,7 @@ export default function ShortlistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState(null);
   const [now, setNow] = useState(Date.now);
   const [searchParams, setSearchParams] = useSearchParams();
   const section = sectionByKey(searchParams.get("section"));
@@ -115,13 +134,17 @@ export default function ShortlistPage() {
   const shownSections = SECTIONS.filter((s) => s.key !== "other" || bySection.other.length);
   const open = (key) => {
     setQuery("");
+    setFilter(null);
     setSearchParams(key ? { section: key } : {});
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const sectionItems = section ? orderItems(section, bySection[section.key], now) : [];
+  const filters = section ? filtersFor(section, courseStatus) : [];
+  const activeFilter = filters.find((f) => f.key === filter);
+  const filtered = activeFilter ? sectionItems.filter(activeFilter.test) : sectionItems;
   const words = query.trim().toLowerCase();
-  const visible = words ? sectionItems.filter((item) => `${titleOf(item)} ${item.personal_notes || ""}`.toLowerCase().includes(words)) : sectionItems;
+  const visible = words ? filtered.filter((item) => `${titleOf(item)} ${item.personal_notes || ""}`.toLowerCase().includes(words)) : filtered;
   const upcoming = section?.key === "events" ? visible.filter((item) => !isPastEvent(item, now)) : visible;
   const past = section?.key === "events" ? visible.filter((item) => isPastEvent(item, now)) : [];
   const note = section && SectionNote({ section });
@@ -161,14 +184,20 @@ export default function ShortlistPage() {
             )}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {shownSections.map((s) => (
-                <button key={s.key} type="button" onClick={() => open(s.key)} className="group flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5 text-left transition-colors hover:border-blue-400">
-                  <span className="min-w-0">
-                    <span className="block text-lg font-bold text-ink-strong">
-                      {s.title} <span className="ml-1 text-base font-semibold text-ink-muted">{bySection[s.key].length}</span>
+                <button key={s.key} type="button" onClick={() => open(s.key)} className={`group flex min-h-40 flex-col justify-between p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-blue-300 dark:hover:ring-blue-800 ${card}`}>
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                      {(() => { const Icon = ICONS[s.key]; return <Icon className="h-5 w-5" aria-hidden="true" />; })()}
                     </span>
-                    <span className="mt-1 block text-sm text-ink-muted">{sectionSummary(s, bySection[s.key], now)}</span>
+                    <span className="text-3xl font-bold text-ink-strong">{bySection[s.key].length}</span>
                   </span>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  <span className="mt-5 flex items-end justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block text-lg font-bold text-ink-strong">{s.title}</span>
+                      <span className="mt-1 block text-sm text-ink-muted">{sectionSummary(s, bySection[s.key], now)}</span>
+                    </span>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </span>
                 </button>
               ))}
             </div>
@@ -202,7 +231,22 @@ export default function ShortlistPage() {
                 <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search names and notes" className="w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-3 text-sm text-ink-strong focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </label>
             )}
-            <div className="mt-4 rounded-2xl border border-line bg-surface px-5">
+            {filters.length > 0 && sectionItems.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label={`Filter ${section.title}`}>
+                <button type="button" aria-pressed={!filter} onClick={() => setFilter(null)} className={filterPill(!filter)}>
+                  All <span className="ml-1 opacity-75">{sectionItems.length}</span>
+                </button>
+                {filters.map((f) => {
+                  const n = sectionItems.filter(f.test).length;
+                  return (
+                    <button key={f.key} type="button" aria-pressed={filter === f.key} onClick={() => setFilter(filter === f.key ? null : f.key)} className={filterPill(filter === f.key)}>
+                      {f.label} <span className="ml-1 opacity-75">{n}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className={`mt-4 px-5 ${card}`}>
               {visible.length ? (
                 <>
                   {upcoming.length > 0 && rows(upcoming)}
@@ -215,7 +259,7 @@ export default function ShortlistPage() {
                 </>
               ) : (
                 <p className="py-8 text-center text-[15px] text-ink-muted">
-                  {sectionItems.length ? "Nothing matches that search." : "Nothing saved here yet."}
+                  {sectionItems.length ? "Nothing matches that filter or search." : "Nothing saved here yet."}
                   {!sectionItems.length && section.find && (
                     <> <Link to={section.find.to} className="font-semibold text-link hover:underline">{section.find.label} ›</Link></>
                   )}
