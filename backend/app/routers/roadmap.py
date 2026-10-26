@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import get_current_user
 from app.core.database import supabase
-from app.models.roadmap import UNSWReq, RoadmapResp
+from app.models.roadmap import RoadmapRequest, RoadmapResp
 from app.services.roadmap.cache import read_cached_roadmap, roadmap_cache_key
 from app.services.roadmap.context import build_payload, gather_context
 from app.services.roadmap.sections import generate_and_save_sections
@@ -16,7 +16,7 @@ router = APIRouter(tags=["roadmap"])
 
 @router.post("/unsw", response_model=RoadmapResp)
 async def create_roadmap(
-    body: UNSWReq,
+    body: RoadmapRequest,
     user=Depends(get_current_user)
 ):
     endpoint_start = time.time()
