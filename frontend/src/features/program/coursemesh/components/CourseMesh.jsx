@@ -13,7 +13,7 @@ import CourseMeshTour from "./CourseMeshTour";
 import ElectivesPanel from "./ElectivesPanel";
 import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
-import { hasSeenGuide } from "../utils/onboarding";
+import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { useEnrolledProgram } from "../../hooks/useEnrolledProgram";
 import { setCourseCompleted } from "../../utils/completedCourses";
 import { setCourseAdded } from "../../utils/programCourses";
@@ -23,12 +23,13 @@ import { ADDED_SECTION } from "../../utils/myCourses";
 
 export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
   const { session } = UserAuth();
+  const guideKey = `univise-coursemesh-guide-seen-${session?.user?.id || "guest"}`;
 
   const [frozen, setFrozen] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
   const [, setHoverLink] = useState(null);
-  const [showHint, setShowHint] = useState(() => hasSeenGuide(session?.user?.id));
-  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide(session?.user?.id));
+  const [showHint, setShowHint] = useState(() => hasSeenGuide(guideKey));
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenGuide(guideKey));
   const [expandCount, setExpandCount] = useState(0);
   const transformRef = useRef(null);
   const focusedRef = useRef(null);
@@ -459,6 +460,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
       />
 
       <CourseMeshTour
+        seenKey={guideKey}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
         focusedId={focusedNode?.id || null}

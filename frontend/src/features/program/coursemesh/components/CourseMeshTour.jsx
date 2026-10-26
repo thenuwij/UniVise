@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowBigDown, ArrowLeft, ArrowRight, Check, Hand, Mouse, MousePointer2, MousePointerClick, X } from "lucide-react";
-import { UserAuth } from "@/app/AuthContext";
-import { markGuideSeen } from "../utils/onboarding";
+import { markGuideSeen } from "@/shared/lib/guideSeen";
 
 const STEPS = [
   { target: "node", title: "This is a course", text: "Green is done, blue you can take next, grey not yet." },
@@ -61,8 +60,7 @@ function Demo({ kind, progress }) {
   return null;
 }
 
-export default function CourseMeshTour({ open, onClose, focusedId, expandCount, getTransform, getNodeRect }) {
-  const { session } = UserAuth();
+export default function CourseMeshTour({ seenKey, open, onClose, focusedId, expandCount, getTransform, getNodeRect }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState(null);
   const [cardH, setCardH] = useState(170);
@@ -75,7 +73,7 @@ export default function CourseMeshTour({ open, onClose, focusedId, expandCount, 
   live.current = { onClose, getTransform, getNodeRect, expandCount };
 
   const finish = () => {
-    markGuideSeen(session?.user?.id);
+    markGuideSeen(seenKey);
     live.current.onClose();
   };
 
