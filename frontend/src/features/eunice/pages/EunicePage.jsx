@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { DashboardNavBar } from "@/shared/layout/DashboardNavBar";
-import { MenuBar } from "@/shared/layout/MenuBar";
+import AppNav from "@/shared/layout/AppNav";
 import { UserAuth } from "@/app/AuthContext";
 import { supabase } from "@/shared/lib/supabase";
 import ChatSidebar from "../components/ChatSidebar";
@@ -10,7 +9,6 @@ import ChatWindow from "../components/ChatWindow";
 const startsCollapsed = () => typeof window !== "undefined" && window.innerWidth < 768;
 
 export default function EunicePage() {
-  const [isOpen, setIsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(startsCollapsed);
   const [conversations, setConversations] = useState([]);
   const { conversationId } = useParams();
@@ -45,8 +43,7 @@ export default function EunicePage() {
 
   return (
     <div className="flex flex-col h-screen app-page">
-      <DashboardNavBar onMenuClick={() => setIsOpen(true)} isMenuOpen={isOpen} />
-      <MenuBar isOpen={isOpen} handleClose={() => setIsOpen(false)} />
+      <AppNav />
 
       <div className="flex overflow-hidden flex-1">
         <div className={`${sidebarCollapsed ? "w-16" : "w-64"} flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
