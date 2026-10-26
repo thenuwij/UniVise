@@ -29,6 +29,10 @@ jobs:
         working-directory: backend
         run: ruff check .
 
+      - name: Check for unused code
+        working-directory: backend
+        run: vulture
+
       - name: Run tests
         working-directory: backend
         run: pytest
