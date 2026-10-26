@@ -2,13 +2,7 @@ import { useMemo, useState } from "react";
 import AdRows from "./AdRows";
 import { SubLabel } from "./CareersSection";
 import { groupJobs } from "../utils/jobFamilies";
-
-const pill = (active) =>
-  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
-    active
-      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
-      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
-  }`;
+import { filterPill } from "@/shared/ui/cardStyles";
 
 export default function JobsSection({ jobs, savedIds, onToggleSave }) {
   const [role, setRole] = useState(null);
@@ -42,11 +36,11 @@ export default function JobsSection({ jobs, savedIds, onToggleSave }) {
         <>
           <p className="mb-2 text-sm font-semibold text-ink-strong">Show jobs for</p>
           <div className="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter jobs by type">
-            <button type="button" aria-pressed={!role} onClick={() => setRole(null)} className={pill(!role)}>
+            <button type="button" aria-pressed={!role} onClick={() => setRole(null)} className={filterPill(!role)}>
               All jobs
             </button>
             {groups.map((g) => (
-              <button key={g.title} type="button" aria-pressed={role === g.title} onClick={() => setRole(g.title)} className={pill(role === g.title)}>
+              <button key={g.title} type="button" aria-pressed={role === g.title} onClick={() => setRole(g.title)} className={filterPill(role === g.title)}>
                 {g.title} <span className="opacity-70">{g.ads.length}</span>
               </button>
             ))}
