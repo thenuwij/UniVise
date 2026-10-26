@@ -1,13 +1,12 @@
 import { supabase } from "@/shared/lib/supabase";
 import { apiJson } from "@/shared/lib/api";
 import { fetchSpecialisationIds } from "@/features/program/utils/programCourses";
-import { fetchMatchingRoadmap } from "@/features/program/utils/roadmapEntry";
+import { fetchMatchingRoadmap, wait } from "@/features/program/utils/roadmapEntry";
 import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
 
 const POLL_MS = 3000;
 const WAIT_FOR_SURVEY_BUILD_MS = 90 * 1000;
 const WAIT_FOR_OTHER_REFRESH_MS = 60 * 1000;
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function findOrBuildRoadmap({ userId, accessToken, isActive }) {
   const { data: programs, error } = await supabase

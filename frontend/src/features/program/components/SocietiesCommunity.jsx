@@ -4,6 +4,7 @@ import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SaveButton from "@/shared/ui/SaveButton";
 import SectionHeading from "@/shared/ui/SectionHeading";
 import { fetchSocietyLinks, findLink } from "../utils/societyLinks";
+import { filterPill } from "@/shared/ui/cardStyles";
 
 const ARC_CLUB_SEARCH = "https://www.arc.unsw.edu.au/clubs/find-a-club";
 const RUBRIC_DIRECTORY = "https://campus.hellorubric.com/search?type=societies&universityid=5";
@@ -14,13 +15,6 @@ const FILTERS = [
   { id: "faculty", label: "Your faculty" },
   { id: "cross", label: "Across UNSW" },
 ];
-
-const pill = (active) =>
-  `rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
-    active
-      ? "bg-blue-600 text-white ring-1 ring-blue-600 dark:bg-blue-500 dark:ring-blue-500"
-      : "bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-blue-50 hover:ring-blue-300 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-800"
-  }`;
 
 function SocietyRow({ society, link }) {
   return (
@@ -78,7 +72,7 @@ export default function SocietiesCommunity({ societies }) {
         <p className="mb-2 text-sm font-semibold text-ink-strong">Show societies</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter societies">
           {FILTERS.map(({ id, label }) => (
-            <button key={id} type="button" className={pill(filter === id)} aria-pressed={filter === id} onClick={() => { setFilter(id); setShowAll(false); }}>
+            <button key={id} type="button" className={filterPill(filter === id)} aria-pressed={filter === id} onClick={() => { setFilter(id); setShowAll(false); }}>
               {label}
             </button>
           ))}
