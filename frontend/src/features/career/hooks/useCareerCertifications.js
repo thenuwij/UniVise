@@ -5,7 +5,7 @@ import { apiJson } from "@/shared/lib/api";
 export function useCareerCertifications(roadmapId) {
   const { session } = UserAuth();
   const token = session?.access_token;
-  const [state, setState] = useState({ loading: !!roadmapId, careers: [], groups: [], failed: false });
+  const [state, setState] = useState({ loading: !!roadmapId, careers: [], savedCareers: [], groups: [], failed: false });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -14,11 +14,11 @@ export function useCareerCertifications(roadmapId) {
     setState((s) => ({ ...s, loading: true, failed: false }));
     apiJson(`/careers/certifications?roadmap_id=${encodeURIComponent(roadmapId)}`, { token })
       .then((data) => {
-        if (active) setState({ loading: false, careers: data.careers || [], groups: data.groups || [], failed: !!data.failed });
+        if (active) setState({ loading: false, careers: data.careers || [], savedCareers: data.saved_careers || [], groups: data.groups || [], failed: !!data.failed });
       })
       .catch((err) => {
         console.error("Certifications failed:", err);
-        if (active) setState({ loading: false, careers: [], groups: [], failed: true });
+        if (active) setState({ loading: false, careers: [], savedCareers: [], groups: [], failed: true });
       });
     return () => { active = false; };
   }, [roadmapId, token, attempt]);

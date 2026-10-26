@@ -26,5 +26,6 @@ class CareerCertificationGroups(BaseModel):
 
 class CareerCertificationsResponse(BaseModel):
     careers: list[str] = []
+    saved_careers: list[str] = []
     groups: list[CareerCertificationGroup] = []
     failed: bool = False

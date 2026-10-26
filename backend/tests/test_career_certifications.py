@@ -50,7 +50,8 @@ def test_broken_links_are_dropped_and_a_start_is_kept(monkeypatch):
 
 def test_reuses_cache_and_regenerates_when_careers_change(monkeypatch):
     calls, writes = [], []
-    monkeypatch.setattr(certifications, "careers_for", lambda user_id, roadmap: CAREERS)
+    monkeypatch.setattr(certifications, "saved_career_names", lambda user_id: [])
+    monkeypatch.setattr(certifications, "careers_for", lambda saved, roadmap: CAREERS)
     monkeypatch.setattr(certifications, "write_cache", lambda *args: writes.append(args))
 
     async def fake_validate(url):
@@ -76,11 +77,23 @@ def test_reuses_cache_and_regenerates_when_careers_change(monkeypatch):
 
 
 def test_no_careers_means_no_generation(monkeypatch):
-    monkeypatch.setattr(certifications, "careers_for", lambda user_id, roadmap: [])
+    monkeypatch.setattr(certifications, "saved_career_names", lambda user_id: [])
+    monkeypatch.setattr(certifications, "careers_for", lambda saved, roadmap: [])
 
     async def boom(*args, **kwargs):
         raise AssertionError("should not call the AI")
 
     monkeypatch.setattr(certifications, "ask_gpt_structured", boom)
 
-    assert asyncio.run(certifications.get_certifications("user-1", ROADMAP)) == {"careers": [], "groups": [], "failed": False}
+    assert asyncio.run(certifications.get_certifications("user-1", ROADMAP)) == {"careers": [], "saved_careers": [], "groups": [], "failed": False}
+
+
+def test_saved_careers_come_first_and_are_reported(monkeypatch):
+    roadmap = {"program_name": "Computer Science", "payload": {"career_pathways": {"entry_level": {"roles": [{"title": "Data Analyst"}, {"title": "Software Engineer"}]}}}}
+    monkeypatch.setattr(certifications, "saved_career_names", lambda user_id: ["Software Engineer", "Cloud Engineer"])
+    monkeypatch.setattr(certifications, "read_cache", lambda user_id: {"input_hash": certifications.input_hash("Computer Science", ["Software Engineer", "Cloud Engineer", "Data Analyst"]), "groups": []})
+
+    result = asyncio.run(certifications.get_certifications("user-1", roadmap))
+
+    assert result["careers"] == ["Software Engineer", "Cloud Engineer", "Data Analyst"]
+    assert result["saved_careers"] == ["Software Engineer", "Cloud Engineer"]
