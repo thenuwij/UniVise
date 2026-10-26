@@ -207,13 +207,6 @@ export default function ShortlistPage() {
             <button type="button" onClick={() => open(null)} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-link hover:underline">
               <ChevronLeft className="h-4 w-4" aria-hidden="true" /> All sections
             </button>
-            <nav aria-label="Shortlist sections" className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              {shownSections.map((s) => (
-                <button key={s.key} type="button" aria-pressed={s.key === section.key} onClick={() => open(s.key)} className={`whitespace-nowrap ${filterPill(s.key === section.key)}`}>
-                  {s.title} <span className="ml-1 opacity-75">{bySection[s.key].length}</span>
-                </button>
-              ))}
-            </nav>
             <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-bold text-ink-strong">{section.title}</h2>
