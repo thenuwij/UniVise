@@ -10,6 +10,7 @@ import { changeEnrolledProgram } from "@/features/program/utils/enrolledProgram"
 import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
 import { saveChoices } from "@/features/program/utils/programCourses";
 import { listOfferedDegrees } from "@/features/program/api";
+import { saveStudentProfile } from "@/features/account/api";
 import SpecialisationPicker from "@/features/program/components/SpecialisationPicker";
 import { TermsAgreement } from "@/features/auth/components/TermsAgreement";
 import { hasAcceptedCurrentTerms, recordTermsAccepted } from "@/features/auth/utils/terms";
@@ -344,7 +345,7 @@ function SurveyForm() {
       } catch {
         setMessage("We couldn't verify your supported program. Please try again."); setLoading(false); return;
       }
-      const { error } = await supabase.from("student_uni_data").upsert([{
+      const { error } = await saveStudentProfile({
         user_id: session?.user?.id,
         degree_stage: "Bachelor's Degree",
         academic_year: formData.academic_year_other || formData.academic_year || null,
@@ -353,7 +354,7 @@ function SurveyForm() {
         interest_areas_other: formData.interest_areas?.includes("Other") ? cleanText(formData.interest_areas_other, OTHER_MAX) : null,
         hobbies: (formData.hobbies || []).map(h => h === "Other" ? `Other: ${cleanText(formData.hobbies_other, OTHER_MAX)}` : h),
         hobbies_other: formData.hobbies?.includes("Other") ? cleanText(formData.hobbies_other, OTHER_MAX) : null,
-      }]);
+      });
       if (error) { setMessage("Error submitting survey."); setLoading(false); return; }
       await supabase.auth.updateUser({ data: { student_type: "university" } });
       if (needsTerms) await recordTermsAccepted();

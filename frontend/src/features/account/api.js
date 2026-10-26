@@ -7,3 +7,5 @@ export const loadStudentProfile = (userId) => studentProfile().select("*").eq("u
 export const updateStudentProfile = (userId, changes) => studentProfile().update(changes).eq("user_id", userId);
 
 export const fetchInterestAreas = (userId) => studentProfile().select("interest_areas").eq("user_id", userId).limit(1);
+
+export const saveStudentProfile = (row) => studentProfile().upsert([row]);
