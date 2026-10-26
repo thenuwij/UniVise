@@ -41,7 +41,7 @@ async function loadFacts(program, userId) {
   };
 }
 
-export function useDashboardFacts() {
+export function useHomeFacts() {
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const { program, loading } = useEnrolledProgram();

@@ -1,9 +1,8 @@
-// src/components/roadmap/DegreeSelectorForRoadmap.jsx
 import { useEffect, useState } from "react";
 import { HiAcademicCap, HiFilter, HiSearch, HiX } from "react-icons/hi";
 import { listOfferedDegrees } from "../api";
 
-function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefined }) {
+function ProgramSearch({ onSelect, selectedId, initialQuery = undefined }) {
   const [query, setQuery] = useState(initialQuery ?? "");
 
   useEffect(() => {
@@ -200,4 +199,4 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
   );
 }
 
-export default DegreeSelectorForRoadmap;
+export default ProgramSearch;

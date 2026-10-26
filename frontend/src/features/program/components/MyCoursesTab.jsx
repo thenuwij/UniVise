@@ -1,5 +1,4 @@
 import { handbookUrl, openHandbook } from "@/shared/lib/handbook";
-// src/pages/roadmap/ProgramStructureUNSW.jsx
 import { ArrowRight, HelpCircle, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
@@ -32,7 +31,7 @@ const GUIDE_STEPS = [
 
 
 // Main 
-export default function ProgramStructureUNSW({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
+export default function MyCoursesTab({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const [completed, setCompleted] = useState({});

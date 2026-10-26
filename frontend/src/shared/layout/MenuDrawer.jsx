@@ -42,7 +42,7 @@ const initialsOf = (name, email) =>
     .join("")
     .slice(0, 2) || (email || "?")[0].toUpperCase();
 
-export function MenuBar({ isOpen, handleClose }) {
+export function MenuDrawer({ isOpen, handleClose }) {
   const [displayName, setDisplayName] = useState("");
   const [displayEmail, setDisplayEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");

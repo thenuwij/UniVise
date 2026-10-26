@@ -1,5 +1,4 @@
 import { handbookUrl } from "@/shared/lib/handbook";
-// src/pages/ProgramPickerPage.jsx
 import { useEffect, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 import { useNavigate, useSearchParams } from "react-router-dom";

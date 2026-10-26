@@ -1,6 +1,5 @@
 import SaveButton from "@/shared/ui/SaveButton";
 import { openHandbook } from "@/shared/lib/handbook";
-// src/mindmesh/components/MindMeshInfoPanel.jsx
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { fetchCourse } from "../../api";
@@ -18,7 +17,7 @@ function RuleItem({ met, children }) {
   );
 }
 
-export default function MindMeshInfoPanel({ focusedNode, status, requirements = [], completed = new Set(), onToggleDone, saving, onDismiss }) {
+export default function CourseInfoPanel({ focusedNode, status, requirements = [], completed = new Set(), onToggleDone, saving, onDismiss }) {
   const [conditions, setConditions] = useState([]);
   const focusedId = focusedNode?.id;
 

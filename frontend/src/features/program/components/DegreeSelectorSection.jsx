@@ -1,10 +1,10 @@
 import React from "react";
-import DegreeSelectorForRoadmap from "./DegreeSelectorForRoadmap";
+import ProgramSearch from "./ProgramSearch";
 
 function DegreeSelectorSection({ selectedDegreeId, setSelectedDegreeId, setSelectedDegreeObject, initialQuery }) {
   return (
     <section className="w-full">
-      <DegreeSelectorForRoadmap
+      <ProgramSearch
         selectedId={selectedDegreeId}
         initialQuery={initialQuery}
         onSelect={(deg) => {

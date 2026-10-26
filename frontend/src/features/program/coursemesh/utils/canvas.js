@@ -1,5 +1,3 @@
-// src/components/mindmesh/index.js
-
 // Draw a rounded rectangle on a canvas.
 export function roundRect(ctx, x, y, w, h, r) {
   const rr = Math.min(r, w / 2, h / 2);

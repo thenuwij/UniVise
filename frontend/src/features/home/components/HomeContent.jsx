@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Award, BriefcaseBusiness, Building2, CalendarDays, Check, ChevronRight, CircleAlert, HelpCircle, ListChecks } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
-import { useDashboardPreview } from "../hooks/useDashboardPreview";
+import { useHomePreview } from "../hooks/useHomePreview";
 import DegreeEditMenu from "./DegreeEditMenu";
 
 const display = "font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui] tracking-tight";
@@ -196,8 +196,8 @@ function Societies({ roadmap }) {
   );
 }
 
-export default function DashboardHome({ facts, greeting, today, dayLine, onHelp }) {
-  const { picks, roadmap, career, cert } = useDashboardPreview(facts);
+export default function HomeContent({ facts, greeting, today, dayLine, onHelp }) {
+  const { picks, roadmap, career, cert } = useHomePreview(facts);
 
   return (
     <div className="space-y-12">

@@ -1,4 +1,3 @@
-// src/pages/mindmesh/components/AutoLayoutControls.jsx
 import { useCallback, forwardRef, useImperativeHandle } from "react";
 
 const idOf = (n) => (typeof n === "object" ? n.id : n);

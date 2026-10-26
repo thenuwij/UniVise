@@ -11,12 +11,12 @@ import { bandLink } from "@/shared/ui/cardStyles";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import GeneratingMessage from "../components/GeneratingMessage";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
-import ProgramStructureUNSW from "../components/ProgramStructureUNSW";
-import RoadmapFlow from "../components/RoadmapFlow";
+import MyCoursesTab from "../components/MyCoursesTab";
+import ProgramTabs from "../components/ProgramTabs";
 import RoadmapStatus from "../components/RoadmapStatus";
 import SaveProgramButton from "../components/SaveProgramButton";
-import SocietiesCommunity from "../components/SocietiesCommunity";
-import TakeNext from "../components/TakeNext";
+import SocietiesTab from "../components/SocietiesTab";
+import NextCoursesTab from "../components/NextCoursesTab";
 import CourseMesh from "../coursemesh/components/CourseMesh";
 import { useDegree } from "../hooks/useDegree";
 import { useEnrolledProgram } from "../hooks/useEnrolledProgram";
@@ -122,7 +122,7 @@ export default function ProgramPage() {
           );
         }
         return (
-          <ProgramStructureUNSW
+          <MyCoursesTab
             degreeCode={degreeCode}
             trackCompletion={isOwnProgram}
             onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCode}`)}
@@ -131,7 +131,7 @@ export default function ProgramPage() {
         );
       },
       next: () => (
-        <TakeNext
+        <NextCoursesTab
           isOwnProgram={isOwnProgram}
           onOpenCourses={() => {
             setActiveIndex(stepIndex("structure"));
@@ -152,7 +152,7 @@ export default function ProgramPage() {
       ),
       societies: () => generatedSection(
         "industry_societies",
-        () => <SocietiesCommunity societies={data.industry_societies} />,
+        () => <SocietiesTab societies={data.industry_societies} />,
         "Generating Societies & Community...",
         "Finding UNSW societies and community events for your program."
       ),
@@ -224,7 +224,7 @@ export default function ProgramPage() {
         />
       )}
       {data ? (
-        <RoadmapFlow
+        <ProgramTabs
           steps={steps}
           activeIndex={visibleActiveIndex}
           onChange={(index) => {
