@@ -1,7 +1,7 @@
 // src/components/roadmap/DegreeSelectorForRoadmap.jsx
 import { useEffect, useState } from "react";
 import { HiAcademicCap, HiFilter, HiSearch, HiX } from "react-icons/hi";
-import { supabase } from "@/shared/lib/supabase";
+import { listOfferedDegrees } from "../api";
 
 function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefined }) {
   const [query, setQuery] = useState(initialQuery ?? "");
@@ -17,11 +17,7 @@ function DegreeSelectorForRoadmap({ onSelect, selectedId, initialQuery = undefin
   // Fetch all degrees once
   useEffect(() => {
     const fetchDegrees = async () => {
-      const { data, error } = await supabase
-        .from("unsw_degrees_final")
-        .select("*")
-        .eq("is_offered", true)
-        .range(0, 2999);
+      const { data, error } = await listOfferedDegrees().range(0, 2999);
       if (!error && data) {
         setDegrees(data);
         const uniqueFaculties = Array.from(new Set(data.map(d => d.faculty).filter(Boolean))).sort();

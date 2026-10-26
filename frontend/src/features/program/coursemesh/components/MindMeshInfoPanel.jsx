@@ -3,7 +3,7 @@ import { openHandbook } from "@/shared/lib/handbook";
 // src/mindmesh/components/MindMeshInfoPanel.jsx
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchCourse } from "../../api";
 import { STATUS } from "../utils/availability";
 import { otherConditions } from "../utils/conditions";
 
@@ -26,11 +26,7 @@ export default function MindMeshInfoPanel({ focusedNode, status, requirements = 
     let active = true;
     setConditions([]);
     if (!focusedId) return;
-    supabase
-      .from("unsw_courses")
-      .select("conditions_for_enrolment")
-      .eq("code", focusedId)
-      .maybeSingle()
+    fetchCourse(focusedId, "conditions_for_enrolment")
       .then(({ data }) => {
         if (active) setConditions(otherConditions(data?.conditions_for_enrolment));
       });

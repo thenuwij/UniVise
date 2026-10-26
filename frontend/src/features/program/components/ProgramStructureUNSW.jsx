@@ -4,7 +4,7 @@ import { ArrowRight, HelpCircle, Layers, Plus, Sparkles } from "lucide-react";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchDegree } from "../api";
 import { UserAuth } from "@/app/AuthContext";
 import { fetchCompletedCourses, setCourseCompleted } from "../utils/completedCourses";
 import { THIN_PROGRAM_COURSES, courseCodesOf, fetchAddedRows, fetchChosenMinorId, fetchChosenSpecialisations, fetchMinorOptions, fetchSpecialisationOptions, parseSections, saveMinor, setCourseAdded, withCourseUoc } from "../utils/programCourses";
@@ -182,11 +182,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
       try {
         setLoading(true);
 
-        const { data, error } = await supabase
-          .from("unsw_degrees_final")
-          .select("sections, source_url")
-          .eq("degree_code", degreeCode)
-          .maybeSingle();
+        const { data, error } = await fetchDegree(degreeCode, "sections, source_url");
 
         if (error) throw error;
 
@@ -209,11 +205,7 @@ export default function ProgramStructureUNSW({ degreeCode, sections: propSection
   useEffect(() => {
     if (!degreeCode) return;
     let active = true;
-    supabase
-      .from("unsw_degrees_final")
-      .select("minimum_uoc, program_name")
-      .eq("degree_code", degreeCode)
-      .maybeSingle()
+    fetchDegree(degreeCode, "minimum_uoc, program_name")
       .then(({ data }) => {
         if (!active) return;
         setMinimumUoc(Number(data?.minimum_uoc) || null);

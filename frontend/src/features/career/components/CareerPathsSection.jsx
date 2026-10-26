@@ -4,7 +4,7 @@ import { ChevronDown, ExternalLink, TrendingUp, CheckCircle2 } from "lucide-reac
 import SaveButton from "@/shared/ui/SaveButton";
 import ExpandToggle from "@/shared/ui/ExpandToggle";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchInterestAreas } from "@/features/account/api";
 import { SourceLink } from "./SourceTags";
 import CareerResources from "./CareerResources";
 import { SubLabel } from "./CareersSection";
@@ -57,11 +57,7 @@ function useInterestAreas(enabled) {
 
   useEffect(() => {
     if (!enabled || !userId) return;
-    supabase
-      .from("student_uni_data")
-      .select("interest_areas")
-      .eq("user_id", userId)
-      .limit(1)
+    fetchInterestAreas(userId)
       .then(({ data }) => setInterestAreas(data?.[0]?.interest_areas || []));
   }, [enabled, userId]);
 

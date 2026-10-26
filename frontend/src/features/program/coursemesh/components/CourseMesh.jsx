@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase";
+import { fetchCourseLinks, fetchMeshNodes } from "../../api";
 import { UserAuth } from "@/app/AuthContext";
 import GraphControls from "./GraphControls";
 import { nodeCanvasObject, nodePointerAreaPaint } from "./NodeRenderer";
@@ -266,19 +266,13 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     const courseKey = n.id;
 
     try {
-      const { data: edgesData } = await supabase
-        .from("mindmesh_edges_global")
-        .select("from_key,to_key,edge_type,confidence,logic_type,group_id")
-        .or(`from_key.eq."${courseKey}",to_key.eq."${courseKey}"`);
+      const { data: edgesData } = await fetchCourseLinks(courseKey);
 
       if (!edgesData?.length) return;
 
       const connectedKeys = Array.from(new Set([courseKey, ...edgesData.flatMap((e) => [e.from_key, e.to_key])]));
 
-      const { data: nodesData } = await supabase
-        .from("mindmesh_nodes_global")
-        .select("key,label,uoc,faculty,school,level")
-        .in("key", connectedKeys);
+      const { data: nodesData } = await fetchMeshNodes(connectedKeys);
 
       const nodes = (nodesData || []).map((n) => ({
         id: n.key,

@@ -4,11 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { Textarea } from "flowbite-react";
 import { MessageCircle, SendHorizontal } from "lucide-react";
 import { v4 as uuid } from "uuid";
-import { supabase } from "@/shared/lib/supabase";
 import { UserAuth } from "@/app/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/shared/lib/api";
+import { addUserMessage, createConversation, listMessages } from "../api";
 import { readStreamText, withCutOffNote } from "../utils/streamText";
 
 const TITLE_MAX = 60;
@@ -47,11 +47,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
       return;
     }
     const load = async () => {
-      const { data, error } = await supabase
-        .from("conversation_messages")
-        .select("sender, content, created_at")
-        .eq("conversation_id", convId)
-        .order("created_at", { ascending: true });
+      const { data, error } = await listMessages(convId);
       if (error) console.error(error);
       else setMessages(
         data.map(({ sender, content, created_at }) => ({
@@ -75,11 +71,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
     if (!id) {
       id = uuid();
       const now = new Date().toISOString();
-      const { data: created, error: createError } = await supabase
-        .from("conversations")
-        .insert({ id, user_id: session.user.id, title: titleFrom(text), created_at: now, updated_at: now })
-        .select()
-        .single();
+      const { data: created, error: createError } = await createConversation({ id, user_id: session.user.id, title: titleFrom(text), created_at: now, updated_at: now });
       if (createError) {
         console.error(createError);
         setLoading(false);
@@ -91,13 +83,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
     }
 
     // insert user message
-    const { error: saveError } = await supabase
-      .from("conversation_messages")
-      .insert({
-        conversation_id: id,
-        sender: "user",
-        content: text,
-      });
+    const { error: saveError } = await addUserMessage(id, text);
 
     if (saveError) {
       setLoading(false);

@@ -49,4 +49,16 @@ export default [
       ],
     },
   },
+  {
+    files: ['src/**/pages/**', 'src/**/components/**', 'src/shared/ui/**', 'src/shared/layout/**', 'src/app/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name=/^(from|rpc)$/]",
+          message: "Query tables from the feature's api.js, utils or hooks, not from a page or component.",
+        },
+      ],
+    },
+  },
 ]

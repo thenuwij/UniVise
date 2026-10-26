@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { UserAuth } from "@/app/AuthContext";
-import { supabase } from "@/shared/lib/supabase";
+import { saveItem, savedItemIds, unsaveItem } from "@/features/shortlist/api";
 
 const SAVED_AD_TYPE = "job_ad";
 
@@ -15,11 +15,7 @@ export function useSavedAds() {
   useEffect(() => {
     if (!userId) return;
     let active = true;
-    supabase
-      .from("user_saved_items")
-      .select("item_id")
-      .eq("user_id", userId)
-      .eq("item_type", SAVED_AD_TYPE)
+    savedItemIds(userId, SAVED_AD_TYPE)
       .then(({ data, error }) => {
         if (!active) return;
         if (error) {
@@ -51,19 +47,8 @@ export function useSavedAds() {
       const wasSaved = savedIds.has(ad.id);
       setSaved(ad.id, !wasSaved);
       const { error } = wasSaved
-        ? await supabase
-            .from("user_saved_items")
-            .delete()
-            .eq("user_id", userId)
-            .eq("item_type", SAVED_AD_TYPE)
-            .eq("item_id", ad.id)
-        : await supabase.from("user_saved_items").insert({
-            user_id: userId,
-            item_type: SAVED_AD_TYPE,
-            item_id: ad.id,
-            item_name: ad.title,
-            item_data: adSnapshot(ad),
-          });
+        ? await unsaveItem(userId, [SAVED_AD_TYPE], ad.id)
+        : await saveItem(userId, { itemType: SAVED_AD_TYPE, itemId: ad.id, itemName: ad.title, itemData: adSnapshot(ad) });
       if (error) {
         console.error("Updating saved jobs failed:", error);
         setSaved(ad.id, wasSaved);
