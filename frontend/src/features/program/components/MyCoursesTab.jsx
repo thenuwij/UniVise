@@ -30,7 +30,6 @@ const GUIDE_STEPS = [
 ];
 
 
-// Main 
 export default function MyCoursesTab({ degreeCode, sections: propSections, trackCompletion = false, onChangeSpecialisation, onOpenCourseMesh }) {
   const { session } = UserAuth();
   const userId = session?.user?.id;

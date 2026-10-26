@@ -158,7 +158,6 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
     if (cutOff || reply.cutOff) showReply(withCutOffNote(reply.text));
   }
 
-    // ─── ChatBubble in same file ─────────────────────────────
   function ChatBubble({ sender, text, created_at }) {
     const isUser = sender === "user";
 
