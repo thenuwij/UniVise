@@ -5,9 +5,6 @@ import {
   datedDay,
   deadlineOf,
   destinationOf,
-  filterItems,
-  isDueSoon,
-  planningOf,
   snapshotOf,
 } from "./shortlist";
 const now = Date.parse("2026-10-25T01:00:00Z");
@@ -35,7 +32,7 @@ describe("shortlist compatibility", () => {
     });
     for (const data of ["broken JSON", null, [], "null"])
       expect(snapshotOf(item("course", data))).toEqual({});
-    expect(filterItems([item("course", "broken JSON")])).toHaveLength(1);
+    expect(categoryOf(item("course", "broken JSON"))).toBe("courses");
   });
   it("uses official Handbook links and rejects unsafe source links", () => {
     expect(destinationOf(item("course", { code: "COMP3222" }))).toContain(
@@ -109,81 +106,5 @@ describe("saved item expiry", () => {
         .state,
     ).toBe("expired");
     expect(availabilityOf(item("career_path"), now).state).toBe("unknown");
-  });
-});
-describe("planning and filtering", () => {
-  it("does not hide a nearby closing date behind a later personal target", () => {
-    expect(
-      isDueSoon(
-        item("job_ad", {
-          closing_date: "2026-10-27",
-          _shortlist: { target_date: "2026-12-01" },
-        }),
-        now,
-      ),
-    ).toBe(true);
-  });
-  it("separates personal target dates from source expiry", () => {
-    const course = item("course", {
-      _shortlist: { status: "next", target_date: "2026-10-23" },
-    });
-    expect(isDueSoon(course, now)).toBe(true);
-    expect(availabilityOf(course, now).state).toBe("unknown");
-    expect(
-      isDueSoon(
-        item("course", {
-          _shortlist: { status: "done", target_date: "2026-10-23" },
-        }),
-        now,
-      ),
-    ).toBe(false);
-    expect(
-      planningOf(
-        item("course", {
-          _shortlist: { status: "invalid", target_date: "2026-99-99" },
-        }),
-      ),
-    ).toEqual({ status: "saved", target_date: "", closed: false });
-  });
-  it("searches notes, filters planning status and sorts dates before undated items", () => {
-    const course = item(
-      "course",
-      {
-        code: "COMP3222",
-        _shortlist: { status: "next", target_date: "2026-11-01" },
-      },
-      { personal_notes: "Ask about FPGA projects" },
-    );
-    const cert = item(
-      "certification",
-      { name: "Cloud training" },
-      { id: "saved-2" },
-    );
-    expect(
-      filterItems(
-        [course, cert],
-        { query: "FPGA", category: "courses", status: "next" },
-        now,
-      ),
-    ).toEqual([course]);
-    expect(filterItems([cert, course], { sort: "date" }, now)).toEqual([
-      course,
-      cert,
-    ]);
-  });
-  it("includes expired and uncertain items together in Needs review", () => {
-    const expired = item("event", { event_date: "2026-10-24" });
-    const check = item(
-      "job_ad",
-      { posted_at: "2026-09-01T00:00:00Z" },
-      { id: "saved-2" },
-    );
-    expect(
-      filterItems(
-        [expired, check, item("course")],
-        { status: "attention" },
-        now,
-      ),
-    ).toHaveLength(2);
   });
 });

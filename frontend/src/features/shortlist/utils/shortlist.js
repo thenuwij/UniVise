@@ -1,24 +1,6 @@
 import { handbookUrl, officialHandbookHref } from "@/shared/lib/handbook";
 import { careerSectionUrl } from "@/features/program/utils/roadmapSteps";
 
-export const PLANNING_STATES = {
-  saved: "Exploring",
-  next: "Next up",
-  in_progress: "In progress",
-  done: "Done",
-};
-export const CATEGORIES = {
-  all: "Everything",
-  jobs: "Jobs",
-  internships: "Internships",
-  careers: "Careers",
-  certifications: "Certifications",
-  networking: "Networking",
-  courses: "Courses",
-  programs: "Programs & majors",
-  communities: "Communities",
-  other: "Other",
-};
 export const canonicalType = (type) => (type === "program" ? "degree" : type);
 export const typeAliases = (type) =>
   canonicalType(type) === "degree" ? ["degree", "program"] : [type];
@@ -51,15 +33,6 @@ export function categoryOf(item) {
       course: "courses",
     }[type] || "other"
   );
-}
-
-export function planningOf(item) {
-  const plan = snapshotOf(item)._shortlist || {};
-  return {
-    status: Object.hasOwn(PLANNING_STATES, plan.status) ? plan.status : "saved",
-    target_date: datedDay(plan.target_date) || "",
-    closed: plan.closed === true,
-  };
 }
 
 export const sydneyDate = (now = Date.now()) =>
@@ -158,7 +131,7 @@ export function availabilityOf(item, now = Date.now()) {
       deadline,
     };
   if (
-    planningOf(item).closed ||
+    snapshotOf(item)._shortlist?.closed === true ||
     data.closed === true ||
     data.is_closed === true ||
     ["closed", "expired", "cancelled"].includes(data.status?.toLowerCase?.())
@@ -249,58 +222,5 @@ export function destinationOf(item) {
   return (
     safeHref(data.url || data.apply_url || data.website || data.source_url) ||
     (type === "career_path" ? careerSectionUrl("career-outlook") : null)
-  );
-}
-
-function nextDateOf(item) {
-  return (
-    [planningOf(item).target_date, deadlineOf(item)]
-      .filter(Boolean)
-      .sort()[0] || null
-  );
-}
-export function isDueSoon(item, now = Date.now()) {
-  if (
-    planningOf(item).status === "done" ||
-    availabilityOf(item, now).state === "expired"
-  )
-    return false;
-  const date = nextDateOf(item);
-  if (!date) return false;
-  return date <= sydneyDate(now + 7 * 86400000);
-}
-
-export function filterItems(
-  items,
-  { category = "all", status = "all", query = "", sort = "recent" } = {},
-  now = Date.now(),
-) {
-  const words = query.trim().toLowerCase();
-  const filtered = items.filter((item) => {
-    if (category !== "all" && categoryOf(item) !== category) return false;
-    const availability = availabilityOf(item, now).state;
-    if (status === "attention" && !["expired", "check"].includes(availability))
-      return false;
-    if (status === "expired" && availability !== "expired") return false;
-    if (status === "check" && availability !== "check") return false;
-    if (status === "due" && !isDueSoon(item, now)) return false;
-    if (
-      Object.hasOwn(PLANNING_STATES, status) &&
-      planningOf(item).status !== status
-    )
-      return false;
-    return (
-      !words ||
-      `${titleOf(item)} ${item.personal_notes || ""} ${JSON.stringify(snapshotOf(item))}`
-        .toLowerCase()
-        .includes(words)
-    );
-  });
-  return filtered.sort((a, b) =>
-    sort === "date"
-      ? (nextDateOf(a) || "9999").localeCompare(nextDateOf(b) || "9999")
-      : sort === "name"
-        ? titleOf(a).localeCompare(titleOf(b))
-        : (Date.parse(b.saved_at) || 0) - (Date.parse(a.saved_at) || 0),
   );
 }
