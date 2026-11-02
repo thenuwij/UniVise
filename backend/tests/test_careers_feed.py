@@ -1,11 +1,12 @@
 from datetime import date, datetime, timedelta, timezone
 
-from app.services.careers.adzuna import listing, role_searches
+from app.services.careers.adzuna import broad_searches, listing, role_searches, unique
 from app.services.careers.event_checks import event_date, is_list_page, merge_events
 from app.services.careers.feed import degree_key, source_state
 import asyncio
 
-from app.services.careers import refresh, top_picks
+from app.services.careers import job_titles, refresh, top_picks
+from app.services.careers.search_words import is_early_career
 from app.services.careers.top_picks import backup_cards, field_slug, listing_pages, parse_cards, parse_picks
 from app.services.careers.web_search import keep_listing, page_key
 
@@ -140,11 +141,11 @@ def test_top_pick_pages_use_seek_for_each_role_and_the_field():
     assert field_slug("Bachelor of Social Work (Honours) - BSW (Hons)") == "social-work"
     assert field_slug("Bachelor of Engineering (Honours)") == "engineering"
     assert listing_pages("ai_jobs", degree, roles) == [
-        "https://www.seek.com.au/graduate-ict-support-jobs/in-All-Sydney-NSW",
-        "https://www.seek.com.au/graduate-network-engineer-jobs/in-All-Sydney-NSW",
-        "https://www.seek.com.au/graduate-electronics-engineer-jobs/in-All-Sydney-NSW",
+        "https://www.seek.com.au/graduate-ict-support-jobs/in-All-Australia",
+        "https://www.seek.com.au/graduate-network-engineer-jobs/in-All-Australia",
+        "https://www.seek.com.au/graduate-electronics-engineer-jobs/in-All-Australia",
     ]
-    assert listing_pages("ai_internships", degree, roles)[0] == "https://www.seek.com.au/computer-engineering-internship-jobs/in-All-Sydney-NSW"
+    assert listing_pages("ai_internships", degree, roles)[0] == "https://www.seek.com.au/computer-engineering-internship-jobs/in-All-Australia"
     pages = listing_pages("ai_jobs", degree, roles)
     cards = parse_cards(
         "1 | IT Intern | Bromic | Sydney NSW | 7d ago | /job/95249181?type=standard\n"
@@ -194,3 +195,52 @@ def test_refresh_waits_until_the_plan_has_career_roles(monkeypatch):
     roadmap = {"degree_code": "3707", "payload": {"specialisation_ids": []}}
     state = asyncio.run(refresh.refresh_source(roadmap, "adzuna"))
     assert claims == [] and state["status"] == "never"
+
+
+def test_early_career_titles_leave_out_senior_roles():
+    assert is_early_career("Junior Mechanical Engineer")
+    assert is_early_career("Associate Mechanical Engineer")
+    assert not is_early_career("Senior Graduate Program Manager")
+    assert not is_early_career("Mechanical Engineer")
+
+
+def ad(title, organisation, kind="internship"):
+    return {"title": title, "organisation": organisation, "kind": kind}
+
+
+def test_unique_merges_company_names_blocks_listed_employers_and_caps_each_employer():
+    listings = [
+        ad("2027 Undergraduate Engineering Internship", "Cummins"),
+        ad("2027 Undergraduate Engineering Internship", "Cummins Inc."),
+        ad("Mechanical Engineering Intern", "Study and Work Group"),
+    ] + [ad(f"Summer Intern {i}", "Bechtel Corporation") for i in range(5)]
+    titles = [item["title"] for item in unique(listings)]
+    assert titles.count("2027 Undergraduate Engineering Internship") == 1
+    assert "Mechanical Engineering Intern" not in titles
+    assert sum(title.startswith("Summer Intern") for title in titles) == 3
+
+
+def test_broad_searches_use_the_type_of_role_not_the_field():
+    assert broad_searches(["aerospace engineer", "systems engineer", "data analyst"]) == ["graduate engineer", "graduate analyst"]
+    assert broad_searches(["supply chain"]) == []
+
+
+def test_research_roles_are_not_early_career():
+    assert not is_early_career("Research Associate - School of Civil Engineering")
+
+
+def test_job_searches_put_common_titles_before_plan_roles(monkeypatch):
+    async def suggest(*args, **kwargs):
+        return job_titles.JobTitles(titles=["Software Engineer", "Embedded Engineer", "Hardware Engineer", "Extra Engineer"])
+    monkeypatch.setattr(job_titles, "ask_gpt_structured", suggest)
+    plan = [{"title": "Graduate ICT Support Engineer", "ad_search": "ict support"}]
+    roles = asyncio.run(job_titles.job_search_roles("Computer Engineering", plan))
+    assert role_searches(roles) == ["software engineer", "embedded engineer", "hardware engineer", "ict support"]
+
+
+def test_job_searches_keep_plan_roles_when_suggestions_fail(monkeypatch):
+    async def fail(*args, **kwargs):
+        raise ValueError("down")
+    monkeypatch.setattr(job_titles, "ask_gpt_structured", fail)
+    plan = [{"title": "Graduate ICT Support Engineer", "ad_search": "ict support"}]
+    assert asyncio.run(job_titles.job_search_roles("Computer Engineering", plan)) == plan

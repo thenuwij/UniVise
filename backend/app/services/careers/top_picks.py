@@ -50,11 +50,11 @@ def role_words(roles: List[Dict[str, Any]]) -> List[str]:
 def listing_pages(source: str, field_name: str, roles: List[Dict[str, Any]]) -> List[str]:
     words = role_words(roles)
     if source == "ai_jobs":
-        pages = [f"{SEEK}/{slug(f'graduate {w}')}-jobs/in-All-Sydney-NSW" for w in words]
+        pages = [f"{SEEK}/{slug(f'graduate {w}')}-jobs/in-All-Australia" for w in words]
     else:
         field = field_slug(field_name)
-        pages = [f"{SEEK}/{field}-internship-jobs/in-All-Sydney-NSW"] if field else []
-        pages += [f"{SEEK}/{slug(f'{w} intern')}-jobs/in-All-Sydney-NSW" for w in words]
+        pages = [f"{SEEK}/{field}-internship-jobs/in-All-Australia"] if field else []
+        pages += [f"{SEEK}/{slug(f'{w} intern')}-jobs/in-All-Australia" for w in words]
     return list(dict.fromkeys(pages))[:PAGES_PER_LIST]
 
 
@@ -103,7 +103,7 @@ def judge_prompt(source: str, degree: str, roles: List[Dict[str, Any]], cards: L
         f"Today is {today.strftime('%A %d %B %Y')} in Sydney, Australia.\n"
         f"A UNSW student is studying {degree}. Their degree leads to entry-level roles such as: {role_titles}.\n\n"
         f"Below are listings copied from job sites today. Choose up to {MAX_PICKS} {KIND_TEXT[source]}.\n"
-        "Choose only listings that fit this student's field and are open now. Skip anything closed or expired, posted more than "
+        "Listings anywhere in Australia are fine. Choose only listings that fit this student's field and are open now. Skip anything closed or expired, posted more than "
         "30 days ago, or outside this field. Include at most 2 from the same employer, and skip duplicates.\n\n"
         f"{numbered}\n\n"
         "Answer with only a JSON array of the chosen numbers, best first."

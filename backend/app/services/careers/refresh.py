@@ -19,6 +19,7 @@ from app.services.careers.feed import (
     source_state,
     sydney_today,
 )
+from app.services.careers.job_titles import job_search_roles
 from app.services.careers.relevance import keep_relevant
 from app.services.careers.top_picks import KINDS, fetch_top_picks
 from app.services.careers.web_search import fetch_web_events
@@ -53,6 +54,8 @@ async def fetch_listings(source: str, roadmap: Dict[str, Any], today, previous: 
     roles = entry_roles(roadmap)
     names = await asyncio.to_thread(specialisation_names, roadmap)
     program_name = degree_label(roadmap, names)
+    if source != "ai_networking":
+        roles = await job_search_roles(program_name, roles)
     if source in MANUAL_SOURCES:
         field_name = names[0] if names else roadmap.get("program_name") or ""
         backup = await adzuna_backup(roadmap, roles, today)
