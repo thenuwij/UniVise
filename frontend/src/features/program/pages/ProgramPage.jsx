@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ExternalLink, HelpCircle } from "lucide-react";
 import { UserAuth } from "@/app/AuthContext";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { formatDuration } from "@/shared/lib/format";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { handbookUrl } from "@/shared/lib/handbook";
-import { bandLink } from "@/shared/ui/cardStyles";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
+import CoursesPanel from "../components/CoursesPanel";
+import CoursesStrip from "../components/CoursesStrip";
+import { useUocProgress } from "../hooks/useUocProgress";
 import GeneratingMessage from "../components/GeneratingMessage";
 import MakeMyProgramButton from "../components/MakeMyProgramButton";
 import MyCoursesTab from "../components/MyCoursesTab";
+import ProgramHeaderMenu from "../components/ProgramHeaderMenu";
 import ProgramTabs from "../components/ProgramTabs";
 import RoadmapStatus from "../components/RoadmapStatus";
 import SaveProgramButton from "../components/SaveProgramButton";
@@ -66,6 +68,8 @@ export default function ProgramPage() {
 
   const { session } = UserAuth();
   const [showSectionGuide, setShowSectionGuide] = useState(false);
+  const [coursesOpen, setCoursesOpen] = useState(false);
+  const [ticksVersion, setTicksVersion] = useState(0);
   const sectionGuideKey = `univise-degree-sections-guide-v2-${session?.user?.id || "guest"}`;
 
   const { data, loading, error, header, sectionsStatus, retrySections } = useRoadmap(roadmapId, session?.access_token);
@@ -74,7 +78,7 @@ export default function ProgramPage() {
   const specNames = useSpecialisationNames(header.degree_code, session?.user?.id);
   const degreeCode = header.degree_code;
   const isOwnProgram = !!enrolledProgram && enrolledProgram.degree_code === degreeCode;
-  const visibleSteps = useMemo(() => STEPS.filter((step) => step.key !== "next" || isOwnProgram), [isOwnProgram]);
+  const visibleSteps = useMemo(() => STEPS.filter((step) => (step.key !== "next" || isOwnProgram) && (step.key !== "structure" || !isOwnProgram)), [isOwnProgram]);
   const [meshFocus, setMeshFocus] = useState(() => searchParams.get("focus"));
 
   useEffect(() => {
@@ -90,7 +94,28 @@ export default function ProgramPage() {
   useEffect(() => {
     if (degreeCode && !enrolledLoading && !isOwnProgram && activeStepKey === "next") setActiveIndex(0);
   }, [degreeCode, enrolledLoading, isOwnProgram, activeStepKey, setActiveIndex]);
+  const tickProgress = useUocProgress(isOwnProgram ? degreeCode : null, session?.user?.id, ticksVersion);
+  const autoOpened = useRef(false);
+  const [firstVisit, setFirstVisit] = useState(false);
+  useEffect(() => {
+    if (!data || !isOwnProgram || tickProgress?.count !== 0 || autoOpened.current) return;
+    autoOpened.current = true;
+    setFirstVisit(true);
+    setCoursesOpen(true);
+  }, [data, isOwnProgram, tickProgress]);
+  const closeCourses = useCallback(() => {
+    setFirstVisit(false);
+    setCoursesOpen(false);
+    setTicksVersion((version) => version + 1);
+  }, []);
+  useEffect(() => {
+    if (!degreeCode || enrolledLoading || !isOwnProgram || activeStepKey !== "structure") return;
+    setActiveIndex(stepIndex("next"));
+    if (new URLSearchParams(search).get("step") === "1") setCoursesOpen(true);
+  }, [degreeCode, enrolledLoading, isOwnProgram, activeStepKey, search, setActiveIndex]);
   const openCourseMesh = useCallback((code) => {
+    setCoursesOpen(false);
+    setTicksVersion((version) => version + 1);
     setMeshFocus(code || null);
     setActiveIndex(stepIndex("coursemesh"));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -131,25 +156,26 @@ export default function ProgramPage() {
         );
       },
       next: () => (
+        <>
+        {isOwnProgram && <CoursesStrip degreeCode={degreeCode} version={ticksVersion} onOpen={() => setCoursesOpen(true)} />}
         <NextCoursesTab
+          key={ticksVersion}
           degreeCode={degreeCode}
           isOwnProgram={isOwnProgram}
-          onOpenCourses={() => {
-            setActiveIndex(stepIndex("structure"));
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
+          onOpenCourses={() => setCoursesOpen(true)}
           onOpenCourseMesh={openCourseMesh}
         />
+        </>
       ),
       coursemesh: () => (
+        <>
+        {isOwnProgram && <CoursesStrip degreeCode={degreeCode} version={ticksVersion} onOpen={() => setCoursesOpen(true)} />}
         <CourseMesh
+          key={ticksVersion}
           programCode={degreeCode}
           focus={meshFocus}
-          onOpenCourses={() => {
-            setMeshFocus(null);
-            setActiveIndex(stepIndex("structure"));
-          }}
         />
+        </>
       ),
       societies: () => generatedSection(
         "industry_societies",
@@ -160,7 +186,7 @@ export default function ProgramPage() {
     };
 
     return visibleSteps.map((step) => ({ ...step, render: renderers[step.key] }));
-  }, [data, degreeCode, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, setActiveIndex]);
+  }, [data, degreeCode, isOwnProgram, sectionsStatus, retrySections, navigate, visibleSteps, meshFocus, openCourseMesh, ticksVersion]);
 
   const programName = activeDegree?.program_name || header.program_name || "";
   const handbookLink = degreeCode ? handbookUrl("programs", degreeCode, activeDegree?.source_url) : null;
@@ -176,24 +202,17 @@ export default function ProgramPage() {
       back={isOwnProgram ? undefined : { label: "Back to My Program", onClick: () => navigate(roadmapViewUrl("degree")) }}
       actions={
         <>
-          <SaveProgramButton degreeCode={degreeCode} degree={activeDegree} programName={programName} />
-          {data && (
-            <button
-              type="button"
-              onClick={() => setShowSectionGuide(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/35 text-white hover:bg-white/10"
-              aria-label="Show section tour"
-              title="Section tour"
-            >
-              <HelpCircle className="h-5 w-5" aria-hidden="true" />
-            </button>
+          {!enrolledLoading && !isOwnProgram && (
+            <SaveProgramButton degreeCode={degreeCode} degree={activeDegree} programName={programName} />
           )}
           {!enrolledLoading && !isOwnProgram && degreeCode && programName && (
             <MakeMyProgramButton degreeCode={degreeCode} programName={programName} />
           )}
-          <button onClick={() => navigate("/roadmap")} className={bandLink}>
-            Explore a different degree
-          </button>
+          <ProgramHeaderMenu
+            handbookLink={handbookLink}
+            onTour={data ? () => setShowSectionGuide(true) : null}
+            onExplore={() => navigate("/roadmap")}
+          />
         </>
       }
       eyebrow={isOwnProgram ? "My Program" : "Exploring a program"}
@@ -203,13 +222,6 @@ export default function ProgramPage() {
     >
       <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
         <p className="min-w-0">{headerFacts.join(" · ")}</p>
-        {handbookLink && (
-          <p>
-            <a href={handbookLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
-              Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
-          </p>
-        )}
       </div>
     </PageHeader>
   );
@@ -223,6 +235,16 @@ export default function ProgramPage() {
           seenKey={sectionGuideKey}
           onClose={() => setShowSectionGuide(false)}
         />
+      )}
+      {isOwnProgram && degreeCode && (
+        <CoursesPanel open={coursesOpen} onClose={closeCourses} intro={firstVisit ? "Tick the courses you've completed so your suggestions are accurate." : null}>
+          <MyCoursesTab
+            degreeCode={degreeCode}
+            trackCompletion
+            onChangeSpecialisation={() => navigate(`/roadmap?program=${degreeCode}`)}
+            onOpenCourseMesh={openCourseMesh}
+          />
+        </CoursesPanel>
       )}
       {data ? (
         <ProgramTabs
