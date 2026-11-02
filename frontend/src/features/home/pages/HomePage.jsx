@@ -78,7 +78,6 @@ export default function HomePage() {
           <HomeContent
             facts={facts}
             greeting={`${greeting}${name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}`}
-            today={today}
             onHelp={() => setShowGuide(true)}
           />
         ) : (

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Ellipsis } from "lucide-react";
 
-export default function DegreeEditMenu({ degreeCode, canChangeSpecialisation }) {
+export default function DegreeEditMenu({ degreeCode, canChangeSpecialisation, onHelp, onStudyGuide }) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef(null);
 
@@ -27,7 +27,7 @@ export default function DegreeEditMenu({ degreeCode, canChangeSpecialisation }) 
       <button
         type="button"
         className="dashboard-edit-toggle"
-        aria-label="Edit degree"
+        aria-label="More options"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -44,6 +44,12 @@ export default function DegreeEditMenu({ degreeCode, canChangeSpecialisation }) 
               Change specialisation
             </Link>
           )}
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onHelp(); }}>
+            How Home works
+          </button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onStudyGuide(); }}>
+            Study guide
+          </button>
         </div>
       )}
     </div>
