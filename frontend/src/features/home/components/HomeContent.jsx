@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BriefcaseBusiness, CircleAlert, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useHomePreview } from "../hooks/useHomePreview";
 import DegreeEditMenu from "./DegreeEditMenu";
@@ -10,36 +10,23 @@ function Shimmer({ className = "h-5" }) {
   return <div className={`${className} rounded bg-slate-100 dark:bg-slate-800 animate-pulse`} aria-hidden="true" />;
 }
 
-function EntryCard({ to, icon: Icon, eyebrow, title, text, action, tour }) {
+function EntryCard({ to, icon: Icon, eyebrow, title, text, action, tour, tone }) {
   return (
     <Link
       to={to}
       data-tour={tour}
-      className="group block rounded-3xl bg-gradient-to-br from-blue-700 to-indigo-700 p-7 text-white transition hover:-translate-y-0.5 hover:shadow-lg"
+      className={`group block rounded-3xl bg-gradient-to-br ${tone.card} p-7 text-white transition hover:-translate-y-0.5 hover:shadow-lg`}
     >
-      <span className="flex items-center gap-2 text-sm font-semibold text-blue-100">
+      <span className="flex items-center gap-2 text-sm font-semibold text-white/85">
         <Icon className="h-5 w-5" aria-hidden="true" />
         {eyebrow}
       </span>
       <h2 className={`${display} mt-3 text-[28px] font-extrabold leading-tight`}>{title}</h2>
-      <p className="mt-2 text-base text-blue-100">{text}</p>
-      <span className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-white px-6 text-base font-semibold text-blue-800 group-hover:bg-blue-50">
+      <p className="mt-2 text-base text-white/90">{text}</p>
+      <span className={`mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-white px-6 text-base font-semibold ${tone.button} group-hover:bg-slate-50`}>
         {action}
         <ArrowRight className="h-5 w-5" aria-hidden="true" />
       </span>
-    </Link>
-  );
-}
-
-function Stat({ to, label, value, state = "ready" }) {
-  let shown = <span className={`${display} text-[28px] font-extrabold leading-none text-ink-strong`}>{value}</span>;
-  if (state === "loading") shown = <Shimmer className="h-7 w-10" />;
-  if (state === "failed") shown = <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Couldn't load</span>;
-  if (state === "empty") shown = <span className="text-sm font-medium text-slate-500 dark:text-slate-400">None right now</span>;
-  return (
-    <Link to={to} className="flex min-h-[92px] min-w-0 flex-col justify-between gap-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200 hover:ring-blue-300 dark:bg-slate-900 dark:ring-slate-800 dark:hover:ring-blue-700">
-      {shown}
-      <span className="text-sm text-slate-600 dark:text-slate-300">{label}</span>
     </Link>
   );
 }
@@ -78,12 +65,8 @@ function ProgramColumn({ facts, picks }) {
         text={ticked ? "See what you can take next, and what each course leads to." : "Tick the courses you've done, and we'll show what you can take next."}
         action={ticked ? "See my next courses" : "Update my courses"}
         tour="dash-program"
+        tone={{ card: "from-brand-navy to-brand-blue", button: "text-brand-navy" }}
       />
-      <div className="grid grid-cols-3 gap-3">
-        <Stat to={coursesUrl} label="Courses done" value={facts.doneCount || 0} />
-        <Stat to={coursesUrl} label={facts.minimumUoc ? `of ${facts.minimumUoc} UOC` : "UOC done"} value={facts.uocDone || 0} />
-        <Stat to={nextUrl} label="Open to you" value={picks?.available} state={picks ? "ready" : "loading"} />
-      </div>
       <PreviewList
         title="Suggested next"
         loading={!picks}
@@ -94,10 +77,9 @@ function ProgramColumn({ facts, picks }) {
   );
 }
 
-function CareerColumn({ career, placement, onRetry }) {
+function CareerColumn({ career, onRetry }) {
   const ready = career && !career.failed && !career.missing;
-  const rowState = (row) => (ready ? career[row].state : career ? "failed" : "loading");
-  const failed = career?.failed || (ready && ["jobs", "internships", "events"].some((row) => career[row].state === "failed"));
+  const failed = career?.failed || (ready && ["jobs", "internships"].some((row) => career[row].state === "failed"));
   const jobsUrl = careerSectionUrl("jobs");
   return (
     <section className="min-w-0 space-y-5" aria-label="My Career">
@@ -109,22 +91,12 @@ function CareerColumn({ career, placement, onRetry }) {
         text="Jobs, internships and events picked for your degree."
         action="Explore My Career"
         tour="dash-career"
+        tone={{ card: "from-brand-blue to-brand-indigo", button: "text-brand-indigo" }}
       />
-      <div className="grid grid-cols-3 gap-3">
-        <Stat to={jobsUrl} label="Jobs" value={career?.jobs?.count} state={rowState("jobs")} />
-        <Stat to={careerSectionUrl("internships")} label="Internships" value={career?.internships?.count} state={rowState("internships")} />
-        <Stat to={careerSectionUrl("networking")} label="Events" value={career?.events?.count} state={rowState("events")} />
-      </div>
       {failed && (
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Some of this couldn't load. <button type="button" onClick={onRetry} className="font-semibold text-link hover:underline">Try again</button>
         </p>
-      )}
-      {placement && !placement.done && (
-        <Link to={careerSectionUrl("internships")} className="flex items-center gap-2.5 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900">
-          <CircleAlert className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-          Your degree requires a placement: {placement.code}
-        </Link>
       )}
       <PreviewList
         title="Latest jobs"
@@ -137,7 +109,7 @@ function CareerColumn({ career, placement, onRetry }) {
 }
 
 export default function HomeContent({ facts, greeting, today, onHelp }) {
-  const { picks, career, placement, retryCareer } = useHomePreview(facts);
+  const { picks, career, retryCareer } = useHomePreview(facts);
   const { program, specNames = [] } = facts;
   const degree = [program.program_name, ...specNames].join(" · ");
 
@@ -165,7 +137,7 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
       )}
       <div className="grid gap-8 lg:grid-cols-2">
         <ProgramColumn facts={facts} picks={picks} />
-        <CareerColumn career={career} placement={placement} onRetry={retryCareer} />
+        <CareerColumn career={career} onRetry={retryCareer} />
       </div>
       <Link to="/chat" className="group flex items-center gap-3 rounded-2xl bg-white px-5 py-4 ring-1 ring-slate-200 hover:ring-blue-300 dark:bg-slate-900 dark:ring-slate-800 dark:hover:ring-blue-700">
         <MessageCircle className="h-5 w-5 flex-shrink-0 text-link" aria-hidden="true" />

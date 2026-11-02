@@ -14,7 +14,6 @@ export function useHomePreview(facts) {
   const [picks, setPicks] = useState(null);
   const [roadmapId, setRoadmapId] = useState(null);
   const [careerProblem, setCareerProblem] = useState(null);
-  const [placement, setPlacement] = useState(null);
   const { sources, loadFailed, retryLoad } = useCareersFeed(roadmapId);
 
   useEffect(() => {
@@ -22,9 +21,9 @@ export function useHomePreview(facts) {
     let active = true;
     apiJson("/course-picks", { token })
       .then((data) => {
-        if (active) setPicks({ picks: data.picks || [], available: (data.available || []).length });
+        if (active) setPicks({ picks: data.picks || [] });
       })
-      .catch(() => active && setPicks({ picks: [], available: 0 }));
+      .catch(() => active && setPicks({ picks: [] }));
     return () => { active = false; };
   }, [program, facts?.failed, token]);
 
@@ -38,19 +37,16 @@ export function useHomePreview(facts) {
       if (!active) return;
       if (!found?.payload?.career_pathways) return setCareerProblem("missing");
       setRoadmapId(found.id);
-      const placements = found.payload?.industry_experience?.mandatory_placements;
-      const code = placements?.required ? placements.course_codes?.[0] : null;
-      setPlacement(code ? { code, done: (facts.completedCodes || []).includes(code) } : null);
     })().catch((err) => {
       console.error("Dashboard preview failed:", err);
       if (active) setCareerProblem("failed");
     });
     return () => { active = false; };
-  }, [program, facts?.failed, facts?.completedCodes, userId, token]);
+  }, [program, facts?.failed, userId, token]);
 
   let career = sources ? summariseSources(sources) : null;
   if (careerProblem === "missing") career = { missing: true };
   else if (careerProblem === "failed" || loadFailed) career = { failed: true };
 
-  return { picks, career, placement, retryCareer: retryLoad };
+  return { picks, career, retryCareer: retryLoad };
 }
