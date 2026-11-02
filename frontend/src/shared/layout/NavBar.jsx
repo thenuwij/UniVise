@@ -98,10 +98,10 @@ export function NavBar({ onMenuClick, isMenuOpen = false }) {
             to="/saved"
             className={`app-nav-shortlist${pathname === "/saved" ? " is-active" : ""}`}
             aria-label="My shortlist"
+            title="My shortlist"
             aria-current={pathname === "/saved" ? "page" : undefined}
           >
             <Bookmark aria-hidden="true" />
-            <span>Shortlist</span>
           </Link>
           <Dropdown
             arrowIcon={false}
@@ -113,6 +113,7 @@ export function NavBar({ onMenuClick, isMenuOpen = false }) {
                 type="button"
                 className="app-nav-account"
                 aria-label="Account menu"
+                title="Account"
               >
                 {avatarUrl && !avatarFailed ? (
                   <img
@@ -126,7 +127,6 @@ export function NavBar({ onMenuClick, isMenuOpen = false }) {
                     {initials}
                   </span>
                 )}
-                <span className="app-nav-account-label">Account</span>
               </button>
             )}
           >
