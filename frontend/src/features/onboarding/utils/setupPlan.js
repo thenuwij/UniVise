@@ -6,7 +6,7 @@ import { buildRoadmap } from "@/features/program/utils/roadmapGeneration";
 
 const POLL_MS = 3000;
 const WAIT_FOR_SURVEY_BUILD_MS = 90 * 1000;
-const WAIT_FOR_OTHER_REFRESH_MS = 60 * 1000;
+const WAIT_FOR_OTHER_REFRESH_MS = 3 * 60 * 1000;
 
 export async function findOrBuildRoadmap({ userId, accessToken, isActive }) {
   const { data: programs, error } = await supabase
@@ -34,25 +34,32 @@ export async function findOrBuildRoadmap({ userId, accessToken, isActive }) {
     .single();
   if (degreeError) throw degreeError;
   await buildRoadmap({ degreeId: degree.id, accessToken });
-  return fetchMatchingRoadmap(userId, degreeCode, specialisationIds);
+  const built = await fetchMatchingRoadmap(userId, degreeCode, specialisationIds);
+  if (!built) throw new Error("No roadmap was created");
+  return built;
 }
+
+const sourceLoaded = (source) => source.status === "done" || source.items?.length > 0;
 
 export async function loadOpportunities({ roadmapId, accessToken, isActive }) {
   const readFeed = () => apiJson(`/careers/feed?roadmap_id=${encodeURIComponent(roadmapId)}`, { token: accessToken });
   const feed = await readFeed();
-  const results = await Promise.allSettled(
+  await Promise.allSettled(
     feed.sources
       .filter((source) => source.stale)
       .map((source) => apiJson("/careers/refresh", { method: "POST", token: accessToken, body: { roadmap_id: roadmapId, source: source.source } }))
   );
-  if (results.some((result) => result.status === "rejected")) throw new Error("Some career sources failed to refresh");
 
   const started = Date.now();
   while (isActive() && Date.now() - started < WAIT_FOR_OTHER_REFRESH_MS) {
     const latest = await readFeed();
-    if (!latest.sources.some((source) => source.status === "running")) return;
+    if (!latest.sources.some((source) => source.status === "running")) {
+      if (!latest.sources.every(sourceLoaded)) throw new Error("Some career sources failed to refresh");
+      return;
+    }
     await wait(POLL_MS);
   }
+  if (isActive()) throw new Error("Career sources are still refreshing");
 }
 
 export async function loadCertifications({ roadmapId, accessToken }) {

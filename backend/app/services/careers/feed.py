@@ -6,9 +6,11 @@ from app.core.database import supabase
 
 SOURCES = ("adzuna", "ai_jobs", "ai_internships", "ai_networking")
 MANUAL_SOURCES = ("ai_jobs", "ai_internships")
+SEARCH_AGAIN_SOURCES = ("adzuna", "ai_jobs", "ai_internships")
+SEARCH_AGAIN_AFTER = timedelta(minutes=30)
 SYDNEY = ZoneInfo("Australia/Sydney")
 RUNNING_FOR = timedelta(minutes=3)
-RETRY_FAILED_AFTER = timedelta(hours=1)
+RETRY_FAILED_AFTER = timedelta(minutes=5)
 
 
 def sydney_today() -> date:
@@ -86,6 +88,19 @@ def claim_refresh(key: str, source: str, today: date) -> bool:
     response = supabase.rpc(
         "claim_careers_refresh", {"p_degree_key": key, "p_source": source, "p_today": today.isoformat()}
     ).execute()
+    return bool(response.data)
+
+
+def claim_search_again(key: str, source: str) -> bool:
+    now = datetime.now(timezone.utc)
+    response = (
+        supabase.table("careers_feed")
+        .update({"status": "running", "claimed_at": now.isoformat(), "error": None})
+        .eq("degree_key", key)
+        .eq("source", source)
+        .lt("claimed_at", (now - SEARCH_AGAIN_AFTER).isoformat())
+        .execute()
+    )
     return bool(response.data)
 
 

@@ -23,6 +23,7 @@ class WebListings(BaseModel):
 class CareersRefreshReq(BaseModel):
     roadmap_id: str
     source: CareersSource
+    manual: bool = False
 
 
 class CareersSourceState(BaseModel):

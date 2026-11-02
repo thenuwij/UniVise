@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 MODEL = "gpt-5.4-mini"
 MAX_LISTINGS = 10
 HOST_PREFIX = re.compile(r"^(www|au|m)\.")
-SEARCH_PAGE = re.compile(r"(/jobs/search|/jobs\?|-jobs/?$|-jobs/in-|/search\b|[?&](q|keywords|query)=)", re.I)
+SEARCH_PAGE = re.compile(r"(/jobs/search|/jobs\?|-jobs/?$|-jobs/in-|-jobs-in-|/q-|/search\b|[?&](q|keywords|query)=)", re.I)
 
 NETWORKING_TASK = (
     "Find upcoming events in the next 8 weeks where this student could meet people who work in their field.\n"

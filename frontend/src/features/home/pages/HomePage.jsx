@@ -32,7 +32,7 @@ const GUIDE_STEPS = [
   },
   {
     targets: ['[data-tour="dash-career"]'],
-    title: "Your career this week",
+    title: "My Career",
     text: "Jobs, internships and events for your degree.",
   },
   {
@@ -85,7 +85,6 @@ export default function HomePage() {
             facts={facts}
             greeting={`${greeting}${name ? `, ${name.charAt(0).toUpperCase()}${name.slice(1)}` : ""}`}
             today={today}
-            dayLine={dayLine}
             onHelp={() => setShowGuide(true)}
           />
         ) : (

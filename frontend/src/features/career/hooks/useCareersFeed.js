@@ -19,12 +19,12 @@ export function useCareersFeed(roadmapId) {
   }, []);
 
   const refresh = useCallback(
-    async (source) => {
+    async (source, manual = false) => {
       if (!roadmapId || !token || refreshing.current.has(source)) return;
       refreshing.current.add(source);
       setSources((prev) => ({ ...(prev || {}), [source]: { ...(prev?.[source] || { source, items: [] }), status: "running" } }));
       try {
-        const state = await apiJson("/careers/refresh", { method: "POST", token, body: { roadmap_id: roadmapId, source } });
+        const state = await apiJson("/careers/refresh", { method: "POST", token, body: { roadmap_id: roadmapId, source, manual } });
         setSource(state);
       } catch (err) {
         console.error(`Refreshing ${source} failed:`, err);

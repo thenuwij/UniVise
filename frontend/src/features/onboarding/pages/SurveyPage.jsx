@@ -35,22 +35,24 @@ function SurveyPage() {
     fetchUser();
   }, [navigate]);
 
+  const userId = session?.user?.id;
+
   useEffect(() => {
-    if (!session) {
+    if (!userId) {
       navigate("/login", { replace: true });
       return;
     }
 
     setAccessError(false);
     setCheckingAccess(true);
-    hasCompletedSurvey(session.user.id).then((completed) => {
+    hasCompletedSurvey(userId).then((completed) => {
       if (completed) {
         navigate("/dashboard", { replace: true });
       } else {
         setCheckingAccess(false);
       }
     }).catch(() => { setAccessError(true); setCheckingAccess(false); });
-  }, [session, navigate, attempt]);
+  }, [userId, navigate, attempt]);
 
   if (accessError) return <div className="min-h-screen app-page"><Header /><main className="mx-auto max-w-xl px-6 py-16"><h1 className="text-2xl font-bold text-ink-strong">We couldn't check your setup</h1><p className="mt-3 text-ink-muted">Please try again. We haven't changed your saved program.</p><button type="button" onClick={() => setAttempt((value) => value + 1)} className="button-primary mt-5 rounded-xl px-5 py-3">Try again</button></main></div>;
 

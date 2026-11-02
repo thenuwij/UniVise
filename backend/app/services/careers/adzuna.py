@@ -9,11 +9,18 @@ from app.services.careers.search_words import is_early_career
 
 API = "https://api.adzuna.com/v1/api/jobs/au/search/1"
 MAX_ROLES = 4
-RESULTS_PER_SEARCH = 20
+RESULTS_PER_SEARCH = 50
+EARLY_CAREER_WORDS = "graduate grad junior entry trainee associate assistant"
 MAX_DAYS_OLD = 30
-CALLS_PER_REFRESH = MAX_ROLES * 2 + 2
+MAX_BROAD_SEARCHES = 2
+MIN_JOBS_BEFORE_BROAD = 10
+CALLS_PER_REFRESH = MAX_ROLES * 2 + 2 + MAX_BROAD_SEARCHES
 DAILY_CALL_BUDGET = 240
 PAUSE_SECONDS = 1.2
+BROAD_ROLE_WORDS = ("engineer", "analyst", "consultant", "officer", "scientist", "developer", "accountant", "designer", "advisor", "planner")
+BLOCKED_EMPLOYERS = ("study and work",)
+COMPANY_SUFFIX = re.compile(r"\b(inc|incorporated|pty|ltd|limited|llc|corp|corporation|company|co|group|australia)\b\.?", re.I)
+MAX_PER_EMPLOYER = 3
 GENERIC_WORDS = {"engineer", "engineering", "support", "analyst", "graduate", "junior", "officer", "assistant", "specialist", "consultant", "technician"}
 INTERNSHIP_TITLE = re.compile(r"\b(intern|internship|vacation|vacationer|cadet|cadetship)\b", re.I)
 
@@ -53,7 +60,6 @@ async def search(client: httpx.AsyncClient, credentials: Dict[str, str], **query
     params = {
         **credentials,
         **query,
-        "where": "NSW",
         "max_days_old": MAX_DAYS_OLD,
         "results_per_page": RESULTS_PER_SEARCH,
         "sort_by": "date",
@@ -73,9 +79,8 @@ async def search(client: httpx.AsyncClient, credentials: Dict[str, str], **query
 
 async def role_ads(client: httpx.AsyncClient, credentials: Dict[str, str], words: str) -> List[Dict[str, Any]]:
     ads = await search(client, credentials, title_only=f"graduate {words}")
-    if not ads:
-        ads = [ad for ad in await search(client, credentials, title_only=words) if is_early_career(ad.get("title"))]
-    return [listing(ad, words) for ad in ads]
+    ads += await search(client, credentials, title_only=words, what_or=EARLY_CAREER_WORDS)
+    return [listing(ad, words) for ad in ads if is_early_career(ad.get("title"))]
 
 
 async def internship_ads(client: httpx.AsyncClient, credentials: Dict[str, str], searches: List[str]) -> List[Dict[str, Any]]:
@@ -86,13 +91,32 @@ async def internship_ads(client: httpx.AsyncClient, credentials: Dict[str, str],
     return [listing(ad, "internship") for ad in ads if INTERNSHIP_TITLE.search(ad.get("title") or "")]
 
 
+def broad_searches(searches: List[str]) -> List[str]:
+    last_words = [words.split()[-1] for words in searches if words.split()]
+    return [f"graduate {word}" for word in BROAD_ROLE_WORDS if word in last_words][:MAX_BROAD_SEARCHES]
+
+
+def employer_key(name: str) -> str:
+    return " ".join(COMPANY_SUFFIX.sub(" ", name or "").lower().split())
+
+
+def title_key(title: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", (title or "").lower()))
+
+
 def unique(listings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    seen, kept = set(), []
+    seen, per_employer, kept = set(), {}, []
     for item in listings:
-        key = (item["title"].strip().lower(), item["organisation"].strip().lower())
-        if key not in seen:
-            seen.add(key)
-            kept.append(item)
+        employer = employer_key(item["organisation"])
+        key = (title_key(item["title"]), employer)
+        count_key = (employer, item["kind"])
+        if key in seen or any(name in employer for name in BLOCKED_EMPLOYERS):
+            continue
+        seen.add(key)
+        if employer and per_employer.get(count_key, 0) >= MAX_PER_EMPLOYER:
+            continue
+        per_employer[count_key] = per_employer.get(count_key, 0) + 1
+        kept.append(item)
     return kept
 
 
@@ -109,6 +133,9 @@ async def fetch_adzuna_listings(roles: List[Dict[str, Any]], refreshes_today: in
     async with httpx.AsyncClient(timeout=20) as client:
         for words in searches:
             listings += await role_ads(client, credentials, words)
+        if sum(item["kind"] == "job" for item in unique(listings)) < MIN_JOBS_BEFORE_BROAD:
+            for words in broad_searches(searches):
+                ads = await search(client, credentials, title_only=words)
+                listings += [listing(ad, words) for ad in ads if is_early_career(ad.get("title"))]
         listings += await internship_ads(client, credentials, searches)
-    listings = unique(listings)
-    return sorted(listings, key=lambda item: item.get("posted_at") or "", reverse=True)
+    return unique(sorted(listings, key=lambda item: item.get("posted_at") or "", reverse=True))

@@ -19,6 +19,7 @@ import "../careers.css";
 const SOURCE_LABELS = { adzuna: "Adzuna", ai_jobs: "Top picks", ai_internships: "Top picks", ai_networking: "Web search" };
 
 const TOP_PICKS = ["ai_jobs", "ai_internships"];
+const SEARCH_AGAIN_AFTER_MS = 30 * 60 * 1000;
 
 const hasPart =(data, key) => !!data?.[key] && Object.keys(data[key]).length > 0;
 
@@ -54,6 +55,16 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     return { label: SOURCE_LABELS[key], status: state.status, refreshedAt: state.refreshed_at, onRetry: () => refresh(key) };
   };
   const statuses = (...keys) => keys.map(sourceStatus).filter(Boolean);
+  const searchAgain = (...keys) => {
+    const running = keys.some((key) => feed(key)?.status === "running");
+    const recent = keys.every((key) => feed(key)?.refreshed_at && Date.now() - new Date(feed(key).refreshed_at).getTime() < SEARCH_AGAIN_AFTER_MS);
+    return {
+      running,
+      disabled: !sources || running || recent,
+      title: recent ? "Searched in the last 30 minutes. You can search again soon." : "Search for new listings now",
+      onClick: () => keys.forEach((key) => refresh(key, true)),
+    };
+  };
   const programCount = data?.industry_experience?.internship_programs?.length || 0;
   const certifications = data?.career_pathways?.certifications || [];
 
@@ -143,9 +154,10 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
         id="jobs"
         title="Jobs hiring now"
         count={jobs?.length}
-        description="Graduate and junior roles for your degree: top picks chosen from SEEK, plus Adzuna's latest ads."
+        description="Graduate and junior roles for your degree: top picks found across the web, plus Adzuna's latest ads."
         status={careersReady ? (feedLoading ? "loading" : null) : careersState}
         sources={statuses("adzuna", "ai_jobs")}
+        searchAgain={searchAgain("adzuna", "ai_jobs")}
         loadingText="Finding the best graduate jobs for your degree. The first time takes about a minute."
         onRetry={onRetry}
       >
@@ -166,6 +178,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
         description="Internships open now, programs that open each year, and placements in your degree."
         status={internshipsState === "done" ? (feedLoading ? "loading" : null) : internshipsState}
         sources={statuses("adzuna", "ai_internships")}
+        searchAgain={searchAgain("adzuna", "ai_internships")}
         loadingText="Finding internships for your degree. The first time takes about a minute."
         onRetry={onRetry}
       >
