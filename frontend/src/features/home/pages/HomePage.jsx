@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Moon, Sun, Sunset } from "lucide-react";
 import AppNav from "@/shared/layout/AppNav";
 import SpotlightGuide from "@/shared/ui/SpotlightGuide";
-import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { UserAuth } from "@/app/AuthContext";
 import HomeContent from "../components/HomeContent";
 import ProgramCard from "../components/ProgramCard";
@@ -47,11 +46,6 @@ export default function HomePage() {
   const guideKey = `univise-dashboard-guide-seen-${session?.user?.id || "guest"}`;
   const facts = useHomeFacts();
   const [showGuide, setShowGuide] = useState(false);
-  useEffect(() => {
-    if (!facts?.program || !session?.user?.id || hasSeenGuide(guideKey)) return;
-    const timer = setTimeout(() => setShowGuide(true), 700);
-    return () => clearTimeout(timer);
-  }, [facts?.program, session?.user?.id, guideKey]);
   const metadata = session?.user?.user_metadata;
   const firstName =
     metadata?.first_name ||
