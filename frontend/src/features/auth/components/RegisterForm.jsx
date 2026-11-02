@@ -5,8 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import { cleanText } from "@/shared/lib/cleanText";
 import { supabase } from "@/shared/lib/supabase";
-import { MINIMUM_AGE } from "../data/termsContent";
-import { isOldEnough } from "../utils/terms";
 import { TermsAgreement } from "./TermsAgreement";
 import { errorText, fieldInput, fieldLabel, footerLink, footerText, googleButton, primaryButton } from "./authStyles";
 
@@ -18,10 +16,7 @@ function RegisterForm() {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [dob, setDob] = useState('');
-    const [gender, setGender] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [agreed, setAgreed] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -44,16 +39,6 @@ function RegisterForm() {
         return;
       }
 
-      if (password !== confirmPassword) {
-        setError("Passwords don't match. Please try again.");
-        return;
-      }
-
-      if (!isOldEnough(dob)) {
-        setError(`You must be at least ${MINIMUM_AGE} to use UniVise.`);
-        return;
-      }
-
       if (!agreed) {
         setError("Please read and agree to the terms and conditions to register.");
         return;
@@ -67,7 +52,7 @@ function RegisterForm() {
       setError('');
       setLoading(true);
       try { 
-        const result = await registerNewUser(email, password, first, last, dob, gender, new Date().toISOString());
+        const result = await registerNewUser(email, password, first, last, new Date().toISOString());
         if (result.error) {
           setError(result.error.message);
           return;
@@ -153,86 +138,27 @@ function RegisterForm() {
             className={fieldInput}
           />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
-          <div>
-            <label htmlFor="dob" className={fieldLabel}>Date of birth</label>
+        <div>
+          <label htmlFor="password2" className={fieldLabel}>Password</label>
+          <div className="relative">
             <input
-              id="dob"
-              type="date"
-              max={new Date().toISOString().split("T")[0]}
+              id="password2"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="••••••••"
               required
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className={fieldInput}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${fieldInput} pr-11`}
             />
-          </div>
-          <div>
-            <label htmlFor="gender" className={fieldLabel}>Gender</label>
-            <select
-              id="gender"
-              name="gender"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className={fieldInput}
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
-              <option value="">Select…</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
-          <div>
-            <label htmlFor="password2" className={fieldLabel}>Password</label>
-            <div className="relative">
-              <input
-                id="password2"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="••••••••"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`${fieldInput} pr-11`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide passwords" : "Show passwords"}
-                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-          <div>
-            <label htmlFor="repeat-password" className={fieldLabel}>Confirm password</label>
-            <div className="relative">
-              <input
-                id="repeat-password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="••••••••"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`${fieldInput} pr-11`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide passwords" : "Show passwords"}
-                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {confirmPassword && (
-              <p className={`mt-1.5 text-xs font-medium ${password === confirmPassword ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
-                {password === confirmPassword ? "Passwords match" : "Passwords don't match"}
-              </p>
-            )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
