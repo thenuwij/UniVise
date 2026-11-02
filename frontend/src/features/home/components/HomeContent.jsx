@@ -1,12 +1,17 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BriefcaseBusiness, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, ChevronRight, GraduationCap, MessageCircle } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useHomePreview } from "../hooks/useHomePreview";
 import StudyGuide from "./StudyGuide";
 import DegreeEditMenu from "./DegreeEditMenu";
 
 const STUDY_GUIDE_KEY = "univise-study-guide-seen";
+const EUNICE_QUESTIONS = [
+  "What can I take next term?",
+  "Which electives suit the career I want?",
+  "What jobs fit my degree?",
+];
 const display = "font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui] tracking-tight";
 
 function Shimmer({ className = "h-5" }) {
@@ -58,17 +63,23 @@ function EntryCard({ to, icon: Icon, eyebrow, title, text, action, tour, tone })
   );
 }
 
-function PreviewList({ title, rows, loading, empty }) {
+function PreviewList({ title, rows, loading, empty, seeAll }) {
   return (
     <div className="px-1">
-      <h3 className="text-base font-bold text-ink-strong">{title}</h3>
+      <div className="flex items-baseline justify-between gap-4">
+        <h3 className="text-lg font-semibold text-ink-strong">{title}</h3>
+        {seeAll && <Link to={seeAll} className="text-sm font-semibold text-link hover:underline">See all</Link>}
+      </div>
       <ul className="mt-2">
         {loading && [0, 1, 2].map((i) => <li key={i} className="border-t border-slate-200/70 py-3.5 dark:border-slate-800"><Shimmer /></li>)}
         {rows.map(({ key, to, main, sub }) => (
           <li key={key} className="border-t border-slate-200/70 dark:border-slate-800">
-            <Link to={to} className="group block py-3">
-              <span className="block truncate font-semibold text-ink-strong group-hover:text-link">{main}</span>
-              {sub && <span className="mt-0.5 block truncate text-[13px] text-slate-500 dark:text-slate-400">{sub}</span>}
+            <Link to={to} className="group -mx-3 flex min-h-[60px] items-center justify-between gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-white active:bg-white/70 dark:hover:bg-slate-800/70">
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-ink-strong group-hover:text-link">{main}</span>
+                {sub && <span className="mt-0.5 block truncate text-[13px] text-slate-500 dark:text-slate-400">{sub}</span>}
+              </span>
+              <ChevronRight className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-link" aria-hidden="true" />
             </Link>
           </li>
         ))}
@@ -82,7 +93,7 @@ function ProgramColumn({ facts, picks }) {
   const ticked = facts.doneCount > 0;
   const nextUrl = roadmapStepUrl("next");
   return (
-    <section className="home-rise home-rise-2 min-w-0 space-y-6" aria-label="My Program">
+    <section className="home-rise home-rise-2 min-w-0 space-y-10" aria-label="My Program">
       <EntryCard
         to={ticked ? nextUrl : roadmapStepUrl("structure")}
         icon={GraduationCap}
@@ -95,6 +106,7 @@ function ProgramColumn({ facts, picks }) {
       />
       <PreviewList
         title="Suggested next"
+        seeAll={nextUrl}
         loading={!picks}
         rows={(picks?.picks || []).slice(0, 3).map((pick) => ({ key: pick.code, to: nextUrl, main: `${pick.code} · ${pick.name}`, sub: pick.skills?.join(", ") }))}
         empty="Open Next courses to see what you can take."
@@ -108,7 +120,7 @@ function CareerColumn({ career, onRetry }) {
   const failed = career?.failed || (ready && ["jobs", "internships"].some((row) => career[row].state === "failed"));
   const jobsUrl = careerSectionUrl("jobs");
   return (
-    <section className="home-rise home-rise-3 min-w-0 space-y-6" aria-label="My Career">
+    <section className="home-rise home-rise-3 min-w-0 space-y-10" aria-label="My Career">
       <EntryCard
         to={jobsUrl}
         icon={BriefcaseBusiness}
@@ -126,6 +138,7 @@ function CareerColumn({ career, onRetry }) {
       )}
       <PreviewList
         title="Latest jobs"
+        seeAll={jobsUrl}
         loading={!career || (ready && !career.latestJobs.length && career.jobs.state === "loading")}
         rows={(career?.latestJobs || []).map((job) => ({ key: job.url, to: jobsUrl, main: job.title, sub: job.organisation }))}
         empty="Open My Career to see what's available."
@@ -155,27 +168,19 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
 
   return (
     <div className="space-y-8">
-      <section className="home-rise flex flex-wrap items-start justify-between gap-4" aria-labelledby="home-hello">
+      <section className="home-rise relative z-20 flex flex-wrap items-start justify-between gap-4" aria-labelledby="home-hello">
         <div className="min-w-0">
           <p className="text-sm text-ink-muted">{today}</p>
-          <h1 id="home-hello" className={`${display} mt-1 text-[28px] font-extrabold leading-tight text-ink-strong sm:text-[34px]`}>{greeting}</h1>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2" data-tour="dash-degree">
-            <p className="text-lg font-semibold text-ink-strong">{program.program_name}</p>
-            {specNames.map((name) => (
-              <span key={name} className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-800 ring-1 ring-blue-100 dark:bg-blue-950/60 dark:text-blue-200 dark:ring-blue-900">{name}</span>
-            ))}
-          </div>
+          <h1 id="home-hello" className={`${display} mt-1 text-[28px] font-bold leading-tight text-ink-strong sm:text-[34px]`}>{greeting}</h1>
+          <p className="mt-2 text-[15px] text-ink-muted" data-tour="dash-degree">{[program.program_name, ...specNames].join(" · ")}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setShowStudyGuide(true)} className="rounded-xl px-4 py-2 text-sm font-semibold text-link ring-1 ring-line hover:bg-surface-tint">
-            Test guide
-          </button>
-          <div data-tour="dash-edit">
-            <DegreeEditMenu degreeCode={program.degree_code} canChangeSpecialisation={!facts.failed && facts.hasSpecOptions} />
-          </div>
-          <button type="button" onClick={onHelp} aria-label="How Home works" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-slate-100 dark:hover:bg-slate-800">
-            <HelpCircle className="h-5 w-5" aria-hidden="true" />
-          </button>
+        <div data-tour="dash-edit">
+          <DegreeEditMenu
+            degreeCode={program.degree_code}
+            canChangeSpecialisation={!facts.failed && facts.hasSpecOptions}
+            onHelp={onHelp}
+            onStudyGuide={() => setShowStudyGuide(true)}
+          />
         </div>
       </section>
       {facts.failed && (
@@ -188,20 +193,33 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
         <ProgramColumn facts={facts} picks={picks} />
         <CareerColumn career={career} onRetry={retryCareer} />
       </div>
-      <Link to="/chat" className="home-rise home-rise-3 home-card group relative flex flex-wrap items-center gap-5 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 p-6 ring-1 ring-blue-100 shadow-[0_18px_40px_-24px_rgba(30,58,138,0.4)] transition duration-200 hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950 dark:ring-slate-700 sm:px-8">
-        <span className="home-shape absolute -right-10 -top-16 h-44 w-44 rounded-full bg-white/60 dark:bg-indigo-900/30" aria-hidden="true" />
-        <span className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue to-brand-indigo text-white" aria-hidden="true">
-          <MessageCircle className="h-6 w-6" />
-        </span>
-        <span className="relative min-w-[220px] flex-1">
-          <span className={`${display} block text-xl font-extrabold text-ink-strong`}>Not sure where to start?</span>
-          <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-300">Ask Eunice, your academic and career adviser, about your degree, courses or jobs.</span>
-        </span>
-        <span className="button-primary relative inline-flex h-12 items-center gap-2 rounded-xl px-6 text-base font-semibold text-white">
-          Ask Eunice
-          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-        </span>
-      </Link>
+      <div className="home-rise home-rise-3 relative border-t border-slate-200 pt-8 dark:border-slate-800">
+        <div className="flex flex-wrap items-center gap-5">
+          <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue to-brand-indigo text-white" aria-hidden="true">
+            <MessageCircle className="h-6 w-6" />
+          </span>
+          <span className="min-w-[220px] flex-1">
+            <span className={`${display} block text-xl font-extrabold text-ink-strong`}>Not sure where to start?</span>
+            <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-300">Ask Eunice, your academic and career adviser, about your degree, courses or jobs.</span>
+          </span>
+          <Link to="/chat" className="button-primary group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl px-8 text-lg font-semibold text-white sm:w-72">
+            Ask Eunice
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2" aria-label="Suggested questions">
+          {EUNICE_QUESTIONS.map((question) => (
+            <Link
+              key={question}
+              to="/chat"
+              state={{ ask: question }}
+              className="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-blue-900 ring-1 ring-blue-200 transition hover:bg-white hover:ring-blue-400 dark:bg-slate-800 dark:text-blue-100 dark:ring-slate-600 dark:hover:ring-blue-400"
+            >
+              {question}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

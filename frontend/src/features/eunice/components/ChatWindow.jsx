@@ -20,7 +20,7 @@ function titleFrom(text) {
   return `${cut.slice(0, cut.lastIndexOf(" ") > 30 ? cut.lastIndexOf(" ") : TITLE_MAX)}…`;
 }
 
-export default function ChatWindow({ convId, onCreated, compact = false, getPage }) {
+export default function ChatWindow({ convId, onCreated, compact = false, getPage, autoAsk }) {
   const { session } = UserAuth();
 
   const firstName = session?.user?.user_metadata?.first_name;
@@ -31,6 +31,7 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
   const chatEndRef              = useRef(null);
   const textAreaRef             = useRef(null);
   const skipLoadRef             = useRef(null);
+  const askedRef                = useRef(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,6 +60,13 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
     };
     load();
   }, [convId]);
+
+  useEffect(() => {
+    if (!autoAsk || convId || !session?.user?.id || askedRef.current) return;
+    askedRef.current = true;
+    sendMessage(autoAsk);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAsk, convId, session?.user?.id]);
 
   const sendMessage = async (preset) => {
     const text = (preset ?? input).trim();

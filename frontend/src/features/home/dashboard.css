@@ -215,15 +215,19 @@
   background: var(--color-surface);
   box-shadow: 0 12px 32px #17243a24;
 }
-.dashboard-edit-menu a {
+.dashboard-edit-menu a,
+.dashboard-edit-menu button {
   display: block;
+  width: 100%;
+  text-align: left;
   padding: 12px;
   border-radius: 9px;
   color: var(--color-ink-strong);
   font-size: 14px;
   font-weight: 500;
 }
-.dashboard-edit-menu a:hover {
+.dashboard-edit-menu a:hover,
+.dashboard-edit-menu button:hover {
   background: var(--color-surface-tint);
 }
 .dashboard-portal-career {
