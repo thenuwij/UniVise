@@ -42,9 +42,11 @@ export default function PageHeader({ eyebrow, title, subtitle, back, actions, as
   const side = actions || aside;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <div aria-hidden className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
-      <div aria-hidden className="absolute -bottom-44 left-1/3 h-[420px] w-[420px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
+    <section className="relative z-[25] bg-gradient-to-r from-brand-navy via-brand-blue to-brand-indigo dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-36 -right-20 h-[480px] w-[480px] rounded-full bg-blue-300/15 dark:bg-blue-400/10" />
+        <div className="absolute -bottom-44 left-1/3 h-[420px] w-[420px] rounded-full bg-indigo-300/15 dark:bg-indigo-400/10" />
+      </div>
       {back && !wide && <BackButton back={back} className={`hidden min-[1940px]:inline-flex absolute left-8 ${compact ? "top-4" : "top-5"}`} />}
 
       <div className={`relative max-w-[1680px] mx-auto px-5 md:px-10 ${padding}`}>
