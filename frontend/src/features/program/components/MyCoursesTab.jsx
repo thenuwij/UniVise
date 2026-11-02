@@ -22,11 +22,6 @@ const GUIDE_STEPS = [
     title: "Tick what you've done",
     text: "Tick each course you've finished. Each part shows what's left.",
   },
-  {
-    targets: ['[data-tour="coursemesh-strip"]'],
-    title: "See how they connect",
-    text: "Open CourseMesh to see what your ticked courses unlock.",
-  },
 ];
 
 
@@ -377,7 +372,7 @@ export default function MyCoursesTab({ degreeCode, sections: propSections, track
       </SectionHeading>
 
       {trackCompletion ? (
-        <ProgressStrip {...tickedStats} onOpen={handleVisualise} disabled={!allCourses.length} />
+        <ProgressStrip {...tickedStats} />
       ) : (
         <button
           onClick={handleVisualise}
@@ -416,18 +411,15 @@ export default function MyCoursesTab({ degreeCode, sections: propSections, track
       {/* PROGRAM SECTIONS */}
       <div className="space-y-4">
         {loading ? (
-          <div className="flex items-center gap-3 p-5 rounded-xl
-                        bg-blue-50 dark:bg-blue-900/20
-                        border-2 border-blue-300 dark:border-blue-700 shadow-sm">
-            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 animate-pulse" />
-            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
-              Loading program structure...
-            </span>
+          <div role="status" className="space-y-3">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="h-full w-1/3 animate-loading-slide rounded-full bg-blue-500" />
+            </div>
+            <p className="text-[15px] text-ink-muted">Loading your program's courses.</p>
           </div>
         ) : err ? (
-          <div className="p-5 rounded-xl bg-red-50 dark:bg-red-900/20 
-                        border-2 border-red-300 dark:border-red-700 shadow-sm">
-            <p className="text-sm text-red-700 dark:text-red-300 font-medium">{err}</p>
+          <div role="alert" className="rounded-2xl bg-slate-50 px-6 py-5 dark:bg-slate-800/50">
+            <p className="text-[15px] text-ink-strong">{err}</p>
           </div>
         ) : (
           <>

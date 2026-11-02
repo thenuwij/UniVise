@@ -14,15 +14,12 @@ export function ChooseSpecialisationNotice({ handbookUrl }) {
   );
 }
 
-export function ProgressStrip({ ticked, total, uoc, minimum, onOpen, disabled }) {
+export function ProgressStrip({ ticked, total, uoc, minimum }) {
   const pct = minimum ? Math.min(100, Math.round((uoc / minimum) * 100)) : total ? Math.round((ticked / total) * 100) : 0;
   return (
     <div className="course-checklist-progress">
       <div className="course-checklist-progress-heading">
         <p>{minimum ? <><strong>{uoc}</strong> of {minimum} UOC completed</> : <><strong>{ticked}</strong> of {total} courses ticked · {uoc} UOC</>}</p>
-        <button type="button" onClick={onOpen} disabled={disabled} data-tour="coursemesh-strip" className="course-checklist-link">
-          See how your courses connect <ArrowRight aria-hidden="true" className="h-4 w-4" />
-        </button>
       </div>
       <div className="course-checklist-progress-track" role="progressbar" aria-label="Recorded degree completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
         <span style={{ width: `${pct}%` }} />
