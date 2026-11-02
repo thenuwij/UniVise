@@ -6,11 +6,11 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-8B949E?style=flat-square&labelColor=0D1117&logo=postgresql&logoColor=8B949E)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-8B949E?style=flat-square&labelColor=0D1117&logo=awslambda&logoColor=8B949E)
 
-UniVise is an AI-powered academic and career planning platform for UNSW students. Based on your program and career interests, it recommends which courses to take next and helps you find relevant jobs, internships and networking opportunities in Sydney.
+UniVise is an AI-powered academic and career planning platform for UNSW students. Based on your program and career interests, it recommends which courses to take next and helps you find relevant jobs, internships and networking opportunities in Australia.
 
 Built as an Honours research thesis at UNSW Sydney on how AI can connect university courses, majors and career choices.
 
-The system only supports current UNSW programs.
+The system only supports current UNSW undergraduate programs.
 
 ## Key Features
 
