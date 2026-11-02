@@ -18,7 +18,7 @@ const FILTERS = [
 
 function SocietyRow({ society, link }) {
   return (
-    <li className="rounded-2xl bg-gradient-to-b from-white to-slate-50 p-5 shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-900/60 dark:ring-slate-800">
+    <li className="rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50/50 px-6 py-5 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-lg font-semibold text-ink-strong leading-snug">{society.name}</p>
         <div className="flex items-center gap-2">
@@ -78,7 +78,7 @@ export default function SocietiesTab({ societies }) {
           ))}
         </div>
       </div>
-      <ul className="mt-5 space-y-4">
+      <ul className="mt-5 space-y-3">
         {shown.map((society) => (
           <SocietyRow key={`${society.kind}-${society.name}`} society={society} link={findLink(links, society.name)} />
         ))}

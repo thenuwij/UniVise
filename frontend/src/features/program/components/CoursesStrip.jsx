@@ -8,7 +8,7 @@ export default function CoursesStrip({ degreeCode, version, onOpen }) {
   const percent = progress?.minimum ? Math.min(100, Math.round((progress.uoc / progress.minimum) * 100)) : null;
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-5 py-2.5 shadow-sm dark:bg-slate-900">
+    <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line pb-4">
       <div className="min-w-[220px] flex-1">
         {progress?.count > 0 ? (
           <>

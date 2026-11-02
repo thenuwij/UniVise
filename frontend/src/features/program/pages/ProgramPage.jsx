@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
+import { ExternalLink } from "lucide-react";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
 import { formatDuration } from "@/shared/lib/format";
@@ -209,7 +210,6 @@ export default function ProgramPage() {
             <MakeMyProgramButton degreeCode={degreeCode} programName={programName} />
           )}
           <ProgramHeaderMenu
-            handbookLink={handbookLink}
             onTour={data ? () => setShowSectionGuide(true) : null}
             onExplore={() => navigate("/roadmap")}
           />
@@ -222,6 +222,13 @@ export default function ProgramPage() {
     >
       <div className="mt-2 flex flex-col gap-2 text-[15px] text-band-soft">
         <p className="min-w-0">{headerFacts.join(" · ")}</p>
+        {handbookLink && (
+          <p>
+            <a href={handbookLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-band-ink underline underline-offset-4">
+              Full program rules on UNSW Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </p>
+        )}
       </div>
     </PageHeader>
   );

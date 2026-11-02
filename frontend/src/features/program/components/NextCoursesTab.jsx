@@ -49,7 +49,7 @@ function PickRow({ pick, plan, onOpenCourses, onOpenCourseMesh }) {
   const unlocks = pick.unlocks?.length || 0;
   const meta = [pick.core && "Core", unlocks > 0 && `Unlocks ${unlocks} course${unlocks === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
   return (
-    <li className="rounded-2xl bg-gradient-to-b from-white to-slate-50 p-5 shadow-sm ring-1 ring-slate-200 dark:from-slate-900 dark:to-slate-900/60 dark:ring-slate-800">
+    <li className="rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50/50 px-6 py-5 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-lg font-semibold leading-snug text-ink-strong">
@@ -76,7 +76,7 @@ function PickRow({ pick, plan, onOpenCourses, onOpenCourseMesh }) {
         <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="font-medium text-ink-muted hover:text-link hover:underline">
           See in CourseMesh
         </button>
-        <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-ink-muted hover:text-link hover:underline">
+        <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-link hover:underline">
           Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>
@@ -157,7 +157,7 @@ export default function NextCoursesTab({ degreeCode, isOwnProgram, onOpenCourses
         </div>
       )}
       {shown.length > 0 ? (
-        <ul className="mt-5 space-y-4">
+        <ul className="mt-5 space-y-3">
           {shown.map((pick) => (
             <PickRow key={pick.code} pick={pick} plan={plan} onOpenCourses={onOpenCourses} onOpenCourseMesh={onOpenCourseMesh} />
           ))}
@@ -182,7 +182,7 @@ export default function NextCoursesTab({ degreeCode, isOwnProgram, onOpenCourses
                 </span>
                 <div className="ml-auto flex flex-wrap justify-end gap-x-5 gap-y-2 text-sm font-semibold">
                   <PlanAction course={course} plan={plan} onOpenCourses={onOpenCourses} />
-                  <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="text-link hover:underline">
+                  <button type="button" onClick={() => onOpenCourseMesh(course.code)} className="font-medium text-ink-muted hover:text-link hover:underline">
                     See in CourseMesh
                   </button>
                   <a href={handbookUrl("courses", course.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
