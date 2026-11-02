@@ -1,22 +1,11 @@
 import { useEffect, useState } from "react";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
+import { useCareersFeed } from "@/features/career/hooks/useCareersFeed";
 import { fetchMatchingRoadmap } from "@/features/program/utils/roadmapEntry";
 import { fetchSpecialisationIds } from "@/features/program/utils/programCourses";
-import { mergeListings } from "@/features/career/utils/careersListings";
 import { fetchSocietyLinks, findLink } from "@/features/program/utils/societyLinks";
-
-function summariseFeed(feed) {
-  const sources = Object.fromEntries((feed?.sources || []).map((s) => [s.source, s]));
-  const items = (key, kind) => (sources[key]?.items || []).filter((item) => !kind || item.kind === kind);
-  const jobs = mergeListings(items("ai_jobs"), items("adzuna", "job"));
-  const events = items("ai_networking").filter((item) => item.kind !== "calendar");
-  return {
-    jobs: jobs.length,
-    internships: mergeListings(items("ai_internships"), items("adzuna", "internship")).length,
-    events: events.length,
-  };
-}
+import { summariseSources } from "../utils/careerSummary";
 
 function summariseRoadmap(payload, completedCodes, links) {
   const societies = [...(payload?.industry_societies?.faculty_specific || []), ...(payload?.industry_societies?.cross_faculty || [])];
@@ -38,8 +27,10 @@ export function useHomePreview(facts) {
   const program = facts?.program;
   const [picks, setPicks] = useState(null);
   const [roadmap, setRoadmap] = useState(null);
-  const [career, setCareer] = useState(null);
+  const [roadmapId, setRoadmapId] = useState(null);
+  const [careerProblem, setCareerProblem] = useState(null);
   const [cert, setCert] = useState(undefined);
+  const { sources, loadFailed, retryLoad } = useCareersFeed(roadmapId);
 
   useEffect(() => {
     if (!program || facts?.failed || !token) return;
@@ -66,22 +57,25 @@ export function useHomePreview(facts) {
       setRoadmap(found ? summariseRoadmap(found.payload, facts.completedCodes || [], links) : { societies: [], placement: null });
       if (!found) {
         setCert(null);
-        return setCareer({ missing: true });
+        return setCareerProblem("missing");
       }
+      setRoadmapId(found.id);
       apiJson(`/careers/certifications?roadmap_id=${encodeURIComponent(found.id)}`, { token })
         .then((data) => {
           const count = (data.groups || []).reduce((sum, g) => sum + g.certifications.length, 0);
           if (active) setCert({ count });
         })
         .catch(() => active && setCert(null));
-      const feed = await apiJson(`/careers/feed?roadmap_id=${encodeURIComponent(found.id)}`, { token });
-      if (active) setCareer(summariseFeed(feed));
     })().catch((err) => {
       console.error("Dashboard preview failed:", err);
-      if (active) setCareer((c) => c || { failed: true });
+      if (active) setCareerProblem("failed");
     });
     return () => { active = false; };
   }, [program, facts?.failed, facts?.completedCodes, userId, token]);
 
-  return { picks, roadmap, career, cert };
+  let career = sources ? summariseSources(sources) : null;
+  if (careerProblem === "missing") career = { missing: true };
+  else if (careerProblem === "failed" || loadFailed) career = { failed: true };
+
+  return { picks, roadmap, career, cert, retryCareer: retryLoad };
 }

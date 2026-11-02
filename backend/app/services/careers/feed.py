@@ -8,7 +8,7 @@ SOURCES = ("adzuna", "ai_jobs", "ai_internships", "ai_networking")
 MANUAL_SOURCES = ("ai_jobs", "ai_internships")
 SYDNEY = ZoneInfo("Australia/Sydney")
 RUNNING_FOR = timedelta(minutes=3)
-RETRY_FAILED_AFTER = timedelta(hours=1)
+RETRY_FAILED_AFTER = timedelta(minutes=5)
 
 
 def sydney_today() -> date:

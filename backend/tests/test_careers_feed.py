@@ -48,11 +48,11 @@ def test_running_refresh_blocks_another_until_it_times_out():
     assert source_state("adzuna", stuck, TODAY)["stale"] is True
 
 
-def test_failed_refresh_waits_an_hour_before_retrying():
-    failed = {"status": "failed", "failed_at": ago(minutes=20), "refresh_day": "2026-10-20", "refreshed_at": ago(days=1)}
+def test_failed_refresh_waits_five_minutes_before_retrying():
+    failed = {"status": "failed", "failed_at": ago(minutes=2), "refresh_day": "2026-10-20", "refreshed_at": ago(days=1)}
     state = source_state("ai_networking", failed, TODAY)
     assert state["status"] == "failed" and not state["stale"]
-    assert source_state("ai_networking", {**failed, "failed_at": ago(hours=2)}, TODAY)["stale"]
+    assert source_state("ai_networking", {**failed, "failed_at": ago(minutes=10)}, TODAY)["stale"]
 
 
 def test_web_event_must_be_a_searched_page_and_not_a_search_page():

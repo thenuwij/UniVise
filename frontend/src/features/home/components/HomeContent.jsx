@@ -135,8 +135,16 @@ function CareerRow({ to, icon: Icon, tone = "blue", label, value, valueClass }) 
   );
 }
 
-function CareerWeek({ roadmap, career, cert }) {
+function careerRowValue({ state, count }) {
+  if (state === "loading") return <Shimmer className="h-5 w-8" />;
+  if (state === "failed") return <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Couldn't load</span>;
+  if (state === "empty") return <span className="text-sm font-medium text-slate-500 dark:text-slate-400">None right now</span>;
+  return count;
+}
+
+function CareerWeek({ roadmap, career, cert, onRetry }) {
   const ready = career && !career.failed && !career.missing;
+  const canRetry = career?.failed || (ready && [career.jobs, career.internships, career.events].some((row) => row.state === "failed"));
   return (
     <section className={card} aria-labelledby="home-career" data-tour="dash-career">
       <SectionHead id="home-career" title="Your career this week" to={roadmapViewUrl("careers")} linkText="My Career ›" />
@@ -144,9 +152,9 @@ function CareerWeek({ roadmap, career, cert }) {
         {!career && [0, 1, 2].map((i) => <li key={i} className="border-t border-slate-200 py-4 dark:border-slate-800"><Shimmer /></li>)}
         {ready && (
           <>
-            <CareerRow to={careerSectionUrl("jobs")} icon={BriefcaseBusiness} label="Jobs hiring now" value={career.jobs} />
-            <CareerRow to={careerSectionUrl("internships")} icon={Building2} label="Internships open" value={career.internships} />
-            <CareerRow to={careerSectionUrl("networking")} icon={CalendarDays} label="Networking events coming up" value={career.events} />
+            <CareerRow to={careerSectionUrl("jobs")} icon={BriefcaseBusiness} label="Jobs hiring now" value={careerRowValue(career.jobs)} />
+            <CareerRow to={careerSectionUrl("internships")} icon={Building2} label="Internships open" value={careerRowValue(career.internships)} />
+            <CareerRow to={careerSectionUrl("networking")} icon={CalendarDays} label="Networking events coming up" value={careerRowValue(career.events)} />
           </>
         )}
         {cert !== undefined && cert?.count > 0 && (
@@ -163,6 +171,9 @@ function CareerWeek({ roadmap, career, cert }) {
           <CareerRow to={roadmapViewUrl("careers")} icon={BriefcaseBusiness} label="See jobs, internships and events" value="" />
         )}
       </ul>
+      {canRetry && (
+        <button type="button" onClick={onRetry} className="mt-2 text-sm font-semibold text-link hover:underline">Try again</button>
+      )}
     </section>
   );
 }
@@ -197,7 +208,7 @@ function Societies({ roadmap }) {
 }
 
 export default function HomeContent({ facts, greeting, today, dayLine, onHelp }) {
-  const { picks, roadmap, career, cert } = useHomePreview(facts);
+  const { picks, roadmap, career, cert, retryCareer } = useHomePreview(facts);
 
   return (
     <div className="space-y-12">
@@ -210,7 +221,7 @@ export default function HomeContent({ facts, greeting, today, dayLine, onHelp })
         <>
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <NextCourses facts={facts} picks={picks} />
-            <CareerWeek roadmap={roadmap} career={career} cert={cert} />
+            <CareerWeek roadmap={roadmap} career={career} cert={cert} onRetry={retryCareer} />
           </div>
           <Societies roadmap={roadmap} />
         </>
