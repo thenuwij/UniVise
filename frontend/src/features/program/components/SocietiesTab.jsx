@@ -30,7 +30,7 @@ function SocietyRow({ society, link }) {
       </div>
       {society.why && <p className="mt-1.5 text-[15px] text-slate-700 dark:text-slate-300">{society.why}</p>}
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
-        <a href={link?.url || ARC_CLUB_SEARCH} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+        <a href={link?.url || ARC_CLUB_SEARCH} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-100 px-3.5 text-blue-900 transition-colors hover:bg-blue-200 dark:border-blue-700 dark:bg-blue-900/50 dark:text-blue-100 dark:hover:bg-blue-900">
           {link ? (link.isWebsite ? "Official website" : "Page on Rubric") : "Find on Arc"} <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>

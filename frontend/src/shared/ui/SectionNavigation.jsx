@@ -30,7 +30,7 @@ export default function SectionNavigation({ sections, activeIndex, onChange, lab
               aria-current={index === activeIndex ? "page" : undefined}
               onClick={() => onChange(index)}
               className={`relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-2 rounded-xl px-1 py-3 text-[11px] transition-[color,background-color,box-shadow] focus-visible:outline focus-visible:outline-3 focus-visible:outline-blue-300 ${sections.length === 5 ? "sm:text-xs" : "sm:text-sm"} lg:min-h-14 lg:flex-row lg:justify-start lg:gap-3 lg:px-4 lg:text-base ${index === activeIndex
-                ? "bg-blue-100 font-semibold text-blue-800 dark:bg-blue-900/50 dark:text-blue-100 lg:shadow-sm lg:before:absolute lg:before:inset-y-3 lg:before:left-0 lg:before:w-1 lg:before:rounded-full lg:before:bg-blue-600 dark:lg:before:bg-blue-400"
+                ? "bg-blue-100 font-semibold text-blue-800 dark:bg-blue-900/50 dark:text-blue-100"
                 : "font-medium text-ink-muted hover:bg-blue-50 hover:text-blue-800 lg:text-ink-strong dark:hover:bg-blue-950 dark:hover:text-blue-100"}`}
             >
               <Icon aria-hidden="true" className="h-5 w-5 shrink-0" />
