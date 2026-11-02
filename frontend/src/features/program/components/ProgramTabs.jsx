@@ -62,7 +62,7 @@ export default function ProgramTabs({ steps = [], activeIndex = 0, onChange, hea
       {!sectionNavigation && <StepBar steps={steps} activeIndex={activeIndex} onChange={goTo} />}
 
       <div className={`${CONTAINER} pb-12 ${sectionNavigation ? "grid items-start gap-6 lg:grid-cols-[208px_minmax(0,1fr)] lg:gap-8 lg:pt-8" : "pt-8"}`}>
-        {sectionNavigation && <SectionNavigation sections={steps.map((step) => ({ ...step, icon: SECTION_ICONS[step.key] }))} activeIndex={activeIndex} onChange={goTo} label="Program sections" heading="IN THIS PROGRAM" tourPrefix="roadmap-section" />}
+        {sectionNavigation && <SectionNavigation sections={steps.map((step) => ({ ...step, icon: SECTION_ICONS[step.key] }))} activeIndex={activeIndex} onChange={goTo} label="Program sections" heading="In this program" tourPrefix="roadmap-section" />}
         <div className="min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
