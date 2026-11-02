@@ -19,7 +19,7 @@ import "../careers.css";
 const SOURCE_LABELS = { adzuna: "Adzuna", ai_jobs: "Top picks", ai_internships: "Top picks", ai_networking: "Web search" };
 
 const TOP_PICKS = ["ai_jobs", "ai_internships"];
-const SEARCH_AGAIN_AFTER_MS = 30 * 60 * 1000;
+const SEARCH_AGAIN_AFTER_MS = 24 * 60 * 60 * 1000;
 
 const hasPart =(data, key) => !!data?.[key] && Object.keys(data[key]).length > 0;
 
@@ -61,7 +61,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
     return {
       running,
       disabled: !sources || running || recent,
-      title: recent ? "Searched in the last 30 minutes. You can search again soon." : "Search for new listings now",
+      title: recent ? "Searched in the last 24 hours. You can search again after that." : "Search for new listings now",
       onClick: () => keys.forEach((key) => refresh(key, true)),
     };
   };
