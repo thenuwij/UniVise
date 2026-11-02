@@ -20,6 +20,7 @@ export default forwardRef(function GraphControls({
   graphRef,
   setFrozen,
   onHelp,
+  legend = null,
 }, ref) {
   const layoutControlsRef = useRef(null);
 
@@ -29,7 +30,8 @@ export default forwardRef(function GraphControls({
 
   return (
     <div className="border-b border-line bg-surface">
-      <div className="px-4 py-1.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      <div className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        {legend}
         <div data-tour="view-tools" className="flex flex-wrap items-center gap-2">
           {graphHistory?.current?.length > 0 && (
             <>

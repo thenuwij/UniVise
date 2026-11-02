@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { UserAuth } from "@/app/AuthContext";
 import { apiJson } from "@/shared/lib/api";
 
-export const MYPLAN_URL = "https://myplan.unsw.edu.au/app/home";
-
 export function useCoursePicks(enabled = true) {
   const { session } = UserAuth();
   const token = session?.access_token;
