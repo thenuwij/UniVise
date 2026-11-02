@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
 import AppNav from "@/shared/layout/AppNav";
 import PageHeader from "@/shared/layout/PageHeader";
-import { bandLink } from "@/shared/ui/cardStyles";
+import ProgramHeaderMenu from "@/features/program/components/ProgramHeaderMenu";
 import RoadmapStatus from "@/features/program/components/RoadmapStatus";
 import SaveProgramButton from "@/features/program/components/SaveProgramButton";
 import { useDegree } from "@/features/program/hooks/useDegree";
@@ -32,10 +32,8 @@ export default function CareerPage() {
         back={isOwnProgram ? undefined : { label: "Back to My Career", onClick: () => navigate(roadmapViewUrl("careers")) }}
         actions={
           <>
-            <SaveProgramButton degreeCode={header.degree_code} degree={degree} programName={programName} />
-            <button onClick={() => navigate("/roadmap?view=careers")} className={bandLink}>
-              Explore a different degree
-            </button>
+            {!isOwnProgram && <SaveProgramButton degreeCode={header.degree_code} degree={degree} programName={programName} />}
+            <ProgramHeaderMenu onExplore={() => navigate("/roadmap?view=careers")} />
           </>
         }
         eyebrow={isOwnProgram ? "My Career" : "Exploring careers"}

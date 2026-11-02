@@ -50,7 +50,7 @@ export default function JobsSection({ jobs, savedIds, onToggleSave }) {
       <div className="space-y-10">
         {shown.map((group) => (
           <section key={group.title}>
-            <SubLabel hint={`${group.ads.length} open ad${group.ads.length === 1 ? "" : "s"}, newest first`}>{group.title}</SubLabel>
+            <SubLabel>{group.title}</SubLabel>
             <div className="mt-3">
               <AdRows ads={group.ads} savedIds={savedIds} onToggleSave={onToggleSave} />
             </div>

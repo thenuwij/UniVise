@@ -241,7 +241,7 @@ export default function CareersContent({ roadmapId, data, sectionsStatus, onRetr
         activeIndex={activeIndex}
         onChange={(index) => openSection(sections[index].id)}
         label="Career sections"
-        heading="IN MY CAREER"
+        heading="In my career"
       />
       <div className="min-w-0 [&>.careers-section]:pt-0">
         {banner}

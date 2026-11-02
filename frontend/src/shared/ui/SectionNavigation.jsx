@@ -16,7 +16,7 @@ export default function SectionNavigation({ sections, activeIndex, onChange, lab
 
   return (
     <nav aria-label={label} onKeyDown={handleKeyDown} className="sticky top-0 z-20 -mx-5 border-b border-line bg-surface px-2 py-2 md:-mx-10 lg:top-6 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
-      <p className="hidden px-3 pb-4 text-sm font-semibold tracking-wide text-ink-strong lg:block">{heading}</p>
+      <p className="hidden px-3 pb-3 pt-1 text-sm font-semibold text-ink-muted lg:block">{heading}</p>
       <div className={`grid gap-1 lg:flex lg:flex-col lg:gap-2 ${sections.length === 5 ? "grid-cols-5" : "grid-cols-4"}`}>
         {sections.map((step, index) => {
           const Icon = step.icon || BookOpen;
@@ -30,12 +30,14 @@ export default function SectionNavigation({ sections, activeIndex, onChange, lab
               aria-current={index === activeIndex ? "page" : undefined}
               onClick={() => onChange(index)}
               className={`relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-2 rounded-xl px-1 py-3 text-[11px] transition-[color,background-color,box-shadow] focus-visible:outline focus-visible:outline-3 focus-visible:outline-blue-300 ${sections.length === 5 ? "sm:text-xs" : "sm:text-sm"} lg:min-h-14 lg:flex-row lg:justify-start lg:gap-3 lg:px-4 lg:text-base ${index === activeIndex
-                ? "bg-blue-100 font-semibold text-blue-800 dark:bg-blue-900/50 dark:text-blue-100"
-                : "font-medium text-ink-muted hover:bg-blue-50 hover:text-blue-800 lg:text-ink-strong dark:hover:bg-blue-950 dark:hover:text-blue-100"}`}
+                ? "bg-blue-600 font-semibold text-white shadow-sm dark:bg-blue-500"
+                : "font-medium text-ink-muted hover:bg-slate-100 hover:text-ink-strong lg:text-ink-strong dark:hover:bg-slate-800"}`}
             >
-              <Icon aria-hidden="true" className="h-5 w-5 shrink-0" />
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${index === activeIndex ? "bg-white/20 text-white" : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"}`}>
+                <Icon aria-hidden="true" className="h-[18px] w-[18px]" />
+              </span>
               {step.mobileTitle ? <><span className="sm:hidden">{step.mobileTitle}</span><span className="hidden sm:inline">{step.navTitle || step.title}</span></> : (step.navTitle || step.title)}
-              {step.meta != null && <span className="ml-auto hidden text-xs font-medium opacity-75 lg:inline">{step.meta}</span>}
+              {step.meta != null && <span className={`ml-auto hidden rounded-full px-2 py-0.5 text-xs font-semibold lg:inline ${index === activeIndex ? "bg-white/20 text-white" : "bg-slate-100 text-ink-muted dark:bg-slate-800"}`}>{step.meta}</span>}
             </button>
           );
         })}

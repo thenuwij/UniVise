@@ -193,7 +193,7 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
         <ProgramColumn facts={facts} picks={picks} />
         <CareerColumn career={career} onRetry={retryCareer} />
       </div>
-      <div className="home-rise home-rise-3 relative border-t border-slate-200 pt-8 dark:border-slate-800">
+      <div className="home-rise home-rise-3 relative rounded-3xl bg-gradient-to-br from-blue-50 via-white to-indigo-50/60 p-6 sm:px-8 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/40">
         <div className="flex flex-wrap items-center gap-5">
           <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-blue to-brand-indigo text-white" aria-hidden="true">
             <MessageCircle className="h-6 w-6" />
@@ -202,7 +202,7 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
             <span className={`${display} block text-xl font-extrabold text-ink-strong`}>Not sure where to start?</span>
             <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-300">Ask Eunice, your academic and career adviser, about your degree, courses or jobs.</span>
           </span>
-          <Link to="/chat" className="button-primary group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl px-8 text-lg font-semibold text-white sm:w-72">
+          <Link to="/chat" className="button-primary group inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold text-white">
             Ask Eunice
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
