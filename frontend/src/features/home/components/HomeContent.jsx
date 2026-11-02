@@ -1,9 +1,12 @@
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BriefcaseBusiness, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useHomePreview } from "../hooks/useHomePreview";
+import StudyGuide from "./StudyGuide";
 import DegreeEditMenu from "./DegreeEditMenu";
 
+const STUDY_GUIDE_KEY = "univise-study-guide-seen";
 const display = "font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui] tracking-tight";
 
 function Shimmer({ className = "h-5" }) {
@@ -133,6 +136,21 @@ function CareerColumn({ career, onRetry }) {
 
 export default function HomeContent({ facts, greeting, today, onHelp }) {
   const { picks, career, retryCareer } = useHomePreview(facts);
+  const [showStudyGuide, setShowStudyGuide] = useState(() => {
+    try {
+      return !localStorage.getItem(STUDY_GUIDE_KEY);
+    } catch {
+      return true;
+    }
+  });
+  const closeStudyGuide = useCallback(() => {
+    setShowStudyGuide(false);
+    try {
+      localStorage.setItem(STUDY_GUIDE_KEY, "1");
+    } catch {
+      return;
+    }
+  }, []);
   const { program, specNames = [] } = facts;
 
   return (
@@ -149,6 +167,9 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setShowStudyGuide(true)} className="rounded-xl px-4 py-2 text-sm font-semibold text-link ring-1 ring-line hover:bg-surface-tint">
+            Test guide
+          </button>
           <div data-tour="dash-edit">
             <DegreeEditMenu degreeCode={program.degree_code} canChangeSpecialisation={!facts.failed && facts.hasSpecOptions} />
           </div>
@@ -162,6 +183,7 @@ export default function HomeContent({ facts, greeting, today, onHelp }) {
           Your details couldn't be loaded. You can still open <Link to={roadmapViewUrl("degree")} className="font-semibold text-link hover:underline">My Program</Link> or <Link to={roadmapViewUrl("careers")} className="font-semibold text-link hover:underline">My Career</Link>.
         </p>
       )}
+      {showStudyGuide && <StudyGuide onClose={closeStudyGuide} />}
       <div className="grid gap-8 lg:grid-cols-2">
         <ProgramColumn facts={facts} picks={picks} />
         <CareerColumn career={career} onRetry={retryCareer} />
