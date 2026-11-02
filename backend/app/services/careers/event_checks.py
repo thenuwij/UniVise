@@ -50,7 +50,7 @@ async def page_is_live(client: httpx.AsyncClient, url: str) -> bool:
         response = await client.get(url)
     except httpx.HTTPError:
         return False
-    if response.status_code == 403:
+    if response.status_code in (403, 429):
         return True
     return response.status_code == 200 and not ENDED.search(response.text)
 

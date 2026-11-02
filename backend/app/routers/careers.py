@@ -29,7 +29,7 @@ async def refresh_careers_source(body: CareersRefreshReq, user=Depends(get_curre
         raise HTTPException(status_code=404, detail="Roadmap not found")
     if not await asyncio.to_thread(owns_program, str(user.id), roadmap.get("degree_code")):
         raise HTTPException(status_code=403, detail="Careers updates are only for your own program")
-    return await refresh_source(roadmap, body.source)
+    return await refresh_source(roadmap, body.source, body.manual)
 
 
 @router.get("/careers/certifications", response_model=CareerCertificationsResponse)

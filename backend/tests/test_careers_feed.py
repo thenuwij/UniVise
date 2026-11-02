@@ -4,10 +4,13 @@ from app.services.careers.adzuna import broad_searches, listing, role_searches, 
 from app.services.careers.event_checks import event_date, is_list_page, merge_events
 from app.services.careers.feed import degree_key, source_state
 import asyncio
+import json
+
+import pytest
+
 
 from app.services.careers import job_titles, refresh, top_picks
 from app.services.careers.search_words import is_early_career
-from app.services.careers.top_picks import backup_cards, field_slug, listing_pages, parse_cards, parse_picks
 from app.services.careers.web_search import keep_listing, page_key
 
 TODAY = date(2026, 10, 21)
@@ -131,63 +134,6 @@ def test_list_pages_are_not_single_events():
     assert not is_list_page("https://www.events.unsw.edu.au/event/impact-x-showcase-2026")
 
 
-def test_top_pick_pages_use_seek_for_each_role_and_the_field():
-    roles = [{"ad_search": "ict support"}, {"ad_search": "network engineer"}, {"ad_search": "electronics engineer"}]
-    degree = "Computer Engineering"
-    assert field_slug(degree) == "computer-engineering"
-    assert field_slug("Bachelor of Science (Computer Science) / Bachelor of Arts") == "computer-science"
-    assert field_slug("Computer Science (Artificial Intelligence)") == "computer-science"
-    assert field_slug("Bachelor of Medical Studies - BMed Doctor of Medicine - MD") == "medical-studies"
-    assert field_slug("Bachelor of Social Work (Honours) - BSW (Hons)") == "social-work"
-    assert field_slug("Bachelor of Engineering (Honours)") == "engineering"
-    assert listing_pages("ai_jobs", degree, roles) == [
-        "https://www.seek.com.au/graduate-ict-support-jobs/in-All-Australia",
-        "https://www.seek.com.au/graduate-network-engineer-jobs/in-All-Australia",
-        "https://www.seek.com.au/graduate-electronics-engineer-jobs/in-All-Australia",
-    ]
-    assert listing_pages("ai_internships", degree, roles)[0] == "https://www.seek.com.au/computer-engineering-internship-jobs/in-All-Australia"
-    pages = listing_pages("ai_jobs", degree, roles)
-    cards = parse_cards(
-        "1 | IT Intern | Bromic | Sydney NSW | 7d ago | /job/95249181?type=standard\n"
-        "2 | IT Intern | Bromic | Sydney NSW | 7d ago | /job/95249181\n"
-        "Here are the cards:\n"
-        "3 | Graduate Electronics Engineer | Vertiv | Sydney | - | https://www.seek.com.au/job/95111111",
-        pages,
-    )
-    assert [c["url"] for c in cards] == ["https://www.seek.com.au/job/95249181?type=standard", "https://www.seek.com.au/job/95111111"]
-    assert cards[1]["date_label"] == "" and cards[0]["source_site"] == "SEEK"
-    assert parse_picks("Picks: [1, 0, 1, 7]", 2) == [1, 0]
-
-
-def test_backup_cards_add_adzuna_listings_without_duplicates():
-    cards = [{"title": "Graduate Engineer", "organisation": "Arup", "location": "Sydney", "date_label": "", "url": "https://www.seek.com.au/job/1", "source_site": "SEEK"}]
-    backup = [
-        {"title": "graduate engineer", "organisation": "ARUP", "url": "https://adzuna.com.au/1"},
-        {"title": "Site Engineer", "organisation": "Lendlease", "location": "Sydney", "url": "https://adzuna.com.au/2", "source_site": "Adzuna"},
-        {"title": "No link", "organisation": "X"},
-    ]
-    merged = backup_cards(cards, backup)
-    assert [c["title"] for c in merged] == ["Graduate Engineer", "Site Engineer"]
-    assert merged[1]["source_site"] == "Adzuna"
-
-
-def test_top_picks_fall_back_to_adzuna_when_job_sites_block(monkeypatch):
-    async def blocked(prompt, page_count, model):
-        return "All pages failed to load."
-
-    async def judge(prompt, model):
-        return "[0]"
-
-    monkeypatch.setattr(top_picks, "read_web_pages", blocked)
-    monkeypatch.setattr(top_picks, "ask_claude_text", judge)
-    roles = [{"title": "Civil Engineer", "ad_search": "civil engineer"}]
-    backup = [{"title": "Graduate Civil Engineer", "organisation": "Aurecon", "location": "Sydney", "url": "https://adzuna.com.au/9"}]
-    picks = asyncio.run(top_picks.fetch_top_picks("ai_jobs", "Civil Engineering", "Civil Engineering", roles, date(2026, 10, 22), backup))
-    assert [p["title"] for p in picks] == ["Graduate Civil Engineer"]
-    assert picks[0]["source_site"] == "Adzuna" and picks[0]["kind"] == "job"
-
-
-
 def test_refresh_waits_until_the_plan_has_career_roles(monkeypatch):
     claims = []
     monkeypatch.setattr(refresh, "read_feed", lambda key: {})
@@ -244,3 +190,65 @@ def test_job_searches_keep_plan_roles_when_suggestions_fail(monkeypatch):
     monkeypatch.setattr(job_titles, "ask_gpt_structured", fail)
     plan = [{"title": "Graduate ICT Support Engineer", "ad_search": "ict support"}]
     assert asyncio.run(job_titles.job_search_roles("Computer Engineering", plan)) == plan
+
+
+def search_again_setup(monkeypatch, claimed):
+    runs = []
+    async def run(*args):
+        runs.append(args)
+    monkeypatch.setattr(refresh, "read_feed", lambda key: {"adzuna": {"status": "idle", "items": []}})
+    monkeypatch.setattr(refresh, "claim_search_again", lambda key, source: claimed)
+    monkeypatch.setattr(refresh, "run_refresh", run)
+    return runs, {"degree_code": "3707", "payload": {"career_pathways": {"entry_level": {"roles": [{"ad_search": "software engineer"}]}}}}
+
+
+def test_search_again_runs_when_the_cooldown_has_passed(monkeypatch):
+    runs, roadmap = search_again_setup(monkeypatch, True)
+    asyncio.run(refresh.refresh_source(roadmap, "adzuna", manual=True))
+    assert len(runs) == 1
+
+
+def test_search_again_does_nothing_during_the_cooldown(monkeypatch):
+    runs, roadmap = search_again_setup(monkeypatch, False)
+    asyncio.run(refresh.refresh_source(roadmap, "adzuna", manual=True))
+    assert runs == []
+
+
+def test_top_picks_use_web_search_and_keep_only_pages_it_found(monkeypatch):
+    found = {"title": "Graduate Civil Engineer", "organisation": "Arup", "location": "Sydney", "url": "https://arup.com/jobs/1", "source_site": "Arup", "date_label": ""}
+    made_up = {**found, "title": "Made Up Job", "url": "https://fake.example/1"}
+    async def web(*args, **kwargs):
+        return f"Here you go: {json.dumps([found, made_up])}", ["https://arup.com/jobs/1"]
+    async def live(client, url):
+        return True
+    monkeypatch.setattr(top_picks, "ask_claude_web_search", web)
+    monkeypatch.setattr(top_picks, "page_is_live", live)
+    picks = asyncio.run(top_picks.fetch_top_picks("ai_jobs", "Civil Engineering", [], date(2026, 11, 2)))
+    assert [p["title"] for p in picks] == ["Graduate Civil Engineer"]
+    assert picks[0]["kind"] == "job"
+
+
+def test_top_picks_drop_dead_links(monkeypatch):
+    found = {"title": "Closed Job", "organisation": "Arup", "url": "https://arup.com/jobs/1"}
+    async def web(*args, **kwargs):
+        return json.dumps([found]), ["https://arup.com/jobs/1"]
+    async def dead(client, url):
+        return False
+    monkeypatch.setattr(top_picks, "ask_claude_web_search", web)
+    monkeypatch.setattr(top_picks, "page_is_live", dead)
+    with pytest.raises(ValueError):
+        asyncio.run(top_picks.fetch_top_picks("ai_jobs", "Civil Engineering", [], date(2026, 11, 2)))
+
+
+def test_top_picks_fail_when_the_web_search_finds_nothing(monkeypatch):
+    async def web(*args, **kwargs):
+        return "[]", []
+    monkeypatch.setattr(top_picks, "ask_claude_web_search", web)
+    with pytest.raises(ValueError):
+        asyncio.run(top_picks.fetch_top_picks("ai_jobs", "Civil Engineering", [], date(2026, 11, 2)))
+
+
+
+def test_job_board_list_pages_are_not_treated_as_single_jobs():
+    for url in ["https://au.indeed.com/q-mechanical-graduate-jobs.html", "https://au.indeed.com/Mechanical-Product-jobs-in-Brisbane-QLD"]:
+        assert not keep_listing(url, {page_key(url)})

@@ -6,9 +6,11 @@ from app.services.careers.adzuna import fetch_adzuna_listings
 from app.services.careers.event_checks import check_events, merge_events
 from app.services.careers.feed import (
     MANUAL_SOURCES,
+    SEARCH_AGAIN_SOURCES,
     SOURCES,
     adzuna_refreshes_today,
     claim_refresh,
+    claim_search_again,
     degree_label,
     specialisation_names,
     degree_key,
@@ -21,7 +23,7 @@ from app.services.careers.feed import (
 )
 from app.services.careers.job_titles import job_search_roles
 from app.services.careers.relevance import keep_relevant
-from app.services.careers.top_picks import KINDS, fetch_top_picks
+from app.services.careers.top_picks import fetch_top_picks
 from app.services.careers.web_search import fetch_web_events
 
 logger = logging.getLogger(__name__)
@@ -39,17 +41,6 @@ def feed_response(roadmap: Dict[str, Any]) -> Dict[str, Any]:
     return {"degree_key": key, "sources": [source_state(source, rows.get(source), today) for source in SOURCES]}
 
 
-async def adzuna_backup(roadmap: Dict[str, Any], roles: list, today) -> list:
-    saved = ((await asyncio.to_thread(read_feed, degree_key(roadmap))).get("adzuna") or {}).get("items") or []
-    if saved:
-        return saved
-    try:
-        return await fetch_adzuna_listings(roles, await asyncio.to_thread(adzuna_refreshes_today, today))
-    except Exception:
-        logger.warning("[careers_feed] Adzuna backup for top picks unavailable")
-        return []
-
-
 async def fetch_listings(source: str, roadmap: Dict[str, Any], today, previous: list) -> list:
     roles = entry_roles(roadmap)
     names = await asyncio.to_thread(specialisation_names, roadmap)
@@ -57,10 +48,7 @@ async def fetch_listings(source: str, roadmap: Dict[str, Any], today, previous: 
     if source != "ai_networking":
         roles = await job_search_roles(program_name, roles)
     if source in MANUAL_SOURCES:
-        field_name = names[0] if names else roadmap.get("program_name") or ""
-        backup = await adzuna_backup(roadmap, roles, today)
-        kind = KINDS[source]
-        return await fetch_top_picks(source, program_name, field_name, roles, today, [i for i in backup if i.get("kind") == kind])
+        return await fetch_top_picks(source, program_name, roles, today)
     if source == "adzuna":
         refreshes = await asyncio.to_thread(adzuna_refreshes_today, today)
         return await keep_relevant(await fetch_adzuna_listings(roles, refreshes), program_name, roles)
@@ -78,12 +66,17 @@ async def run_refresh(roadmap: Dict[str, Any], source: str, key: str, today) -> 
         await asyncio.to_thread(mark_failed, key, source, f"{type(e).__name__}: {e}")
 
 
-async def refresh_source(roadmap: Dict[str, Any], source: str) -> Dict[str, Any]:
+async def refresh_source(roadmap: Dict[str, Any], source: str, manual: bool = False) -> Dict[str, Any]:
     key = degree_key(roadmap)
     today = sydney_today()
     existing = (await asyncio.to_thread(read_feed, key)).get(source) or {}
     if not entry_roles(roadmap):
         return source_state(source, existing or None, today)
+    if manual and source in SEARCH_AGAIN_SOURCES and existing:
+        if await asyncio.to_thread(claim_search_again, key, source):
+            await run_refresh(roadmap, source, key, today)
+        rows = await asyncio.to_thread(read_feed, key)
+        return source_state(source, rows.get(source), today)
     already_made = source in MANUAL_SOURCES and bool(existing.get("refreshed_at"))
     if not already_made and await asyncio.to_thread(claim_refresh, key, source, today):
         await run_refresh(roadmap, source, key, today)
