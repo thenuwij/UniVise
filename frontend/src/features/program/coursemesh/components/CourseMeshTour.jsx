@@ -8,7 +8,6 @@ const STEPS = [
   { target: "node", title: "Try it: click a course", text: "Click any course to see what it needs.", waitFor: "course", demo: "click" },
   { target: "course-card", title: "What it needs", text: "Ticks show what you've done. Press Mark as done when you finish it." },
   { target: "view-tools", title: "Find your way back", text: "Undo, Reset view and Fit to screen bring the full map back." },
-  { target: "plan-actions", title: "Keep it up to date", text: "Tick finished courses and add courses you plan to take." },
 ];
 
 const CARD_W = 320;

@@ -8,20 +8,17 @@ import useCourseMeshData from "../hooks/useCourseMeshData";
 import { colorFor } from "../utils/canvas";
 import CourseMeshGraph from "./CourseMeshGraph";
 import CourseInfoPanel from "./CourseInfoPanel";
-import PicksPanel from "./PicksPanel";
 import CourseMeshTour from "./CourseMeshTour";
-import ElectivesPanel from "./ElectivesPanel";
-import { useCoursePicks } from "../hooks/useCoursePicks";
 import { STATUS, courseStatus, prereqGroups } from "../utils/availability";
 import { hasSeenGuide } from "@/shared/lib/guideSeen";
 import { useEnrolledProgram } from "../../hooks/useEnrolledProgram";
 import { setCourseCompleted } from "../../utils/completedCourses";
 import { setCourseAdded } from "../../utils/programCourses";
 import { notNeededCodes } from "../../utils/myCourses";
-import { Info, Plus, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { ADDED_SECTION } from "../../utils/myCourses";
 
-export default function CourseMesh({ programCode, focus = null, onOpenCourses }) {
+export default function CourseMesh({ programCode, focus = null }) {
   const { session } = UserAuth();
   const guideKey = `univise-coursemesh-guide-seen-${session?.user?.id || "guest"}`;
 
@@ -69,13 +66,8 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     }
     return c;
   }, [graph?.nodes, statusOf]);
-  const coursePicks = useCoursePicks(isOwnProgram);
-  const pickCodes = useMemo(() => new Set(coursePicks.picks.map((p) => p.code)), [coursePicks.picks]);
-  const isPick = useCallback((code) => pickCodes.has(code), [pickCodes]);
-  const [showElectives, setShowElectives] = useState(false);
   const [savingAdded, setSavingAdded] = useState(false);
   const options = useMemo(() => new Map((mine?.options || []).map((o) => [o.code, o])), [mine]);
-  const onMap = useCallback((code) => graph.nodes.some((n) => n.id === code), [graph.nodes]);
 
   const addPickToMap = async (pick) => {
     await toggleAdded(options.get(pick.code) || { code: pick.code, name: pick.name, uoc: pick.uoc ?? null, section: ADDED_SECTION }, true);
@@ -120,18 +112,6 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
     } finally {
       setSavingDone(false);
     }
-  };
-
-  const showOnMap = (code) => {
-    setShowElectives(false);
-    lastAddedRef.current = null;
-    setPendingFocus(code);
-  };
-
-  const closeElectives = () => {
-    setShowElectives(false);
-    if (lastAddedRef.current) setPendingFocus(lastAddedRef.current);
-    lastAddedRef.current = null;
   };
 
   useEffect(() => {
@@ -374,8 +354,10 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
 
   return (
     <div className="flex flex-col rounded-2xl border border-line bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-      {(isOwnProgram || graph?.nodes?.length > 0) && (
-        <div className="px-4 md:px-5 py-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-line">
+
+      <GraphControls
+        ref={controlsRef}
+        legend={
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {graph?.nodes?.length > 0 &&
               [["completed", "Completed"], ["available", "Can take next"], ["locked", "Not yet"], ["not_needed", "Not needed"]]
@@ -407,38 +389,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
               </span>
             )}
           </div>
-          {isOwnProgram && <div data-tour="plan-actions" className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={onOpenCourses}
-              className="px-2 py-2 text-sm font-semibold text-link underline-offset-4 hover:underline"
-            >
-              Tick courses in My courses
-            </button>
-            <button
-              onClick={() => setShowElectives(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
-            >
-              <Plus className="h-4 w-4" strokeWidth={2.5} />
-              Add courses
-            </button>
-          </div>}
-        </div>
-      )}
-
-      {showElectives && (
-        <ElectivesPanel
-          options={mine?.options || []}
-          added={mine?.added || new Set()}
-          completed={completed}
-          saving={savingAdded}
-          onToggle={toggleAdded}
-          onShow={showOnMap}
-          onClose={closeElectives}
-        />
-      )}
-
-      <GraphControls
-        ref={controlsRef}
+        }
         graphHistory={graphHistoryRef}
         handleBack={handleBackGraph}
         handleHome={handleHomeGraph}
@@ -491,19 +442,6 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
             </p>
           )}
 
-          {isOwnProgram && graph?.nodes?.length > 0 && (
-            <PicksPanel
-              picks={coursePicks.picks}
-              loading={coursePicks.loading}
-              failed={coursePicks.failed}
-              onRetry={coursePicks.retry}
-              onMap={onMap}
-              onShow={setPendingFocus}
-              onAdd={addPickToMap}
-              saving={savingAdded}
-            />
-          )}
-
           {/* First-load hint */}
           {showHint && graph?.nodes?.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
@@ -529,7 +467,7 @@ export default function CourseMesh({ programCode, focus = null, onOpenCourses })
             onBackgroundClick={onBackgroundClick}
             setHoverLink={setHoverLink}
             nodeCanvasObject={(node, ctx) =>
-              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf, isPick })
+              nodeCanvasObject(node, ctx, { focusedNode, getDirectNeighbours, colorFor, statusOf })
             }
             nodePointerAreaPaint={nodePointerAreaPaint}
             linkColor={linkColor}

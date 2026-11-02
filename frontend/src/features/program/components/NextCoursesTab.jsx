@@ -28,7 +28,7 @@ function PlanAction({ course, plan, onOpenCourses }) {
   if (!plan.ready) return null;
   if (plan.inPlan(course.code)) {
     return (
-      <button type="button" onClick={onOpenCourses} className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline dark:text-emerald-300">
+      <button type="button" onClick={onOpenCourses} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-1 text-emerald-700 hover:underline dark:text-emerald-300">
         <Check className="h-4 w-4" aria-hidden="true" /> In My courses
       </button>
     );
@@ -38,7 +38,7 @@ function PlanAction({ course, plan, onOpenCourses }) {
       type="button"
       onClick={() => plan.addToPlan(course)}
       disabled={!!plan.saving}
-      className="inline-flex items-center gap-1.5 text-link hover:underline disabled:opacity-50"
+      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-100 px-3.5 text-blue-900 transition-colors hover:bg-blue-200 disabled:opacity-50 dark:border-blue-700 dark:bg-blue-900/50 dark:text-blue-100 dark:hover:bg-blue-900"
     >
       <Plus className="h-4 w-4" aria-hidden="true" /> {plan.saving === course.code ? "Adding..." : "Add to My courses"}
     </button>
@@ -65,18 +65,18 @@ function PickRow({ pick, plan, onOpenCourses, onOpenCourseMesh }) {
       {pick.careers?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {pick.careers.map((name) => (
-            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+            <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-950/50 dark:text-blue-200">
               <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> {name}
             </span>
           ))}
         </div>
       )}
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
         <PlanAction course={pick} plan={plan} onOpenCourses={onOpenCourses} />
-        <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="text-link hover:underline">
+        <button type="button" onClick={() => onOpenCourseMesh(pick.code)} className="font-medium text-ink-muted hover:text-link hover:underline">
           See in CourseMesh
         </button>
-        <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-link hover:underline">
+        <a href={handbookUrl("courses", pick.code)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-ink-muted hover:text-link hover:underline">
           Handbook <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>
@@ -143,9 +143,7 @@ export default function NextCoursesTab({ degreeCode, isOwnProgram, onOpenCourses
 
   return (
     <div>
-      <SectionHeading subtitle={`${available.length} course${available.length === 1 ? "" : "s"} open to you. Ranked by fit with your careers.`}>
-        Top picks for you
-      </SectionHeading>
+      <SectionHeading>Your next courses, ranked by fit with your careers</SectionHeading>
       {careers.length > 0 && (
         <div className="mt-5">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by career">
