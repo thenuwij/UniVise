@@ -7,10 +7,10 @@
   display: flex;
   align-items: center;
   gap: 28px;
-  min-height: 60px;
+  min-height: 66px;
   max-width: 1680px;
   margin: 0 auto;
-  padding: 8px 40px;
+  padding: 9px 40px;
 }
 .app-nav-brand {
   display: inline-flex;
@@ -20,22 +20,22 @@
   font-family: var(--font-heading);
   font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.7px;
 }
 .app-nav-brand img {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 }
 .app-nav-links {
   display: flex;
   align-items: center;
-  gap: 26px;
-  margin-left: auto;
+  gap: 28px;
+  margin-left: 20px;
 }
 .app-nav-link {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 42px;
   padding: 8px 0;
   border-bottom: 2px solid transparent;
   background: transparent;
@@ -59,37 +59,45 @@
 .app-nav-actions {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 8px;
+  margin-left: auto;
   flex-shrink: 0;
 }
 .app-nav-shortlist {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 40px;
-  font-size: 15px;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: var(--color-ink);
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
 .app-nav-shortlist svg {
-  width: 17px;
-  height: 17px;
+  width: 22px;
+  height: 22px;
 }
 .app-nav-shortlist:hover,
 .app-nav-shortlist.is-active {
+  background: var(--color-surface-tint);
   color: var(--color-link);
 }
 .app-nav-account {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
   padding: 0;
+  border-radius: 50%;
   background: transparent;
-  font-size: 15px;
 }
 .app-nav-account img,
 .app-nav-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -97,10 +105,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-tint);
-  color: var(--color-link);
-  font-size: 11px;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-indigo));
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--color-surface);
 }
 .app-nav-account:hover {
   color: var(--color-link);
@@ -138,13 +147,10 @@
   .app-nav-links {
     gap: 20px;
   }
-  .app-nav-account-label {
-    display: none;
-  }
 }
 @media (max-width: 900px) {
   .app-nav-inner {
-    min-height: 56px;
+    min-height: 64px;
     gap: 14px;
     padding: 10px 20px;
   }
@@ -155,18 +161,10 @@
     display: inline-flex;
   }
   .app-nav-actions {
-    margin-left: auto;
-    gap: 14px;
-  }
-  .app-nav-shortlist span {
-    display: none;
-  }
-  .app-nav-shortlist {
-    justify-content: center;
-    width: 32px;
+    gap: 4px;
   }
   .app-nav-brand {
-    font-size: 23px;
+    font-size: 24px;
     gap: 6px;
   }
   .app-nav-brand img {
@@ -181,7 +179,7 @@
     padding-right: 14px;
   }
   .app-nav-actions {
-    gap: 9px;
+    gap: 2px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

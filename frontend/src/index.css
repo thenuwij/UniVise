@@ -121,11 +121,10 @@
 }
 
 .app-header-surface {
-  border-bottom: 1px solid color-mix(in srgb, var(--color-link) 22%, var(--color-line));
   background: linear-gradient(
-    110deg,
-    var(--color-surface-tint),
-    color-mix(in srgb, var(--color-brand-blue) 16%, var(--color-surface))
+    100deg,
+    color-mix(in srgb, #60a5fa 12%, var(--color-surface)),
+    color-mix(in srgb, #60a5fa 26%, var(--color-surface))
   );
   color: var(--color-ink-strong);
 }

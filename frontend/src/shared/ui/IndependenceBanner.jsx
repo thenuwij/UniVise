@@ -27,14 +27,14 @@ export default function IndependenceBanner({ innerClassName = "px-6 py-2" }) {
   };
 
   return (
-    <div className="border-y border-line bg-slate-50 dark:bg-slate-900">
+    <div>
       <div className={`flex items-start justify-between gap-3 ${innerClassName}`}>
         <IndependenceNotice />
         <button
           type="button"
           onClick={dismiss}
           aria-label="Dismiss notice"
-          className="-m-1 shrink-0 rounded p-1 text-ink-muted hover:bg-slate-200 hover:text-ink-strong dark:hover:bg-slate-800"
+          className="-m-1 shrink-0 rounded-full p-1 text-ink-muted hover:bg-white/60 hover:text-ink-strong dark:hover:bg-slate-800"
         >
           <X className="h-4 w-4" />
         </button>
