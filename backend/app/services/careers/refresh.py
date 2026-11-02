@@ -79,6 +79,8 @@ async def refresh_source(roadmap: Dict[str, Any], source: str) -> Dict[str, Any]
     key = degree_key(roadmap)
     today = sydney_today()
     existing = (await asyncio.to_thread(read_feed, key)).get(source) or {}
+    if not entry_roles(roadmap):
+        return source_state(source, existing or None, today)
     already_made = source in MANUAL_SOURCES and bool(existing.get("refreshed_at"))
     if not already_made and await asyncio.to_thread(claim_refresh, key, source, today):
         await run_refresh(roadmap, source, key, today)

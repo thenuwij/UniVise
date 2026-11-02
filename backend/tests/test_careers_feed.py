@@ -5,7 +5,7 @@ from app.services.careers.event_checks import event_date, is_list_page, merge_ev
 from app.services.careers.feed import degree_key, source_state
 import asyncio
 
-from app.services.careers import top_picks
+from app.services.careers import refresh, top_picks
 from app.services.careers.top_picks import backup_cards, field_slug, listing_pages, parse_cards, parse_picks
 from app.services.careers.web_search import keep_listing, page_key
 
@@ -185,3 +185,12 @@ def test_top_picks_fall_back_to_adzuna_when_job_sites_block(monkeypatch):
     assert [p["title"] for p in picks] == ["Graduate Civil Engineer"]
     assert picks[0]["source_site"] == "Adzuna" and picks[0]["kind"] == "job"
 
+
+
+def test_refresh_waits_until_the_plan_has_career_roles(monkeypatch):
+    claims = []
+    monkeypatch.setattr(refresh, "read_feed", lambda key: {})
+    monkeypatch.setattr(refresh, "claim_refresh", lambda *args: claims.append(args) or True)
+    roadmap = {"degree_code": "3707", "payload": {"specialisation_ids": []}}
+    state = asyncio.run(refresh.refresh_source(roadmap, "adzuna"))
+    assert claims == [] and state["status"] == "never"
