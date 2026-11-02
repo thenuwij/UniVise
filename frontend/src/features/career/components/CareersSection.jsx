@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { updatedLabel } from "../utils/careersDates";
 
 const EXPECTED_MS = 60000;
@@ -68,7 +68,7 @@ export function SubLabel({ hint, children, action, icon: Icon }) {
   );
 }
 
-export default function CareersSection({ id, title, count, description, status, updatedAt, loadingText, onRetry, sources = [], children }) {
+export default function CareersSection({ id, title, count, description, status, updatedAt, loadingText, onRetry, sources = [], searchAgain, children }) {
   const loading = status === "loading" || sources.some((s) => s.status === "running");
   const pct = useTimedProgress(loading);
 
@@ -89,6 +89,18 @@ export default function CareersSection({ id, title, count, description, status, 
           {sources.map((s) => (
             <SectionStatus key={s.label} label={s.label} status={s.status} updatedAt={s.refreshedAt} onRetry={s.onRetry} />
           ))}
+          {searchAgain && (
+            <button
+              type="button"
+              onClick={searchAgain.onClick}
+              disabled={searchAgain.disabled}
+              title={searchAgain.title}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold text-link ring-1 ring-line hover:bg-surface-tint disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${searchAgain.running ? "animate-spin" : ""}`} aria-hidden="true" />
+              Search again
+            </button>
+          )}
         </div>
       </div>
       <div className="min-w-0">
