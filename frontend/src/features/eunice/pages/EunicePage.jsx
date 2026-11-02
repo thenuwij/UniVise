@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppNav from "@/shared/layout/AppNav";
 import { UserAuth } from "@/app/AuthContext";
 import { listConversations, removeConversation } from "../api";
@@ -15,6 +15,7 @@ export default function EunicePage() {
   const { session } = UserAuth();
   const userId = session?.user?.id;
   const navigate = useNavigate();
+  const { state } = useLocation();
 
   useEffect(() => {
     if (!userId) return;
@@ -53,6 +54,7 @@ export default function EunicePage() {
         <div className="flex-1 overflow-hidden">
           <ChatWindow
             convId={conversationId}
+            autoAsk={state?.ask}
             onCreated={(conversation) => {
               setConversations((prev) => [conversation, ...prev]);
               navigate(`/chat/${conversation.id}`, { replace: true });
