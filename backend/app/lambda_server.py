@@ -30,6 +30,9 @@ _SECRETS = {
 
 def _load_secrets() -> None:
     missing = {env_name: secret_id for env_name, secret_id in _SECRETS.items() if not os.environ.get(env_name)}
+    # With workload identity federation the Anthropic client needs no stored key.
+    if os.environ.get("ANTHROPIC_FEDERATION_RULE_ID"):
+        missing.pop("ANTHROPIC_API_KEY", None)
     if not missing:
         return
     client = boto3.client("secretsmanager")

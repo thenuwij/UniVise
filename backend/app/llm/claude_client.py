@@ -10,15 +10,40 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-if not os.getenv("ANTHROPIC_API_KEY"):
-    raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
-
 _TIMEOUT_SECONDS = 60
 _MAX_RETRIES = 2
+_ANTHROPIC_AUDIENCE = "https://api.anthropic.com"
 
-_async_client = anthropic.AsyncAnthropic(
-    api_key=os.getenv("ANTHROPIC_API_KEY"), timeout=_TIMEOUT_SECONDS, max_retries=_MAX_RETRIES
-)
+
+def _aws_identity_token() -> str:
+    """Short-lived AWS-signed token that proves this is the UniVise Lambda role."""
+    import boto3  # only needed on AWS, where the image installs it
+
+    sts = boto3.client("sts", region_name=os.getenv("AWS_REGION", "ap-southeast-2"))
+    response = sts.get_web_identity_token(
+        Audience=[_ANTHROPIC_AUDIENCE], SigningAlgorithm="RS256", DurationSeconds=900
+    )
+    return response["WebIdentityToken"]
+
+
+def _auth_kwargs() -> dict:
+    """Workload identity federation on AWS (no stored key), the API key everywhere else."""
+    if os.getenv("ANTHROPIC_FEDERATION_RULE_ID"):
+        return {
+            "credentials": anthropic.WorkloadIdentityCredentials(
+                identity_token_provider=_aws_identity_token,
+                federation_rule_id=os.environ["ANTHROPIC_FEDERATION_RULE_ID"],
+                organization_id=os.environ["ANTHROPIC_ORGANIZATION_ID"],
+                service_account_id=os.environ["ANTHROPIC_SERVICE_ACCOUNT_ID"],
+                workspace_id=os.getenv("ANTHROPIC_WORKSPACE_ID"),
+            )
+        }
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise RuntimeError("Set ANTHROPIC_API_KEY, or the ANTHROPIC_FEDERATION_* variables on AWS")
+    return {"api_key": os.getenv("ANTHROPIC_API_KEY")}
+
+
+_async_client = anthropic.AsyncAnthropic(**_auth_kwargs(), timeout=_TIMEOUT_SECONDS, max_retries=_MAX_RETRIES)
 
 _MODEL = "claude-sonnet-4-6"
 _SYSTEM = "You are a helpful expert career advisor."
