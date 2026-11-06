@@ -6,6 +6,7 @@ from app.services.careers.adzuna import fetch_adzuna_listings
 from app.services.careers.event_checks import check_events, merge_events
 from app.services.careers.feed import (
     MANUAL_SOURCES,
+    paused,
     SEARCH_AGAIN_SOURCES,
     SOURCES,
     adzuna_refreshes_today,
@@ -69,6 +70,8 @@ async def run_refresh(roadmap: Dict[str, Any], source: str, key: str, today) -> 
 async def refresh_source(roadmap: Dict[str, Any], source: str, manual: bool = False) -> Dict[str, Any]:
     key = degree_key(roadmap)
     today = sydney_today()
+    if paused(source):
+        return source_state(source, None, today)
     existing = (await asyncio.to_thread(read_feed, key)).get(source) or {}
     if not entry_roles(roadmap):
         return source_state(source, existing or None, today)
@@ -87,6 +90,8 @@ async def refresh_source(roadmap: Dict[str, Any], source: str, manual: bool = Fa
 async def force_refresh(roadmap: Dict[str, Any], source: str) -> Dict[str, Any]:
     key = degree_key(roadmap)
     today = sydney_today()
+    if paused(source):
+        return source_state(source, None, today)
     await asyncio.to_thread(mark_running, key, source)
     await run_refresh(roadmap, source, key, today)
     rows = await asyncio.to_thread(read_feed, key)

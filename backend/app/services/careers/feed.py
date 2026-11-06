@@ -11,6 +11,14 @@ SYDNEY = ZoneInfo("Australia/Sydney")
 RUNNING_FOR = timedelta(minutes=3)
 RETRY_FAILED_AFTER = timedelta(minutes=5)
 SEARCH_AGAIN_AFTER = timedelta(hours=24)
+# Paused on 2026-11-06 to cut AI cost: the Opus web search behind ai_jobs and
+# ai_internships cost too much per run. Jobs and internships come from Adzuna
+# alone until this is True again.
+TOP_PICKS_ENABLED = False
+
+
+def paused(source: str) -> bool:
+    return source in MANUAL_SOURCES and not TOP_PICKS_ENABLED
 
 
 def sydney_today() -> date:
@@ -59,6 +67,9 @@ def parse_time(value: str | None) -> datetime | None:
 
 
 def source_state(source: str, row: Dict[str, Any] | None, today: date) -> Dict[str, Any]:
+    if paused(source):
+        # Old picks would go out of date, so show none and never ask for a refresh.
+        return {"source": source, "status": "never", "stale": False, "refreshed_at": None, "items": []}
     if not row:
         return {"source": source, "status": "never", "stale": True, "refreshed_at": None, "items": []}
     now = datetime.now(timezone.utc)

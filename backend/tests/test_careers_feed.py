@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from app.services.careers.adzuna import broad_searches, listing, role_searches, unique
 from app.services.careers.event_checks import event_date, is_list_page, merge_events
+from app.services.careers import feed
 from app.services.careers.feed import degree_key, source_state
 import asyncio
 import json
@@ -39,10 +40,29 @@ def test_refreshed_today_is_fresh_and_yesterday_is_stale():
     assert source_state("adzuna", {**row, "refresh_day": "2026-10-20"}, TODAY)["stale"]
 
 
-def test_top_picks_only_go_stale_when_never_made():
+def test_top_picks_only_go_stale_when_never_made(monkeypatch):
+    monkeypatch.setattr(feed, "TOP_PICKS_ENABLED", True)
     made = {"status": "idle", "refresh_day": "2026-09-01", "refreshed_at": ago(days=50), "items": []}
     assert source_state("ai_jobs", made, TODAY)["stale"] is False
     assert source_state("ai_internships", None, TODAY)["stale"] is True
+
+
+def test_paused_top_picks_show_nothing_and_never_search(monkeypatch):
+    monkeypatch.setattr(feed, "TOP_PICKS_ENABLED", False)
+    made = {"status": "idle", "refresh_day": "2026-10-21", "refreshed_at": ago(hours=1), "items": [{"id": "1"}]}
+    assert source_state("ai_jobs", made, TODAY) == {
+        "source": "ai_jobs", "status": "never", "stale": False, "refreshed_at": None, "items": [],
+    }
+
+    async def no_search(*args, **kwargs):
+        raise AssertionError("paused top picks must not search")
+
+    monkeypatch.setattr(refresh, "fetch_top_picks", no_search)
+    monkeypatch.setattr(refresh, "read_feed", lambda key: {})
+    roadmap = {"degree_code": "3707", "payload": {"career_pathways": {"entry_level": {"roles": [{"title": "x"}]}}}}
+    for source in ("ai_jobs", "ai_internships"):
+        assert asyncio.run(refresh.refresh_source(roadmap, source, manual=True))["status"] == "never"
+        assert asyncio.run(refresh.force_refresh(roadmap, source))["status"] == "never"
 
 
 def test_running_refresh_blocks_another_until_it_times_out():
