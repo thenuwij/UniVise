@@ -124,7 +124,8 @@ export default function ChatWindow({ convId, onCreated, compact = false, getPage
 
     if (!res.ok) {
       setLoading(false);
-      setMessages(ms => [...ms, { sender: "bot", text: "Sorry, I couldn't process your message. Please try again.", created_at: new Date().toISOString() }]);
+      const limitText = res.status === 429 ? (await res.json().catch(() => null))?.detail : null;
+      setMessages(ms => [...ms, { sender: "bot", text: limitText || "Sorry, I couldn't process your message. Please try again.", created_at: new Date().toISOString() }]);
       return;
     }
 

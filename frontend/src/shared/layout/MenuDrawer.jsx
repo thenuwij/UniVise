@@ -5,6 +5,7 @@ import { isNavigationActive } from "./navigation";
 import { roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "@/app/AuthContext";
+import { isDemoUser } from "@/features/auth/utils/demo";
 import { supabase } from "@/shared/lib/supabase";
 
 const GROUPS = [
@@ -58,7 +59,7 @@ export function MenuDrawer({ isOpen, handleClose }) {
       const firstName = user.user_metadata.first_name || user.user_metadata.full_name?.split(" ")[0] || "";
       const lastName = user.user_metadata.last_name || user.user_metadata.full_name?.split(" ")[1] || "";
       setDisplayName(`${firstName} ${lastName}`.trim());
-      setDisplayEmail(user.email || "");
+      setDisplayEmail(isDemoUser(user) ? "Demo account" : user.email || "");
       setAvatarUrl(user.user_metadata.avatar_url || user.user_metadata.picture || "");
     };
     loadUser();

@@ -1,5 +1,6 @@
 import { Briefcase, Network } from "lucide-react";
 import { Header } from "@/shared/layout/Header";
+import DemoButton from "./DemoButton";
 
 const FEATURES = [
   { icon: Network, title: "Connect courses to careers", text: "See what you can take next, the skills each course builds and the careers it supports." },
@@ -45,6 +46,7 @@ export default function AuthLayout({ title, subtitle, children }) {
           <div className="mx-auto w-full max-w-md">
             <h1 className="text-3xl font-extrabold text-ink-strong">{title}</h1>
             {subtitle && <p className="mt-2 text-ink-muted">{subtitle}</p>}
+            <DemoButton />
             <div className="mt-7">{children}</div>
           </div>
         </section>

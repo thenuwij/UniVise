@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
+from app.services.demo import check_demo_chat_limit
 from app.services.user_profile import get_student_type, get_user_info
 from app.core.database import supabase
 from app.models.chat import ReplyRequest
@@ -35,6 +36,7 @@ async def reply_to_conversation_stream(conv_id: str, payload: ReplyRequest | Non
             raise HTTPException(status_code=404, detail="Conversation not found")
 
         await get_student_type(user)
+        await check_demo_chat_limit(user)
         user_info = await get_user_info(user)
 
         if not user_info:

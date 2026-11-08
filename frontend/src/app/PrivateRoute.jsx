@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
 import EuniceLauncher from "@/features/eunice/components/EuniceLauncher";
+import DemoBanner from "@/features/auth/components/DemoBanner";
 import SupportedProgramGate from "./SupportedProgramGate";
 import TermsUpdateGate from "./TermsUpdateGate";
 
@@ -39,6 +40,7 @@ const PrivateRoute = ({ children, requireProgram = true }) => {
     <div>
       {session ? (
         <>
+          <DemoBanner />
           {requireProgram ? <TermsUpdateGate><SupportedProgramGate>{children}<EuniceLauncher /></SupportedProgramGate></TermsUpdateGate> : children}
         </>
       ) : (

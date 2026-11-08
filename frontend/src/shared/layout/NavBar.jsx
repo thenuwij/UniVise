@@ -18,6 +18,7 @@ import logo from "@/assets/logo.svg";
 import IndependenceBanner from "@/shared/ui/IndependenceBanner";
 import { roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { UserAuth } from "@/app/AuthContext";
+import { isDemoUser } from "@/features/auth/utils/demo";
 import { isNavigationActive } from "./navigation";
 import "./navigation.css";
 
@@ -132,7 +133,7 @@ export function NavBar({ onMenuClick, isMenuOpen = false }) {
           >
             <DropdownHeader>
               <span className="block font-semibold">{displayName}</span>
-              <span className="block truncate text-sm">{user?.email}</span>
+              <span className="block truncate text-sm">{isDemoUser(user) ? "Demo account" : user?.email}</span>
             </DropdownHeader>
             <DropdownItem icon={User} onClick={() => navigate("/profile")}>
               My account
