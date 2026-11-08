@@ -1,16 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Maximize2, MessageCircle, Plus, X } from "lucide-react";
 import ChatWindow from "./ChatWindow";
 import { currentPage } from "../utils/pageContext";
 
-const HIDDEN = ["/dashboard", "/chat", "/survey", "/roadmap-loading"];
+const DRAG_THRESHOLD_PX = 5;
+const EDGE_PX = 8;
+
+const HIDDEN = ["/chat", "/survey", "/roadmap-loading"];
 
 export default function EuniceLauncher() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [convId, setConvId] = useState(null);
   const [tucked, setTucked] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const drag = useRef(null);
+  const moved = useRef(false);
+  const [dragging, setDragging] = useState(false);
+
+  // The bubble can be dragged out of the way, and goes back to its corner on every new page.
+  useEffect(() => {
+    setOffset({ x: 0, y: 0 });
+  }, [pathname]);
+
+  const onPointerDown = (e) => {
+    if (e.button !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    drag.current = { startX: e.clientX, startY: e.clientY, from: offset, rect };
+    moved.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!moved.current && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+    moved.current = true;
+    setDragging(true);
+    // Keep the whole bubble on screen.
+    const x = Math.min(window.innerWidth - EDGE_PX - d.rect.right, Math.max(EDGE_PX - d.rect.left, dx));
+    const y = Math.min(window.innerHeight - EDGE_PX - d.rect.bottom, Math.max(EDGE_PX - d.rect.top, dy));
+    setOffset({ x: d.from.x + x, y: d.from.y + y });
+  };
+
+  const onPointerUp = () => {
+    drag.current = null;
+    setDragging(false);
+  };
 
   useEffect(() => {
     let last = window.scrollY;
@@ -96,12 +135,23 @@ export default function EuniceLauncher() {
 
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (moved.current) {
+            moved.current = false;
+            return;
+          }
+          setOpen((value) => !value);
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        style={{ translate: `${offset.x}px ${offset.y + (tucked && !open ? 96 : 0)}px` }}
         aria-expanded={open}
         aria-label={open ? "Close Eunice" : "Ask Eunice"}
-        title={open ? "Close Eunice" : "Ask Eunice"}
-        className={`fixed z-40 bottom-4 right-4 sm:bottom-5 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full text-white bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-xl shadow-blue-600/30 transition duration-300 ${
-          tucked && !open ? "translate-y-24 opacity-0 pointer-events-none" : ""
+        title={open ? "Close Eunice" : "Ask Eunice (drag to move)"}
+        className={`fixed z-40 bottom-4 right-4 sm:bottom-5 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full touch-none select-none cursor-grab active:cursor-grabbing text-white bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-xl shadow-blue-600/30 duration-300 ${dragging ? "transition-[background-color,scale]" : "transition-all"} ${
+          tucked && !open ? "opacity-0 pointer-events-none" : ""
         }`}
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7" />}
