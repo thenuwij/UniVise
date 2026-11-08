@@ -4,6 +4,8 @@ import { ArrowRight, BriefcaseBusiness, ChevronRight, GraduationCap, MessageCirc
 import { careerSectionUrl, roadmapStepUrl, roadmapViewUrl } from "@/features/program/utils/roadmapSteps";
 import { useHomePreview } from "../hooks/useHomePreview";
 import StudyGuide from "./StudyGuide";
+import { UserAuth } from "@/app/AuthContext";
+import { isDemoUser } from "@/features/auth/utils/demo";
 import DegreeEditMenu from "./DegreeEditMenu";
 
 const STUDY_GUIDE_KEY = "univise-study-guide-seen";
@@ -149,7 +151,10 @@ function CareerColumn({ career, onRetry }) {
 
 export default function HomeContent({ facts, greeting, today, onHelp }) {
   const { picks, career, retryCareer } = useHomePreview(facts);
+  const { session } = UserAuth();
+  // The usability study popup is for study participants, not demo visitors.
   const [showStudyGuide, setShowStudyGuide] = useState(() => {
+    if (isDemoUser(session?.user)) return false;
     try {
       return !localStorage.getItem(STUDY_GUIDE_KEY);
     } catch {

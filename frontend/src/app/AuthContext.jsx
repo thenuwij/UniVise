@@ -2,6 +2,8 @@ import { createContext, useEffect, useState, useContext } from "react";
 import { supabase } from "@/shared/lib/supabase";
 import { TERMS_VERSION } from "@/features/auth/data/termsContent";
 import { BANNER_DISMISSED_KEY } from "@/shared/ui/IndependenceBanner";
+import { apiFetch } from "@/shared/lib/api";
+import { isDemoUser } from "@/features/auth/utils/demo";
 
 const AuthContext = createContext();
 
@@ -58,6 +60,10 @@ export const AuthContextProvider = ({ children }) => {
 
   
   const signOut = async () => {
+    // A demo account is throwaway, so delete it now rather than waiting for the 24 hour clean-up.
+    if (isDemoUser(session?.user)) {
+      await apiFetch("/user/me", { method: "DELETE", token: session.access_token }).catch(() => null);
+    }
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Sign out had an error");

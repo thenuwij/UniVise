@@ -19,7 +19,12 @@ signing_keys = jwt.PyJWKClient(f"{AUTH_ISSUER}/.well-known/jwks.json", cache_key
 def verify_locally(token: str):
     key = signing_keys.get_signing_key_from_jwt(token).key
     claims = jwt.decode(token, key, algorithms=["ES256", "RS256"], audience="authenticated", issuer=AUTH_ISSUER)
-    return SimpleNamespace(id=claims["sub"], email=claims.get("email"), user_metadata=claims.get("user_metadata") or {})
+    return SimpleNamespace(
+        id=claims["sub"],
+        email=claims.get("email"),
+        user_metadata=claims.get("user_metadata") or {},
+        app_metadata=claims.get("app_metadata") or {},
+    )
 
 
 async def get_current_user(
