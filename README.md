@@ -12,6 +12,8 @@ Built as an Honours research thesis at UNSW Sydney on how AI can connect univers
 
 The system only supports current UNSW undergraduate programs.
 
+**Try it without signing up:** open [uni-vise.com](https://uni-vise.com) and click **Try the demo**. You explore as a sample Computer Science student, and the demo account is deleted when you sign out.
+
 ## Key Features
 
 ### My Program
@@ -42,11 +44,23 @@ Save courses, careers and opportunities in one place. Add personal notes, track 
 
 Ask questions about your studies and career options. Eunice uses your program, interests, completed courses and saved careers to provide personalised guidance. It can look up course and program information from the Handbook catalogue and check prerequisites. Conversations are saved for you to revisit.
 
+Eunice is also a chat bubble on every page, so you can ask about what you are looking at without leaving it. You can drag the bubble aside if it covers something.
+
 ---
 
 ## Built With
 
 React 19, Vite, Tailwind CSS, FastAPI and Supabase (PostgreSQL and authentication), with OpenAI and Anthropic Claude for AI features. The frontend is served through Amazon S3 and CloudFront, and the backend runs on AWS Lambda. GitHub Actions handles checks, deployment and manual maintenance workflows. Live at [uni-vise.com](https://uni-vise.com).
+
+---
+
+## How It's Built
+
+UniVise is built with Claude Code as a coding assistant, with every change checked before it ships.
+
+- **Tests:** 395 automated tests, 252 for the backend and 143 for the frontend.
+- **Checks on every pull request:** linting, unused-code checks, the full test suite and a production build must all pass.
+- **Reviewed changes:** each change goes through a pull request that I review before merging.
 
 ---
 
