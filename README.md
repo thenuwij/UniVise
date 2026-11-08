@@ -14,6 +14,12 @@ The system only supports current UNSW undergraduate programs.
 
 **Try it without signing up:** open [uni-vise.com](https://uni-vise.com) and click **Try the demo**. You explore as a sample Computer Science student, and the demo account is deleted when you sign out.
 
+## Motivation
+
+Planning a degree means answering questions that sit in different places. Which courses can I take next? What does my degree still require? Where does this major lead, and what jobs, internships and events fit it?
+
+The answers are spread across the UNSW Handbook, job boards, event listings and careers advice, and students have to connect them on their own. UniVise brings them into one place, built around each student's own program, and uses AI to link the courses they take to the careers they are working towards.
+
 ## Key Features
 
 ### My Program
@@ -56,7 +62,7 @@ React 19, Vite, Tailwind CSS, FastAPI and Supabase (PostgreSQL and authenticatio
 
 ## How It's Built
 
-UniVise is built with Claude Code as a coding assistant, with every change checked before it ships.
+Every change is checked before it ships.
 
 - **Tests:** 395 automated tests, 252 for the backend and 143 for the frontend.
 - **Checks on every pull request:** linting, unused-code checks, the full test suite and a production build must all pass.
