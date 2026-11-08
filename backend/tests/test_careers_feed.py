@@ -272,3 +272,57 @@ def test_top_picks_fail_when_the_web_search_finds_nothing(monkeypatch):
 def test_job_board_list_pages_are_not_treated_as_single_jobs():
     for url in ["https://au.indeed.com/q-mechanical-graduate-jobs.html", "https://au.indeed.com/Mechanical-Product-jobs-in-Brisbane-QLD"]:
         assert not keep_listing(url, {page_key(url)})
+
+
+LISTINGS = [{"title": "Graduate Software Engineer"}, {"title": "Graduate Mechanical Engineer"}]
+
+
+def test_relevance_check_retries_then_filters(monkeypatch):
+    from app.services.careers import relevance
+
+    calls = []
+
+    async def flaky(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 1:
+            raise TimeoutError("slow")
+        return relevance.RelevantListings(keep=[0])
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(relevance, "ask_gpt_structured", flaky)
+    monkeypatch.setattr(relevance.asyncio, "sleep", no_sleep)
+    kept = asyncio.run(relevance.keep_relevant(LISTINGS, "Bachelor of Computer Science", []))
+    assert kept == [LISTINGS[0]]
+    assert len(calls) == 2
+
+
+def test_relevance_check_never_saves_unfiltered_ads(monkeypatch):
+    from app.services.careers import relevance
+
+    async def down(*args, **kwargs):
+        raise RuntimeError("OpenAI down")
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(relevance, "ask_gpt_structured", down)
+    monkeypatch.setattr(relevance.asyncio, "sleep", no_sleep)
+    with pytest.raises(RuntimeError):
+        asyncio.run(relevance.keep_relevant(LISTINGS, "Bachelor of Computer Science", []))
+
+
+def test_failed_relevance_check_keeps_the_previous_list(monkeypatch):
+    saved, failed = [], []
+
+    async def fails(*args):
+        raise RuntimeError("relevance check failed")
+
+    monkeypatch.setattr(refresh, "read_feed", lambda key: {"adzuna": {"items": [{"title": "Old good ad"}]}})
+    monkeypatch.setattr(refresh, "fetch_listings", fails)
+    monkeypatch.setattr(refresh, "save_refresh", lambda *args: saved.append(args))
+    monkeypatch.setattr(refresh, "mark_failed", lambda *args: failed.append(args))
+    asyncio.run(refresh.run_refresh({}, "adzuna", "3778|", TODAY))
+    assert saved == []
+    assert len(failed) == 1

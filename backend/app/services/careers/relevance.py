@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any, Dict, List
 
@@ -8,6 +9,7 @@ from app.llm.openai_client import ask_gpt_structured
 logger = logging.getLogger(__name__)
 
 MODEL = "gpt-5.4-mini"
+RETRY_DELAYS_S = (1, 3)
 
 
 class RelevantListings(BaseModel):
@@ -37,15 +39,25 @@ def relevance_prompt(listings: List[Dict[str, Any]], program_name: str, roles: L
 
 
 async def keep_relevant(listings: List[Dict[str, Any]], program_name: str, roles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Keep the listings that fit the degree.
+
+    Retries the check, and raises if every attempt fails. Saving the raw search
+    results instead would show unrelated ads (for example mechanical roles for
+    computer science) until the next refresh, so the caller keeps the previous list.
+    """
     if not listings:
         return []
-    try:
-        result = await ask_gpt_structured(
-            relevance_prompt(listings, program_name, roles), RelevantListings, max_tokens=2000, temperature=1, model=MODEL
-        )
-    except Exception:
-        logger.exception("[careers_feed] relevance check failed, keeping every listing")
-        return listings
+    prompt = relevance_prompt(listings, program_name, roles)
+    for attempt in range(len(RETRY_DELAYS_S) + 1):
+        try:
+            result = await ask_gpt_structured(prompt, RelevantListings, max_tokens=2000, temperature=1, model=MODEL)
+            break
+        except Exception:
+            if attempt == len(RETRY_DELAYS_S):
+                logger.exception("[careers_feed] relevance check failed after retries, keeping the previous list")
+                raise
+            logger.warning(f"[careers_feed] relevance check attempt {attempt + 1} failed, retrying", exc_info=True)
+            await asyncio.sleep(RETRY_DELAYS_S[attempt])
     keep = {i for i in result.keep if 0 <= i < len(listings)}
     logger.info(f"[careers_feed] relevance check kept {len(keep)} of {len(listings)} listings")
     return [item for i, item in enumerate(listings) if i in keep]
